@@ -11,11 +11,11 @@
 		<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
 
 	</head>
-	<body>
+	<body style="height:100%;width:100%;overflow:hidden">
 	  <!-- 3 setup a container element -->
-		<div class="row" id="splitter" style="height:100%;" >
-			<div class="col-md-1 col-lg-1" id="look-up" style="padding-right:0px;">
-				<div class="panel-group" id="accordion" style="height:100%;overflow:auto">
+		<div id="splitter" style="height:100%;width:100%;">
+			<div id="look-up" style="padding-right:0px;min-width:200px;height:100%;overflow:auto;">
+				<div class="panel-group" id="accordion">
 					<div class="panel panel-default">
               <div class="panel-heading">
                 <h4 class="panel-title">
@@ -146,8 +146,8 @@
 						</div>
         </div>
 			</div>
-			<div class="col-md-8 col-lg-8">
-			  <div class="loader" style=""></div>
+			<div class = "tree-panel" style="height:100%;min-width:950px;overflow-y:auto;overflow-x:hidden;">
+			  <div class="loader"></div>
 			  <div id ="mainDiv" class="input-group has-feedback" style="display:inline;">
 			      <div style="position:relative; display:table; border-collapse:separate;">
 			        <input type="text" id="plugins4_q" value="" class="input form-control" style="display:inline; visibility: hidden; margin:0em 0em 0em 0.5em; padding:4px; border-radius:4px; border:1px solid silver;width: 22em;margin-top: 1em" placeholder="Search"></input>
@@ -161,47 +161,56 @@
 			          </button>
 			          <button type="button" class="btn btn-primary btn-inverted" onclick="expandAll();">Expand All</button>
 			          <button type="button" class="btn btn-primary btn-inverted" onclick="closeAll();"style="display: inline;">Collapse All</button>
-			      </span>
+			     </span>
 			  </div>
 			  <div id="jstree"  >
-			    <!-- in this example the tree is populated from inline HTML -->
-
+				    <!-- in this example the tree is populated from inline HTML -->
 			  </div>
 			</div>
 		</div>
 	</body>
 		<script type="text/javascript">
 			$(document).ready(function(){
-				$('#splitter').splitter({
-				});
-				$.getJSON("gudmap_parsed.json", function(presentationData) {
+				var location = window.location.href;
+				var JSONData,showPanel;
+				if(location.indexOf("?RID=") !== -1) {
+					JSONData = "gudmap_parsed_with_annotation.json";
+					showPanel = true;
+				}
+				else {
+					JSONData = "gudmap_parsed.json";
+					showPanel = false;
+				}
+				if(showPanel == false) {
+					$("#look-up").hide();
+					$(".tree-panel").css('margin-left','20px');
+				}
+				else {
+					$('#splitter').splitter({
+						position: '0%',
+						limit: {leftUpper: 200, rightBottom: 300}
+					});
+					$('.vsplitbar').append('<span class="glyphicon glyphicon-resize-horizontal"></span>');
+				}
+				$.getJSON(JSONData, function(presentationData) {
 				$("div#jstree").jstree({
-					plugins: ["themes","json","grid","search","sort", "types"],
+					plugins: ["themes","json","grid","search","sort"],
 					core: {
 						data: presentationData
 					},
 					grid: {
-						columns: [{width:2000}
+						columns: [{width:500}
 						]
 					},
-					 types : {
-
-	            folder : {
-
-	              icon : "glyphicon glyphicon-tree-deciduous",
-	              valid_children : ["default"]
-	            },
-
-	            file : {
-	              icon : "glyphicon glyphicon-leaf",
-	              valid_children : []
-	            }
-	        },
 					search: { show_only_matches : false, show_only_matches_children : false, close_opened_onclear: true}
 				})
-				// .on('loaded.jstree', function() {
-				// 	$("div#jstree").jstree('open_all');
-				// });
+				.on('search.jstree', function (e, data) {
+				    if(data.nodes.length) {
+							setTimeout(function(){
+								$('#jstree').jstree(true).get_node(data.nodes[0].id, true).children('.jstree-anchor').get(0).scrollIntoView();
+							},100);
+				    }
+				})
 				document.getElementsByClassName('loader')[0].style.display="none";
 		    document.getElementById('plugins4_q').style.visibility="visible";
 
@@ -214,21 +223,6 @@
 					tree.trigger("change_node.jstree",nodename);
 
 					return(false);
-				});
-
-				$("a#refresh").click(function(){
-					var tree = $("div#jstree").jstree();
-					var data = [{
-						text: "Root 1",
-						data: {price: "$5.00", size: "4"}
-					}];
-					tree.settings.core.data = data;
-					tree.refresh();
-					return(false);
-				});
-				$("input#search").keyup(function (e) {
-					var tree = $("div#jstree").jstree();
-					tree.search($(this).val());
 				});
 			});
 			$(function () {
@@ -244,8 +238,6 @@
 	      }, 1400);
 	      });
 	    });
-
-
 		});
 		function search(){
 				var v=  $('#plugins4_q').val();

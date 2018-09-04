@@ -28,11 +28,14 @@ function buildTree(presentationData){
       var presentationData =[];
       // Returns json - Query 1 : https://dev.rebuildingakidney.org/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of/F1:=left(subject_dbxref)=(Anatomy_terms:dbxref)/$M/F2:=left(object_dbxref)=(Anatomy_terms:dbxref)/$M/subject_dbxref:=M:subject_dbxref,object_dbxref,subject:=F1:name,object:=F2:name
       // Returns extraAttributes - Query 2 : https://dev.rebuildingakidney.org/ermrest/catalog/2/attribute/M:=Gene_Expression:Specimen_Expression/RID=Q-PQ16/$M/RID:=M:RID,Region:=M:Region,strength:=M:Strength,pattern:=M:Pattern,density:=M:Density,densityChange:=M:Density_Direction,densityNote:=M:Density_Note
+      // Returns isolated nodes - Query 3 : https://dev.rebuildingakidney.org/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy_terms/s:=left(dbxref)=(Vocabulary:Anatomy_Part_Of:subject_dbxref)/subject_dbxref::null::/$t/o:=left(dbxref)=(Vocabulary:Anatomy_Part_Of:object_dbxref)/object_dbxref::null::/$t/dbxref:=t:dbxref,name:=t:name
       var json = JSON.parse(fs.readFileSync('gudmap_data.json', 'utf8'));
       var extraAttributes = JSON.parse(fs.readFileSync('extra_attributes.json', 'utf8'));
+      var isolatedNodes = JSON.parse(fs.readFileSync('isolated_nodes.json', 'utf8'));
       var Region = extraAttributes[0].Region;
+      var showAnnotation = true;
 
-      forest= processData(json, extraAttributes[0]);
+      forest= processData(json, extraAttributes[0], showAnnotation, isolatedNodes);
       var presentationData =[];
 
       for(var g=0; g< forest.trees.length; g++)
@@ -41,20 +44,31 @@ function buildTree(presentationData){
         var finalData = buildTree(presentationData);
           const content = JSON.stringify(finalData);
           //console.log(content);
-      fs.writeFile("gudmap_parsed.json", content, 'utf8', function (err) {
-          if (err) {
-              return console.log(err);
-          }
+      if(showAnnotation == false) {
+        fs.writeFile("gudmap_parsed.json", content, 'utf8', function (err) {
+            if (err) {
+                return console.log(err);
+            }
 
-          console.log("The file was saved!");
-      });
+            console.log("The file was saved!");
+        });
+      }
+      else {
+        fs.writeFile("gudmap_parsed_with_annotation.json", content, 'utf8', function (err) {
+            if (err) {
+                return console.log(err);
+            }
+
+            console.log("The file was saved!");
+        });
+      }
           console.log("**END**");
 }
 
-function processData(data, extraAttributes){
+function processData(data, extraAttributes, showAnnotation, isolatedNodes){
   var subjectText = data[0].subject,
       objectText= data[0].object;
-  if(data[0].object_dbxref == extraAttributes.Region) {
+  if(showAnnotation && data[0].object_dbxref == extraAttributes.Region) {
     var densityIcon= getDensityIcon(extraAttributes.density),
     densityChangeIcon= getDensityChangeIcon(extraAttributes.densityChange),
     densityNoteIcon= getDensityNoteIcon(extraAttributes.densityNote),
@@ -66,12 +80,12 @@ function processData(data, extraAttributes){
     strengthImgSrc = strengthIcon != '' ? "<img src="+strengthIcon+"></img>" : "",
     densityChangeImgSrc = densityChangeIcon != '' ? "<img src="+densityChangeIcon+"></img>" : "",
     densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img src="+densityNoteIcon+" title='"+densityNote+"'></img>" : ""
-    objectColumnData = "<span><span>"+objectText+"</span>"+densityImgSrc+patternImgSrc+strengthImgSrc+densityChangeImgSrc+densityNoteImgSrc+"</span>"
+    objectColumnData = "<span>"+strengthImgSrc+"<span>"+objectText+"</span>"+densityImgSrc+patternImgSrc+densityChangeImgSrc+densityNoteImgSrc+"</span>"
   }
   else {
     objectColumnData = "<span>"+objectText+"</span>"
   }
-  if(data[0].subject_dbxref == extraAttributes.Region) {
+  if(showAnnotation && data[0].subject_dbxref == extraAttributes.Region) {
     var densityIcon= getDensityIcon(extraAttributes.density),
     densityChangeIcon= getDensityChangeIcon(extraAttributes.densityChange),
     densityNoteIcon= getDensityNoteIcon(extraAttributes.densityNote),
@@ -83,7 +97,7 @@ function processData(data, extraAttributes){
     strengthImgSrc = strengthIcon != '' ? "<img src="+strengthIcon+"></img>" : "",
     densityChangeImgSrc = densityChangeIcon != '' ? "<img src="+densityChangeIcon+"></img>" : "",
     densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img src="+densityNoteIcon+" title='"+densityNote+"'></img>" : ""
-    subjectColumnData = "<span><span>"+subjectText+"</span>"+densityImgSrc+patternImgSrc+strengthImgSrc+densityChangeImgSrc+densityNoteImgSrc+"</span>"
+    subjectColumnData = "<span>"+strengthImgSrc+"<span>"+objectText+"</span>"+densityImgSrc+patternImgSrc+densityChangeImgSrc+densityNoteImgSrc+"</span>"
   }
   else {
     subjectColumnData = "<span>"+subjectText+"</span>"
@@ -118,6 +132,24 @@ function processData(data, extraAttributes){
     //var tree = new Tree(parent);
     var forest = new Forest(parent);
     forest.trees.push(tree);
+    // Get all isolated nodes as parent nodes
+    for (var j =0;j <isolatedNodes.length; j++) {
+      var parent =  {
+          text :  "<span>"+isolatedNodes[j].name+"</span>" ,
+          parent : [],
+          children : [],
+          dbxref : isolatedNodes[j].dbxref,
+          a_attr      :
+              {
+                  'href': '/chaise/record/#2/Vocabulary:Anatomy_terms/dbxref='+isolatedNodes[j].dbxref.replace(/:/g,'%3A'),
+                  'style': 'display:inline;'
+              },
+          li_attr : { "class" : "jstree-leaf"}
+      };
+      console.log(parent)
+      var tree = new Tree(parent);
+      forest.trees.push(tree);
+    }
 
 
     for(var i =1 ;i <data.length; i ++){
@@ -125,7 +157,7 @@ function processData(data, extraAttributes){
         //     console.log('found');
         var subjectText = data[i].subject,
             objectText= data[i].object;
-        if(data[i].object_dbxref == extraAttributes.Region) {
+        if(showAnnotation && data[i].object_dbxref == extraAttributes.Region) {
           var densityIcon= getDensityIcon(extraAttributes.density),
           densityChangeIcon= getDensityChangeIcon(extraAttributes.densityChange),
           densityNoteIcon= getDensityNoteIcon(extraAttributes.densityNote),
@@ -137,12 +169,12 @@ function processData(data, extraAttributes){
           strengthImgSrc = strengthIcon != '' ? "<img src="+strengthIcon+"></img>" : "",
           densityChangeImgSrc = densityChangeIcon != '' ? "<img src="+densityChangeIcon+"></img>" : "",
           densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img src="+densityNoteIcon+" title='"+densityNote+"'></img>" : ""
-          objectColumnData = "<span><span>"+objectText+"</span>"+densityImgSrc+patternImgSrc+strengthImgSrc+densityChangeImgSrc+densityNoteImgSrc+"</span>"
+          objectColumnData = "<span>"+strengthImgSrc+"<span>"+objectText+"</span>"+densityImgSrc+patternImgSrc+densityChangeImgSrc+densityNoteImgSrc+"</span>"
         }
         else {
           objectColumnData = "<span>"+objectText+"</span>"
         }
-        if(data[i].subject_dbxref == extraAttributes.Region) {
+        if(showAnnotation && data[i].subject_dbxref == extraAttributes.Region) {
           var densityIcon= getDensityIcon(extraAttributes.density),
           densityChangeIcon= getDensityChangeIcon(extraAttributes.densityChange),
           densityNoteIcon= getDensityNoteIcon(extraAttributes.densityNote),
@@ -154,7 +186,7 @@ function processData(data, extraAttributes){
           strengthImgSrc = strengthIcon != '' ? "<img src="+strengthIcon+"></img>" : "",
           densityChangeImgSrc = densityChangeIcon != '' ? "<img src="+densityChangeIcon+"></img>" : "",
           densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img src="+densityNoteIcon+" title='"+densityNote+"'></img>" : ""
-          subjectColumnData = "<span><span>"+subjectText+"</span>"+densityImgSrc+patternImgSrc+strengthImgSrc+densityChangeImgSrc+densityNoteImgSrc+"</span>"
+          subjectColumnData = "<span>"+strengthImgSrc+"<span>"+objectText+"</span>"+densityImgSrc+patternImgSrc+densityChangeImgSrc+densityNoteImgSrc+"</span>"
         }
         else {
           subjectColumnData = "<span>"+subjectText+"</span>"
