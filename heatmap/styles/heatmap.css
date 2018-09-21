@@ -22,3 +22,7 @@ img.spinner {
     height: 32px;
     opacity: 0.8;
 }
+
+.errorDiv{
+    margin: 5%;
+}
