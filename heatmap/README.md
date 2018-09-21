@@ -54,3 +54,7 @@ if (typeof module === 'object' && module.exports && typeof require === 'function
 }
 
 ```
+## Installation
+
+### Installation Path
+Change the installation path by changing the value of INSDIR in Makefile and then execute the "make install" command.

@@ -1,33 +1,45 @@
 <html ng-app="heatmapApp">
-  <head>
-<script src='/chaise/chaise-config.js'></script>
-<script src='/chaise/scripts/vendor/jquery-1.11.1.min.js'></script>
-<script src='/chaise/scripts/vendor/angular.js'></script>
-<script src='/chaise/scripts/vendor/angular-sanitize.js'></script>
-<script src='/chaise/common/vendor/angular-cookies.min.js'></script>
-<link rel="stylesheet" type="text/css" href="/chaise/styles/vendor/bootstrap.min.css">
-<script src='/chaise/common/alerts.js'></script>
-<script src='/chaise/common/authen.js'></script>
-<script src='/chaise/common/storage.js'></script>
-<script src='/chaise/common/errors.js'></script>
-<script src='/chaise/common/filters.js'></script>
-<script src='/chaise/common/modal.js'></script>
-<script src='/chaise/common/utils.js'></script>
-<script src='/chaise/scripts/vendor/ui-bootstrap-tpls-2.5.0.min.js'></script>
-<script src='/ermrestjs/ermrest.js'></script>
-<script src='/chaise/scripts/vendor/plotly-latest.min.js'></script>
-<script src="heatmap-config.js"></script> 
-<script src="heatmap.js"></script>
-<link rel="stylesheet" type="text/css" href="styles/heatmap.css">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<head>
+  <script src='/chaise/chaise-config.js'></script>
+  <script src='/chaise/scripts/vendor/jquery-1.11.1.min.js'></script>
+  <script src='/chaise/scripts/vendor/angular.js'></script>
+  <script src='/chaise/scripts/vendor/angular-sanitize.js'></script>
+  <script src='/chaise/common/vendor/angular-cookies.min.js'></script>
+  <link rel="stylesheet" type="text/css" href="/chaise/styles/vendor/bootstrap.min.css">
+  <script src='/chaise/common/alerts.js'></script>
+  <script src='/chaise/common/authen.js'></script>
+  <script src='/chaise/common/storage.js'></script>
+  <script src='/chaise/common/errors.js'></script>
+  <script src='/chaise/common/filters.js'></script>
+  <script src='/chaise/common/modal.js'></script>
+  <script src='/chaise/common/utils.js'></script>
+  <script src='/chaise/scripts/vendor/ui-bootstrap-tpls-2.5.0.min.js'></script>
+  <script src='/ermrestjs/ermrest.js'></script>
+  <script src='/chaise/scripts/vendor/plotly-latest.min.js'></script>
+  <script src="heatmap-config.js"></script>
+  <script src="heatmap.js"></script>
+  <link rel="stylesheet" type="text/css" href="styles/heatmap.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
+
 <body ng-controller="HeatmapController">
-  <div id="heatmapSpinner" ng-show="!allHeatmapsLoaded">
-      <img src="styles/images/loader.gif" class="spinner"/>
+  <div ng-show="!configErrorsPresent">
+    <div id="heatmapSpinner" ng-show="!allHeatmapsLoaded">
+      <img src="styles/images/loader.gif" class="spinner" />
       <div style="margin-top: 15px;">Loading...</div>
+    </div>
+    <div ng-repeat="heatmap in heatmaps" ng-show="allHeatmapsLoaded">
+      <heatmap heatmap-id="{{heatmap.id}}"></heatmap>
+    </div>
   </div>
-  <div ng-repeat="heatmap in heatmaps" ng-show="allHeatmapsLoaded">  
-    <heatmap heatmap-id="{{heatmap.id}}"></heatmap>
+  <div ng-show="configErrorsPresent" class="errorDiv">
+    <h3>Configuration Errors </h3>
+    <p>Change the following in the heatmap-config.js file: </p>
+    <ul>
+      <li ng-repeat="error in invalidConfigs">{{error}}</li>
+    </ul>
   </div>
 </body>
+
 </html>

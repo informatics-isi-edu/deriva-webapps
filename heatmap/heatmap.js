@@ -22,33 +22,49 @@ var heatmapApp =
 
 		.run(['ERMrest', 'UriUtils', '$rootScope', '$window',
 			function runApp(ERMrest, UriUtils, $rootScope, $window) {
-				var context = {};
-				context = $rootScope.context = UriUtils.parseURLFragment($window.location, context);
+				$rootScope.heatmapsLoadedCount = 0;
+				$rootScope.configErrorsPresent = false;
 				ERMrest.appLinkFn(UriUtils.appTagToURL);
 				var ermrestURI = UriUtils.chaiseURItoErmrestURI($window.location);
 				var heatmaps = [];
 				ERMrest.resolve(ermrestURI).then(function getReference(reference) {
-					verifyColumns(reference);
-					var sortBy = typeof heatmapConfig.data.sortBy !== "undefined" ? heatmapConfig.data.sortBy : [];
-					var ref = reference.sort(sortBy);
-					ref.read(1000).then(function getPage(page) {
-						readAll(page);
-					}).catch(function (error) {
-						throw error;
-					});
+					verifyConfiguration(reference);
+					if (!$rootScope.configErrorsPresent) {
+						var sortBy = typeof heatmapConfig.data.sortBy !== "undefined" ? heatmapConfig.data.sortBy : [];
+						var ref = reference.sort(sortBy);
+						ref.read(1000).then(function getPage(page) {
+							readAll(page);
+						}).catch(function (error) {
+							$rootScope.invalidConfigs = ["Error while reading data from Ermrestjs"];
+							$rootScope.configErrorsPresent = true;
+						});
+					}
 				}).catch(function (error) {
 					throw error;
 				});
 
-				function verifyColumns(reference) {
+				function verifyConfiguration(reference) {
 					var config = heatmapConfig.data;
 					var columns = ["titleColumn", "idColumn", "xColumn", "yColumn", "zColumn"];
+					var invalidConfigs = [];
 					for (var i = 0; i < columns.length; i++) {
 						try {
 							reference.getColumnByName(config[columns[i]]);
 						} catch (error) {
-							throw error;
+							invalidConfigs.push("Coulmn \"" + config[columns[i]] + "\" does not exist. Give a valid value for the " + columns[i] + ".")
 						}
+					}
+					var sortColumns = config.sortBy;
+					for (var i = 0; i < sortColumns.length; i++) {
+						try {
+							reference.getColumnByName(sortColumns[i].column);
+						} catch (error) {
+							invalidConfigs.push("Coulmn \"" + sortColumns[i].column + "\" in \"sortBy\" field does not exist. Replace it with a valid column.")
+						}
+					}
+					if (invalidConfigs.length > 0) {
+						$rootScope.invalidConfigs = invalidConfigs;
+						$rootScope.configErrorsPresent = true;
 					}
 				}
 
@@ -57,7 +73,10 @@ var heatmapApp =
 						addData(page.tuples[i]);
 					}
 					if (page.hasNext) {
-						ary = page.next.read(1000).then(readAll);
+						ary = page.next.read(1000).then(readAll).catch(function (error) {
+							$rootScope.invalidConfigs = ["Error while reading data from Ermrestjs"];
+							$rootScope.configErrorsPresent = true;
+						});
 					} else {
 						console.log("heatmaps: ", heatmaps);
 						$rootScope.heatmaps = heatmaps;
@@ -95,9 +114,8 @@ var heatmapApp =
 		]);
 
 heatmapApp.controller('HeatmapController', function HeatmapController($scope, $http, $q, $rootScope) {
-	$rootScope.heatmapsLoadedCount = 0;
+
 	$scope.allHeatmapsLoaded = false;
-	heatmapApp.run();
 	$scope.showHeatmaps = function () {
 		$scope.$apply(function () {
 			$scope.allHeatmapsLoaded = true;
