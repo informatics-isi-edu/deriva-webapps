@@ -7,3 +7,5 @@ install: heatmap.js index.html
 	cp styles/*.css $(INSDIR)/styles/
 	mkdir -p $(INSDIR)/styles/images
 	cp styles/images/*.gif $(INSDIR)/styles/images/
+	mkdir -p $(INSDIR)/vendor
+	cp vendor/*.js $(INSDIR)/vendor/
