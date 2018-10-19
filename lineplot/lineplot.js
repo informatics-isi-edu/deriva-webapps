@@ -77,6 +77,8 @@ lineplotApp.factory('LineplotUtils', ['AlertsService', 'dataFormats', 'Session',
                             if (!$rootScope.loginShown) {
                                 $rootScope.loginShown = true;
                                 Session.loginInAModal(function () {
+                                    // set to false in case a request fails after with 401
+                                    $rootScope.loginShown = false;
                                     window.location.reload();
                                 });
                             }
