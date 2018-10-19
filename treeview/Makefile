@@ -19,7 +19,7 @@ install: html/gridexample.html
 	cp resources/images/NerveDensity/RelativeToTotal/*.png $(INSDIR)/resources/images/NerveDensity/RelativeToTotal/
 	mkdir -p $(INSDIR)/themes/default/images
 	cp themes/*.png $(INSDIR)/themes/default/images/
-	cp themes/*.css $(INSDIR)/themes/default/images/
-	cp themes/*.gif $(INSDIR)/themes/default/images/
+	cp themes/default/images/*.css $(INSDIR)/themes/default/images/
+	cp themes/default/images/*.gif $(INSDIR)/themes/default/images/
 	mkdir -p $(INSDIR)/util
 	cp util/*.js $(INSDIR)/util/
