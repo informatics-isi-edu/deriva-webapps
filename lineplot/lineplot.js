@@ -31,30 +31,6 @@ var lineplotApp = angular.module('lineplotApp', [
 
         LineplotUtils.getData($rootScope.start_time);
         // var ermrestURI1 = "https://prisms.isrd.isi.edu/ermrest/catalog/1/attribute/prisms:breathe_platform_airbeam_view_dev_ft/subject_id=159&recorded_time::geq::2018-10-15T12%3A00%3A00/recorded_time,pm_value,rh_value,f_value@sort(recorded_time)?limit=7200",
-
-        // function verifyConfiguration(reference) {
-        //     var columns = ["titleColumn", "idColumn", "xColumn", "yColumn", "zColumn"];
-        //     var invalidConfigs = [];
-        //     for (var i = 0; i < columns.length; i++) {
-        //         try {
-        //             reference.getColumnByName(config[columns[i]]);
-        //         } catch (error) {
-        //             invalidConfigs.push("Coulmn \"" + config[columns[i]] + "\" does not exist. Give a valid value for the " + columns[i] + ".")
-        //         }
-        //     }
-        //     var sortColumns = config.sortBy;
-        //     for (var i = 0; i < sortColumns.length; i++) {
-        //         try {
-        //             reference.getColumnByName(sortColumns[i].column);
-        //         } catch (error) {
-        //             invalidConfigs.push("Coulmn \"" + sortColumns[i].column + "\" in \"sortBy\" field does not exist. Replace it with a valid column.")
-        //         }
-        //     }
-        //     if (invalidConfigs.length > 0) {
-        //         $rootScope.invalidConfigs = invalidConfigs;
-        //         $rootScope.configErrorsPresent = true;
-        //     }
-        // }
     }
 ]);
 
@@ -102,9 +78,10 @@ lineplotApp.factory('LineplotUtils', ['AlertsService', 'dataFormats', 'Session',
                             Session.loginInAModal(function () {
                                 window.location.reload();
                             });
+                        } else {
+                            // else add warning alert
+                            AlertsService.addAlert(err.data, 'warning');
                         }
-                        // else add warning alert
-                        AlertsService.addAlert(err.data, 'warning');
                     }
                 });
             });
@@ -155,42 +132,16 @@ lineplotApp.controller('LineplotController', ['AlertsService', 'dataFormats', 'L
     }
 }]);
 
-/**
-* Directive <heatmap> is used to display a heatmap of a given dataset in (x,y,z) format
-* It can have following input parameters in the heatmap-config.js file in presenattion object:
-* @param {number} width: width of the heatmap in pixels. To avoid horizontal scroll should be same as the width of the enclosing iframe
-* @param {number} xTickAngle: Inclination of the X axis labels
-* @param {string} tickFontFamily: Font family of the axis labels, both x and y
-* @param {number} tickFontSize: Font size of the axis labels, both x and y
-* @example:
-* <heatmap heatmap-id="{{heatmap.id}}">
-* </heatmap>
-*/
 lineplotApp.directive('lineplot', ['$rootScope', function ($rootScope) {
     return {
         link: function (scope, element) {
             var layout = {
                 title: lineplotConfig.plot_title,
-                // autosize: true,
-                // height: 500,
-                // width: 600,
                 xaxis: {
                     title: lineplotConfig.x_axis_label
-                //     fixedrange: true,
-                //     ticks: 'inside',
-                //     tickangle: 45,
-                //     // set to "linear" for int/float graphs
-                //     // set to "date" for date/timestamp graphs
-                //     type: 'date'
-                //     // NOTE: setting the range currently to unzoom the graph because auto-range wasn't working it seemed
-                //     // autorange: true // default is true. if range is provided, set to false.
-                //     // rangemode: "normal"/"tozero"/"nonnegative"
                 },
                 yaxis: {
                     title: lineplotConfig.y_axis_label
-                //     fixedrange: true,
-                //     zeroline: true,
-                //     tickformat: ',d'
                 }
             }
 
