@@ -27,9 +27,7 @@ var lineplotApp = angular.module('lineplotApp', [
         $rootScope.subject_id = $rootScope.params.subject_id ? $rootScope.params.subject_id : lineplotConfig.subject_id;
         $rootScope.start_time = $rootScope.params.start_time ? $rootScope.params.start_time : lineplotConfig.start_time;
         $rootScope.limit = $rootScope.params.limit ? $rootScope.params.limit : lineplotConfig.limit;
-
-        // check if value has been provided in encoded format already
-        $rootScope.start_time = $rootScope.start_time.indexOf("%") < 0 ? UriUtils.fixedEncodeURIComponent($rootScope.start_time) : $rootScope.start_time;
+        $rootScope.duration = $rootScope.params.duration ? $rootScope.params.duration : lineplotConfig.duration;
 
         LineplotUtils.getData($rootScope.start_time);
         // var ermrestURI1 = "https://prisms.isrd.isi.edu/ermrest/catalog/1/attribute/prisms:breathe_platform_airbeam_view_dev_ft/subject_id=159&recorded_time::geq::2018-10-15T12%3A00%3A00/recorded_time,pm_value,rh_value,f_value@sort(recorded_time)?limit=7200",
@@ -60,7 +58,7 @@ var lineplotApp = angular.module('lineplotApp', [
     }
 ]);
 
-lineplotApp.factory('LineplotUtils', ['AlertsService', 'Session', '$http', '$rootScope', function (AlertsService, Session, $http, $rootScope) {
+lineplotApp.factory('LineplotUtils', ['AlertsService', 'dataFormats', 'Session', 'UriUtils', '$http', '$rootScope', function (AlertsService, dataFormats, Session, UriUtils, $http, $rootScope) {
     return {
         getData: function (timestamp) {
             var baseUri = "https://prisms.isrd.isi.edu/ermrest/catalog/1/attribute/";
@@ -69,7 +67,12 @@ lineplotApp.factory('LineplotUtils', ['AlertsService', 'Session', '$http', '$roo
             var tracesComplete = 0;
             var loginShown = false;
             lineplotConfig.traces.forEach(function (trace) {
-                var uri = baseUri + trace.path + "/subject_id=" + $rootScope.subject_id + "&recorded_time::geq::" + timestamp + "/" + trace.x_col + "," + trace.y_col + "@sort(recorded_time)?limit=" + $rootScope.limit;
+                var uriWithFilters = baseUri + trace.path + "/subject_id=" + $rootScope.subject_id + "&recorded_time::geq::" + UriUtils.fixedEncodeURIComponent(timestamp);
+                if ($rootScope.duration) {
+                    var end_x = moment(timestamp).add($rootScope.duration, 'h').format(dataFormats.datetime.submission);
+                    uriWithFilters += "&recorded_time::leq::" + UriUtils.fixedEncodeURIComponent(end_x);
+                }
+                var uri = uriWithFilters + "/" + trace.x_col + "," + trace.y_col + "@sort(recorded_time)?limit=" + $rootScope.limit;
                 $http.get(uri).then(function(response) {
                     var lineplot = {
                         x: [],
@@ -99,8 +102,6 @@ lineplotApp.factory('LineplotUtils', ['AlertsService', 'Session', '$http', '$roo
                             Session.loginInAModal(function () {
                                 window.location.reload();
                             });
-                            // err.message = err.data;
-                            // throw err;
                         }
                         // else add warning alert
                         AlertsService.addAlert(err.data, 'warning');
@@ -114,8 +115,8 @@ lineplotApp.factory('LineplotUtils', ['AlertsService', 'Session', '$http', '$roo
 lineplotApp.controller('LineplotController', ['AlertsService', 'dataFormats', 'LineplotUtils', 'UriUtils', '$rootScope', '$scope', '$timeout', function LineplotController(AlertsService, dataFormats, LineplotUtils, UriUtils, $rootScope, $scope, $timeout) {
     var vm = this;
     vm.alerts = AlertsService.alerts;
-    // vm.closeAlert = AlertsService.deleteAlert;
     vm.dataFormats = dataFormats;
+    vm.x_label = lineplotConfig.x_axis_label;
     vm.model = {
         date: null,
         time: null,
@@ -123,8 +124,8 @@ lineplotApp.controller('LineplotController', ['AlertsService', 'dataFormats', 'L
     }
 
     vm.applyDatetime = function () {
-        var timestamp = moment(vm.model.date + vm.model.time, dataFormats.date + dataFormats.time12 + 'A').format(dataFormats.datetime.submission);
-        LineplotUtils.getData(UriUtils.fixedEncodeURIComponent(timestamp));
+        var timestamp = moment(vm.model.date + vm.model.time, dataFormats.date + dataFormats.time12).format(dataFormats.datetime.submission);
+        LineplotUtils.getData(timestamp);
     }
 
     vm.toggleMeridiem = function () {

@@ -9,7 +9,8 @@ The lineplot-config.js file has the following parameters which can be modified w
 1. subject_id: Id of the subject to fetch data for.
 2. start_time: Timestamp value to begin fetching the set of data from.
 3. limit: The number of rows to fetch for all sets.
-4. traces: The query information for each line to display in the plot.
+4. duration: The range from the start time that data will be collected from.
+5. traces: The query information for each line to display in the plot.
 
 ### Presentation parameters
 1. plot_title: Title to be displayed above the line plot.
@@ -27,7 +28,8 @@ var lineplotConfig = {
     y_axis_label: null,                                             // plot y axis label
     subject_id: "159",                                              // identifier for the subject to get data from
     start_time: "2018-10-15T12:00:00",                              // the value to begin querying data from
-    limit: 7200,                                                    // how many data rows do you want
+    limit: 10000,                                                   // how many data rows you want
+    duration: 5,                                                    // timeframe in hours after start_time to collect data from
     traces: [
         {
             path: "prisms:breathe_platform_airbeam_view_dev_ft",    // schema:table and then anything else
@@ -68,6 +70,7 @@ The following Query Parameters can be appended to the url after a `?` character 
 1. subject_id
 2. start_time
 3. limit
+4. duration
 
 ## Installation
 
