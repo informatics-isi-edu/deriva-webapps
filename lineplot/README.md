@@ -72,6 +72,9 @@ The following Query Parameters can be appended to the url after a `?` character 
 3. limit
 4. duration
 
+Example: `https://prisms.isrd.isi.edu/~jchudy/lineplot/?subject_id=159&start_time=2018-10-15T12:00:00&limit=10000`
+NOTE: Make sure to include the "start_time" string without any spaces and NO url encoded characters (the code takes care of the encoding)
+
 ## Installation
 
 ### Installation Path
