@@ -1,0 +1,64 @@
+<html ng-app="lineplotApp">
+
+<head>
+  <script src='/chaise/chaise-config.js'></script>
+  <script src='/chaise/scripts/vendor/jquery-1.11.1.min.js'></script>
+  <script src='vendor/plotly-latest.min.js'></script>
+  <script src='vendor/moment.min.js'></script>
+  <script src='/chaise/scripts/vendor/angular.js'></script>
+  <script src='/chaise/scripts/vendor/angular-sanitize.js'></script>
+  <script src='/chaise/common/vendor/angular-cookies.min.js'></script>
+  <link rel="stylesheet" type="text/css" href="/chaise/styles/vendor/bootstrap.min.css">
+  <script src='/chaise/common/alerts.js'></script>
+  <script src='/chaise/common/authen.js'></script>
+  <script src='/chaise/common/storage.js'></script>
+  <script src='/chaise/common/errors.js'></script>
+  <script src='/chaise/common/filters.js'></script>
+  <script src='/chaise/common/modal.js'></script>
+  <script src='/chaise/common/utils.js'></script>
+  <script src='/chaise/scripts/vendor/ui-bootstrap-tpls-2.5.0.min.js'></script>
+  <script src='/ermrestjs/ermrest.js'></script>
+  <script src="lineplot-config.js"></script>
+  <script src="lineplot.js"></script>
+  <link rel="stylesheet" type="text/css" href="styles/lineplot.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body ng-controller="LineplotController as ctrl" style="margin: 10px;">
+    <div class="alerts-container">
+        <alerts alerts="ctrl.alerts"></alerts>
+    </div>
+    <div ng-show="ctrl.lineplotsLoaded" class="row" style="width: 500px;">
+        <span class="col-sm-4">Select a different starting {{lineplotConfig.x_axis_label}} to be displayed:</span>
+        <div class="col-sm-6">
+            <div class="input-group">
+                <span class="input-group-addon">Date</span>
+                <input class="form-control input-timestamptz" type="text" ng-model="ctrl.model.date" placeholder="{{ctrl.dataFormats.date}}" model-view-value="true"></input>
+            </div>
+            <div class="input-group">
+                <span class="input-group-addon">Time</span>
+                <input class="form-control" type="text" ng-model="ctrl.model.time" placeholder="{{ctrl.dataFormats.time24}}" model-view-value="true" ></input>
+                <!-- <span class="input-group-btn">
+                    <button class="btn btn-primary btn-inverted" type="button" ng-click="::ctrl.toggleMeridiem();" ng-bind="ctrl.model.meridiem || 'AM'">AM</button>
+                </span> -->
+            </div>
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-primary btn-inverted" ng-click="::ctrl.applyCurrentDatetime();">Now</button>
+                <button type="button" class="btn btn-danger btn-inverted" ng-click="::ctrl.removeValue();">Clear</button>
+            </div>
+            <button type="button" class="btn btn-primary btn-inverted pull-right" ng-click="::ctrl.applyDatetime();">Apply</button>
+        </div>
+    </div>
+    <!-- <div id="heatmapSpinner" ng-show="!allHeatmapsLoaded">
+        <img src="styles/images/loader.gif" class="spinner" />
+        <div style="margin-top: 15px;">Loading...</div>
+    </div> -->
+    <!-- <div ng-repeat="heatmap in heatmaps" ng-show="allHeatmapsLoaded">
+        <heatmap heatmap-id="{{heatmap.id}}"></heatmap>
+    </div> -->
+    <!-- <plotly plotly-data="ctrl.plot.data" plotly-layout="ctrl.plot.layout" plotly-options="ctrl.plot.options" plotly-events="ctrl.plotlyEvents"></plotly> -->
+    <lineplot></lineplot>
+    </div>
+</body>
+
+</html>
