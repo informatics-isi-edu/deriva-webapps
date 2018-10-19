@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en" id="recordedit" ng-app="booleansearchApp">
+
+<head>
+    <title>Boolean Search App</title>
+    <script src='/chaise/chaise-config.js'></script>
+    <script src='/chaise/scripts/vendor/jquery-1.11.1.min.js'></script>
+    <script src='/chaise/scripts/vendor/angular.js'></script>
+    <script src='/chaise/scripts/vendor/angular-sanitize.js'></script>
+    <script src='/chaise/common/vendor/angular-cookies.min.js'></script>
+    <link rel="stylesheet" type="text/css" href="/chaise/styles/vendor/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/chaise/common/styles/app.css">
+    <script src='/chaise/scripts/vendor/bootstrap-3.3.7.min.js'></script>
+    <script src='/chaise/common/alerts.js'></script>
+    <script src='/chaise/common/authen.js'></script>
+    <script src='/chaise/common/storage.js'></script>
+    <script src='/chaise/common/errors.js'></script>
+    <script src='/chaise/common/filters.js'></script>
+    <script src='/chaise/common/modal.js'></script>
+    <script src='/chaise/common/utils.js'></script>
+    <script src='/chaise/scripts/vendor/ui-bootstrap-tpls-2.5.0.min.js'></script>
+    <script src='/ermrestjs/ermrest.js'></script>
+    <link rel="stylesheet" type="text/css" href="styles/booleansearch.css">
+    <script src="booleansearch.app.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8" http-equiv="X-UA-Compatible" content="IE=10; IE=9; IE=8; IE=7; IE=EDGE" />
+
+</head>
+
+<body>
+    <div ng-controller="BooleanSearchController as form">
+        <div id="titleBar" class="col-xs-12 meta-icons">
+            <div id="title" class="pull-left">
+                <h3 id="page-title">
+                    <span>Boolean Search</span>
+                </h3>
+            </div>
+            <div class="pull-right">
+                <button id="submit-button" class="btn btn-primary btn-inverted" type="submit" ng-disabled="form.submissionButtonDisabled"
+                    ng-click="::form.submit()" ng-attr-tooltip-placement="bottom-right" ng-attr-uib-tooltip="Submit data">Submit</button>
+            </div>
+        </div>
+        <div class="sideMargin">
+            <div id="addButtonDiv" class="btn-group pull-right">
+                <button id="create-filter-btn" class="btn btn-primary btn-inverted center-block" ng-click="::form.copyFilterRow();" type="button"
+                    tooltip-placement="top" uib-tooltip="Add more search filters.">
+                    <span class="glyphicon glyphicon-plus"></span>
+                </button>
+            </div>
+        </div>
+        <div class="form-container sideMargin">
+            <table ng-form="form.formContainer" class="table table-hover filterTable" cellspacing="10">
+                <tbody>
+                    <tr ng-repeat="(rowIndex, row) in form.booleanSearchModel.rows track by $index" ng-class="{'activeRow':rowIndex==form.currentRow}"
+                        ng-click="::form.changeActiveRow(rowIndex);">
+                        <td class="noBorder">
+                            <table class="innerFilterTable">
+                                <tbody>
+                                    <tr>
+                                        <td>Strength</td>
+                                        <td>In Anatomical Source</td>
+                                        <td>Stages</td>
+                                        <td>With Pattern</td>
+                                        <td>At Location</td>
+                                        <td>Actions</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <select ng-model="form.booleanSearchModel.rows[rowIndex].strength" ng-options="s for s in strengthOptions"></select>
+                                        </td>
+                                        <td>
+                                            <select ng-model="form.booleanSearchModel.rows[rowIndex].source" ng-options="s for s in sourceOptions" required></select>
+                                            <div ng-messages="form.formContainer.row[rowIndex].$error" ng-show="form.formContainer.$submitted" class="text-danger" role="alert">
+                                                <div ng-message="required">Please enter a value for this field.</div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span>From: </span>
+                                            <select ng-model="form.booleanSearchModel.rows[rowIndex].stageFrom" ng-options="s for s in stageOptions"></select>
+                                            <span>To: </span>
+                                            <select ng-model="form.booleanSearchModel.rows[rowIndex].stageTo" ng-options="s for s in stageOptions"></select>
+                                        </td>
+                                        <td>
+                                            <select ng-model="form.booleanSearchModel.rows[rowIndex].pattern" ng-options="s for s in patternOptions"></select>
+                                        </td>
+                                        <td>
+                                            <select ng-model="form.booleanSearchModel.rows[rowIndex].location" ng-options="s for s in locationOptions"></select>
+                                        </td>
+                                        <td>
+                                            <div>
+                                                <button ng-click="::form.clearFilterRow(rowIndex);" class="btn btn-primary btn-inverted btn-sm" tooltip-placement="bottom"
+                                                    uib-tooltip="Click to clear this filter.">
+                                                    <span class="glyphicon glyphicon-remove"></span>
+                                                </button>
+                                                <button ng-disabled="form.booleanSearchModel.rows.length == 1" ng-click="::form.removeFilterRow(rowIndex, $event);" class="btn btn-primary btn-inverted btn-sm"
+                                                    tooltip-placement="bottom" uib-tooltip="Click to remove this filter.">
+                                                    <span class="glyphicon glyphicon-trash"></span>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
