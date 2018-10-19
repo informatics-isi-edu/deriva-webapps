@@ -12,6 +12,7 @@ var lineplotApp = angular.module('lineplotApp', [
     }])
 
     .run(['LineplotUtils', 'UriUtils', '$rootScope', '$window', function runApp(LineplotUtils, UriUtils, $rootScope, $window) {
+        $rootScope.loginShown = false;
         $rootScope.params = {};
         var query = $window.location.search;
         query = query.slice(query.indexOf("?")+1, query.length);
@@ -41,7 +42,6 @@ lineplotApp.factory('LineplotUtils', ['AlertsService', 'dataFormats', 'Session',
 
             var lineplots = [];
             var tracesComplete = 0;
-            var loginShown = false;
             lineplotConfig.traces.forEach(function (trace) {
                 var uriWithFilters = baseUri + trace.path + "/subject_id=" + $rootScope.subject_id + "&recorded_time::geq::" + UriUtils.fixedEncodeURIComponent(timestamp);
                 if ($rootScope.duration) {
@@ -73,11 +73,13 @@ lineplotApp.factory('LineplotUtils', ['AlertsService', 'dataFormats', 'Session',
                     }
                 }).catch(function (err) {
                     if (err.data) {
-                        if (err.status == 401 && !loginShown) {
-                            var loginShown = true;
-                            Session.loginInAModal(function () {
-                                window.location.reload();
-                            });
+                        if (err.status == 401) {
+                            if (!$rootScope.loginShown) {
+                                $rootScope.loginShown = true;
+                                Session.loginInAModal(function () {
+                                    window.location.reload();
+                                });
+                            }
                         } else {
                             // else add warning alert
                             AlertsService.addAlert(err.data, 'warning');
