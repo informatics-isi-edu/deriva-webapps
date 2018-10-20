@@ -102,7 +102,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             buildPresentationData(showAnnotation, filter_prefix, TS_ordinal)
         } else {
             $("#number").prop("disabled", true);
-            $.getJSON("../cache/tree_data.json", function(treeData) {
+            $.getJSON("cache/tree_data.json", function(treeData) {
                 setAnnotationAndFilter(treeData, showAnnotation, specimen_rid, filter_prefix)
             });
         }
@@ -619,11 +619,11 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
         function getDensityIcon(density) {
             switch (density) {
                 case 'High':
-                    return "../resources/images/NerveDensity/RelativeToTotal/high.png";
+                    return "resources/images/NerveDensity/RelativeToTotal/high.png";
                 case 'Low':
-                    return "../resources/images/NerveDensity/RelativeToTotal/low.png";
+                    return "resources/images/NerveDensity/RelativeToTotal/low.png";
                 case 'Medium':
-                    return "../resources/images/NerveDensity/RelativeToTotal/medium.png";
+                    return "resources/images/NerveDensity/RelativeToTotal/medium.png";
                 default:
                     return "";
             }
@@ -632,9 +632,9 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
         function getDensityChangeIcon(densityChange) {
             switch (densityChange) {
                 case 'Decreased':
-                    return "../resources/images/NerveDensity/RelativeToP0/dec_small.png";
+                    return "resources/images/NerveDensity/RelativeToP0/dec_small.png";
                 case 'Increased':
-                    return "../resources/images/NerveDensity/RelativeToP0/inc_small.png";
+                    return "resources/images/NerveDensity/RelativeToP0/inc_small.png";
                     // case 'No Change':
                     //     return "resources/images/NerveDensity/RelativeToP0/medium.png";
                 default:
@@ -644,7 +644,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
 
         function getDensityNoteIcon(densityNote) {
             if (densityNote != null)
-                return "../resources/images/NerveDensity/note.gif";
+                return "resources/images/NerveDensity/note.gif";
             else
                 return "";
         }
@@ -652,19 +652,19 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
         function getPatternIcon(pattern) {
             switch (pattern) {
                 case 'graded':
-                    return "../resources/images/ExpressionMapping/ExpressionPatternKey/Graded.png";
+                    return "resources/images/ExpressionMapping/ExpressionPatternKey/Graded.png";
                 case 'homogeneous':
-                    return "../resources/images/ExpressionMapping/ExpressionPatternKey/homogeneous.png";
+                    return "resources/images/ExpressionMapping/ExpressionPatternKey/homogeneous.png";
                 case 'regional':
-                    return "../resources/images/ExpressionMapping/ExpressionPatternKey/Regional.png";
+                    return "resources/images/ExpressionMapping/ExpressionPatternKey/Regional.png";
                 case 'restricted':
-                    return "../resources/images/ExpressionMapping/ExpressionPatternKey/Restricted.png";
+                    return "resources/images/ExpressionMapping/ExpressionPatternKey/Restricted.png";
                 case 'single cell':
-                    return "../resources/images/ExpressionMapping/ExpressionPatternKey/SingleCell.png";
+                    return "resources/images/ExpressionMapping/ExpressionPatternKey/SingleCell.png";
                 case 'spotted':
-                    return "../resources/images/ExpressionMapping/ExpressionPatternKey/Spotted.png";
+                    return "resources/images/ExpressionMapping/ExpressionPatternKey/Spotted.png";
                 case 'ubiquitous':
-                    return "../resources/images/ExpressionMapping/ExpressionPatternKey/Ubiquitous.png";
+                    return "resources/images/ExpressionMapping/ExpressionPatternKey/Ubiquitous.png";
                 default:
                     return "";
             }
@@ -673,11 +673,11 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
         function getStrengthIcon(strength) {
             switch (strength) {
                 case 'not detected':
-                    return "../resources/images/ExpressionMapping/ExpressionStrengthsKey/notDetected.gif";
+                    return "resources/images/ExpressionMapping/ExpressionStrengthsKey/notDetected.gif";
                 case 'uncertain':
-                    return "../resources/images/ExpressionMapping/ExpressionStrengthsKey/Uncertain.gif";
+                    return "resources/images/ExpressionMapping/ExpressionStrengthsKey/Uncertain.gif";
                 case 'present':
-                    return "../resources/images/ExpressionMapping/ExpressionStrengthsKey/Present(unspecifiedStrength).gif";
+                    return "resources/images/ExpressionMapping/ExpressionStrengthsKey/Present(unspecifiedStrength).gif";
                 default:
                     return "";
             }
