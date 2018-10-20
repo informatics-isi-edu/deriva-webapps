@@ -662,7 +662,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                 case 'single cell':
                     return "resources/images/ExpressionMapping/ExpressionPatternKey/SingleCell.png";
                 case 'spotted':
-                    return "..resources/images/ExpressionMapping/ExpressionPatternKey/Spotted.png";
+                    return "resources/images/ExpressionMapping/ExpressionPatternKey/Spotted.png";
                 case 'ubiquitous':
                     return "resources/images/ExpressionMapping/ExpressionPatternKey/Ubiquitous.png";
                 default:
