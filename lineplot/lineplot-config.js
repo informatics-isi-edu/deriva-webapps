@@ -1,9 +1,26 @@
+var currentDate = Date.now();
+var start = currentDate - (5*60*60*1000);
+var startDate = new Date(start);
+
+var month = startDate.getMonth() + 1;
+if (month < 10) month = '0' + month;
+var day = startDate.getDate();
+if (day < 10) day = '0' + day;
+var hour = startDate.getHours();
+if (hour < 10) hour = '0' + hour;
+var minutes = startDate.getMinutes();
+if (minutes < 10) minutes = '0' + minutes;
+var seconds = startDate.getSeconds();
+if (seconds < 10) seconds = '0' + seconds;
+
+var lineplot_start_time = startDate.getFullYear() + '-' + month + '-' + day + 'T' + hour + ':' + minutes + ':' + seconds;
+
 var lineplotConfig = {
-    plot_title: null,                                               // plot title
+    plot_title: "Subject Plot",                                               // plot title
     x_axis_label: "recorded_time",                                  // plot x axis label
-    y_axis_label: null,                                             // plot y axis label
+    y_axis_label: "value",                                             // plot y axis label
     subject_id: "159",                                              // identifier for the subject to get data from
-    start_time: "2018-10-15T12:00:00",                              // the value to begin querying data from
+    start_time: lineplot_start_time,                              // the value to begin querying data from
     limit: 10000,                                                   // how many data rows do you want
     duration: 5,                                                    // value to use to express the range of data, assumed as hours
     traces: [

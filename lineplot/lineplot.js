@@ -99,13 +99,17 @@ lineplotApp.controller('LineplotController', ['AlertsService', 'dataFormats', 'L
     vm.dataFormats = dataFormats;
     vm.x_label = lineplotConfig.x_axis_label;
     vm.model = {
-        date: null,
-        time: null,
+        duration: $rootScope.duration,
+        date: moment($rootScope.start_time).format(dataFormats.date),
+        time: moment($rootScope.start_time).format(dataFormats.time24),
         meridiem: 'AM'
     }
 
     vm.applyDatetime = function () {
         var timestamp = moment(vm.model.date + vm.model.time, dataFormats.date + dataFormats.time12).format(dataFormats.datetime.submission);
+        if (vm.model.duration != null && vm.model.duration.length > 0) {
+        	$rootScope.duration = vm.model.duration;
+        }
         LineplotUtils.getData(timestamp);
     }
 

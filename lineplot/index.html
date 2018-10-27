@@ -24,19 +24,42 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 
-<body ng-controller="LineplotController as ctrl" style="margin: 10px;">
+<body ng-controller="LineplotController as ctrl" style="margin-top: 0px; margin-left: 10px;">
+<header class="row" style="z-index: -1;">
+    <nav id="mainnav" class="navbar navbar-inverse" role="navigation">
+        <div style="padding-right: 30px; padding-left: 30px">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#fb-navbar-main-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="md-chevron-down"></span>
+                    MENU
+                </button>
+                <a class="navbar-brand" ng-href="/" href="/">
+                    <!-- ngIf: brandImage -->
+                    <span id="brand-text"  class="ng-binding" style="color: rgb(89, 196, 255)">PRISMS</span>
+                </a>
+            </div>
+
+        </div>
+    </nav>
+</header>
     <div class="alerts-container">
         <alerts alerts="ctrl.alerts"></alerts>
     </div>
     <div ng-show="ctrl.lineplotsLoaded" class="row" style="width: 500px;">
-        <span class="col-sm-5">Select a different starting {{ctrl.x_label}} to be displayed:</span>
+        <span class="col-sm-5">Select a different duration (hours) and starting {{ctrl.x_label}} to be displayed:</span>
         <div class="col-sm-6">
             <div class="input-group">
-                <span class="input-group-addon">Date</span>
+                <span class="input-group-addon" style="width:80px;">Duration</span>
+                <input class="form-control" type="text" ng-model="ctrl.model.duration" placeholder="hours" model-view-value="true"></input>
+            </div>
+            <div class="input-group">
+                <span class="input-group-addon" style="width:80px;">Date</span>
                 <input class="form-control input-timestamptz" type="text" ng-model="ctrl.model.date" placeholder="{{ctrl.dataFormats.date}}" model-view-value="true"></input>
             </div>
             <div class="input-group">
-                <span class="input-group-addon">Time</span>
+                <span class="input-group-addon" style="width:80px;">Time</span>
                 <input class="form-control" type="text" ng-model="ctrl.model.time" placeholder="{{ctrl.dataFormats.time24}}" model-view-value="true" ></input>
                 <!-- <span class="input-group-btn">
                     <button class="btn btn-primary btn-inverted" type="button" ng-click="::ctrl.toggleMeridiem();" ng-bind="ctrl.model.meridiem || 'AM'">AM</button>
