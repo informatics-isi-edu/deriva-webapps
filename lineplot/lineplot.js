@@ -99,6 +99,7 @@ lineplotApp.controller('LineplotController', ['AlertsService', 'dataFormats', 'L
     vm.dataFormats = dataFormats;
     vm.x_label = lineplotConfig.x_axis_label;
     vm.model = {
+        subject: $rootScope.subject_id,
         duration: $rootScope.duration,
         date: moment($rootScope.start_time).format(dataFormats.date),
         time: moment($rootScope.start_time).format(dataFormats.time24),

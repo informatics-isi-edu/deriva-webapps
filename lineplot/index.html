@@ -35,7 +35,7 @@
                     <span class="md-chevron-down"></span>
                     MENU
                 </button>
-                <a class="navbar-brand" ng-href="/" href="/">
+                <a class="navbar-brand" ng-href="/chaise/recordset/#1/prisms:subjects@sort(BreatheID,RID)" href="/chaise/recordset/#1/prisms:subjects@sort(BreatheID,RID)">
                     <!-- ngIf: brandImage -->
                     <span id="brand-text"  class="ng-binding" style="color: rgb(89, 196, 255)">PRISMS</span>
                 </a>
@@ -44,10 +44,19 @@
         </div>
     </nav>
 </header>
+
+<div class="row">
+	<div id="bookmark-container" class="col-xs-12 meta-icons">
+		<div class="pull-left">
+			<h1 id="page-title"><span class="ng-binding ng-scope">Subject {{ctrl.model.subject}}</span></h1>
+		</div>
+	</div>
+</div>
+
     <div class="alerts-container">
         <alerts alerts="ctrl.alerts"></alerts>
     </div>
-    <div ng-show="ctrl.lineplotsLoaded" class="row" style="width: 500px;">
+    <div ng-show="ctrl.lineplotsLoaded" class="row" style="width: 500px; margin-top: 15px;">
         <span class="col-sm-5">Select a different duration (hours) and starting {{ctrl.x_label}} to be displayed:</span>
         <div class="col-sm-6">
             <div class="input-group">
@@ -60,7 +69,7 @@
             </div>
             <div class="input-group">
                 <span class="input-group-addon" style="width:80px;">Time</span>
-                <input class="form-control" type="text" ng-model="ctrl.model.time" placeholder="{{ctrl.dataFormats.time24}}" model-view-value="true" ></input>
+                <input class="form-control" type="text" ng-model="ctrl.model.time" placeholder="{{ctrl.dataFormats.time24}}" model-view-value="true"></input>
                 <!-- <span class="input-group-btn">
                     <button class="btn btn-primary btn-inverted" type="button" ng-click="::ctrl.toggleMeridiem();" ng-bind="ctrl.model.meridiem || 'AM'">AM</button>
                 </span> -->
