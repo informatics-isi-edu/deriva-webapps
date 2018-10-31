@@ -3,6 +3,7 @@
 <head>
   <script src='/chaise/chaise-config.js'></script>
   <script src='/chaise/scripts/vendor/jquery-1.11.1.min.js'></script>
+  <script src='/chaise/scripts/vendor/bootstrap-3.3.7.min.js'></script>
   <script src='vendor/plotly-latest.min.js'></script>
   <script src='vendor/moment.min.js'></script>
   <script src='/chaise/scripts/vendor/angular.js'></script>
@@ -37,9 +38,36 @@
                 </button>
                 <a class="navbar-brand" ng-href="/chaise/recordset/#1/prisms:subjects@sort(BreatheID,RID)" href="/chaise/recordset/#1/prisms:subjects@sort(BreatheID,RID)">
                     <!-- ngIf: brandImage -->
-                    <span id="brand-text"  class="ng-binding" style="color: rgb(89, 196, 255)">PRISMS</span>
+                    <span id="brand-text" style="color: rgb(89, 196, 255)">PRISMS</span>
                 </a>
             </div>
+            
+            <div class="collapse navbar-collapse navbar-inverse" id="fb-navbar-main-collapse">
+            	<ul class="nav navbar-nav navbar-right">
+            		<li class="dropdown">
+            			<a href="#" class="dropdown-toggle" data-toggle="dropdown" style="color: rgb(89, 196, 255)">
+	            			<span>{{ctrl.model.user}}</span>
+	            			<span class="caret"></span>
+	            		</a>
+	            		<ul class="dropdown-menu">
+	            			<li>
+	            				<a id="logout-link" ng-click="::ctrl.logout();">Log Out</a>
+	            			</li>
+	            		</ul>
+	            	</li>
+	            </ul>
+	            <ul id="navbar-menu" class="nav navbar-nav">
+	            	<li class="dropdown">
+	            		<a href="#" class="dropdown-toggle" data-toggle="dropdown" style="color: rgb(193, 193, 193)">Browse<span class="caret"></span></a>
+	            		<ul class="dropdown-menu">
+	            			<li>
+	            				<a ng-href="/chaise/recordset/#1/prisms:subjects@sort(BreatheID,RID)" target="_self" href="/chaise/recordset/#1/prisms:subjects@sort(BreatheID,RID)" >Subjects</a>
+	            			</li>
+	            		</ul>
+	            	</li>
+	            </ul>
+            </div>
+            
 
         </div>
     </nav>
@@ -48,7 +76,7 @@
 <div class="row">
 	<div id="bookmark-container" class="col-xs-12 meta-icons">
 		<div class="pull-left">
-			<h1 id="page-title"><span class="ng-binding ng-scope">Subject {{ctrl.model.subject}}</span></h1>
+			<h1 id="page-title"><span>Subject {{ctrl.model.subject}}</span></h1>
 		</div>
 	</div>
 </div>
