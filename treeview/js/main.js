@@ -18,13 +18,13 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             }, duration);
             return false;
         })
-        var TSDataURL = 'https://dev.rebuildingakidney.org/ermrest/catalog/2/attribute/M:=Vocabulary:Developmental_Stage/Stage_Type=gudmap-rbk-local%3A14-62FM/Ordinal:=M:Ordinal,TS:=M:description@sort(Ordinal)'
+        var TSDataURL = 'https://dev.rebuildingakidney.org/ermrest/catalog/2/attributegroup/M:=Vocabulary:Developmental_Stage/stage:=left(Stage_Type)=(Vocabulary:Stage_Type:id)/name=Theiler%20Stage/M:Ordinal,M:description@sort(Ordinal)'
         var $el = $("#number");
         $el.empty(); // remove old options
         $.getJSON(TSDataURL, function(TSData) {
             $.each(TSData, function(index, data) {
                 $el.append($("<option></option>")
-                    .attr("value", data['Ordinal']).text(data['TS']));
+                    .attr("value", data['Ordinal']).text(data['description']));
             });
             $el.append($("<option></option>")
                 .attr("value", "All").text("All Theiler Stages"));
@@ -97,15 +97,15 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
         } else {
             showAnnotation = false;
         }
-        if (location.indexOf("refresh_tree=true") !== -1) {
+        //if (location.indexOf("refresh_tree=true") !== -1) //{
             var TS_ordinal = "28"
             buildPresentationData(showAnnotation, filter_prefix, TS_ordinal)
-        } else {
-            $("#number").prop("disabled", true);
-            $.getJSON("cache/tree_data.json", function(treeData) {
-                setAnnotationAndFilter(treeData, showAnnotation, specimen_rid, filter_prefix)
-            });
-        }
+        // } else {
+        //     $("#number").prop("disabled", true);
+        //     $.getJSON("cache/tree_data.json", function(treeData) {
+        //         setAnnotationAndFilter(treeData, showAnnotation, specimen_rid, filter_prefix)
+        //     });
+        // }
         if (showAnnotation == false) {
             $("#left").hide();
             $("#right").css('margin-left', '10px');
