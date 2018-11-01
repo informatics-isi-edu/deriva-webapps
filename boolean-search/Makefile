@@ -1,8 +1,6 @@
 INSDIR=/var/www/html/boolean_search
 
-install: booleansearch.app.js index.html
+install: 
 	mkdir -p $(INSDIR)
-	cp booleansearch.app.js index.html $(INSDIR)/
-	mkdir -p $(INSDIR)/styles
-	cp styles/*.css $(INSDIR)/styles/
+	rsync -avz . $(INSDIR)
 	

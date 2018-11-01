@@ -14,6 +14,8 @@
         'ngSanitize',
         'ngCookies',
         'chaise.utils',
+        'chaise.alerts',
+        'chaise.resizable',
         'ermrestjs',
         'ui.bootstrap'
     ])
@@ -29,12 +31,16 @@
         .value('booleanSearchModel', {
             rows: [{}]
         })
-        .controller('BooleanSearchController', ['$scope', 'booleanSearchModel', function BooleanSearchController($scope, booleanSearchModel) {
+        .controller('BooleanSearchController', ['$scope', 'booleanSearchModel', 'AlertsService', function BooleanSearchController($scope, booleanSearchModel, AlertsService) {
             $scope.strengthOptions = ["present", "not detected", "uncertain"];
             $scope.sourceOptions = ["nephric cord", "nephric duct", "pronephros", "mesonphros"];
             $scope.stageOptions = ["TS17", "TS18", "TS19", "TS20", "TS21", "TS22", "TS23", "TS24", "TS25", "TS26", "TS27", "TS28"];
             $scope.patternOptions = ["graded", "regional", "restricted", "single cell", "spotted", "ubiquitous"];
             $scope.locationOptions = ["caudal", "deep", "distal", "dorsal", "lateral", "medial", "proximal", "radial", "rostral", "surface", "ventral"];
+            $scope.treeviewOpen = true;
+            $scope.togglePanel = togglePanel;
+            $scope.setClass = setClass;
+            $scope.filterRowLimit = 10;
             var vm = this;
             vm.booleanSearchModel = booleanSearchModel;
             let firstRow = new filterModel();
@@ -68,7 +74,22 @@
                 vm.currentRow = index;
             }
             function submit() {
+                var form = vm.formContainer;
+                if (form.$invalid) {
+                    vm.readyToSubmit = false;
+                    AlertsService.addAlert('Sorry, the data could not be submitted because there are errors on the form. Please check all fields and try again.', 'error');
+                    form.$setSubmitted();
+                    return;
+                }
                 console.log(vm.booleanSearchModel.rows);
+            }
+
+            function togglePanel() {
+                $scope.treeviewOpen = !$scope.treeviewOpen;
+            }
+
+            function setClass() {
+                return { 'glyphicon glyphicon-triangle-left': $scope.treeviewOpen, 'glyphicon glyphicon-triangle-right': !$scope.treeviewOpen };
             }
 
         }])
