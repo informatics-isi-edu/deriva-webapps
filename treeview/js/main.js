@@ -18,7 +18,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             }, duration);
             return false;
         })
-        var TSDataURL = 'https://dev.rebuildingakidney.org/ermrest/catalog/2/attributegroup/M:=Vocabulary:Developmental_Stage/stage:=left(Stage_Type)=(Vocabulary:Stage_Type:id)/name=Theiler%20Stage/M:Ordinal,M:description@sort(Ordinal)'
+        var TSDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Vocabulary:Developmental_Stage/stage:=left(Stage_Type)=(Vocabulary:Stage_Type:id)/name=Theiler%20Stage/M:Ordinal,M:description@sort(Ordinal)'
         var $el = $("#number");
         $el.empty(); // remove old options
         $.getJSON(TSDataURL, function(TSData) {
@@ -215,7 +215,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             // Returns isolated nodes - Query 3 : https://dev.rebuildingakidney.org/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy_terms/s:=left(dbxref)=(Vocabulary:Anatomy_Part_Of:subject_dbxref)/subject_dbxref::null::/$t/o:=left(dbxref)=(Vocabulary:Anatomy_Part_Of:object_dbxref)/object_dbxref::null::/$t/dbxref:=t:dbxref,name:=t:name
             if (TS_val != "" && TS_val != "All") {
                 var json;
-                var treeDataURL = 'https://dev.rebuildingakidney.org/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=left(Subject)=(Vocabulary:Anatomy:id)/Subject_Starts_at_Ordinal:=left(Starts_At)=(Vocabulary:Developmental_Stage:name)/Ordinal::leq::' + TS_val + '/$F1/Subject_Ends_At_Ordinal:=left(Ends_At)=(Vocabulary:Developmental_Stage:name)/Ordinal::geq::' + TS_val + '/$M/F2:=left(Object)=(Vocabulary:Anatomy:id)/Object_Starts_at_Ordinal:=left(Starts_At)=(Vocabulary:Developmental_Stage:name)/Ordinal::leq::' + TS_val + '/$F2/Object_Ends_At_Ordinal:=left(Ends_At)=(Vocabulary:Developmental_Stage:name)/Ordinal::geq::' + TS_val + '/$M/subject_dbxref:=M:Subject,object_dbxref:=M:Object,subject:=F1:name,object:=F2:name'
+                var treeDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=left(Subject)=(Vocabulary:Anatomy:id)/Subject_Starts_at_Ordinal:=left(Starts_At)=(Vocabulary:Developmental_Stage:name)/Ordinal::leq::' + TS_val + '/$F1/Subject_Ends_At_Ordinal:=left(Ends_At)=(Vocabulary:Developmental_Stage:name)/Ordinal::geq::' + TS_val + '/$M/F2:=left(Object)=(Vocabulary:Anatomy:id)/Object_Starts_at_Ordinal:=left(Starts_At)=(Vocabulary:Developmental_Stage:name)/Ordinal::leq::' + TS_val + '/$F2/Object_Ends_At_Ordinal:=left(Ends_At)=(Vocabulary:Developmental_Stage:name)/Ordinal::geq::' + TS_val + '/$M/subject_dbxref:=M:Subject,object_dbxref:=M:Object,subject:=F1:name,object:=F2:name'
 
                 $.getJSON(treeDataURL, function(data) {
                     json = data
@@ -242,9 +242,9 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                     }
                 });
             } else {
-                var treeDataURL = 'https://dev.rebuildingakidney.org/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=left(Subject)=(Vocabulary:Anatomy:id)/$M/F2:=left(Object)=(Vocabulary:Anatomy:id)/$M/subject_dbxref:=M:Subject,object_dbxref:=M:Object,subject:=F1:name,object:=F2:name';
-                var extraAttributesURL = 'https://dev.rebuildingakidney.org/ermrest/catalog/2/attribute/M:=Gene_Expression:Specimen_Expression/RID=Q-PQ16/$M/RID:=M:RID,Region:=M:Region,strength:=M:Strength,pattern:=M:Pattern,density:=M:Density,densityChange:=M:Density_Direction,densityNote:=M:Density_Note';
-                var isolatedNodesURL = 'https://dev.rebuildingakidney.org/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy/s:=left(id)=(Vocabulary:Anatomy_Part_Of_Relationship:Subject)/Subject::null::/$t/o:=left(id)=(Vocabulary:Anatomy_Part_Of_Relationship:Object)/Object::null::/$t/dbxref:=t:id,name:=t:name';
+                var treeDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=left(Subject)=(Vocabulary:Anatomy:id)/$M/F2:=left(Object)=(Vocabulary:Anatomy:id)/$M/subject_dbxref:=M:Subject,object_dbxref:=M:Object,subject:=F1:name,object:=F2:name';
+                var extraAttributesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Gene_Expression:Specimen_Expression/RID=Q-PQ16/$M/RID:=M:RID,Region:=M:Region,strength:=M:Strength,pattern:=M:Pattern,density:=M:Density,densityChange:=M:Density_Direction,densityNote:=M:Density_Note';
+                var isolatedNodesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy/s:=left(id)=(Vocabulary:Anatomy_Part_Of_Relationship:Subject)/Subject::null::/$t/o:=left(id)=(Vocabulary:Anatomy_Part_Of_Relationship:Object)/Object::null::/$t/dbxref:=t:id,name:=t:name';
                 var json = [],
                     extraAttributes, isolatedNodes;
                 $.getJSON(treeDataURL, function(data) {
@@ -294,7 +294,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             }
             if (showAnnotation == true) {
                 var extraAttributes;
-                var extraAttributesURL = 'https://dev.rebuildingakidney.org/ermrest/catalog/2/attribute/M:=Gene_Expression:Specimen_Expression/RID=' + specimen_rid + '/$M/RID:=M:RID,Region:=M:Region,strength:=M:Strength,pattern:=M:Pattern,density:=M:Density,densityChange:=M:Density_Direction,densityNote:=M:Density_Note';
+                var extraAttributesURL = 'https://'+location.hostname+'/ermrest/catalog/2/attribute/M:=Gene_Expression:Specimen_Expression/RID=' + specimen_rid + '/$M/RID:=M:RID,Region:=M:Region,strength:=M:Strength,pattern:=M:Pattern,density:=M:Density,densityChange:=M:Density_Direction,densityNote:=M:Density_Note';
                 $.getJSON(extraAttributesURL, function(data) {
                     extraAttributes = data
                 }).done(function() {
