@@ -983,9 +983,9 @@
                 } // wtf??? we ar in the root and do not need a open!
             }
             var id = isArray ? _guid() : node.id;
-            this._detachColumns(id);
+            //this._detachColumns(id);
             var ret = parent.open_node.call(this, obj, callback, animation);
-            this._reattachColumns(id);
+            //this._reattachColumns(id);
             return ret;
         }
 
