@@ -294,7 +294,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             }
             if (showAnnotation == true) {
                 var extraAttributes;
-                var extraAttributesURL = 'https://'+location.hostname+'/ermrest/catalog/2/attribute/M:=Gene_Expression:Specimen_Expression/RID=' + specimen_rid + '/$M/RID:=M:RID,Region:=M:Region,strength:=M:Strength,pattern:=M:Pattern,density:=M:Density,densityChange:=M:Density_Direction,densityNote:=M:Density_Note';
+                var extraAttributesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Gene_Expression:Specimen_Expression/RID=' + specimen_rid + '/$M/RID:=M:RID,Region:=M:Region,strength:=M:Strength,pattern:=M:Pattern,density:=M:Density,densityChange:=M:Density_Direction,densityNote:=M:Density_Note';
                 $.getJSON(extraAttributesURL, function(data) {
                     extraAttributes = data
                 }).done(function() {
