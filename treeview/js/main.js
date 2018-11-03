@@ -1,5 +1,8 @@
 define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
     $(document).ready(function() {
+      $("#number").selectmenu().selectmenu("menuWidget").addClass("overflow");
+      document.getElementById('TSDropdownDiv').style.visibility = "visible";
+      document.getElementById('mainDiv').style.visibility = "visible";
         var offset = 250;
 
         var duration = 300;
@@ -28,7 +31,6 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             });
             $el.append($("<option></option>")
                 .attr("value", "All").text("All Theiler Stages"));
-            $("#number").selectmenu().selectmenu("menuWidget").addClass("overflow");
             $('#number').val('28');
             $("#number").selectmenu("refresh");
             // buildPresentationData(showAnnotation, filter_prefix, '28')
@@ -107,8 +109,8 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
         //     });
         // }
         if (showAnnotation == false) {
-            $("#left").hide();
-            $("#right").css('margin-left', '10px');
+            // $("#left").hide();
+            // $("#right").css('margin-left', '10px');
             $(".tree-panel").css('width', '99.5%');
             $("#left").removeClass("col-md-2 col-lg-2 col-sm-2 col-2");
             $("#right").removeClass("col-md-10 col-lg-10 col-sm-10 col-10");
