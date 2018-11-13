@@ -1,0 +1,107 @@
+#titleBar{
+    margin-bottom:10px;
+    padding: 15px 40px 10px 40px; /* padding-left and padding-right sides are to equal the left and right paddings of .container-fluid */
+    background-color: #f1f1f1;
+    box-shadow: 0 4px 2px -2px rgba(0,0,0,0.4);
+    z-index: 100;
+}
+#addButtonDiv{
+    margin-bottom: 10px;
+}
+.filterTable{
+    border: 1px solid #ddd;
+    width:100%;
+    padding:1%;
+    text-align: center;
+}
+.filterTable > tbody > tr:first-child > td{
+    font-weight: bold;
+}
+.action-btn{
+    padding: 2px 5px;
+}
+.sideMargin{
+    margin-left: 3%;
+    margin-right: 2%;
+}
+.activeRow{
+    background-color: #FCF8E3;
+}
+
+.content-container {
+    margin-right: -15px;
+    margin-left: -15px;
+    padding-left: 15px;
+    padding-right: 15px;
+    -webkit-box-flex: 1;
+    display: flex;
+    flex:1;
+    margin-top: 5px;
+}
+.resizable-panel.open-panel{
+    flex:0 0 40vw;
+    min-width:200px;
+    padding-left:5px;
+}
+
+.resizable-panel {
+    padding-top:5px;
+    position: relative;
+    max-width: 50vw;
+    z-index: 2;
+    height: 92vh;
+}
+.treeview-panel {
+    transition: all 1s;
+    overflow-y: auto;
+}
+.resize-btn {
+    top: 100px;
+    right: -20px;
+    z-index:2;
+    position: absolute;    
+}
+.sidePanFiddler {
+    border-left:none;
+    border-radius:0px 15px 15px 0px;
+}
+.booleanSearchContainer{
+    flex: 1;
+    position:relative;
+    z-index:1 ;
+    overflow-y:auto;
+    padding-top:15px;
+    overflow-x: scroll;
+    height: 92vh;
+}
+.resizable-panel.close-panel{
+    width:0px;
+    flex-basis:0px !important;
+}
+.resizable-panel.close-panel .treeView {
+    width:0px;
+}
+#appSpinner{
+    background: #fff;
+    width: 130px;
+    margin: 0 auto;
+    text-align: center;
+    padding: 14px 0;
+    border: 1px solid #C3C3C3;
+    border-radius: 7px;
+    color: #828282;
+    top: 50vh;
+    position: absolute;
+    left: 50%;
+    margin-top: -75px;
+    margin-left: -75px;
+    z-index: 10;
+}
+
+img.spinner {
+    display: block;
+    margin: 0 auto;
+    width: 32px;
+    height: 32px;
+    opacity: 0.8;
+}
