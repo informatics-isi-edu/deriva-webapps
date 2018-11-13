@@ -40,11 +40,15 @@
                 </div>
                 <div class="pull-right">
                     <button id="submit-button" class="btn btn-primary btn-inverted" type="submit" ng-disabled="form.submissionButtonDisabled"
-                        ng-click="::form.submit()" ng-attr-tooltip-placement="bottom-right" ng-attr-uib-tooltip="Submit data">Submit</button>
+                        ng-click="::form.submit()" ng-attr-tooltip-placement="bottom-right" ng-attr-uib-tooltip="Submit query to search specimens">Search Specimen</button>
                 </div>
             </div>
         </div>
-        <div class="content-container">
+        <div id="appSpinner" ng-show="!form.initialized">
+            <img src="styles/images/loader.gif" class="spinner" />
+            <div style="margin-top: 15px;">Loading...</div>
+        </div>
+        <div class="content-container" ng-show="form.initialized">
             <div class="resizable-panel resizable" resizable r-directions=["right"] r-flex="true" ng-class="{'open-panel': treeviewOpen, 'close-panel': !treeviewOpen}">
                 <div class="treeview-panel">
                     <p>Treeview for Row {{form.currentRow+1}}</p>
@@ -70,9 +74,9 @@
                     <table ng-form="form.formContainer" class="table table-hover filterTable" cellspacing="10">
                         <tbody>
                             <tr>
-                                <td>Strength</td>
-                                <td> <span class="text-danger"><b>*</b></span>In Anatomical Source</td>
-                                <td>Stages</td>
+                                <td><span class="text-danger"><b>*</b></span>Strength</td>
+                                <td><span class="text-danger"><b>*</b></span>In Anatomical Source</td>
+                                <td><span class="text-danger"><b>*</b></span>Stages</td>
                                 <td>With Pattern</td>
                                 <td>At Location</td>
                                 <td>Actions</td>
@@ -84,7 +88,7 @@
                                     <select ng-model="form.booleanSearchModel.rows[rowIndex].strength" ng-options="s for s in options.strengthOptions"></select>
                                 </td>
                                 <td ng-form="form.formContainer.row[rowIndex].source">
-                                    <select ng-model="form.booleanSearchModel.rows[rowIndex].source" ng-options="s for s in sourceOptions" ng-required="true"></select>
+                                    <select ng-model="form.booleanSearchModel.rows[rowIndex].source" ng-options="s.name for s in sourceOptions" ng-required="true"></select>
                                     <div ng-messages="form.formContainer.row[rowIndex].source.$error" ng-show="form.formContainer.$submitted && form.formContainer.row[rowIndex].source.$invalid"
                                         class="text-danger" role="alert">
                                         <div ng-message="required">Please enter a value for this field.</div>
@@ -92,9 +96,9 @@
                                 </td>
                                 <td>
                                     <span>From: </span>
-                                    <select ng-model="form.booleanSearchModel.rows[rowIndex].stageFrom" ng-options="s.Name for s in options.stageOptions"></select>
+                                    <select ng-model="form.booleanSearchModel.rows[rowIndex].stageFrom" ng-options="s.Name for s in options.fromStageOptions" ng-change="form.setToStageOptions(rowIndex)"></select>
                                     <span>To: </span>
-                                    <select ng-model="form.booleanSearchModel.rows[rowIndex].stageTo" ng-options="s.Name for s in options.stageOptions"></select>
+                                    <select ng-model="form.booleanSearchModel.rows[rowIndex].stageTo" ng-options="s.Name for s in form.booleanSearchModel.rows[rowIndex].toStageOptions"></select>
                                 </td>
                                 <td>
                                     <select ng-model="form.booleanSearchModel.rows[rowIndex].pattern" ng-options="s for s in options.patternOptions"></select>
