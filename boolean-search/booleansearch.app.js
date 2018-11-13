@@ -82,7 +82,7 @@
             }
         }])
         .controller('BooleanSearchController', ['$scope', 'booleanSearchModel', 'AlertsService', 'defaultOptions', '$rootScope', 'ERMrest', function BooleanSearchController($scope, booleanSearchModel, AlertsService, defaultOptions, $rootScope, ERMrest) {
-
+            var config = Object.assign({}, booleanSearchConfig);
             $scope.options = defaultOptions;
             $scope.sourceOptions = [
                 { "id": "EMAPA:27678", "name": "renal vesicle" },
@@ -105,7 +105,7 @@
             $scope.treeviewOpen = true;
             $scope.togglePanel = togglePanel;
             $scope.setClass = setClass;
-            $scope.filterRowLimit = 10;
+            $scope.filterRowLimit = config.presentation.rowLimit;
             var vm = this;
 
             vm.initialized = false;
@@ -123,7 +123,7 @@
                 }
             });
 
-            function initialize(){
+            function initialize() {
                 vm.initialized = true;
                 let firstRow = new filterModel(defaultOptions);
                 vm.booleanSearchModel.rows[0] = firstRow;
@@ -154,7 +154,7 @@
                 var toStageOptions = defaultOptions.fromStageOptions;
                 var pos = toStageOptions.indexOf(vm.booleanSearchModel.rows[index].stageFrom);
                 vm.booleanSearchModel.rows[index].toStageOptions = toStageOptions.slice(pos);
-                if(vm.booleanSearchModel.rows[index].stageTo.Order < vm.booleanSearchModel.rows[index].stageFrom.Order){
+                if (vm.booleanSearchModel.rows[index].stageTo.Order < vm.booleanSearchModel.rows[index].stageFrom.Order) {
                     vm.booleanSearchModel.rows[index].stageTo = vm.booleanSearchModel.rows[index].stageFrom;
                 }
             }
