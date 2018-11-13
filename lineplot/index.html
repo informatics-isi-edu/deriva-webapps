@@ -3,6 +3,7 @@
 <head>
   <script src='/chaise/chaise-config.js'></script>
   <script src='/chaise/scripts/vendor/jquery-1.11.1.min.js'></script>
+  <script src='/chaise/scripts/vendor/bootstrap-3.3.7.min.js'></script>
   <script src='vendor/plotly-latest.min.js'></script>
   <script src='vendor/moment.min.js'></script>
   <script src='/chaise/scripts/vendor/angular.js'></script>
@@ -24,20 +25,79 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 
-<body ng-controller="LineplotController as ctrl" style="margin: 10px;">
+<body ng-controller="LineplotController as ctrl" style="margin-top: 0px; margin-left: 10px;">
+<header class="row" style="z-index: -1;">
+    <nav id="mainnav" class="navbar navbar-inverse" role="navigation">
+        <div style="padding-right: 30px; padding-left: 30px">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#fb-navbar-main-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="md-chevron-down"></span>
+                    MENU
+                </button>
+                <a class="navbar-brand" ng-href="/chaise/recordset/#1/prisms:subjects@sort(BreatheID,RID)" href="/chaise/recordset/#1/prisms:subjects@sort(BreatheID,RID)">
+                    <!-- ngIf: brandImage -->
+                    <span id="brand-text" style="color: rgb(89, 196, 255)">PRISMS</span>
+                </a>
+            </div>
+            
+            <div class="collapse navbar-collapse navbar-inverse" id="fb-navbar-main-collapse">
+            	<ul class="nav navbar-nav navbar-right">
+            		<li class="dropdown">
+            			<a href="#" class="dropdown-toggle" data-toggle="dropdown" style="color: rgb(89, 196, 255)">
+	            			<span>{{ctrl.model.user}}</span>
+	            			<span class="caret"></span>
+	            		</a>
+	            		<ul class="dropdown-menu">
+	            			<li>
+	            				<a id="logout-link" ng-click="::ctrl.logout();">Log Out</a>
+	            			</li>
+	            		</ul>
+	            	</li>
+	            </ul>
+	            <ul id="navbar-menu" class="nav navbar-nav">
+	            	<li class="dropdown">
+	            		<a href="#" class="dropdown-toggle" data-toggle="dropdown" style="color: rgb(193, 193, 193)">Browse<span class="caret"></span></a>
+	            		<ul class="dropdown-menu">
+	            			<li>
+	            				<a ng-href="/chaise/recordset/#1/prisms:subjects@sort(BreatheID,RID)" target="_self" href="/chaise/recordset/#1/prisms:subjects@sort(BreatheID,RID)" >Subjects</a>
+	            			</li>
+	            		</ul>
+	            	</li>
+	            </ul>
+            </div>
+            
+
+        </div>
+    </nav>
+</header>
+
+<div class="row">
+	<div id="bookmark-container" class="col-xs-12 meta-icons">
+		<div class="pull-left">
+			<h1 id="page-title"><span>Subject {{ctrl.model.subject}}</span></h1>
+		</div>
+	</div>
+</div>
+
     <div class="alerts-container">
         <alerts alerts="ctrl.alerts"></alerts>
     </div>
-    <div ng-show="ctrl.lineplotsLoaded" class="row" style="width: 500px;">
-        <span class="col-sm-5">Select a different starting {{ctrl.x_label}} to be displayed:</span>
+    <div ng-show="ctrl.lineplotsLoaded" class="row" style="width: 500px; margin-top: 15px;">
+        <span class="col-sm-5">Select a different duration (hours) and starting {{ctrl.x_label}} to be displayed:</span>
         <div class="col-sm-6">
             <div class="input-group">
-                <span class="input-group-addon">Date</span>
+                <span class="input-group-addon" style="width:80px;">Duration</span>
+                <input class="form-control" type="text" ng-model="ctrl.model.duration" placeholder="hours" model-view-value="true"></input>
+            </div>
+            <div class="input-group">
+                <span class="input-group-addon" style="width:80px;">Date</span>
                 <input class="form-control input-timestamptz" type="text" ng-model="ctrl.model.date" placeholder="{{ctrl.dataFormats.date}}" model-view-value="true"></input>
             </div>
             <div class="input-group">
-                <span class="input-group-addon">Time</span>
-                <input class="form-control" type="text" ng-model="ctrl.model.time" placeholder="{{ctrl.dataFormats.time24}}" model-view-value="true" ></input>
+                <span class="input-group-addon" style="width:80px;">Time</span>
+                <input class="form-control" type="text" ng-model="ctrl.model.time" placeholder="{{ctrl.dataFormats.time24}}" model-view-value="true"></input>
                 <!-- <span class="input-group-btn">
                     <button class="btn btn-primary btn-inverted" type="button" ng-click="::ctrl.toggleMeridiem();" ng-bind="ctrl.model.meridiem || 'AM'">AM</button>
                 </span> -->
