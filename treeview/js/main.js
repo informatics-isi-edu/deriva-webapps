@@ -1,13 +1,52 @@
+var annotated_term="";
 define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
     $(document).ready(function() {
-      $("#number").selectmenu().selectmenu("menuWidget").addClass("overflow");
+      if (window.location.href.indexOf("specimen_rid=") !== -1) {
+          specimen_rid = findGetParameter('specimen_rid')
+          showAnnotation = true;
+          document.getElementById('left').style.visibility = "visible";
+          document.getElementById('look-up').style.height = "100%";
+          document.getElementById('mouseAnatomyHeading').style.height = "0";
+      } else {
+          specimen_rid = ''
+          showAnnotation = false;
+          document.getElementById('look-up').style.height = "0";
+          $("#right").css('margin-left', '10px');
+          $(".tree-panel").css('width', '99.5%');
+          $("#left").removeClass("col-md-2 col-lg-2 col-sm-2 col-2");
+          $("#right").removeClass("col-md-10 col-lg-10 col-sm-10 col-10");
+          $("#right").addClass("col-md-12 col-lg-12 col-sm-12 col-12");
+          document.getElementById('mouseAnatomyHeading').style.visibility = "visible";
+
+      }
+      document.getElementById('loadIcon').style.visibility = "visible";
+      $("#number").selectmenu({
+        appendTo: "#TSDropdownDiv"
+      }).selectmenu("menuWidget").addClass("overflow");
       document.getElementById('TSDropdownDiv').style.visibility = "visible";
       document.getElementById('mainDiv').style.visibility = "visible";
         var offset = 250;
 
         var duration = 300;
 
+        var location = window.location.href;
+        var JSONData, showAnnotation, filter_prefix, isCacheEnabled, cacheData, specimen_rid, TSDataURL, TS_ordinal;
+        if (location.indexOf("prefix_filter=") !== -1) {
+            var prefix_filter_value = findGetParameter('prefix_filter')
+            filter_prefix = prefix_filter_value;
+        } else {
+            filter_prefix = "";
+        }
+        if (location.indexOf("specimen_rid=") !== -1) {
+            specimen_rid = findGetParameter('specimen_rid')
+            showAnnotation = true;
+        } else {
+            specimen_rid = ''
+            showAnnotation = false;
+        }
+
         $(".tree-panel").scroll(function() {
+          $( "#number" ).selectmenu( "close" );
             if ($(this).scrollTop() > offset) {
                 $(".back-to-top").fadeIn(duration);
             } else {
@@ -21,33 +60,60 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             }, duration);
             return false;
         })
-        var TSDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Vocabulary:Developmental_Stage/stage:=left(Stage_Type)=(Vocabulary:Stage_Type:id)/name=Theiler%20Stage/M:Ordinal,M:description@sort(Ordinal)'
-        var $el = $("#number");
-        $el.empty(); // remove old options
-        $.getJSON(TSDataURL, function(TSData) {
-            $.each(TSData, function(index, data) {
-                $el.append($("<option></option>")
-                    .attr("value", data['Ordinal']).text(data['description']));
-            });
-            $el.append($("<option></option>")
-                .attr("value", "All").text("All Theiler Stages"));
-            $('#number').val('28');
-            $("#number").selectmenu("refresh");
-            // buildPresentationData(showAnnotation, filter_prefix, '28')
-            $("#number").on('selectmenuchange', function() {
-                document.getElementsByClassName('loader')[0].style.display = "block";
-                document.getElementById('jstree').style.visibility = "hidden";
-                $("#number").prop("disabled", true);
-                $('#plugins4_q').prop("disabled", true);
-                $("#search_btn").prop("disabled", true);
-                $("#expand_all_btn").prop("disabled", true);
-                $("#collapse_all_btn").prop("disabled", true);
-                $("#reset_text").prop("disabled", true);
+        if(showAnnotation == true) {
+          TSDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/specimen:=left(RID)=(Gene_Expression:Specimen_Expression:Specimen)/RID='+specimen_rid+'/M:Developmental_Stage'
+          var $el = $("#number");
+          $el.empty();
+          $.getJSON(TSDataURL, function(TSData) {
+            if(TSData === undefined || TSData.length == 0) {
+              document.getElementsByClassName('loader')[0].style.display = "none";
+              document.getElementsByClassName('error')[0].style.visibility = "visible";
+               document.getElementsByTagName("p")[0].innerHTML="Error: Developmental Stage does not exist for Specimen RID : "+specimen_rid;
+            }
+            else{
+              var stage = TSData[0]['Developmental_Stage']
+              $el.append($("<option></option>")
+                  .attr("value", stage).text("TS"+stage));
+              $('#number').val(stage);
+              $("#number").selectmenu("refresh");
+              $("#number").prop("disabled", true);
+              $("#number").selectmenu("refresh");
+              TS_ordinal = stage;
+              buildPresentationData(showAnnotation, filter_prefix, TS_ordinal, specimen_rid)
+            }
+          });
+        }
+        else {
+          TSDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Vocabulary:Developmental_Stage/stage:=left(Stage_Type)=(Vocabulary:Stage_Type:id)/name=Theiler%20Stage/M:Ordinal,M:name@sort(Ordinal)'
+          var $el = $("#number");
+          $el.empty(); // remove old options
+          $.getJSON(TSDataURL, function(TSData) {
+              $.each(TSData, function(index, data) {
+                  $el.append($("<option></option>")
+                      .attr("value", data['Ordinal']).text(data['name']));
+              });
+              $el.append($("<option></option>")
+                  .attr("value", "All").text("All TS"));
+              $('#number').val('28');
+              $("#number").selectmenu("refresh");
+              // buildPresentationData(showAnnotation, filter_prefix, '28')
+              $("#number").on('selectmenuchange', function() {
+                  document.getElementsByClassName('loader')[0].style.display = "block";
+                  document.getElementById('jstree').style.visibility = "hidden";
+                  $("#number").prop("disabled", true);
+                  $('#plugins4_q').prop("disabled", true);
+                  $("#search_btn").prop("disabled", true);
+                  $("#expand_all_btn").prop("disabled", true);
+                  $("#collapse_all_btn").prop("disabled", true);
+                  $("#reset_text").prop("disabled", true);
 
-                var TS_ordinal = $("#number").val()
-                buildPresentationData(showAnnotation, filter_prefix, TS_ordinal)
-            })
-        })
+                  TS_ordinal = $("#number").val()
+                  buildPresentationData(showAnnotation, filter_prefix, TS_ordinal, specimen_rid)
+              })
+              TS_ordinal = $("#number").val()
+              buildPresentationData(showAnnotation, filter_prefix, TS_ordinal, specimen_rid)
+          })
+        }
         $("#reset_text").click(function() {
             document.getElementById('plugins4_q').value = "";
             $("#jstree").jstree('clear_search');
@@ -85,37 +151,6 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             $("#jstree").jstree('clear_search');
             $("#jstree").jstree('close_all');
         })
-        var location = window.location.href;
-        var JSONData, showAnnotation, filter_prefix, isCacheEnabled, cacheData;
-        if (location.indexOf("prefix_filter=") !== -1) {
-            var prefix_filter_value = findGetParameter('prefix_filter')
-            filter_prefix = prefix_filter_value;
-        } else {
-            filter_prefix = "";
-        }
-        if (location.indexOf("specimen_rid=") !== -1) {
-            var specimen_rid = findGetParameter('specimen_rid')
-            showAnnotation = true;
-        } else {
-            showAnnotation = false;
-        }
-        //if (location.indexOf("refresh_tree=true") !== -1) //{
-            var TS_ordinal = "28"
-            buildPresentationData(showAnnotation, filter_prefix, TS_ordinal)
-        // } else {
-        //     $("#number").prop("disabled", true);
-        //     $.getJSON("cache/tree_data.json", function(treeData) {
-        //         setAnnotationAndFilter(treeData, showAnnotation, specimen_rid, filter_prefix)
-        //     });
-        // }
-        if (showAnnotation == false) {
-            // $("#left").hide();
-            // $("#right").css('margin-left', '10px');
-            $(".tree-panel").css('width', '99.5%');
-            $("#left").removeClass("col-md-2 col-lg-2 col-sm-2 col-2");
-            $("#right").removeClass("col-md-10 col-lg-10 col-sm-10 col-10");
-            $("#right").addClass("col-md-12 col-lg-12 col-sm-12 col-12");
-        }
 
         function checkIfSearchItemExists() {
             $("#jstree").jstree('close_all');
@@ -182,12 +217,11 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                         document.getElementsByClassName('loader')[0].style.display = "none";
                         document.getElementById('jstree').style.visibility = "visible";
                     }, 100);
-                });
-            // .on('open_node.jstree', function (e, data) {
-            //   setTimeout(function(){
-            //     $('#jstree').jstree(true).get_node(data.node.id, true).children('.jstree-anchor').get(0).scrollIntoView();
-            //   },100);
-            // })
+                })
+                .on('loaded.jstree', function(e, data) {
+                  if(annotated_term != "")
+                    $('#jstree').jstree(true).search(annotated_term);
+                })
             document.getElementsByClassName('loader')[0].style.display = "none";
             document.getElementById('jstree').style.visibility = "visible";
             $("#number").prop("disabled", false);
@@ -196,7 +230,6 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             $("#expand_all_btn").prop("disabled", false);
             $("#collapse_all_btn").prop("disabled", false);
             $("#reset_text").prop("disabled", false);
-
             $("a#change").click(function() {
                 var tree = $("div#jstree").jstree(),
                     nodename = tree.get_node("#").children[0],
@@ -210,79 +243,81 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             });
         }
 
-        function buildPresentationData(showAnnotation, prefixVal, TS_val) {
+        function buildPresentationData(showAnnotation, prefixVal, TS_val, specimen_rid) {
             var presentationData = [];
             // Returns json - Query 1 : https://dev.rebuildingakidney.org/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of/F1:=left(subject_dbxref)=(Anatomy_terms:dbxref)/$M/F2:=left(object_dbxref)=(Anatomy_terms:dbxref)/$M/subject_dbxref:=M:subject_dbxref,object_dbxref,subject:=F1:name,object:=F2:name
             // Returns extraAttributes - Query 2 : https://dev.rebuildingakidney.org/ermrest/catalog/2/attribute/M:=Gene_Expression:Specimen_Expression/RID=Q-PQ16/$M/RID:=M:RID,Region:=M:Region,strength:=M:Strength,pattern:=M:Pattern,density:=M:Density,densityChange:=M:Density_Direction,densityNote:=M:Density_Note
             // Returns isolated nodes - Query 3 : https://dev.rebuildingakidney.org/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy_terms/s:=left(dbxref)=(Vocabulary:Anatomy_Part_Of:subject_dbxref)/subject_dbxref::null::/$t/o:=left(dbxref)=(Vocabulary:Anatomy_Part_Of:object_dbxref)/object_dbxref::null::/$t/dbxref:=t:dbxref,name:=t:name
             if (TS_val != "" && TS_val != "All") {
-                var json;
-                var treeDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=left(Subject)=(Vocabulary:Anatomy:id)/Subject_Starts_at_Ordinal:=left(Starts_At)=(Vocabulary:Developmental_Stage:name)/Ordinal::leq::' + TS_val + '/$F1/Subject_Ends_At_Ordinal:=left(Ends_At)=(Vocabulary:Developmental_Stage:name)/Ordinal::geq::' + TS_val + '/$M/F2:=left(Object)=(Vocabulary:Anatomy:id)/Object_Starts_at_Ordinal:=left(Starts_At)=(Vocabulary:Developmental_Stage:name)/Ordinal::leq::' + TS_val + '/$F2/Object_Ends_At_Ordinal:=left(Ends_At)=(Vocabulary:Developmental_Stage:name)/Ordinal::geq::' + TS_val + '/$M/subject_dbxref:=M:Subject,object_dbxref:=M:Object,subject:=F1:name,object:=F2:name'
+                var json, treeDataURL;
+                treeDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=left(Subject)=(Vocabulary:Anatomy:id)/Subject_Starts_at_Ordinal:=left(Starts_At)=(Vocabulary:Developmental_Stage:name)/Ordinal::leq::' + TS_val + '/$F1/Subject_Ends_At_Ordinal:=left(Ends_At)=(Vocabulary:Developmental_Stage:name)/Ordinal::geq::' + TS_val + '/$M/F2:=left(Object)=(Vocabulary:Anatomy:id)/Object_Starts_at_Ordinal:=left(Starts_At)=(Vocabulary:Developmental_Stage:name)/Ordinal::leq::' + TS_val + '/$F2/Object_Ends_At_Ordinal:=left(Ends_At)=(Vocabulary:Developmental_Stage:name)/Ordinal::geq::' + TS_val + '/$M/subject_dbxref:=M:Subject,object_dbxref:=M:Object,subject:=F1:name,object:=F2:name'
 
                 $.getJSON(treeDataURL, function(data) {
                     json = data
                 }).done(function() {
-                    forest = processData(json, [], showAnnotation, [], prefixVal);
-                    var presentationData = [];
-                    for (var g = 0; g < forest.trees.length; g++)
-                        presentationData.push(forest.trees[g].node);
-                    var finalData = buildTree(presentationData);
-                    console.log("**END**");
-                    if ($('#jstree').jstree(true) == false) {
-                        buildTreeAndAssignEvents(finalData)
-                    } else {
-                        $('#jstree').jstree(true).settings.core.data = finalData;
-                        $('#jstree').jstree(true).refresh();
-                        document.getElementsByClassName('loader')[0].style.display = "none";
-                        document.getElementById('jstree').style.visibility = "visible";
-                        $("#number").prop("disabled", false);
-                        $('#plugins4_q').prop("disabled", false);
-                        $("#search_btn").prop("disabled", false);
-                        $("#expand_all_btn").prop("disabled", false);
-                        $("#collapse_all_btn").prop("disabled", false);
-                        $("#reset_text").prop("disabled", false);
-                    }
+                  if(specimen_rid != '') {
+                    var extraAttributesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Gene_Expression:Specimen_Expression/RID='+specimen_rid+'/$M/RID:=M:RID,Region:=M:Region,strength:=M:Strength,pattern:=M:Pattern,density:=M:Density,densityChange:=M:Density_Direction,densityNote:=M:Density_Note';
+                    $.getJSON(extraAttributesURL, function(data) {
+                        extraAttributes = data
+                    }).done(function() {
+                        refreshOrBuildTree(json,extraAttributes,showAnnotation, [], prefixVal, TS_val)
+                    })
+                  }
+                  else {
+                    refreshOrBuildTree(json,[],showAnnotation, [], prefixVal, TS_val)
+                  }
                 });
             } else {
                 var treeDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=left(Subject)=(Vocabulary:Anatomy:id)/$M/F2:=left(Object)=(Vocabulary:Anatomy:id)/$M/subject_dbxref:=M:Subject,object_dbxref:=M:Object,subject:=F1:name,object:=F2:name';
-                var extraAttributesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Gene_Expression:Specimen_Expression/RID=Q-PQ16/$M/RID:=M:RID,Region:=M:Region,strength:=M:Strength,pattern:=M:Pattern,density:=M:Density,densityChange:=M:Density_Direction,densityNote:=M:Density_Note';
+                var extraAttributesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Gene_Expression:Specimen_Expression/RID='+specimen_rid+'/$M/RID:=M:RID,Region:=M:Region,strength:=M:Strength,pattern:=M:Pattern,density:=M:Density,densityChange:=M:Density_Direction,densityNote:=M:Density_Note';
                 var isolatedNodesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy/s:=left(id)=(Vocabulary:Anatomy_Part_Of_Relationship:Subject)/Subject::null::/$t/o:=left(id)=(Vocabulary:Anatomy_Part_Of_Relationship:Object)/Object::null::/$t/dbxref:=t:id,name:=t:name';
                 var json = [],
-                    extraAttributes, isolatedNodes;
+                    extraAttributes, isolatedNodes, region;
                 $.getJSON(treeDataURL, function(data) {
                     json = data
                 }).done(function() {
                     $.getJSON(isolatedNodesURL, function(data) {
                         isolatedNodes = data
                     }).done(function() {
+                      if(specimen_rid != '') {
                         $.getJSON(extraAttributesURL, function(data) {
                             extraAttributes = data
                         }).done(function() {
-                            var Region = extraAttributes[0].Region;
-                            forest = processData(json, extraAttributes[0], showAnnotation, isolatedNodes, prefixVal);
-                            var presentationData = [];
-                            for (var g = 0; g < forest.trees.length; g++)
-                                presentationData.push(forest.trees[g].node);
-                            var finalData = buildTree(presentationData);
-                            console.log("**END**");
-                            if (TS_val == "All") {
-                                $('#jstree').jstree(true).settings.core.data = finalData;
-                                $('#jstree').jstree(true).refresh();
-                                document.getElementsByClassName('loader')[0].style.display = "none";
-                                document.getElementById('jstree').style.visibility = "visible";
-                                $("#number").prop("disabled", false);
-                                $('#plugins4_q').prop("disabled", false);
-                                $("#search_btn").prop("disabled", false);
-                                $("#expand_all_btn").prop("disabled", false);
-                                $("#collapse_all_btn").prop("disabled", false);
-                                $("#reset_text").prop("disabled", false);
-                            } else {
-                                buildTreeAndAssignEvents(finalData)
-                            }
+                            refreshOrBuildTree(json,extraAttributes,showAnnotation, isolatedNodes, prefixVal, TS_val)
                         })
+                      }
+                      else {
+                        refreshOrBuildTree(json,[],showAnnotation, isolatedNodes, prefixVal, TS_val)
+                      }
                     })
                 });
             }
+        }
+
+        function refreshOrBuildTree(json, extraAttributes, showAnnotation, isolatedNodes, prefixVal, TS_val) {
+          if (showAnnotation == false) {
+            forest = processData(json, [], showAnnotation, isolatedNodes, prefixVal);
+          }
+          forest = processData(json, extraAttributes[0], showAnnotation, isolatedNodes, prefixVal);
+          var presentationData = [];
+          for (var g = 0; g < forest.trees.length; g++)
+              presentationData.push(forest.trees[g].node);
+          var finalData = buildTree(presentationData);
+          console.log("**END**");
+          if (TS_val != "" && ($('#jstree').jstree(true) != false)) {
+              $('#jstree').jstree(true).settings.core.data = finalData;
+              $('#jstree').jstree(true).refresh();
+              document.getElementsByClassName('loader')[0].style.display = "none";
+              document.getElementById('jstree').style.visibility = "visible";
+              $("#number").prop("disabled", false);
+              $('#plugins4_q').prop("disabled", false);
+              $("#search_btn").prop("disabled", false);
+              $("#expand_all_btn").prop("disabled", false);
+              $("#collapse_all_btn").prop("disabled", false);
+              $("#reset_text").prop("disabled", false);
+          } else {
+              buildTreeAndAssignEvents(finalData)
+          }
         }
 
         function setAnnotationAndFilter(treeData, showAnnotation, specimen_rid, prefixVal) {
@@ -346,6 +381,9 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             var subjectText = data[0].subject,
                 objectText = data[0].object;
             if (showAnnotation && data[0].object_dbxref == extraAttributes.Region) {
+                if(annotated_term == "") {
+                  annotated_term = objectText
+                }
                 var densityIcon = getDensityIcon(extraAttributes.density),
                     densityChangeIcon = getDensityChangeIcon(extraAttributes.densityChange),
                     densityNoteIcon = getDensityNoteIcon(extraAttributes.densityNote),
@@ -362,6 +400,9 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                 objectColumnData = "<span>" + objectText + "</span>"
             }
             if (showAnnotation && data[0].subject_dbxref == extraAttributes.Region) {
+                if(annotated_term == "") {
+                  annotated_term = subjectText
+                }
                 var densityIcon = getDensityIcon(extraAttributes.density),
                     densityChangeIcon = getDensityChangeIcon(extraAttributes.densityChange),
                     densityNoteIcon = getDensityNoteIcon(extraAttributes.densityNote),
@@ -411,6 +452,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                 forest.trees.push(tree);
             }
             // Get all isolated nodes as parent nodes
+
             for (var j = 0; j < isolatedNodes.length; j++) {
                 var parent = {
                     text: "<span>" + isolatedNodes[j].name + "</span>",
@@ -440,6 +482,9 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                 var subjectText = data[i].subject,
                     objectText = data[i].object;
                 if (showAnnotation && data[i].object_dbxref == extraAttributes.Region) {
+                    if(annotated_term == "") {
+                      annotated_term = objectText
+                    }
                     var densityIcon = getDensityIcon(extraAttributes.density),
                         densityChangeIcon = getDensityChangeIcon(extraAttributes.densityChange),
                         densityNoteIcon = getDensityNoteIcon(extraAttributes.densityNote),
@@ -456,6 +501,9 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                     objectColumnData = "<span>" + objectText + "</span>"
                 }
                 if (showAnnotation && data[i].subject_dbxref == extraAttributes.Region) {
+                    if(annotated_term == "") {
+                      annotated_term = subjectText
+                    }
                     var densityIcon = getDensityIcon(extraAttributes.density),
                         densityChangeIcon = getDensityChangeIcon(extraAttributes.densityChange),
                         densityNoteIcon = getDensityNoteIcon(extraAttributes.densityNote),
