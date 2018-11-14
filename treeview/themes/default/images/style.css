@@ -1,5 +1,35 @@
 /* jsTree default theme */
 
+#left {
+  visibility: hidden;
+  padding-right: 0px;
+}
+
+#right{
+  padding-left: 0px;
+}
+
+.tree-panel{
+  padding-left: 20px;
+}
+
+#parent {
+  display: flex;
+}
+#TSDropdownDiv {
+  width: 6em;
+  margin-top: 1em;
+  margin-right: 4px;
+  /* Just so it's visible */
+}
+#mainDiv {
+  flex: 1;
+  /* Grow to rest of container */
+}
+
+.jstree-grid-wrapper{
+  overflow: hidden!important;
+}
 .back-to-top {
     background: none;
     margin: 0;
@@ -11,6 +41,8 @@
     z-index: 100;
     display: none;
     text-decoration: none;
+    margin-right: 20px;
+    margin-bottom: 16px;
 }
 
 .overflow {
@@ -18,16 +50,20 @@
 }
 
 .ui-selectmenu-button.ui-button {
-    width: 22em !important
+  width: 6em !important;
+  height: 2.38em;
+  border-radius: 0;
+  border:1px solid #2e6da4;
 }
 
 span#number-button {
     margin-left: 8px;
+    padding-left: 1em;
 }
 
 .btn-primary {
     background-color: #337ab7;
-    height: 2.3em;
+    height: 2.35em;
 }
 
 .btn-primary.btn-inverted {
