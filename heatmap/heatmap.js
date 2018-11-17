@@ -153,18 +153,33 @@ heatmapApp.factory('HeatmapUtils', function HeatmapUtils() {
 		var tMargin = 25, rMargin, bMargin, lMargin;
 
 		if (longestXTick <= 18) {
-			height = longestXTick * 8 + lengthY * 10 + 45;
-			bMargin = 7.8 * longestXTick;
+			height = longestXTick * 9 + lengthY * 10 + 50;
+			bMargin = 8.4 * longestXTick;
 		} else if (longestXTick <= 22) {
-			height = longestXTick * 8.7 + lengthY * 10 + 35;
-			bMargin = 6.9 * longestXTick;
+			height = longestXTick * 9 + lengthY * 10 + 55;
+			bMargin = 8.4 * longestXTick;
 		} else if (longestXTick <= 30) {
-			height = longestXTick * 7.7 + lengthY * 10 + 45;
-			bMargin = 6.7 * longestXTick;
+			height = longestXTick * 8.8 + lengthY * 10 + 55;
+			bMargin = 8.2 * longestXTick;
 		} else {
-			height = longestXTick * 7.2 + lengthY * 10 + 42;
-			bMargin = 6.3 * longestXTick;
+			height = longestXTick * 8.8 + lengthY * 10 + 45;
+			bMargin = 8 * longestXTick;
 		}
+
+		// Parameters for xTickAngle = 50
+		// if (longestXTick <= 18) {
+		// 	height = longestXTick * 8 + lengthY * 10 + 45;
+		// 	bMargin = 7.8 * longestXTick;
+		// } else if (longestXTick <= 22) {
+		// 	height = longestXTick * 8.7 + lengthY * 10 + 35;
+		// 	bMargin = 6.9 * longestXTick;
+		// } else if (longestXTick <= 30) {
+		// 	height = longestXTick * 7.7 + lengthY * 10 + 45;
+		// 	bMargin = 6.7 * longestXTick;
+		// } else {
+		// 	height = longestXTick * 7.2 + lengthY * 10 + 42;
+		// 	bMargin = 6.3 * longestXTick;
+		// }
 
 		if (lengthY == 1) {
 			yTickAngle = -90;

@@ -13,7 +13,7 @@ var heatmapConfig = {
     },
     presentation:{
         width: 1200,
-        xTickAngle: 50,
+        xTickAngle: 90,
         tickFontFamily: "Courier",
         tickFontSize: 12
     }
