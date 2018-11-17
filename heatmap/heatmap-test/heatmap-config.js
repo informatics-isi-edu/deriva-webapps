@@ -14,7 +14,7 @@ var heatmapConfig = {
     presentation:{
         width: 1200,
         xTickAngle: 90,
-        tickFontFamily: "Courier",
+        tickFontFamily: "Lucida Console",
         tickFontSize: 12
     }
 };
