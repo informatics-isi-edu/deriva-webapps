@@ -18,30 +18,100 @@ var heatmapApp =
 
 		.config(['ConfigUtilsProvider', function (ConfigUtilsProvider) {
 			ConfigUtilsProvider.$get().setConfigJSON();
-		}])
+        }])
+        .factory('CreateData', function () {
+            function createHeatmap(id) {
+                var cur = {};
+                cur.id = id;
+                cur.title = "Developing Kidney " + id;
+                return cur;
+            }
 
-		.run(['ERMrest', 'UriUtils', '$rootScope', '$window',
-			function runApp(ERMrest, UriUtils, $rootScope, $window) {
+            function createRows(id, xLen, yLen, maxXLabelLength) {
+                var rows = {};
+                rows.type = 'heatmap';
+                rows.x = [];
+                rows.y = [];
+                rows.z = [];
+                var xValues = ["E11_Meta_2", "E11_Meta", "E11_1", "E11_Met_W"];
+                var zValues = [5, 6, 7, 8];
+
+                for (var i = 0; i < yLen; i++) {
+                    var yValue = id + '_at_' + (i + 1);
+                    rows.y.push(yValue);
+                    rows.z.push([]);
+                    for (var j = 0; j < xLen; j++) {
+                        rows.z[i].push(zValues[j % 4] + i * 0.7);
+                    }
+                }
+
+                for (var i = 0; i < xLen; i++) {
+                    var suffix = "";
+                    var startChar = String.fromCharCode('A'.charCodeAt() + i);
+                    var n = yLen > 1 ? maxXLabelLength - 10 : id - 10;
+                    for (var j = 0; j < n; j++) {
+                        // var c = String.fromCharCode(startChar.charCodeAt() + j);
+                        suffix = suffix + startChar;
+                    }
+                    rows.x.push(xValues[i % 4] + suffix);
+                }
+
+                return rows;
+            }
+
+            return {
+                createHeatmap: createHeatmap,
+                createRows: createRows
+            };
+        })
+
+
+		.run(['ERMrest', 'UriUtils', '$rootScope', '$window','CreateData',
+			function runApp(ERMrest, UriUtils, $rootScope, $window, CreateData) {
 				$rootScope.heatmapsLoadedCount = 0;
 				$rootScope.configErrorsPresent = false;
 				ERMrest.appLinkFn(UriUtils.appTagToURL);
 				var ermrestURI = UriUtils.chaiseURItoErmrestURI($window.location);
 				var heatmaps = [];
-				ERMrest.resolve(ermrestURI).then(function getReference(reference) {
-					verifyConfiguration(reference);
-					if (!$rootScope.configErrorsPresent) {
-						var sortBy = typeof heatmapConfig.data.sortBy !== "undefined" ? heatmapConfig.data.sortBy : [];
-						var ref = reference.sort(sortBy);
-						ref.read(1000).then(function getPage(page) {
-							readAll(page);
-						}).catch(function (error) {
-							$rootScope.invalidConfigs = ["Error while reading data from Ermrestjs"];
-							$rootScope.configErrorsPresent = true;
-						});
-					}
-				}).catch(function (error) {
-					throw error;
-				});
+                var id = 11;
+                var curHeatmap;
+                while (id < 36) {
+                    curHeatmap = CreateData.createHeatmap(id);
+                    curHeatmap.rows = CreateData.createRows(id, 20, 1);
+                    heatmaps.push(curHeatmap);
+                    id++;
+                    curHeatmap = CreateData.createHeatmap(id);
+                    curHeatmap.rows = CreateData.createRows(id, 40, 1);
+                    heatmaps.push(curHeatmap);
+                    id++;
+                    curHeatmap = CreateData.createHeatmap(id);
+                    curHeatmap.rows = CreateData.createRows(id, 30, 1);
+                    heatmaps.push(curHeatmap);
+                    id++;
+                    curHeatmap = CreateData.createHeatmap(id);
+                    curHeatmap.rows = CreateData.createRows(id, 50, 1);
+                    heatmaps.push(curHeatmap);
+                    id++;
+                }
+                curHeatmap = CreateData.createHeatmap(id);
+                curHeatmap.rows = CreateData.createRows(id, 40, 2, 39);
+                heatmaps.push(curHeatmap);
+                id++;
+                curHeatmap = CreateData.createHeatmap(id);
+                curHeatmap.rows = CreateData.createRows(id, 40, 3, 40);
+                heatmaps.push(curHeatmap);
+                id++;
+                curHeatmap = CreateData.createHeatmap(id);
+                curHeatmap.rows = CreateData.createRows(id, 40, 3, 20);
+                heatmaps.push(curHeatmap);
+                id++;
+                curHeatmap = CreateData.createHeatmap(id);
+                curHeatmap.rows = CreateData.createRows(id, 40, 3, 15);
+                heatmaps.push(curHeatmap);
+
+                console.log("heatmaps: ", heatmaps);
+                $rootScope.heatmaps = heatmaps;
+                $rootScope.heatmapRows = heatmaps[0].rows;
 
 				function verifyConfiguration(reference) {
 					var config = heatmapConfig.data;
@@ -164,10 +234,9 @@ heatmapApp.factory('HeatmapUtils', function HeatmapUtils() {
 		} else {
 			height = longestXTick * 8.8 + lengthY * 10 + 45;
 			bMargin = 8 * longestXTick;
-		}
-
-		// Parameters for xTickAngle = 50
-		// if (longestXTick <= 18) {
+        }
+        // Parameters for xTickAngle = 50
+        // if (longestXTick <= 18) {
 		// 	height = longestXTick * 8 + lengthY * 10 + 45;
 		// 	bMargin = 7.8 * longestXTick;
 		// } else if (longestXTick <= 22) {
