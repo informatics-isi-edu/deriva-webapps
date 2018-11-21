@@ -61,7 +61,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             return false;
         })
         if(showAnnotation == true) {
-          TSDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/specimen:=left(RID)=(Gene_Expression:Specimen_Expression:Specimen)/RID='+specimen_rid+'/M:Developmental_Stage'
+          TSDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+specimen_rid+'/stage:=left(Stage_ID)=(Vocabulary:Developmental_Stage:id)/stage:name,stage:Ordinal'
           var $el = $("#number");
           $el.empty();
           $.getJSON(TSDataURL, function(TSData) {
@@ -71,14 +71,14 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                document.getElementsByTagName("p")[0].innerHTML="Error: Developmental Stage does not exist for Specimen RID : "+specimen_rid;
             }
             else{
-              var stage = TSData[0]['Developmental_Stage']
+              var stage = TSData[0]['name']
               $el.append($("<option></option>")
-                  .attr("value", stage).text("TS"+stage));
+                  .attr("value", stage).text(stage));
               $('#number').val(stage);
               $("#number").selectmenu("refresh");
               $("#number").prop("disabled", true);
               $("#number").selectmenu("refresh");
-              TS_ordinal = stage;
+              TS_ordinal = TSData[0]['Ordinal'];
               buildPresentationData(showAnnotation, filter_prefix, TS_ordinal, specimen_rid)
             }
           });
@@ -256,7 +256,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                     json = data
                 }).done(function() {
                   if(specimen_rid != '') {
-                    var extraAttributesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Gene_Expression:Specimen_Expression/RID='+specimen_rid+'/$M/RID:=M:RID,Region:=M:Region,strength:=M:Strength,pattern:=M:Pattern,density:=M:Density,densityChange:=M:Density_Direction,densityNote:=M:Density_Note';
+                    var extraAttributesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+specimen_rid+'/N:=left(RID)=(Gene_Expression:Specimen_Expression:Specimen)/M:RID,Region:=N:Region,strength:=N:Strength,pattern:=N:Pattern,density:=N:Density,densityChange:=N:Density_Direction,densityNote:=N:Density_Note';
                     $.getJSON(extraAttributesURL, function(data) {
                         extraAttributes = data
                     }).done(function() {
@@ -269,7 +269,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                 });
             } else {
                 var treeDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=left(Subject)=(Vocabulary:Anatomy:id)/$M/F2:=left(Object)=(Vocabulary:Anatomy:id)/$M/subject_dbxref:=M:Subject,object_dbxref:=M:Object,subject:=F1:name,object:=F2:name';
-                var extraAttributesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Gene_Expression:Specimen_Expression/RID='+specimen_rid+'/$M/RID:=M:RID,Region:=M:Region,strength:=M:Strength,pattern:=M:Pattern,density:=M:Density,densityChange:=M:Density_Direction,densityNote:=M:Density_Note';
+                var extraAttributesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+specimen_rid+'/N:=left(RID)=(Gene_Expression:Specimen_Expression:Specimen)/M:RID,Region:=N:Region,strength:=N:Strength,pattern:=N:Pattern,density:=N:Density,densityChange:=N:Density_Direction,densityNote:=N:Density_Note';
                 var isolatedNodesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy/s:=left(id)=(Vocabulary:Anatomy_Part_Of_Relationship:Subject)/Subject::null::/$t/o:=left(id)=(Vocabulary:Anatomy_Part_Of_Relationship:Object)/Object::null::/$t/dbxref:=t:id,name:=t:name';
                 var json = [],
                     extraAttributes, isolatedNodes, region;
@@ -298,7 +298,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
           if (showAnnotation == false) {
             forest = processData(json, [], showAnnotation, isolatedNodes, prefixVal);
           }
-          forest = processData(json, extraAttributes[0], showAnnotation, isolatedNodes, prefixVal);
+          forest = processData(json, extraAttributes, showAnnotation, isolatedNodes, prefixVal);
           var presentationData = [];
           for (var g = 0; g < forest.trees.length; g++)
               presentationData.push(forest.trees[g].node);
@@ -331,7 +331,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             }
             if (showAnnotation == true) {
                 var extraAttributes;
-                var extraAttributesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Gene_Expression:Specimen_Expression/RID=' + specimen_rid + '/$M/RID:=M:RID,Region:=M:Region,strength:=M:Strength,pattern:=M:Pattern,density:=M:Density,densityChange:=M:Density_Direction,densityNote:=M:Density_Note';
+                var extraAttributesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+specimen_rid+'/N:=left(RID)=(Gene_Expression:Specimen_Expression:Specimen)/M:RID,Region:=N:Region,strength:=N:Strength,pattern:=N:Pattern,density:=N:Density,densityChange:=N:Density_Direction,densityNote:=N:Density_Note';
                 $.getJSON(extraAttributesURL, function(data) {
                     extraAttributes = data
                 }).done(function() {
@@ -379,17 +379,21 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
 
         function processData(data, extraAttributes, showAnnotation, isolatedNodes, prefixVal) {
             var subjectText = data[0].subject,
-                objectText = data[0].object;
-            if (showAnnotation && data[0].object_dbxref == extraAttributes.Region) {
+                objectText = data[0].object,
+                specimen_expression_annotations = extraAttributes.find(function(obj) {
+                  return obj.Region == data[0].object_dbxref
+                })
+
+            if (showAnnotation && typeof specimen_expression_annotations != 'undefined') {
                 if(annotated_term == "") {
                   annotated_term = objectText
                 }
-                var densityIcon = getDensityIcon(extraAttributes.density),
-                    densityChangeIcon = getDensityChangeIcon(extraAttributes.densityChange),
-                    densityNoteIcon = getDensityNoteIcon(extraAttributes.densityNote),
-                    densityNote = extraAttributes.densityNote,
-                    patternIcon = getPatternIcon(extraAttributes.pattern),
-                    strengthIcon = getStrengthIcon(extraAttributes.strength),
+                var densityIcon = getDensityIcon(specimen_expression_annotations.density),
+                    densityChangeIcon = getDensityChangeIcon(specimen_expression_annotations.densityChange),
+                    densityNoteIcon = getDensityNoteIcon(specimen_expression_annotations.densityNote),
+                    densityNote = specimen_expression_annotations.densityNote,
+                    patternIcon = getPatternIcon(specimen_expression_annotations.pattern),
+                    strengthIcon = getStrengthIcon(specimen_expression_annotations.strength),
                     densityImgSrc = densityIcon != '' ? "<img src=" + densityIcon + "></img>" : "",
                     patternImgSrc = patternIcon != '' ? "<img src=" + patternIcon + "></img>" : "",
                     strengthImgSrc = strengthIcon != '' ? "<img src=" + strengthIcon + "></img>" : "",
@@ -399,16 +403,19 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             } else {
                 objectColumnData = "<span>" + objectText + "</span>"
             }
-            if (showAnnotation && data[0].subject_dbxref == extraAttributes.Region) {
+            specimen_expression_annotations = extraAttributes.find(function(obj) {
+              return obj.Region == data[0].subject_dbxref
+            })
+            if (showAnnotation && typeof specimen_expression_annotations != 'undefined') {
                 if(annotated_term == "") {
                   annotated_term = subjectText
                 }
-                var densityIcon = getDensityIcon(extraAttributes.density),
-                    densityChangeIcon = getDensityChangeIcon(extraAttributes.densityChange),
-                    densityNoteIcon = getDensityNoteIcon(extraAttributes.densityNote),
-                    densityNote = extraAttributes.densityNote,
-                    patternIcon = getPatternIcon(extraAttributes.pattern),
-                    strengthIcon = getStrengthIcon(extraAttributes.strength),
+                var densityIcon = getDensityIcon(specimen_expression_annotations.density),
+                    densityChangeIcon = getDensityChangeIcon(specimen_expression_annotations.densityChange),
+                    densityNoteIcon = getDensityNoteIcon(specimen_expression_annotations.densityNote),
+                    densityNote = specimen_expression_annotations.densityNote,
+                    patternIcon = getPatternIcon(specimen_expression_annotations.pattern),
+                    strengthIcon = getStrengthIcon(specimen_expression_annotations.strength),
                     densityImgSrc = densityIcon != '' ? "<img src=" + densityIcon + "></img>" : "",
                     patternImgSrc = patternIcon != '' ? "<img src=" + patternIcon + "></img>" : "",
                     strengthImgSrc = strengthIcon != '' ? "<img src=" + strengthIcon + "></img>" : "",
@@ -480,8 +487,11 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                 // if(data[i].object_dbxref == "UBERON:0010536:" || data[i].subject_dbxref == "UBERON:0010536:")
                 //     console.log('found');
                 var subjectText = data[i].subject,
-                    objectText = data[i].object;
-                if (showAnnotation && data[i].object_dbxref == extraAttributes.Region) {
+                    objectText = data[i].object,
+                    specimen_expression_annotations = extraAttributes.find(function(obj) {
+                      return obj.Region == data[i].object_dbxref
+                    })
+                if (showAnnotation && typeof specimen_expression_annotations != 'undefined') {
                     if(annotated_term == "") {
                       annotated_term = objectText
                     }
@@ -500,16 +510,19 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                 } else {
                     objectColumnData = "<span>" + objectText + "</span>"
                 }
-                if (showAnnotation && data[i].subject_dbxref == extraAttributes.Region) {
+                specimen_expression_annotations = extraAttributes.find(function(obj) {
+                  return obj.Region == data[i].subject_dbxref
+                })
+                if (showAnnotation && typeof specimen_expression_annotations != 'undefined') {
                     if(annotated_term == "") {
                       annotated_term = subjectText
                     }
-                    var densityIcon = getDensityIcon(extraAttributes.density),
-                        densityChangeIcon = getDensityChangeIcon(extraAttributes.densityChange),
-                        densityNoteIcon = getDensityNoteIcon(extraAttributes.densityNote),
-                        densityNote = extraAttributes.densityNote,
-                        patternIcon = getPatternIcon(extraAttributes.pattern),
-                        strengthIcon = getStrengthIcon(extraAttributes.strength),
+                    var densityIcon = getDensityIcon(specimen_expression_annotations.density),
+                        densityChangeIcon = getDensityChangeIcon(specimen_expression_annotations.densityChange),
+                        densityNoteIcon = getDensityNoteIcon(specimen_expression_annotations.densityNote),
+                        densityNote = specimen_expression_annotations.densityNote,
+                        patternIcon = getPatternIcon(specimen_expression_annotations.pattern),
+                        strengthIcon = getStrengthIcon(specimen_expression_annotations.strength),
                         densityImgSrc = densityIcon != '' ? "<img src=" + densityIcon + "></img>" : "",
                         patternImgSrc = patternIcon != '' ? "<img src=" + patternIcon + "></img>" : "",
                         strengthImgSrc = strengthIcon != '' ? "<img src=" + strengthIcon + "></img>" : "",
