@@ -320,43 +320,43 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
           }
         }
 
-        function setAnnotationAndFilter(treeData, showAnnotation, specimen_rid, prefixVal) {
-            if (prefixVal != '') {
-                tree_data = []
-                tree_data = treeData.filter(function(node) {
-                    if (node.dbxref.startsWith(prefixVal) == false)
-                        return node
-                })
-                treeData = tree_data
-            }
-            if (showAnnotation == true) {
-                var extraAttributes;
-                var extraAttributesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+specimen_rid+'/N:=left(RID)=(Gene_Expression:Specimen_Expression:Specimen)/M:RID,Region:=N:Region,strength:=N:Strength,pattern:=N:Pattern,density:=N:Density,densityChange:=N:Density_Direction,densityNote:=N:Density_Note';
-                $.getJSON(extraAttributesURL, function(data) {
-                    extraAttributes = data
-                }).done(function() {
-                    var densityIcon = getDensityIcon(extraAttributes[0].density),
-                        densityChangeIcon = getDensityChangeIcon(extraAttributes[0].densityChange),
-                        densityNoteIcon = getDensityNoteIcon(extraAttributes[0].densityNote),
-                        densityNote = extraAttributes[0].densityNote,
-                        patternIcon = getPatternIcon(extraAttributes[0].pattern),
-                        strengthIcon = getStrengthIcon(extraAttributes[0].strength),
-                        densityImgSrc = densityIcon != '' ? "<img src=" + densityIcon + "></img>" : "",
-                        patternImgSrc = patternIcon != '' ? "<img src=" + patternIcon + "></img>" : "",
-                        strengthImgSrc = strengthIcon != '' ? "<img src=" + strengthIcon + "></img>" : "",
-                        densityChangeImgSrc = densityChangeIcon != '' ? "<img src=" + densityChangeIcon + "></img>" : "",
-                        densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img src=" + densityNoteIcon + " title='" + densityNote + "'></img>" : "";
-                    treeData.forEach(function(node) {
-                        if (node.dbxref == extraAttributes[0].Region) {
-                            node.text = "<span>" + strengthImgSrc + "<span>" + node.text + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + "</span>"
-                        }
-                    });
-                    buildTreeAndAssignEvents(treeData)
-                });
-            } else {
-                buildTreeAndAssignEvents(treeData)
-            }
-        }
+        // function setAnnotationAndFilter(treeData, showAnnotation, specimen_rid, prefixVal) {
+        //     if (prefixVal != '') {
+        //         tree_data = []
+        //         tree_data = treeData.filter(function(node) {
+        //             if (node.dbxref.startsWith(prefixVal) == false)
+        //                 return node
+        //         })
+        //         treeData = tree_data
+        //     }
+        //     if (showAnnotation == true) {
+        //         var extraAttributes;
+        //         var extraAttributesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+specimen_rid+'/N:=left(RID)=(Gene_Expression:Specimen_Expression:Specimen)/M:RID,Region:=N:Region,strength:=N:Strength,pattern:=N:Pattern,density:=N:Density,densityChange:=N:Density_Direction,densityNote:=N:Density_Note';
+        //         $.getJSON(extraAttributesURL, function(data) {
+        //             extraAttributes = data
+        //         }).done(function() {
+        //             var densityIcon = getDensityIcon(extraAttributes[0].density),
+        //                 densityChangeIcon = getDensityChangeIcon(extraAttributes[0].densityChange),
+        //                 densityNoteIcon = getDensityNoteIcon(extraAttributes[0].densityNote),
+        //                 densityNote = extraAttributes[0].densityNote,
+        //                 patternIcon = getPatternIcon(extraAttributes[0].pattern),
+        //                 strengthIcon = getStrengthIcon(extraAttributes[0].strength),
+        //                 densityImgSrc = densityIcon != '' ? "<img src=" + densityIcon + "></img>" : "",
+        //                 patternImgSrc = patternIcon != '' ? "<img src=" + patternIcon + "></img>" : "",
+        //                 strengthImgSrc = strengthIcon != '' ? "<img src=" + strengthIcon + "></img>" : "",
+        //                 densityChangeImgSrc = densityChangeIcon != '' ? "<img src=" + densityChangeIcon + "></img>" : "",
+        //                 densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img src=" + densityNoteIcon + " title='" + densityNote + "'></img>" : "";
+        //             treeData.forEach(function(node) {
+        //                 if (node.dbxref == extraAttributes[0].Region) {
+        //                     node.text = "<span>" + strengthImgSrc + "<span>" + node.text + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + "</span>"
+        //                 }
+        //             });
+        //             buildTreeAndAssignEvents(treeData)
+        //         });
+        //     } else {
+        //         buildTreeAndAssignEvents(treeData)
+        //     }
+        // }
 
         function removeParent(presentationData) {
 
@@ -495,12 +495,12 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                     if(annotated_term == "") {
                       annotated_term = objectText
                     }
-                    var densityIcon = getDensityIcon(extraAttributes.density),
-                        densityChangeIcon = getDensityChangeIcon(extraAttributes.densityChange),
-                        densityNoteIcon = getDensityNoteIcon(extraAttributes.densityNote),
-                        densityNote = extraAttributes.densityNote,
-                        patternIcon = getPatternIcon(extraAttributes.pattern),
-                        strengthIcon = getStrengthIcon(extraAttributes.strength),
+                    var densityIcon = getDensityIcon(specimen_expression_annotations.density),
+                        densityChangeIcon = getDensityChangeIcon(specimen_expression_annotations.densityChange),
+                        densityNoteIcon = getDensityNoteIcon(specimen_expression_annotations.densityNote),
+                        densityNote = specimen_expression_annotations.densityNote,
+                        patternIcon = getPatternIcon(specimen_expression_annotations.pattern),
+                        strengthIcon = getStrengthIcon(specimen_expression_annotations.strength),
                         densityImgSrc = densityIcon != '' ? "<img src=" + densityIcon + "></img>" : "",
                         patternImgSrc = patternIcon != '' ? "<img src=" + patternIcon + "></img>" : "",
                         strengthImgSrc = strengthIcon != '' ? "<img src=" + strengthIcon + "></img>" : "",
@@ -528,7 +528,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                         strengthImgSrc = strengthIcon != '' ? "<img src=" + strengthIcon + "></img>" : "",
                         densityChangeImgSrc = densityChangeIcon != '' ? "<img src=" + densityChangeIcon + "></img>" : "",
                         densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img src=" + densityNoteIcon + " title='" + densityNote + "'></img>" : ""
-                    subjectColumnData = "<span>" + strengthImgSrc + "<span>" + objectText + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + "</span>"
+                    subjectColumnData = "<span>" + strengthImgSrc + "<span>" + subjectText + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + "</span>"
                 } else {
                     subjectColumnData = "<span>" + subjectText + "</span>"
                 }
