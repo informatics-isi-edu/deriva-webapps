@@ -3,6 +3,7 @@ var lineplotApp = angular.module('lineplotApp', [
     'ngCookies',
     'chaise.alerts',
     'chaise.filters',
+    'chaise.inputs',
     'chaise.utils',
     'ermrestjs',
     'ui.bootstrap'])
@@ -49,14 +50,14 @@ var lineplotApp = angular.module('lineplotApp', [
                 var data = response.data;
                 login_url = data['redirect_url'];
                 $window.location=login_url;
-                
+
             }, function(error) {
             	alert(err.data);
             });
 
 
         });
-    	
+
         // var ermrestURI1 = "https://prisms.isrd.isi.edu/ermrest/catalog/1/attribute/prisms:breathe_platform_airbeam_view_dev_ft/subject_id=159&recorded_time::geq::2018-10-15T12%3A00%3A00/recorded_time,pm_value,rh_value,f_value@sort(recorded_time)?limit=7200",
     }
 ]);
@@ -168,7 +169,7 @@ lineplotApp.controller('LineplotController', ['AlertsService', 'dataFormats', 'L
             vm.lineplotsLoaded = true;
         });
     }
-    
+
     vm.logout = function () {
         var logoutURL = '/';
         var serviceURL = $window.location.origin;
