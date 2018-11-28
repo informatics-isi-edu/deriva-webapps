@@ -61,7 +61,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             return false;
         })
         if(showAnnotation == true) {
-          TSDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+specimen_rid+'/stage:=left(Stage_ID)=(Vocabulary:Developmental_Stage:id)/stage:name,stage:Ordinal'
+          TSDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+specimen_rid+'/stage:=left(Stage_ID)=(Vocabulary:Developmental_Stage:ID)/stage:Name,stage:Ordinal'
           var $el = $("#number");
           $el.empty();
           $.getJSON(TSDataURL, function(TSData) {
@@ -71,7 +71,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                document.getElementsByTagName("p")[0].innerHTML="Error: Developmental Stage does not exist for Specimen RID : "+specimen_rid;
             }
             else{
-              var stage = TSData[0]['name']
+              var stage = TSData[0]['Name']
               $el.append($("<option></option>")
                   .attr("value", stage).text(stage));
               $('#number').val(stage);
@@ -84,13 +84,13 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
           });
         }
         else {
-          TSDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Vocabulary:Developmental_Stage/stage:=left(Stage_Type)=(Vocabulary:Stage_Type:id)/name=Theiler%20Stage/M:Ordinal,M:name@sort(Ordinal)'
+          TSDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Vocabulary:Developmental_Stage/stage:=left(Stage_Type)=(Vocabulary:Stage_Type:ID)/Name=Theiler%20Stage/M:Ordinal,M:Name@sort(Ordinal)'
           var $el = $("#number");
           $el.empty(); // remove old options
           $.getJSON(TSDataURL, function(TSData) {
               $.each(TSData, function(index, data) {
                   $el.append($("<option></option>")
-                      .attr("value", data['Ordinal']).text(data['name']));
+                      .attr("value", data['Ordinal']).text(data['Name']));
               });
               $el.append($("<option></option>")
                   .attr("value", "All").text("All TS"));
@@ -250,7 +250,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             // Returns isolated nodes - Query 3 : https://dev.rebuildingakidney.org/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy_terms/s:=left(dbxref)=(Vocabulary:Anatomy_Part_Of:subject_dbxref)/subject_dbxref::null::/$t/o:=left(dbxref)=(Vocabulary:Anatomy_Part_Of:object_dbxref)/object_dbxref::null::/$t/dbxref:=t:dbxref,name:=t:name
             if (TS_val != "" && TS_val != "All") {
                 var json, treeDataURL;
-                treeDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=left(Subject)=(Vocabulary:Anatomy:id)/Subject_Starts_at_Ordinal:=left(Starts_At)=(Vocabulary:Developmental_Stage:name)/Ordinal::leq::' + TS_val + '/$F1/Subject_Ends_At_Ordinal:=left(Ends_At)=(Vocabulary:Developmental_Stage:name)/Ordinal::geq::' + TS_val + '/$M/F2:=left(Object)=(Vocabulary:Anatomy:id)/Object_Starts_at_Ordinal:=left(Starts_At)=(Vocabulary:Developmental_Stage:name)/Ordinal::leq::' + TS_val + '/$F2/Object_Ends_At_Ordinal:=left(Ends_At)=(Vocabulary:Developmental_Stage:name)/Ordinal::geq::' + TS_val + '/$M/subject_dbxref:=M:Subject,object_dbxref:=M:Object,subject:=F1:name,object:=F2:name'
+                treeDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=left(Subject)=(Vocabulary:Anatomy:ID)/Subject_Starts_at_Ordinal:=left(Starts_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::leq::' + TS_val + '/$F1/Subject_Ends_At_Ordinal:=left(Ends_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::geq::' + TS_val + '/$M/F2:=left(Object)=(Vocabulary:Anatomy:ID)/Object_Starts_at_Ordinal:=left(Starts_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::leq::' + TS_val + '/$F2/Object_Ends_At_Ordinal:=left(Ends_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::geq::' + TS_val + '/$M/subject_dbxref:=M:Subject,object_dbxref:=M:Object,subject:=F1:Name,object:=F2:Name'
 
                 $.getJSON(treeDataURL, function(data) {
                     json = data
@@ -268,9 +268,9 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                   }
                 });
             } else {
-                var treeDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=left(Subject)=(Vocabulary:Anatomy:id)/$M/F2:=left(Object)=(Vocabulary:Anatomy:id)/$M/subject_dbxref:=M:Subject,object_dbxref:=M:Object,subject:=F1:name,object:=F2:name';
+                var treeDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=left(Subject)=(Vocabulary:Anatomy:ID)/$M/F2:=left(Object)=(Vocabulary:Anatomy:ID)/$M/subject_dbxref:=M:Subject,object_dbxref:=M:Object,subject:=F1:Name,object:=F2:Name';
                 var extraAttributesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+specimen_rid+'/N:=left(RID)=(Gene_Expression:Specimen_Expression:Specimen)/M:RID,Region:=N:Region,strength:=N:Strength,pattern:=N:Pattern,density:=N:Density,densityChange:=N:Density_Direction,densityNote:=N:Density_Note';
-                var isolatedNodesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy/s:=left(id)=(Vocabulary:Anatomy_Part_Of_Relationship:Subject)/Subject::null::/$t/o:=left(id)=(Vocabulary:Anatomy_Part_Of_Relationship:Object)/Object::null::/$t/dbxref:=t:id,name:=t:name';
+                var isolatedNodesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy/s:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Subject)/Subject::null::/$t/o:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Object)/Object::null::/$t/dbxref:=t:ID,name:=t:Name';
                 var json = [],
                     extraAttributes, isolatedNodes, region;
                 $.getJSON(treeDataURL, function(data) {
@@ -432,7 +432,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                 children: [],
                 dbxref: data[0].object_dbxref,
                 a_attr: {
-                    'href': '/chaise/record/#2/Vocabulary:Anatomy/id=' + data[0].object_dbxref.replace(/:/g, '%3A'),
+                    'href': '/chaise/record/#2/Vocabulary:Anatomy/ID=' + data[0].object_dbxref.replace(/:/g, '%3A'),
                     'style': 'display:inline;'
                 }
             };
@@ -442,7 +442,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                 children: [],
                 dbxref: data[0].subject_dbxref,
                 a_attr: {
-                    'href': '/chaise/record/#2/Vocabulary:Anatomy/id=' + data[0].subject_dbxref.replace(/:/g, '%3A'),
+                    'href': '/chaise/record/#2/Vocabulary:Anatomy/ID=' + data[0].subject_dbxref.replace(/:/g, '%3A'),
                     'style': 'display:inline;'
                 }
             };
@@ -467,7 +467,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                     children: [],
                     dbxref: isolatedNodes[j].dbxref,
                     a_attr: {
-                        'href': '/chaise/record/#2/Vocabulary:Anatomy/id=' + isolatedNodes[j].dbxref.replace(/:/g, '%3A'),
+                        'href': '/chaise/record/#2/Vocabulary:Anatomy/ID=' + isolatedNodes[j].dbxref.replace(/:/g, '%3A'),
                         'style': 'display:inline;'
                     },
                     li_attr: {
@@ -539,7 +539,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                     children: [],
                     dbxref: data[i].object_dbxref,
                     a_attr: {
-                        'href': '/chaise/record/#2/Vocabulary:Anatomy/id=' + data[i].object_dbxref.replace(/:/g, '%3A'),
+                        'href': '/chaise/record/#2/Vocabulary:Anatomy/ID=' + data[i].object_dbxref.replace(/:/g, '%3A'),
                         'style': 'display:inline;'
                     }
                 };
@@ -549,7 +549,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                     children: [],
                     dbxref: data[i].subject_dbxref,
                     a_attr: {
-                        'href': '/chaise/record/#2/Vocabulary:Anatomy/id=' + data[i].subject_dbxref.replace(/:/g, '%3A'),
+                        'href': '/chaise/record/#2/Vocabulary:Anatomy/ID=' + data[i].subject_dbxref.replace(/:/g, '%3A'),
                         'style': 'display:inline;'
                     }
                 };
@@ -661,7 +661,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
         function Tree(node) {
             var linkId = node.dbxref.replace(/:/g, '%3A');
             var s = node.a_attr;
-            var l = "'/chaise/record/#2/Vocabulary:Anatomy/id=" + linkId + "','_blank'";
+            var l = "'/chaise/record/#2/Vocabulary:Anatomy/ID=" + linkId + "','_blank'";
             s["onClick"] = "window.open(" + l + ");";
             var node = {
                 text: node.text,
