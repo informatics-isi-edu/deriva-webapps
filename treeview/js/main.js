@@ -117,7 +117,6 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
         $("#reset_text").click(function() {
             document.getElementById('plugins4_q').value = "";
             $("#jstree").jstree('clear_search');
-            $("#jstree").jstree('close_all');
         })
 
         $("#search_btn").click(function() {
@@ -146,14 +145,8 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             $("#reset_text").prop("disabled", true);
             $("#jstree").jstree('close_all');
         })
-        $(".form-control-feedback span").click(function() {
-            document.getElementById('plugins4_q').value = "";
-            $("#jstree").jstree('clear_search');
-            $("#jstree").jstree('close_all');
-        })
 
         function checkIfSearchItemExists() {
-            $("#jstree").jstree('close_all');
             if ($('#plugins4_q').val() !== '') {
                 var v = $('#plugins4_q').val();
                 $('#jstree').jstree(true).search(v);

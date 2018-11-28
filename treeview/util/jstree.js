@@ -2716,7 +2716,9 @@
                         show_only_matches: e
                     })
                 }, this.clear_search = function() {
-                    this.settings.search.close_opened_onclear && this.close_node(this._data.search.opn, 0), this.trigger("clear_search", {
+                    // collapses all opened nodes
+                    // this.settings.search.close_opened_onclear && this.close_node(this._data.search.opn, 0),
+                    this.trigger("clear_search", {
                         nodes: this._data.search.dom,
                         str: this._data.search.str,
                         res: this._data.search.res
