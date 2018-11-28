@@ -1,0 +1,188 @@
+<html style="overflow:hidden">
+
+<head>
+    <title>Anatomy Trees</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <!-- <script src="https://code.jquery.com/jquery-3.2.1.js" integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE=" crossorigin="anonymous"></script> -->
+    <link rel="stylesheet" href="themes/default/images/style.css" />
+    <script data-main="js/app" src="util/require.js"></script>
+</head>
+
+<body>
+    <div class="row">
+      <!-- @media (max-width:250px) -->
+        <div id="left" class="col-md-2 col-lg-2 col-sm-2 col-2" style="@media (max-width:250px)">
+            <div id="look-up" style="overflow:auto;border-right: solid 1px #2e6da4;">
+                <div class="panel-group" id="accordion">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-toggle="collapse" href="#facets-1"><span class="pull-left glyphicon toggle-icon glyphicon-chevron-down"></span> Strength</a>
+                            </h4>
+                        </div>
+                        <div id="facets-1" class="panel-collapse collapse in">
+                            <ul class="list-group">
+                                <div class="list-group-item">
+                                    <img src="resources/images/ExpressionMapping/ExpressionStrengthsKey/Present(unspecifiedStrength).gif" class="icon">
+                                    <span class="plaintext">Present (unspecified strength)</span>
+                                </div>
+                                <div class="list-group-item">
+                                    <img src="resources/images/ExpressionMapping/ExpressionStrengthsKey/Present(strong).gif" class="icon">
+                                    <span class="plaintext">Present (strong)</span>
+                                </div>
+                                <div class="list-group-item">
+                                    <img src="resources/images/ExpressionMapping/ExpressionStrengthsKey/Present(moderate).gif" class="icon">
+                                    <span class="plaintext">Present (moderate)</span>
+                                </div>
+                                <div class="list-group-item">
+                                    <img src="resources/images/ExpressionMapping/ExpressionStrengthsKey/Present(weak).gif" class="icon">
+                                    <span class="plaintext">Present (weak)</span>
+                                </div>
+                                <div class="list-group-item">
+                                    <img src="resources/images/ExpressionMapping/ExpressionStrengthsKey/Uncertain.gif" class="icon">
+                                    <span class="plaintext">Uncertain</span>
+                                </div>
+                                <div class="list-group-item">
+                                    <img src="resources/images/ExpressionMapping/ExpressionStrengthsKey/notDetected.gif" class="icon">
+                                    <span class="plaintext">Not Detected</span>
+                                </div>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-toggle="collapse" href="#facets-2"><span class="pull-left glyphicon toggle-icon glyphicon-chevron-down"></span> Pattern</a>
+                            </h4>
+                        </div>
+                        <div id="facets-2" class="panel-collapse collapse in">
+                            <ul class="list-group">
+                                <div class="list-group-item">
+                                    <img src="resources/images/ExpressionMapping/ExpressionPatternKey/Homogeneous.png" class="icon">
+                                    <span class="plaintext">Homogeneous</span>
+                                </div>
+                                <div class="list-group-item">
+                                    <img src="resources/images/ExpressionMapping/ExpressionPatternKey/Graded.png" class="icon">
+                                    <span class="plaintext">Graded</span>
+                                </div>
+                                <div class="list-group-item">
+                                    <img src="resources/images/ExpressionMapping/ExpressionPatternKey/Regional.png" class="icon">
+                                    <span class="plaintext">Regional</span>
+                                </div>
+                                <div class="list-group-item">
+                                    <img src="resources/images/ExpressionMapping/ExpressionPatternKey/Spotted.png" class="icon">
+                                    <span class="plaintext">Spotted</span>
+                                </div>
+                                <div class="list-group-item">
+                                    <img src="resources/images/ExpressionMapping/ExpressionPatternKey/Ubiquitous.png" class="icon">
+                                    <span class="plaintext">Ubiquitous</span>
+                                </div>
+                                <div class="list-group-item">
+                                    <img src="resources/images/ExpressionMapping/ExpressionPatternKey/Restricted.png" class="icon">
+                                    <span class="plaintext">Restricted</span>
+                                </div>
+                                <div class="list-group-item">
+                                    <img src="resources/images/ExpressionMapping/ExpressionPatternKey/SingleCell.png" class="icon">
+                                    <span class="plaintext">Single cell</span>
+                                </div>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-toggle="collapse" href="#facets-3"><span class="pull-left glyphicon toggle-icon glyphicon-chevron-down"></span> Density</a>
+                            </h4>
+                        </div>
+                        <div id="facets-3" class="panel-collapse collapse in">
+                            <ul class="list-group">
+                                <div class="list-group-item">
+                                    <img src="resources/images/NerveDensity/RelativeToTotal/high.png" class="icon">
+                                    <span class="plaintext">High</span>
+                                </div>
+                                <div class="list-group-item">
+                                    <img src="resources/images/NerveDensity/RelativeToTotal/medium.png" class="icon">
+                                    <span class="plaintext">Medium</span>
+                                </div>
+                                <div class="list-group-item">
+                                    <img src="resources/images/NerveDensity/RelativeToTotal/low.png" class="icon">
+                                    <span class="plaintext">Low</span>
+                                </div>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-toggle="collapse" href="#facets-4"><span class="pull-left glyphicon toggle-icon glyphicon-chevron-down"></span> Density Change</a>
+                            </h4>
+                        </div>
+                        <div id="facets-4" class="panel-collapse collapse in">
+                            <ul class="list-group">
+                                <div class="list-group-item">
+                                    <img src="resources/images/NerveDensity/RelativeToP0/inc_large.png" class="icon">
+                                    <span class="plaintext">Increase, large</span>
+                                </div>
+                                <div class="list-group-item">
+                                    <img src="resources/images/NerveDensity/RelativeToP0/inc_small.png" class="icon">
+                                    <span class="plaintext">Increase, small</span>
+                                </div>
+                                <div class="list-group-item">
+                                    <img src="resources/images/NerveDensity/RelativeToP0/dec_large.png" class="icon">
+                                    <span class="plaintext">Decrease, large</span>
+                                </div>
+                                <div class="list-group-item">
+                                    <img src="resources/images/NerveDensity/RelativeToP0/dec_small.png" class="icon">
+                                    <span class="plaintext">Decrease, small</span>
+                                </div>
+                                <div class="list-group-item">
+                                    <img src="resources/images/NerveDensity/note.gif" class="icon">
+                                    <span class="plaintext">Contains note</span>
+                                </div>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="right" class="col-md-10 col-lg-10 col-sm-10 col-10">
+            <div class="tree-panel" style="height:100%;overflow:auto;">
+                <div id="mouseAnatomyHeading" style="margin-left:6px;visibility:hidden;">
+                    <h3>Mouse Anatomy Tree</h3>
+                </div>
+                <div id="parent">
+                  <div id="TSDropdownDiv" style="display:inline;visibility:hidden;">
+                    <select name="number" id="number">
+                    </select>
+                  </div>
+                  <div id="mainDiv" class="input-group has-feedback" style="display:inline;visibility:hidden;">
+                      <div style="position:relative; display:table; border-collapse:separate;">
+                          <input type="text" id="plugins4_q" value="" class="input form-control" style="display:inline; margin:0em 0em 0em 0.5em; padding:4px; border-radius:4px; border:1px solid #2e6da4; border-right: none; border-radius: 0;width: 22em; height: 33px;margin-top: 1em" placeholder="Search"></input>
+                          <div class="form-control-feedback" style="cursor:pointer; right:-4px; top:25px; pointer-events:all; z-index:5;">
+                              <span class="glyphicon glyphicon-remove" id="reset_text"></span>
+                          </div>
+                      </div>
+                      <span class="input-group-btn" style="top:-33px; left:316px;">
+    					          <button type="button" id="search_btn" class="btn btn-primary btn-inverted">
+    					              <span class="glyphicon glyphicon-search"></span>
+                        </button>
+                        <button type="button" id="expand_all_btn" class="btn btn-primary btn-inverted" style="margin-left:3px;">Expand All</button>
+                        <button type="button" id="collapse_all_btn" class="btn btn-primary btn-inverted" style="display: inline;border-radius:0;">Collapse All</button>
+                      </span>
+                  </div>
+              </div>
+                <p class="error" id="error-message" style="visibility:hidden;margin-left:5px;"></p>
+                <div class="loader" id="loadIcon" style="visibility:hidden;"></div>
+                <div id="jstree" style="visibility: hidden;">
+                    <!-- in this example the tree is populated from inline HTML -->
+                </div>
+                <div class="btn btn-primary btn-inverted back-to-top">
+                    <i uib-tooltip="Scroll To Top" tooltip-placement="left" class="glyphicon glyphicon-triangle-top"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
