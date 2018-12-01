@@ -1,4 +1,5 @@
 var annotated_term="";
+var annotated_terms=[];
 define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
     $(document).ready(function() {
       if (window.location.href.indexOf("specimen_rid=") !== -1) {
@@ -173,7 +174,10 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                         close_opened_onclear: true
                     },
                     sort: function(a, b) {
-                        return this.get_text(a) > this.get_text(b) ? 1 : -1;
+                        var a_text = this.get_node(a).original.base_text.toLowerCase();
+                        var b_text = this.get_node(b).original.base_text.toLowerCase();
+
+                        return a_text > b_text ? 1 : -1;
                     }
                 })
                 .on('search.jstree', function(e, data) {
@@ -212,8 +216,53 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                     }, 100);
                 })
                 .on('loaded.jstree', function(e, data) {
-                  if(annotated_term != "")
-                    $('#jstree').jstree(true).search(annotated_term);
+                    if(annotated_term != "") {
+                        var tree = $("div#jstree").jstree();
+
+
+                        function openNodeAndParents() {
+                            annotated_terms.forEach(function (id) {
+                                // get the node
+                                var node = tree.get_node(id);
+                                // open the node
+                                tree.open_node(node);
+
+                                // loop through and open parents
+                                node.parents.forEach(function (parentId) {
+                                    if (parentId != '#') {
+                                        // get parent
+                                        var parent = tree.get_node(parentId);
+                                        //open parent
+                                        tree.open_node(parent);
+                                    }
+                                });
+
+                                // highlight parents
+                                node.parents.forEach(function (parentId) {
+                                    if (parentId != '#') {
+                                        var parentSelector = "#" + parentId + " > a .display-text";
+                                        document.querySelectorAll(parentSelector).forEach(function (el) {
+                                            $(el).addClass("jstree-search");
+                                        });
+                                    }
+                                });
+                            });
+                        }
+
+                        openNodeAndParents();
+                        var firstTermId = annotated_terms[0];
+                        annotated_terms.forEach(function (id) {
+                            var currTerm = $("#"+id);
+                            var firstTerm = $("#"+firstTermId);
+                            if (currTerm[0].offsetTop < firstTerm[0].offsetTop){
+                                firstTermId = id;
+                            }
+                        });
+
+                        setTimeout(function () {
+                            $("#"+firstTermId)[0].scrollIntoView(true);
+                        }, 0)
+                    }
                 })
             document.getElementsByClassName('loader')[0].style.display = "none";
             document.getElementById('jstree').style.visibility = "visible";
@@ -249,7 +298,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                     json = data
                 }).done(function() {
                   if(specimen_rid != '') {
-                    var extraAttributesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+specimen_rid+'/N:=left(RID)=(Gene_Expression:Specimen_Expression:Specimen)/M:RID,Region:=N:Region,strength:=N:Strength,pattern:=N:Pattern,density:=N:Density,densityChange:=N:Density_Direction,densityNote:=N:Density_Note';
+                    var extraAttributesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+specimen_rid+'/N:=left(RID)=(Gene_Expression:Specimen_Expression:Specimen)/M:RID,Region:=N:Region,strength:=N:Strength,strengthModifier:=N:Strength_Modifier,pattern:=N:Pattern,density:=N:Density,densityChange:=N:Density_Direction,densityMagnitude:=N:Density_Magnitude,densityNote:=N:Density_Note,note:=N:Notes';
                     $.getJSON(extraAttributesURL, function(data) {
                         extraAttributes = data
                     }).done(function() {
@@ -262,7 +311,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                 });
             } else {
                 var treeDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=left(Subject)=(Vocabulary:Anatomy:ID)/$M/F2:=left(Object)=(Vocabulary:Anatomy:ID)/$M/subject_dbxref:=M:Subject,object_dbxref:=M:Object,subject:=F1:Name,object:=F2:Name';
-                var extraAttributesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+specimen_rid+'/N:=left(RID)=(Gene_Expression:Specimen_Expression:Specimen)/M:RID,Region:=N:Region,strength:=N:Strength,pattern:=N:Pattern,density:=N:Density,densityChange:=N:Density_Direction,densityNote:=N:Density_Note';
+                var extraAttributesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+specimen_rid+'/N:=left(RID)=(Gene_Expression:Specimen_Expression:Specimen)/M:RID,Region:=N:Region,strength:=N:Strength,strengthModifier:=N:Strength_Modifier,pattern:=N:Pattern,density:=N:Density,densityChange:=N:Density_Direction,densityMagnitude:=N:Density_Magnitude,densityNote:=N:Density_Note,note:=N:Notes';
                 var isolatedNodesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy/s:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Subject)/Subject::null::/$t/o:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Object)/Object::null::/$t/dbxref:=t:ID,name:=t:Name';
                 var json = [],
                     extraAttributes, isolatedNodes, region;
@@ -351,6 +400,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
         //     }
         // }
 
+        var nid = 0;
         function removeParent(presentationData) {
 
             if (presentationData.children.length == 0) {
@@ -358,8 +408,19 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             }
             for (var c = 0; c < presentationData.children.length; c++) {
                 presentationData['type'] = 'folder';
+                // id is already set, so we encountered this child already
+                // deep copy child and replace so id instances are separate
+                if (presentationData.children[c].li_attr && presentationData.children[c].li_attr.id) {
+                    presentationData.children[c] = jQuery.extend(true, {}, presentationData.children[c]);
+                }
                 removeParent(presentationData.children[c]);
             }
+            presentationData.li_attr = {
+                id: "nid_" + nid++
+            }
+
+            // keep track of the ids of annotated terms for expansion later
+            if (presentationData.annotated) annotated_terms.push(presentationData.li_attr.id);
             delete presentationData.parent;
         }
 
@@ -371,30 +432,38 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
         }
 
         function processData(data, extraAttributes, showAnnotation, isolatedNodes, prefixVal) {
-            var subjectText = data[0].subject,
-                objectText = data[0].object,
+            var objectText = data[0].object,
+                subjectText = data[0].subject,
                 specimen_expression_annotations = extraAttributes.find(function(obj) {
                   return obj.Region == data[0].object_dbxref
                 })
+
+            var isObjectAnnotated, isSubjectAnnotated, objectColumnData, subjectColumnData;
 
             if (showAnnotation && typeof specimen_expression_annotations != 'undefined') {
                 if(annotated_term == "") {
                   annotated_term = objectText
                 }
                 var densityIcon = getDensityIcon(specimen_expression_annotations.density),
-                    densityChangeIcon = getDensityChangeIcon(specimen_expression_annotations.densityChange),
+                    densityChangeIcon = getDensityChangeIcon(specimen_expression_annotations.densityChange, specimen_expression_annotations.densityMagnitude),
                     densityNoteIcon = getDensityNoteIcon(specimen_expression_annotations.densityNote),
                     densityNote = specimen_expression_annotations.densityNote,
+                    noteIcon = getDensityNoteIcon(specimen_expression_annotations.note),
+                    note = specimen_expression_annotations.note,
                     patternIcon = getPatternIcon(specimen_expression_annotations.pattern),
-                    strengthIcon = getStrengthIcon(specimen_expression_annotations.strength),
+                    strengthIcon = getStrengthIcon(specimen_expression_annotations.strength, specimen_expression_annotations.strengthModifier),
                     densityImgSrc = densityIcon != '' ? "<img src=" + densityIcon + "></img>" : "",
                     patternImgSrc = patternIcon != '' ? "<img src=" + patternIcon + "></img>" : "",
                     strengthImgSrc = strengthIcon != '' ? "<img src=" + strengthIcon + "></img>" : "",
                     densityChangeImgSrc = densityChangeIcon != '' ? "<img src=" + densityChangeIcon + "></img>" : "",
-                    densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img src=" + densityNoteIcon + " title='" + densityNote + "'></img>" : ""
-                objectColumnData = "<span>" + strengthImgSrc + "<span>" + objectText + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + "</span>"
+                    densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img src=" + densityNoteIcon + " title='Density Note: " + densityNote + "'></img>" : "",
+                    noteImgSrc = note != '' && note != null ? "<img src=" + noteIcon + " title='Note: " + note + "'></img>" : "";
+
+                isObjectAnnotated = true;
+                objectColumnData = "<span>" + strengthImgSrc + "<span class='jstree-search display-text'>" + objectText + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + "</span>"
             } else {
-                objectColumnData = "<span>" + objectText + "</span>"
+                isObjectAnnotated = false;
+                objectColumnData = "<span class='display-text'>" + objectText + "</span>"
             }
             specimen_expression_annotations = extraAttributes.find(function(obj) {
               return obj.Region == data[0].subject_dbxref
@@ -404,26 +473,35 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                   annotated_term = subjectText
                 }
                 var densityIcon = getDensityIcon(specimen_expression_annotations.density),
-                    densityChangeIcon = getDensityChangeIcon(specimen_expression_annotations.densityChange),
+                    densityChangeIcon = getDensityChangeIcon(specimen_expression_annotations.densityChange, specimen_expression_annotations.densityMagnitude),
                     densityNoteIcon = getDensityNoteIcon(specimen_expression_annotations.densityNote),
                     densityNote = specimen_expression_annotations.densityNote,
+                    noteIcon = getDensityNoteIcon(specimen_expression_annotations.note),
+                    note = specimen_expression_annotations.note,
                     patternIcon = getPatternIcon(specimen_expression_annotations.pattern),
-                    strengthIcon = getStrengthIcon(specimen_expression_annotations.strength),
+                    strengthIcon = getStrengthIcon(specimen_expression_annotations.strength, specimen_expression_annotations.strengthModifier),
                     densityImgSrc = densityIcon != '' ? "<img src=" + densityIcon + "></img>" : "",
                     patternImgSrc = patternIcon != '' ? "<img src=" + patternIcon + "></img>" : "",
                     strengthImgSrc = strengthIcon != '' ? "<img src=" + strengthIcon + "></img>" : "",
                     densityChangeImgSrc = densityChangeIcon != '' ? "<img src=" + densityChangeIcon + "></img>" : "",
-                    densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img src=" + densityNoteIcon + " title='" + densityNote + "'></img>" : ""
-                subjectColumnData = "<span>" + strengthImgSrc + "<span>" + objectText + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + "</span>"
+                    densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img src=" + densityNoteIcon + " title='Density Note: " + densityNote + "'></img>" : "",
+                    noteImgSrc = note != '' && note != null ? "<img src=" + noteIcon + " title='Note: " + note + "'></img>" : "";
+
+                isSubjectAnnotated = true;
+                subjectColumnData = "<span>" + strengthImgSrc + "<span class='jstree-search display-text'>" + subjectText + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + "</span>"
             } else {
-                subjectColumnData = "<span>" + subjectText + "</span>"
+                isSubjectAnnotated = false;
+                subjectColumnData = "<span class='display-text'>" + subjectText + "</span>"
             }
 
+            var id = 0
             var parent = {
                 text: objectColumnData,
                 parent: [],
                 children: [],
                 dbxref: data[0].object_dbxref,
+                annotated: isObjectAnnotated,
+                base_text: objectText,
                 a_attr: {
                     'href': '/chaise/record/#2/Vocabulary:Anatomy/ID=' + data[0].object_dbxref.replace(/:/g, '%3A'),
                     'style': 'display:inline;'
@@ -434,17 +512,17 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                 parent: [],
                 children: [],
                 dbxref: data[0].subject_dbxref,
+                annotated: isSubjectAnnotated,
+                base_text: subjectText,
                 a_attr: {
                     'href': '/chaise/record/#2/Vocabulary:Anatomy/ID=' + data[0].subject_dbxref.replace(/:/g, '%3A'),
                     'style': 'display:inline;'
                 }
             };
             var forest = new Forest(parent);
-            // console.log(parent.dbxref)
             if ((prefixVal != "" && parent.dbxref.startsWith("UBERON") == false) || prefixVal == "") {
                 var tree = new Tree(parent);
                 if (child.dbxref.startsWith("UBERON") == false) {
-                    // console.log(child.dbxref)
                     var tree1 = new Tree(child);
                     parent.children.push(child);
                     child.parent.push(parent);
@@ -467,18 +545,13 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                         "class": "jstree-leaf"
                     }
                 };
-                //console.log(parent)
                 if ((prefixVal != "" && parent.dbxref.startsWith("UBERON") == false) || prefixVal == "") {
-                    // console.log(parent.dbxref)
                     var tree = new Tree(parent);
                     forest.trees.push(tree);
                 }
             }
 
-
             for (var i = 1; i < data.length; i++) {
-                // if(data[i].object_dbxref == "UBERON:0010536:" || data[i].subject_dbxref == "UBERON:0010536:")
-                //     console.log('found');
                 var subjectText = data[i].subject,
                     objectText = data[i].object,
                     specimen_expression_annotations = extraAttributes.find(function(obj) {
@@ -489,19 +562,25 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                       annotated_term = objectText
                     }
                     var densityIcon = getDensityIcon(specimen_expression_annotations.density),
-                        densityChangeIcon = getDensityChangeIcon(specimen_expression_annotations.densityChange),
+                        densityChangeIcon = getDensityChangeIcon(specimen_expression_annotations.densityChange, specimen_expression_annotations.densityMagnitude),
                         densityNoteIcon = getDensityNoteIcon(specimen_expression_annotations.densityNote),
                         densityNote = specimen_expression_annotations.densityNote,
+                        noteIcon = getDensityNoteIcon(specimen_expression_annotations.note),
+                        note = specimen_expression_annotations.note,
                         patternIcon = getPatternIcon(specimen_expression_annotations.pattern),
-                        strengthIcon = getStrengthIcon(specimen_expression_annotations.strength),
+                        strengthIcon = getStrengthIcon(specimen_expression_annotations.strength, specimen_expression_annotations.strengthModifier),
                         densityImgSrc = densityIcon != '' ? "<img src=" + densityIcon + "></img>" : "",
                         patternImgSrc = patternIcon != '' ? "<img src=" + patternIcon + "></img>" : "",
                         strengthImgSrc = strengthIcon != '' ? "<img src=" + strengthIcon + "></img>" : "",
                         densityChangeImgSrc = densityChangeIcon != '' ? "<img src=" + densityChangeIcon + "></img>" : "",
-                        densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img src=" + densityNoteIcon + " title='" + densityNote + "'></img>" : ""
-                    objectColumnData = "<span>" + strengthImgSrc + "<span>" + objectText + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + "</span>"
+                        densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img src=" + densityNoteIcon + " title='Density Note: " + densityNote + "'></img>" : "",
+                        noteImgSrc = note != '' && note != null ? "<img src=" + noteIcon + " title='Note: " + note + "'></img>" : "";
+
+                    isObjectAnnotated = true;
+                    objectColumnData = "<span>" + strengthImgSrc + "<span class='jstree-search display-text'>" + objectText + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + "</span>";
                 } else {
-                    objectColumnData = "<span>" + objectText + "</span>"
+                    isObjectAnnotated = false;
+                    objectColumnData = "<span class='display-text'>" + objectText + "</span>";
                 }
                 specimen_expression_annotations = extraAttributes.find(function(obj) {
                   return obj.Region == data[i].subject_dbxref
@@ -511,26 +590,36 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                       annotated_term = subjectText
                     }
                     var densityIcon = getDensityIcon(specimen_expression_annotations.density),
-                        densityChangeIcon = getDensityChangeIcon(specimen_expression_annotations.densityChange),
+                        densityChangeIcon = getDensityChangeIcon(specimen_expression_annotations.densityChange, specimen_expression_annotations.densityMagnitude),
                         densityNoteIcon = getDensityNoteIcon(specimen_expression_annotations.densityNote),
                         densityNote = specimen_expression_annotations.densityNote,
+                        noteIcon = getDensityNoteIcon(specimen_expression_annotations.note),
+                        note = specimen_expression_annotations.note,
                         patternIcon = getPatternIcon(specimen_expression_annotations.pattern),
-                        strengthIcon = getStrengthIcon(specimen_expression_annotations.strength),
+                        strengthIcon = getStrengthIcon(specimen_expression_annotations.strength, specimen_expression_annotations.strengthModifier),
                         densityImgSrc = densityIcon != '' ? "<img src=" + densityIcon + "></img>" : "",
                         patternImgSrc = patternIcon != '' ? "<img src=" + patternIcon + "></img>" : "",
                         strengthImgSrc = strengthIcon != '' ? "<img src=" + strengthIcon + "></img>" : "",
                         densityChangeImgSrc = densityChangeIcon != '' ? "<img src=" + densityChangeIcon + "></img>" : "",
-                        densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img src=" + densityNoteIcon + " title='" + densityNote + "'></img>" : ""
-                    subjectColumnData = "<span>" + strengthImgSrc + "<span>" + subjectText + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + "</span>"
+                        densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img src=" + densityNoteIcon + " title='Density Note: " + densityNote + "'></img>" : "",
+                        noteImgSrc = note != '' && note != null ? "<img src=" + noteIcon + " title='Note: " + note + "'></img>" : "";
+
+                    isSubjectAnnotated = true;
+                    subjectColumnData = "<span>" + strengthImgSrc + "<span class='jstree-search display-text'>" + subjectText + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + "</span>"
                 } else {
-                    subjectColumnData = "<span>" + subjectText + "</span>"
+                    isSubjectAnnotated = false;
+                    subjectColumnData = "<span class='display-text'>" + subjectText + "</span>"
                 }
+
+
 
                 var parent = {
                     text: objectColumnData,
                     parent: [],
                     children: [],
                     dbxref: data[i].object_dbxref,
+                    annotated: isObjectAnnotated,
+                    base_text: objectText,
                     a_attr: {
                         'href': '/chaise/record/#2/Vocabulary:Anatomy/ID=' + data[i].object_dbxref.replace(/:/g, '%3A'),
                         'style': 'display:inline;'
@@ -541,6 +630,8 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                     parent: [],
                     children: [],
                     dbxref: data[i].subject_dbxref,
+                    annotated: isSubjectAnnotated,
+                    base_text: subjectText,
                     a_attr: {
                         'href': '/chaise/record/#2/Vocabulary:Anatomy/ID=' + data[i].subject_dbxref.replace(/:/g, '%3A'),
                         'style': 'display:inline;'
@@ -548,35 +639,33 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                 };
                 if ((prefixVal != "" && parent.dbxref.startsWith("UBERON") == false) || prefixVal == "") {
                     var tree = new Tree(parent);
-                    // console.log(parent.dbxref)
                     if ((prefixVal != "" && child.dbxref.startsWith("UBERON") == false) || prefixVal == "") {
-                        // console.log(child.dbxref)
                         var tree1 = new Tree(child);
                         parent.children.push(child);
                         child.parent.push(parent);
                     }
                 }
-                var added = false;
                 var parentNode = false;
                 var childNode = false;
                 var childIndex = -1;
                 var parentIndex = -1;
-                for (var f = 0; f < forest.trees.length && !added; f++) {
+                for (var f = 0; f < forest.trees.length; f++) {
                     var tree = forest.trees[f];
 
+                    // find if a node relationship exists (multiple can but we care about one because the rest will be trimmed)
                     if (!parentNode) {
                         parentNode = tree.contains(tree, data[i].object_dbxref);
                         if (parentNode)
                             parentIndex = f;
-                    }
+                        }
+                    // find if a node relationship exists (multiple can but we care about one because the rest will be trimmed)
                     if (!childNode) {
                         childNode = tree.contains(tree, data[i].subject_dbxref);
                         if (childNode)
                             childIndex = f;
                     }
                 }
-                //parent and child both not found
-                // add this as a new tree and add to forest
+
                 if (!parentNode && !childNode) {
                     if ((prefixVal != "" && parent.dbxref.startsWith("UBERON") == false) || prefixVal == "") {
                         var tree = new Tree(parent);
@@ -600,7 +689,6 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                         jloop:
                             for (var t = 0; t < forest.trees.length; t++) {
                                 if (forest.trees[t].node.dbxref == childNode.dbxref) {
-                                    //console.log(forest.trees[t].node.text);
                                     forest.trees.splice(t, 1);
                                     break jloop;
                                 }
@@ -615,7 +703,6 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                     ploop:
                         for (var q = 0; q < forest.trees.length; q++) {
                             if (forest.trees[q].node.dbxref == childNode.dbxref) {
-                                //console.log(forest.trees[q].node.text);
                                 forest.trees.splice(q, 1);
                                 break ploop;
                             }
@@ -640,7 +727,8 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                 a.push(b)
             };
             this.dequeue = function() {
-                if (0 != a.length) {
+                // as long as not empty
+                if (a.length != 0) {
                     var c = a[b];
                     2 * ++b >= a.length && (a = a.slice(b), b = 0);
                     return c
@@ -659,9 +747,12 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             var node = {
                 text: node.text,
                 dbxref: node.dbxref,
+                annotated: node.annotated,
+                base_text: node.base_text,
                 children: node.children,
                 parent: node.parent,
-                a_attr: s
+                a_attr: s,
+                li_attr: node.li_attr
             };
             this.node = node;
         }
@@ -685,14 +776,22 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             }
         }
 
-        function getDensityChangeIcon(densityChange) {
-            switch (densityChange) {
+        function getDensityChangeIcon(change, magnitude) {
+            switch (change) {
                 case 'Decreased':
-                    return "resources/images/NerveDensity/RelativeToP0/dec_small.png";
+                    switch (magnitude) {
+                        case 'Large':
+                            return "resources/images/NerveDensity/RelativeToP0/dec_large.png";
+                        default:
+                            return "resources/images/NerveDensity/RelativeToP0/dec_small.png";
+                    }
                 case 'Increased':
-                    return "resources/images/NerveDensity/RelativeToP0/inc_small.png";
-                    // case 'No Change':
-                    //     return "resources/images/NerveDensity/RelativeToP0/medium.png";
+                    switch (magnitude) {
+                        case 'Large':
+                            return "resources/images/NerveDensity/RelativeToP0/inc_large.png";
+                        default:
+                            return "resources/images/NerveDensity/RelativeToP0/inc_small.png";
+                    }
                 default:
                     return '';
             }
@@ -726,25 +825,36 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             }
         }
 
-        function getStrengthIcon(strength) {
+        function getStrengthIcon(strength, strengthModifier) {
             switch (strength) {
                 case 'not detected':
                     return "resources/images/ExpressionMapping/ExpressionStrengthsKey/notDetected.gif";
                 case 'uncertain':
                     return "resources/images/ExpressionMapping/ExpressionStrengthsKey/Uncertain.gif";
                 case 'present':
-                    return "resources/images/ExpressionMapping/ExpressionStrengthsKey/Present(unspecifiedStrength).gif";
+                    switch (strengthModifier) {
+                        case 'strong':
+                            return "resources/images/ExpressionMapping/ExpressionStrengthsKey/Present(strong).gif";
+                        case 'moderate':
+                            return "resources/images/ExpressionMapping/ExpressionStrengthsKey/Present(moderate).gif";
+                        case 'weak':
+                            return "resources/images/ExpressionMapping/ExpressionStrengthsKey/Present(weak).gif";
+                        default:
+                            return "resources/images/ExpressionMapping/ExpressionStrengthsKey/Present(unspecifiedStrength).gif";
+                    }
                 default:
                     return "";
             }
         }
+
+        // returns FIRST matching node
         Tree.prototype.traverseBF = function(dbxref) {
             var queue = new Queue();
             queue.enqueue(this.node);
             currentNode = queue.dequeue();
 
             while (currentNode) {
-                for (var i = 0, length = currentNode.children.length; i < length; i++) {
+                for (var i = 0; i < currentNode.children.length; i++) {
                     queue.enqueue(currentNode.children[i]);
                 }
                 if (currentNode.dbxref == dbxref)
@@ -752,6 +862,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                 currentNode = queue.dequeue();
             }
         };
+
         Tree.prototype.contains = function(tree, dbxref) {
             return tree.traverseBF(dbxref);
         };
