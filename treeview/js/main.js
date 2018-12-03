@@ -2,8 +2,8 @@ var annotated_term="";
 var annotated_terms=[];
 define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
     $(document).ready(function() {
-      if (window.location.href.indexOf("specimen_rid=") !== -1) {
-          specimen_rid = findGetParameter('specimen_rid')
+      if (window.location.href.indexOf("Specimen_RID=") !== -1) {
+          specimen_rid = findGetParameter('Specimen_RID')
           showAnnotation = true;
           document.getElementById('left').style.visibility = "visible";
           document.getElementById('look-up').style.height = "100%";
@@ -38,8 +38,8 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
         } else {
             filter_prefix = "";
         }
-        if (location.indexOf("specimen_rid=") !== -1) {
-            specimen_rid = findGetParameter('specimen_rid')
+        if (location.indexOf("Specimen_RID=") !== -1) {
+            specimen_rid = findGetParameter('Specimen_RID')
             showAnnotation = true;
         } else {
             specimen_rid = ''
@@ -251,6 +251,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
 
                         openNodeAndParents();
                         var firstTermId = annotated_terms[0];
+                        // calculate which term is the highest up in the tree to scroll to
                         annotated_terms.forEach(function (id) {
                             var currTerm = $("#"+id);
                             var firstTerm = $("#"+firstTermId);

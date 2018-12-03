@@ -1614,7 +1614,7 @@ input {
     background-position: -36px 0;
 }
 
-.jstree-default .jstree-hovered {
+.jstree-default .jstree-hovered .display-text {
     background: #dee6f0;
     border: 1px solid #d8f0fa;
     padding: 0 2px 0 1px;
