@@ -787,7 +787,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                             return "resources/images/NerveDensity/RelativeToP0/inc_small.png";
                     }
                 default:
-                    return '';
+                    return "";
             }
         }
 
@@ -803,7 +803,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                 case 'graded':
                     return "resources/images/ExpressionMapping/ExpressionPatternKey/Graded.png";
                 case 'homogeneous':
-                    return "resources/images/ExpressionMapping/ExpressionPatternKey/homogeneous.png";
+                    return "resources/images/ExpressionMapping/ExpressionPatternKey/Homogeneous.png";
                 case 'regional':
                     return "resources/images/ExpressionMapping/ExpressionPatternKey/Regional.png";
                 case 'restricted':
