@@ -191,6 +191,25 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                 .on('refresh.jstree', function() {
                     checkIfSearchItemExists()
                 })
+                .on('open_node.jstree', function (node) {
+                    var tree = $("div#jstree").jstree();
+
+                    // applies the annotated class to ancestors of an annotated descendant that were opened
+                    annotated_terms.forEach(function (id) {
+                        // get the node
+                        var node = tree.get_node(id);
+
+                        // highlight parents
+                        node.parents.forEach(function (parentId) {
+                            if (parentId != '#') {
+                                var parentSelector = "#" + parentId + " > a .display-text";
+                                document.querySelectorAll(parentSelector).forEach(function (el) {
+                                    $(el).addClass("annotated");
+                                });
+                            }
+                        });
+                    });
+                })
                 .on('open_all.jstree', function() {
                     setTimeout(function() {
                         $("#number").prop("disabled", false);
@@ -236,20 +255,12 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                                         tree.open_node(parent);
                                     }
                                 });
-
-                                // highlight parents
-                                node.parents.forEach(function (parentId) {
-                                    if (parentId != '#') {
-                                        var parentSelector = "#" + parentId + " > a .display-text";
-                                        document.querySelectorAll(parentSelector).forEach(function (el) {
-                                            $(el).addClass("jstree-search");
-                                        });
-                                    }
-                                });
                             });
                         }
 
                         openNodeAndParents();
+
+                        // highlighting parents is callback on "open_node"
                         var firstTermId = annotated_terms[0];
                         // calculate which term is the highest up in the tree to scroll to
                         annotated_terms.forEach(function (id) {
@@ -261,7 +272,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                         });
 
                         setTimeout(function () {
-                            $("#"+firstTermId)[0].scrollIntoView(true);
+                            tree.get_node(firstTermId, true).children('.jstree-anchor').get(0).scrollIntoView();
                         }, 0)
                     }
                 })
@@ -363,44 +374,6 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
           }
         }
 
-        // function setAnnotationAndFilter(treeData, showAnnotation, specimen_rid, prefixVal) {
-        //     if (prefixVal != '') {
-        //         tree_data = []
-        //         tree_data = treeData.filter(function(node) {
-        //             if (node.dbxref.startsWith(prefixVal) == false)
-        //                 return node
-        //         })
-        //         treeData = tree_data
-        //     }
-        //     if (showAnnotation == true) {
-        //         var extraAttributes;
-        //         var extraAttributesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+specimen_rid+'/N:=left(RID)=(Gene_Expression:Specimen_Expression:Specimen)/M:RID,Region:=N:Region,strength:=N:Strength,pattern:=N:Pattern,density:=N:Density,densityChange:=N:Density_Direction,densityNote:=N:Density_Note';
-        //         $.getJSON(extraAttributesURL, function(data) {
-        //             extraAttributes = data
-        //         }).done(function() {
-        //             var densityIcon = getDensityIcon(extraAttributes[0].density),
-        //                 densityChangeIcon = getDensityChangeIcon(extraAttributes[0].densityChange),
-        //                 densityNoteIcon = getDensityNoteIcon(extraAttributes[0].densityNote),
-        //                 densityNote = extraAttributes[0].densityNote,
-        //                 patternIcon = getPatternIcon(extraAttributes[0].pattern),
-        //                 strengthIcon = getStrengthIcon(extraAttributes[0].strength),
-        //                 densityImgSrc = densityIcon != '' ? "<img src=" + densityIcon + "></img>" : "",
-        //                 patternImgSrc = patternIcon != '' ? "<img src=" + patternIcon + "></img>" : "",
-        //                 strengthImgSrc = strengthIcon != '' ? "<img src=" + strengthIcon + "></img>" : "",
-        //                 densityChangeImgSrc = densityChangeIcon != '' ? "<img src=" + densityChangeIcon + "></img>" : "",
-        //                 densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img src=" + densityNoteIcon + " title='" + densityNote + "'></img>" : "";
-        //             treeData.forEach(function(node) {
-        //                 if (node.dbxref == extraAttributes[0].Region) {
-        //                     node.text = "<span>" + strengthImgSrc + "<span>" + node.text + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + "</span>"
-        //                 }
-        //             });
-        //             buildTreeAndAssignEvents(treeData)
-        //         });
-        //     } else {
-        //         buildTreeAndAssignEvents(treeData)
-        //     }
-        // }
-
         var nid = 0;
         function removeParent(presentationData) {
 
@@ -461,7 +434,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                     noteImgSrc = note != '' && note != null ? "<img src=" + noteIcon + " title='Note: " + note + "'></img>" : "";
 
                 isObjectAnnotated = true;
-                objectColumnData = "<span>" + strengthImgSrc + "<span class='jstree-search display-text'>" + objectText + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + "</span>"
+                objectColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + objectText + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + "</span>"
             } else {
                 isObjectAnnotated = false;
                 objectColumnData = "<span class='display-text'>" + objectText + "</span>"
@@ -489,7 +462,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                     noteImgSrc = note != '' && note != null ? "<img src=" + noteIcon + " title='Note: " + note + "'></img>" : "";
 
                 isSubjectAnnotated = true;
-                subjectColumnData = "<span>" + strengthImgSrc + "<span class='jstree-search display-text'>" + subjectText + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + "</span>"
+                subjectColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + subjectText + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + "</span>"
             } else {
                 isSubjectAnnotated = false;
                 subjectColumnData = "<span class='display-text'>" + subjectText + "</span>"
@@ -578,7 +551,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                         noteImgSrc = note != '' && note != null ? "<img src=" + noteIcon + " title='Note: " + note + "'></img>" : "";
 
                     isObjectAnnotated = true;
-                    objectColumnData = "<span>" + strengthImgSrc + "<span class='jstree-search display-text'>" + objectText + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + "</span>";
+                    objectColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + objectText + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + "</span>";
                 } else {
                     isObjectAnnotated = false;
                     objectColumnData = "<span class='display-text'>" + objectText + "</span>";
@@ -606,7 +579,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                         noteImgSrc = note != '' && note != null ? "<img src=" + noteIcon + " title='Note: " + note + "'></img>" : "";
 
                     isSubjectAnnotated = true;
-                    subjectColumnData = "<span>" + strengthImgSrc + "<span class='jstree-search display-text'>" + subjectText + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + "</span>"
+                    subjectColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + subjectText + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + "</span>"
                 } else {
                     isSubjectAnnotated = false;
                     subjectColumnData = "<span class='display-text'>" + subjectText + "</span>"
