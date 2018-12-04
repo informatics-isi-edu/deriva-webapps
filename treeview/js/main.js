@@ -147,6 +147,26 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             $("#jstree").jstree('close_all');
         })
 
+        function toggleIcon (el) {
+            var innerClass = el[0].className;
+            if (innerClass.includes("glyphicon-chevron-down")) {
+                el.removeClass("glyphicon-chevron-down");
+                el.addClass("glyphicon-chevron-right");
+            } else if (innerClass.includes("glyphicon-chevron-right")) {
+                el.removeClass("glyphicon-chevron-right");
+                el.addClass("glyphicon-chevron-down");
+            }
+        }
+
+        // there are currently 5 facet panels for the legend
+        $('#look-up .panel-default').toArray().forEach(function(panel, index) {
+            var panelBodySelector = "#facets-" + (index+1);
+            $(panelBodySelector+'-heading').click(function() {
+                $(panelBodySelector).toggleClass('hide-panel');
+                toggleIcon($(panelBodySelector+'-heading > span'));
+            });
+        });
+
         function checkIfSearchItemExists() {
             if ($('#plugins4_q').val() !== '') {
                 var v = $('#plugins4_q').val();

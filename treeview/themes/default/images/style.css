@@ -45,6 +45,14 @@
     color: blue;
 }
 
+a.facet-heading-link:hover {
+ cursor:pointer;
+}
+
+.hide-panel {
+    display: none;
+}
+
 .jstree-grid-wrapper{
   overflow: hidden!important;
 }
