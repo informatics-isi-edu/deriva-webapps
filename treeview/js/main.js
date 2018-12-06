@@ -7,7 +7,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
           showAnnotation = true;
           document.getElementById('left').style.visibility = "visible";
           document.getElementById('look-up').style.height = "100%";
-          document.getElementById('mouseAnatomyHeading').style.height = "0";
+          document.getElementById('mouseAnatomyHeading').style.display = "none";
       } else {
           specimen_rid = ''
           showAnnotation = false;
@@ -278,9 +278,37 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                             });
                         }
 
+                        /* open all annotated terms and their parents (depth first) */
                         openNodeAndParents();
 
+                        /* highlight opened nodes */
                         // highlighting parents is callback on "open_node"
+
+
+                        /* TOOLTIPS */
+                        // once tree has loaded, create tooltips instead of relying on title and hover
+                        // tooltips ONLY trigger on click when they are 'disabled', if enabled hover activates them too
+                        $(".contains-note").tooltip({
+                            disabled: true,
+                            trigger: 'click',
+                            placement: 'bottom'
+                        });
+
+                        $(".contains-note").click(function(event) {
+                            var self = $(this)
+                            // stops propagating the click event to the onclick function defined
+                            event.stopPropagation();
+                            // stops triggering the event the <a href="..."> tag
+                            event.preventDefault();
+                            self.tooltip('enable').tooltip('open');
+                            setTimeout(function () {
+                                // TODO: should this be auto-fade after 5 minutes?
+                                self.tooltip('disable');
+                            }, 5000)
+                        });
+
+                        /* Scroll to Term */
+                        // scroll content to first annotated term
                         var firstTermId = annotated_terms[0];
                         // calculate which term is the highest up in the tree to scroll to
                         annotated_terms.forEach(function (id) {
@@ -290,26 +318,11 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                                 firstTermId = id;
                             }
                         });
-
-                        $(".contains-note").tooltip({
-                            disabled: true,
-                            trigger: 'click',
-                            placement: 'bottom'
-                        });
-
-                        $(".contains-note").click(function(event) {
-                            var self = $(this)
-                            event.stopPropagation();
-                            event.preventDefault();
-                            self.tooltip('enable').tooltip('open');
-                            setTimeout(function () {
-                                self.tooltip('disable')
-                            }, 5000)
-                        });
-
                         setTimeout(function () {
+                            // need to know the height of search content area because offsetTop is relative to it's offsetParent (#jstree and it's parent .jstree-grid-wrapper which is sibling of #parent)
+                            var searchAreaHeight = $("#parent")[0].offsetHeight;
                             // .tree-panel is the scrollable parent content area
-                            $(".tree-panel")[0].scrollTop = tree.get_node(firstTermId, true).children('.jstree-anchor')[0].offsetTop;
+                            $(".tree-panel")[0].scrollTop = tree.get_node(firstTermId, true).children('.jstree-anchor').get(0).offsetTop + searchAreaHeight;
                         }, 0)
                     }
                 })
