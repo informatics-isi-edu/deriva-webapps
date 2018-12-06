@@ -308,7 +308,8 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                         });
 
                         setTimeout(function () {
-                            tree.get_node(firstTermId, true).children('.jstree-anchor').get(0).scrollIntoView();
+                            // .tree-panel is the scrollable parent content area
+                            $(".tree-panel")[0].scrollTop = tree.get_node(firstTermId, true).children('.jstree-anchor')[0].offsetTop;
                         }, 0)
                     }
                 })
