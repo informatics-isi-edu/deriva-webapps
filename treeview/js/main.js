@@ -211,7 +211,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                 .on('refresh.jstree', function() {
                     checkIfSearchItemExists()
                 })
-                .on('open_node.jstree', function (node) {
+                .on('open_node.jstree', function () {
                     var tree = $("div#jstree").jstree();
 
                     // applies the annotated class to ancestors of an annotated descendant that were opened
@@ -264,7 +264,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                                 // get the node
                                 var node = tree.get_node(id);
                                 // open the node
-                                tree.open_node(node);
+                                if (!node.state.opened) tree.open_node(node);
 
                                 // loop through and open parents
                                 node.parents.forEach(function (parentId) {
@@ -272,18 +272,16 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                                         // get parent
                                         var parent = tree.get_node(parentId);
                                         //open parent
-                                        tree.open_node(parent);
+                                        if (!parent.state.opened) tree.open_node(parent);
                                     }
                                 });
                             });
                         }
 
                         /* open all annotated terms and their parents (depth first) */
-                        openNodeAndParents();
-
                         /* highlight opened nodes */
                         // highlighting parents is callback on "open_node"
-
+                        openNodeAndParents();
 
                         /* TOOLTIPS */
                         // once tree has loaded, create tooltips instead of relying on title and hover
