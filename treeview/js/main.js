@@ -67,6 +67,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
           $el.empty();
           $.getJSON(TSDataURL, function(TSData) {
             if(TSData === undefined || TSData.length == 0) {
+                console.log(TSData);
               document.getElementsByClassName('loader')[0].style.display = "none";
               document.getElementsByClassName('error')[0].style.visibility = "visible";
                document.getElementsByTagName("p")[0].innerHTML="Error: Developmental Stage does not exist for Specimen RID : "+specimen_rid;
@@ -287,7 +288,6 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                         // once tree has loaded, create tooltips instead of relying on title and hover
                         // tooltips ONLY trigger on click when they are 'disabled', if enabled hover activates them too
                         $(".contains-note").tooltip({
-                            disabled: true,
                             trigger: 'click',
                             placement: 'bottom'
                         });
@@ -300,8 +300,8 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                             event.preventDefault();
                             self.tooltip('enable').tooltip('open');
                             setTimeout(function () {
-                                // TODO: should this be auto-fade after 5 minutes?
                                 self.tooltip('disable');
+                                self.tooltip('enable');
                             }, 5000)
                         });
 
