@@ -14,8 +14,8 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
           document.getElementById('look-up').style.height = "0";
           $("#right").css('margin-left', '10px');
           $(".tree-panel").css('width', '99.5%');
-          $("#left").removeClass("col-md-2 col-lg-2 col-sm-2 col-2");
-          $("#right").removeClass("col-md-10 col-lg-10 col-sm-10 col-10");
+          $("#left").removeClass("col-md-3 col-lg-3 col-sm-3 col-3");
+          $("#right").removeClass("col-md-9 col-lg-9 col-sm-9 col-9");
           $("#right").addClass("col-md-12 col-lg-12 col-sm-12 col-12");
           document.getElementById('mouseAnatomyHeading').style.visibility = "visible";
 
@@ -62,59 +62,62 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             return false;
         })
         if(showAnnotation == true) {
-          TSDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+specimen_rid+'/stage:=left(Stage_ID)=(Vocabulary:Developmental_Stage:ID)/stage:Name,stage:Ordinal'
-          var $el = $("#number");
-          $el.empty();
-          $.getJSON(TSDataURL, function(TSData) {
-            if(TSData === undefined || TSData.length == 0) {
-                console.log(TSData);
-              document.getElementsByClassName('loader')[0].style.display = "none";
-              document.getElementsByClassName('error')[0].style.visibility = "visible";
-               document.getElementsByTagName("p")[0].innerHTML="Error: Developmental Stage does not exist for Specimen RID : "+specimen_rid;
-            }
-            else{
-              var stage = TSData[0]['Name']
-              $el.append($("<option></option>")
-                  .attr("value", stage).text(stage));
-              $('#number').val(stage);
-              $("#number").selectmenu("refresh");
-              $("#number").prop("disabled", true);
-              $("#number").selectmenu("refresh");
-              TS_ordinal = TSData[0]['Ordinal'];
-              buildPresentationData(showAnnotation, filter_prefix, TS_ordinal, specimen_rid)
-            }
-          });
+            TSDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+specimen_rid+'/stage:=left(Stage_ID)=(Vocabulary:Developmental_Stage:ID)/species:=left(Species)=(Vocabulary:Species:ID)/stage:Name,stage:Ordinal,Species_Name:=species:Name'
+            var $el = $("#number");
+            $el.empty();
+            $.getJSON(TSDataURL, function(TSData) {
+                if (TSData === undefined || TSData.length == 0) {
+                    document.getElementsByClassName('loader')[0].style.display = "none";
+                    document.getElementsByClassName('error')[0].style.visibility = "visible";
+                    document.getElementsByTagName("p")[0].innerHTML="Error: Developmental Stage does not exist for Specimen RID : "+specimen_rid;
+                } else {
+                    if (TSData[0]['Species_Name'] !== "Mus musculus") {
+                        document.getElementsByClassName('loader')[0].style.display = "none";
+                        document.getElementsByClassName('error')[0].style.visibility = "visible";
+                        document.getElementsByTagName("p")[0].innerHTML="Error: Only specimens of species, 'Mus musculus', are supported.<br />Specimen RID: "+specimen_rid+", Species: "+TSData[0]['Species_Name'];
+                    } else {
+                        var stage = TSData[0]['Name']
+                        $el.append($("<option></option>")
+                        .attr("value", stage).text(stage));
+                        $('#number').val(stage);
+                        $("#number").selectmenu("refresh");
+                        $("#number").prop("disabled", true);
+                        $("#number").selectmenu("refresh");
+                        TS_ordinal = TSData[0]['Ordinal'];
+                        buildPresentationData(showAnnotation, filter_prefix, TS_ordinal, specimen_rid)
+                    }
+                }
+            });
         }
         else {
-          TSDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Vocabulary:Developmental_Stage/stage:=left(Stage_Type)=(Vocabulary:Stage_Type:ID)/Name=Theiler%20Stage/M:Ordinal,M:Name@sort(Ordinal)'
-          var $el = $("#number");
-          $el.empty(); // remove old options
-          $.getJSON(TSDataURL, function(TSData) {
-              $.each(TSData, function(index, data) {
-                  $el.append($("<option></option>")
-                      .attr("value", data['Ordinal']).text(data['Name']));
-              });
-              $el.append($("<option></option>")
-                  .attr("value", "All").text("All TS"));
-              $('#number').val('28');
-              $("#number").selectmenu("refresh");
-              // buildPresentationData(showAnnotation, filter_prefix, '28')
-              $("#number").on('selectmenuchange', function() {
-                  document.getElementsByClassName('loader')[0].style.display = "block";
-                  document.getElementById('jstree').style.visibility = "hidden";
-                  $("#number").prop("disabled", true);
-                  $('#plugins4_q').prop("disabled", true);
-                  $("#search_btn").prop("disabled", true);
-                  $("#expand_all_btn").prop("disabled", true);
-                  $("#collapse_all_btn").prop("disabled", true);
-                  $("#reset_text").prop("disabled", true);
+            TSDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Vocabulary:Developmental_Stage/stage:=left(Stage_Type)=(Vocabulary:Stage_Type:ID)/Name=Theiler%20Stage/M:Ordinal,M:Name@sort(Ordinal)'
+            var $el = $("#number");
+            $el.empty(); // remove old options
+            $.getJSON(TSDataURL, function(TSData) {
+                $.each(TSData, function(index, data) {
+                    $el.append($("<option></option>")
+                    .attr("value", data['Ordinal']).text(data['Name']));
+                });
+                $el.append($("<option></option>")
+                .attr("value", "All").text("All TS"));
+                $('#number').val('28');
+                $("#number").selectmenu("refresh");
+                $("#number").on('selectmenuchange', function() {
+                    document.getElementsByClassName('loader')[0].style.display = "block";
+                    document.getElementById('jstree').style.visibility = "hidden";
+                    $("#number").prop("disabled", true);
+                    $('#plugins4_q').prop("disabled", true);
+                    $("#search_btn").prop("disabled", true);
+                    $("#expand_all_btn").prop("disabled", true);
+                    $("#collapse_all_btn").prop("disabled", true);
+                    $("#reset_text").prop("disabled", true);
 
-                  TS_ordinal = $("#number").val()
-                  buildPresentationData(showAnnotation, filter_prefix, TS_ordinal, specimen_rid)
-              })
-              TS_ordinal = $("#number").val()
-              buildPresentationData(showAnnotation, filter_prefix, TS_ordinal, specimen_rid)
-          })
+                    TS_ordinal = $("#number").val()
+                    buildPresentationData(showAnnotation, filter_prefix, TS_ordinal, specimen_rid)
+                })
+                TS_ordinal = $("#number").val()
+                buildPresentationData(showAnnotation, filter_prefix, TS_ordinal, specimen_rid)
+            })
         }
         $("#reset_text").click(function() {
             document.getElementById('plugins4_q').value = "";

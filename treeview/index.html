@@ -12,7 +12,7 @@
 <body>
     <div class="row">
       <!-- @media (max-width:250px) -->
-        <div id="left" class="col-md-2 col-lg-2 col-sm-2 col-2" style="@media (max-width:250px)">
+        <div id="left" class="col-md-3 col-lg-3 col-sm-3 col-3" style="@media (max-width:250px)">
             <div id="look-up" style="overflow:auto;border-right: solid 1px #2e6da4;">
                 <div class="panel-group">
                     <div class="panel panel-default">
@@ -150,32 +150,32 @@
                 </div>
             </div>
         </div>
-        <div id="right" class="col-md-10 col-lg-10 col-sm-10 col-10">
+        <div id="right" class="col-md-9 col-lg-9 col-sm-9 col-9">
             <div class="tree-panel" style="height:100%;overflow:auto;">
                 <div id="mouseAnatomyHeading" style="margin-left:6px;visibility:hidden;">
                     <h3>Mouse Anatomy Tree</h3>
                 </div>
                 <div id="parent">
-                  <div id="TSDropdownDiv" style="display:inline;visibility:hidden;">
-                    <select name="number" id="number">
-                    </select>
-                  </div>
-                  <div id="mainDiv" class="input-group has-feedback" style="display:inline;visibility:hidden;">
-                      <div style="position:relative; display:table; border-collapse:separate;">
-                          <input type="text" id="plugins4_q" value="" class="input form-control" style="display:inline; margin:0em 0em 0em 0.5em; padding:4px; border-radius:4px; border:1px solid #2e6da4; border-right: none; border-radius: 0;width: 22em; height: 33px;margin-top: 1em" placeholder="Search"></input>
-                          <div class="form-control-feedback" style="cursor:pointer; right:-4px; top:25px; pointer-events:all; z-index:5;">
-                              <span class="glyphicon glyphicon-remove" id="reset_text"></span>
-                          </div>
-                      </div>
-                      <span class="input-group-btn" style="top:-33px; left:316px;">
-                        <button type="button" id="search_btn" class="btn btn-primary btn-inverted">
-                          <span class="glyphicon glyphicon-search"></span>
-                        </button>
-                        <button type="button" id="expand_all_btn" class="btn btn-primary btn-inverted" style="margin-left:3px;">Expand All</button>
-                        <button type="button" id="collapse_all_btn" class="btn btn-primary btn-inverted" style="display: inline;border-radius:0;">Collapse All</button>
-                      </span>
-                  </div>
-              </div>
+                    <div id="TSDropdownDiv" style="display:inline;visibility:hidden;">
+                        <select name="number" id="number">
+                        </select>
+                    </div>
+                    <div id="mainDiv" class="input-group has-feedback" style="display:inline;visibility:hidden;">
+                        <div style="position:relative; display:table; border-collapse:separate;">
+                            <input type="text" id="plugins4_q" value="" class="input form-control" style="display:inline; margin:0em 0em 0em 0.5em; padding:4px; border-radius:4px; border:1px solid #2e6da4; border-right: none; border-radius: 0;width: 22em; height: 33px;margin-top: 1em" placeholder="Search"></input>
+                            <div class="form-control-feedback" style="cursor:pointer; right:-4px; top:25px; pointer-events:all; z-index:5;">
+                                <span class="glyphicon glyphicon-remove" id="reset_text"></span>
+                            </div>
+                        </div>
+                        <span class="input-group-btn" style="top:-33px; left:316px;">
+                            <button type="button" id="search_btn" class="btn btn-primary btn-inverted">
+                                <span class="glyphicon glyphicon-search"></span>
+                            </button>
+                            <button type="button" id="expand_all_btn" class="btn btn-primary btn-inverted" style="margin-left:3px;">Expand All</button>
+                            <button type="button" id="collapse_all_btn" class="btn btn-primary btn-inverted" style="display: inline;border-radius:0;">Collapse All</button>
+                        </span>
+                    </div>
+                </div>
                 <p class="error" id="error-message" style="visibility:hidden;margin-left:5px;"></p>
                 <div class="loader" id="loadIcon" style="visibility:hidden;"></div>
                 <div id="jstree" style="visibility: hidden;">
