@@ -1,3 +1,4 @@
+var setSourceForFilter;
 (function () {
     'use strict';
     class filterModel {
@@ -41,7 +42,7 @@
         .factory('filterOptions', ['$http', '$window', '$log', function ($http, $window, $log) {
             var baseUrl = $window.location.origin;
             var specExprUrl = baseUrl + "/ermrest/catalog/2/attributegroup/Gene_Expression:Specimen_Expression";
-            var devStageUrl = baseUrl + "/ermrest/catalog/2/attribute/Common:Developmental_Stage";
+            var devStageUrl = baseUrl + "/ermrest/catalog/2/attribute/Vocabulary:Developmental_Stage";
             var getStrengthOptions = function () {
                 return $http.get(specExprUrl + "/Strength").then(function (response) {
                     return response.data;
@@ -66,8 +67,8 @@
                     return null;
                 })
             };
-            var getStageOptions = function () {
-                return $http.get(devStageUrl + "/Name,Order,Species").then(function (response) {
+            var getStageOptions = function (species) {
+                return $http.get(devStageUrl + "/Species=" + encodeURIComponent(species) + "/Name,Ordinal@Sort(Ordinal)").then(function (response) {
                     return response.data;
                 }).catch(function (err) {
                     $log.warn(err);
@@ -84,24 +85,6 @@
         .controller('BooleanSearchController', ['$scope', 'booleanSearchModel', 'AlertsService', 'defaultOptions', '$rootScope', 'ERMrest', function BooleanSearchController($scope, booleanSearchModel, AlertsService, defaultOptions, $rootScope, ERMrest) {
             var config = Object.assign({}, booleanSearchConfig);
             $scope.options = defaultOptions;
-            $scope.sourceOptions = [
-                { "id": "EMAPA:27678", "name": "renal vesicle" },
-                { "id": "EMAPA:17950", "name": "ureter" },
-                { "id": "EMAPA:27605", "name": "ureteric tip" },
-                { "id": "EMAPA:27621", "name": "cap mesenchyme" },
-                { "id": "EMAPA:28494", "name": "ureteric trunk" },
-                { "id": "EMAPA:28527", "name": "late tubule" },
-                { "id": "EMAPA:28518", "name": "renal interstitium" },
-                { "id": "EMAPA:18321", "name": "bladder" },
-                { "id": "EMAPA:28500", "name": "early tubule" },
-                { "id": "EMAPA:28457", "name": "renal vasculature" },
-                { "id": "EMAPA:17962", "name": "ovary" },
-                { "id": "EMAPA:16368", "name": "nephric cord" },
-                { "id": "EMAPA:16577", "name": "nephric duct" },
-                { "id": "EMAPA:16579", "name": "pronephros" },
-                { "id": "gudmap-rbk-dev:14-7BT8", "name": "fetal kidney" },
-                { "id": "EMAPA:16103", "name": "organ system" }
-            ];
             $scope.treeviewOpen = true;
             $scope.togglePanel = togglePanel;
             $scope.setClass = setClass;
@@ -154,9 +137,16 @@
                 var toStageOptions = defaultOptions.fromStageOptions;
                 var pos = toStageOptions.indexOf(vm.booleanSearchModel.rows[index].stageFrom);
                 vm.booleanSearchModel.rows[index].toStageOptions = toStageOptions.slice(pos);
-                if (vm.booleanSearchModel.rows[index].stageTo.Order < vm.booleanSearchModel.rows[index].stageFrom.Order) {
+                if (vm.booleanSearchModel.rows[index].stageTo.Ordinal < vm.booleanSearchModel.rows[index].stageFrom.Ordinal) {
                     vm.booleanSearchModel.rows[index].stageTo = vm.booleanSearchModel.rows[index].stageFrom;
                 }
+            }
+            setSourceForFilter = function (value) {
+                vm.booleanSearchModel.rows[vm.currentRow].source = {
+                    name: value.name,
+                    id: value.id
+                };
+                $scope.$apply();
             }
             function submit() {
                 var form = vm.formContainer;
@@ -171,7 +161,7 @@
                 vm.booleanSearchModel.rows.forEach(function (row, index) {
                     var pattern = row.pattern == "" || row.pattern == null ? "" : "&Pattern=" + row.pattern;
                     var location = row.location == "" || row.location == null ? "" : "&Pattern_Location=" + row.location;
-                    query = query + "/(Developmental_Stage)=(Common:Developmental_Stage:ID)/Order::geq::" + row.stageFrom.Order + "&Order::leq::" + row.stageTo.Order + "/$M/(RID)=(Specimen_Expression:Specimen)/Strength=" + encodeURIComponent(row.strength) + "&Region=" + encodeURIComponent(row.source.id) + pattern + location + "/$M";
+                    query = query + "/(Stage_ID)=(Vocabulary:Developmental_Stage:ID)/Ordinal::geq::" + row.stageFrom.Ordinal + "&Ordinal::leq::" + row.stageTo.Ordinal + "/$M/(RID)=(Specimen_Expression:Specimen)/Strength=" + encodeURIComponent(row.strength) + "&Region=" + encodeURIComponent(row.source.id) + pattern + location + "/$M";
                     if (index != 0) {
                         displayname += " AND ";
                     }
@@ -200,6 +190,16 @@
                 return { 'glyphicon glyphicon-triangle-left': $scope.treeviewOpen, 'glyphicon glyphicon-triangle-right': !$scope.treeviewOpen };
             }
 
+        }])
+        .directive('treeView', ['$window', function ($window) {
+            return {
+                restrict: 'E',
+                link: function (scope, element, attrs) {
+                    var baseUrl = $window.location.href.substring(0, $window.location.href.indexOf("boolean-search"));
+                    var treeviewUrl = baseUrl + "treeview/index.html?Parent_App=booleanSearch";
+                    element.replaceWith('<object type="text/html" data="' + treeviewUrl + '" width="100%" height="100%" style="overflow:auto;"></object>');
+                }
+            };
         }])
         .run(['ERMrest', 'UriUtils', 'filterOptions', 'defaultOptions', '$rootScope',
             function runBooleanSearchApp(ERMrest, UriUtils, filterOptions, defaultOptions, $rootScope) {
@@ -230,14 +230,14 @@
                     });
                     $rootScope.dataLoaded.count++;
                 });
-                filterOptions.getStageOptions().then(function (data) {
+                var mouseSpecies = "NCBITaxon:10090";
+                var humanSpecies = "NCBITaxon:9606";
+                filterOptions.getStageOptions(mouseSpecies).then(function (data) {
                     data.forEach(function (el) {
-                        if (el.Species == "Mus musculus") {
-                            defaultOptions.fromStageOptions.push({
-                                "Name": el.Name,
-                                "Order": el.Order
-                            });
-                        }
+                        defaultOptions.fromStageOptions.push({
+                            "Name": el.Name,
+                            "Ordinal": el.Ordinal
+                        });
                     });
                     $rootScope.dataLoaded.count++;
                 });
