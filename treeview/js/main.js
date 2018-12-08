@@ -20,6 +20,17 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
           document.getElementById('mouseAnatomyHeading').style.visibility = "visible";
 
       }
+      var parentAppExists = false;
+      var nodeClickCallback;
+      if (window.location.href.indexOf("Parent_App=") !== -1) {
+          var appName = findGetParameter('Parent_App');
+          if (appName !== null) {
+              if (typeof treeviewConfig.nodeClickCallback[appName] !== "undefined") {
+                  parentAppExists = true;
+                  nodeClickCallback = treeviewConfig.nodeClickCallback[appName];
+              }
+          }
+      }
       document.getElementById('loadIcon').style.visibility = "visible";
       $("#number").selectmenu({
         appendTo: "#TSDropdownDiv"
@@ -732,12 +743,16 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                 return 0 < a.length ? a[b] : void 0
             }
         };
-
+        
         function Tree(node) {
-            var linkId = node.dbxref.replace(/:/g, '%3A');
             var s = node.a_attr;
-            var l = "'/chaise/record/#2/Vocabulary:Anatomy/ID=" + linkId + "','_blank'";
-            s["onClick"] = "window.open(" + l + ");";
+            if (parentAppExists) {
+                s["onClick"] = nodeClickCallback(node);
+            } else {
+                var linkId = node.dbxref.replace(/:/g, '%3A');
+                var l = "'/chaise/record/#2/Vocabulary:Anatomy/ID=" + linkId + "','_blank'";
+                s["onClick"] = "window.open(" + l + ");";
+            }            
             var node = {
                 text: node.text,
                 dbxref: node.dbxref,

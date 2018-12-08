@@ -53,7 +53,7 @@
 }
 .treeview-panel {
     transition: all 1s;
-    overflow-y: auto;
+    height: 100%;
 }
 .resize-btn {
     top: 100px;
