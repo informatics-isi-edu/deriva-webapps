@@ -7,7 +7,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
           showAnnotation = true;
           document.getElementById('left').style.visibility = "visible";
           document.getElementById('look-up').style.height = "100%";
-          document.getElementById('mouseAnatomyHeading').style.height = "0";
+          document.getElementById('mouseAnatomyHeading').style.display = "none";
       } else {
           specimen_rid = ''
           showAnnotation = false;
@@ -78,6 +78,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
           $el.empty();
           $.getJSON(TSDataURL, function(TSData) {
             if(TSData === undefined || TSData.length == 0) {
+                console.log(TSData);
               document.getElementsByClassName('loader')[0].style.display = "none";
               document.getElementsByClassName('error')[0].style.visibility = "visible";
                document.getElementsByTagName("p")[0].innerHTML="Error: Developmental Stage does not exist for Specimen RID : "+specimen_rid;
@@ -169,7 +170,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             }
         }
 
-        // there are currently 5 facet panels for the legend
+        // there are currently 4 facet panels for the legend
         $('#look-up .panel-default').toArray().forEach(function(panel, index) {
             var panelBodySelector = "#facets-" + (index+1);
             $(panelBodySelector+'-heading').click(function() {
@@ -222,7 +223,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                 .on('refresh.jstree', function() {
                     checkIfSearchItemExists()
                 })
-                .on('open_node.jstree', function (node) {
+                .on('open_node.jstree', function () {
                     var tree = $("div#jstree").jstree();
 
                     // applies the annotated class to ancestors of an annotated descendant that were opened
@@ -275,7 +276,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                                 // get the node
                                 var node = tree.get_node(id);
                                 // open the node
-                                tree.open_node(node);
+                                if (!node.state.opened) tree.open_node(node);
 
                                 // loop through and open parents
                                 node.parents.forEach(function (parentId) {
@@ -283,15 +284,40 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                                         // get parent
                                         var parent = tree.get_node(parentId);
                                         //open parent
-                                        tree.open_node(parent);
+                                        if (!parent.state.opened) tree.open_node(parent);
                                     }
                                 });
                             });
                         }
 
+                        /* open all annotated terms and their parents (depth first) */
+                        /* highlight opened nodes */
+                        // highlighting parents is callback on "open_node"
                         openNodeAndParents();
 
-                        // highlighting parents is callback on "open_node"
+                        /* TOOLTIPS */
+                        // once tree has loaded, create tooltips instead of relying on title and hover
+                        // tooltips ONLY trigger on click when they are 'disabled', if enabled hover activates them too
+                        $(".contains-note").tooltip({
+                            trigger: 'click',
+                            placement: 'bottom'
+                        });
+
+                        $(".contains-note").click(function(event) {
+                            var self = $(this)
+                            // stops propagating the click event to the onclick function defined
+                            event.stopPropagation();
+                            // stops triggering the event the <a href="..."> tag
+                            event.preventDefault();
+                            self.tooltip('enable').tooltip('open');
+                            setTimeout(function () {
+                                self.tooltip('disable');
+                                self.tooltip('enable');
+                            }, 5000)
+                        });
+
+                        /* Scroll to Term */
+                        // scroll content to first annotated term
                         var firstTermId = annotated_terms[0];
                         // calculate which term is the highest up in the tree to scroll to
                         annotated_terms.forEach(function (id) {
@@ -301,9 +327,11 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                                 firstTermId = id;
                             }
                         });
-
                         setTimeout(function () {
-                            tree.get_node(firstTermId, true).children('.jstree-anchor').get(0).scrollIntoView();
+                            // need to know the height of search content area because offsetTop is relative to it's offsetParent (#jstree and it's parent .jstree-grid-wrapper which is sibling of #parent)
+                            var searchAreaHeight = $("#parent")[0].offsetHeight;
+                            // .tree-panel is the scrollable parent content area
+                            $(".tree-panel")[0].scrollTop = tree.get_node(firstTermId, true).children('.jstree-anchor').get(0).offsetTop + searchAreaHeight;
                         }, 0)
                     }
                 })
@@ -461,8 +489,8 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                     patternImgSrc = patternIcon != '' ? "<img src=" + patternIcon + "></img>" : "",
                     strengthImgSrc = strengthIcon != '' ? "<img src=" + strengthIcon + "></img>" : "",
                     densityChangeImgSrc = densityChangeIcon != '' ? "<img src=" + densityChangeIcon + "></img>" : "",
-                    densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img src=" + densityNoteIcon + " title='Density Note: " + densityNote + "'></img>" : "",
-                    noteImgSrc = note != '' && note != null ? "<img src=" + noteIcon + " title='Note: " + note + "'></img>" : "";
+                    densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img class='contains-note' src=" + densityNoteIcon + " title='Density Note: " + densityNote + "'></img>" : "",
+                    noteImgSrc = note != '' && note != null ? "<img class='contains-note' src=" + noteIcon + " title='Note: " + note + "'></img>" : "";
 
                 isObjectAnnotated = true;
                 objectColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + objectText + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + "</span>"
@@ -489,8 +517,8 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                     patternImgSrc = patternIcon != '' ? "<img src=" + patternIcon + "></img>" : "",
                     strengthImgSrc = strengthIcon != '' ? "<img src=" + strengthIcon + "></img>" : "",
                     densityChangeImgSrc = densityChangeIcon != '' ? "<img src=" + densityChangeIcon + "></img>" : "",
-                    densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img src=" + densityNoteIcon + " title='Density Note: " + densityNote + "'></img>" : "",
-                    noteImgSrc = note != '' && note != null ? "<img src=" + noteIcon + " title='Note: " + note + "'></img>" : "";
+                    densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img class='contains-note' src=" + densityNoteIcon + " title='Density Note: " + densityNote + "'></img>" : "",
+                    noteImgSrc = note != '' && note != null ? "<img class='contains-note' src=" + noteIcon + " title='Note: " + note + "'></img>" : "";
 
                 isSubjectAnnotated = true;
                 subjectColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + subjectText + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + "</span>"
@@ -578,8 +606,8 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                         patternImgSrc = patternIcon != '' ? "<img src=" + patternIcon + "></img>" : "",
                         strengthImgSrc = strengthIcon != '' ? "<img src=" + strengthIcon + "></img>" : "",
                         densityChangeImgSrc = densityChangeIcon != '' ? "<img src=" + densityChangeIcon + "></img>" : "",
-                        densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img src=" + densityNoteIcon + " title='Density Note: " + densityNote + "'></img>" : "",
-                        noteImgSrc = note != '' && note != null ? "<img src=" + noteIcon + " title='Note: " + note + "'></img>" : "";
+                        densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img class='contains-note' src=" + densityNoteIcon + " title='Density Note: " + densityNote + "'></img>" : "",
+                        noteImgSrc = note != '' && note != null ? "<img class='contains-note' src=" + noteIcon + " title='Note: " + note + "'></img>" : "";
 
                     isObjectAnnotated = true;
                     objectColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + objectText + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + "</span>";
@@ -606,8 +634,8 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                         patternImgSrc = patternIcon != '' ? "<img src=" + patternIcon + "></img>" : "",
                         strengthImgSrc = strengthIcon != '' ? "<img src=" + strengthIcon + "></img>" : "",
                         densityChangeImgSrc = densityChangeIcon != '' ? "<img src=" + densityChangeIcon + "></img>" : "",
-                        densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img src=" + densityNoteIcon + " title='Density Note: " + densityNote + "'></img>" : "",
-                        noteImgSrc = note != '' && note != null ? "<img src=" + noteIcon + " title='Note: " + note + "'></img>" : "";
+                        densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img class='contains-note' src=" + densityNoteIcon + " title='Density Note: " + densityNote + "'></img>" : "",
+                        noteImgSrc = note != '' && note != null ? "<img class='contains-note' src=" + noteIcon + " title='Note: " + note + "'></img>" : "";
 
                     isSubjectAnnotated = true;
                     subjectColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + subjectText + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + "</span>"
