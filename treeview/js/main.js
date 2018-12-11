@@ -413,8 +413,9 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
         function refreshOrBuildTree(json, extraAttributes, showAnnotation, isolatedNodes, prefixVal, TS_val) {
           if (showAnnotation == false) {
             forest = processData(json, [], showAnnotation, isolatedNodes, prefixVal);
+          } else {
+            forest = processData(json, extraAttributes, showAnnotation, isolatedNodes, prefixVal);
           }
-          forest = processData(json, extraAttributes, showAnnotation, isolatedNodes, prefixVal);
           var presentationData = [];
           for (var g = 0; g < forest.trees.length; g++)
               presentationData.push(forest.trees[g].node);
@@ -573,6 +574,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                     parent: [],
                     children: [],
                     dbxref: isolatedNodes[j].dbxref,
+                    base_text: isolatedNodes[j].name,
                     a_attr: {
                         'href': '/chaise/record/#2/Vocabulary:Anatomy/ID=' + isolatedNodes[j].dbxref.replace(/:/g, '%3A'),
                         'style': 'display:inline;'
@@ -774,7 +776,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                 return 0 < a.length ? a[b] : void 0
             }
         };
-        
+
         function Tree(node) {
             var s = node.a_attr;
             if (parentAppExists) {
@@ -783,7 +785,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                 var linkId = node.dbxref.replace(/:/g, '%3A');
                 var l = "'/chaise/record/#2/Vocabulary:Anatomy/ID=" + linkId + "','_blank'";
                 s["onClick"] = "window.open(" + l + ");";
-            }            
+            }
             var node = {
                 text: node.text,
                 dbxref: node.dbxref,
