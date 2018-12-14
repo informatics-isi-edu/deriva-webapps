@@ -26,3 +26,10 @@ img.spinner {
 .errorDiv{
     margin: 5%;
 }
+.topMargin{
+    margin-top: 1%;
+}
+.viewMore{
+    margin-left: 1%;
+    cursor: pointer;
+}

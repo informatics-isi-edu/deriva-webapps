@@ -81,6 +81,7 @@ var heatmapApp =
 						console.log("heatmaps: ", heatmaps);
 						$rootScope.heatmaps = heatmaps;
 					}
+					$rootScope.NCBI_Symbol = page.tuples[0].data.NCBI_Symbol;
 				}
 
 				function addData(tuple) {
@@ -113,7 +114,7 @@ var heatmapApp =
 			}
 		]);
 
-heatmapApp.controller('HeatmapController', function HeatmapController($scope, $http, $q, $rootScope) {
+heatmapApp.controller('HeatmapController', function HeatmapController($scope, $http, $q, $rootScope, $window) {
 
 	$scope.allHeatmapsLoaded = false;
 	$scope.showHeatmaps = function () {
@@ -121,6 +122,21 @@ heatmapApp.controller('HeatmapController', function HeatmapController($scope, $h
 			$scope.allHeatmapsLoaded = true;
 		});
 	};
+	$scope.openArrayData = function(){
+		var choice = $rootScope.NCBI_Symbol;
+		var facet = {
+			"and": [{
+				"markdown_name": "Gene NCBI Symbol",
+				"entity": "false",
+				"choices": [choice],
+				"source": [
+					{"outbound": ["Gene_Expression", "Array_Data_NCBI_GeneID_fkey"]},
+					"NCBI_Symbol"
+				]
+			}]
+		}
+		window.location = window.origin + "/chaise/recordset/" + ERMrest.createPath("2", "Gene_Expression", "Array_Data", facet);
+	}
 });
 
 heatmapApp.factory('HeatmapUtils', function HeatmapUtils() {
