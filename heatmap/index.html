@@ -31,7 +31,7 @@
     </div>
     <div ng-show="allHeatmapsLoaded" class="topMargin">
       <span class="viewMore">
-        <a tooltip-placement="auto right" uib-tooltip="View Array Data related to this Gene" ng-click="openArrayData()">View Array Data</a>
+        <a tooltip-placement="auto right" uib-tooltip="View Array Data related to this Gene" ng-click="openArrayData()">View Array Data Table</a>
       </span>
       <div ng-repeat="heatmap in heatmaps">
         <heatmap heatmap-id="{{heatmap.id}}"></heatmap>
