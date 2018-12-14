@@ -29,8 +29,13 @@
       <img src="styles/images/loader.gif" class="spinner" />
       <div style="margin-top: 15px;">Loading...</div>
     </div>
-    <div ng-repeat="heatmap in heatmaps" ng-show="allHeatmapsLoaded">
-      <heatmap heatmap-id="{{heatmap.id}}"></heatmap>
+    <div ng-show="allHeatmapsLoaded" class="topMargin">
+      <span class="viewMore">
+        <a tooltip-placement="auto right" uib-tooltip="View Array Data related to this Gene" ng-click="openArrayData()">View Array Data</a>
+      </span>
+      <div ng-repeat="heatmap in heatmaps">
+        <heatmap heatmap-id="{{heatmap.id}}"></heatmap>
+      </div>
     </div>
   </div>
   <div ng-show="configErrorsPresent" class="errorDiv">
