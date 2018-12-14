@@ -15,16 +15,24 @@
 
 #parent {
   display: flex;
-}
-#TSDropdownDiv {
-  width: 6em;
   margin-top: 1em;
+}
+
+#TSDropdownDiv {
   margin-right: 4px;
   /* Just so it's visible */
 }
-#mainDiv {
-  flex: 1;
-  /* Grow to rest of container */
+
+#plugins4_q {
+    display: inline;
+    margin: 0em 0em 0em 0.5em;
+    padding: 4px;
+    border-radius: 4px;
+    border: 1px solid #2e6da4;
+    border-right: none;
+    border-radius: 0;
+    width: 22em;
+    height: 33px;
 }
 
 .jstree-default .annotated {
@@ -76,7 +84,6 @@ a.facet-heading-link:hover {
 }
 
 .ui-selectmenu-button.ui-button {
-  width: 6em !important;
   height: 2.38em;
   border-radius: 0;
   border:1px solid #2e6da4;

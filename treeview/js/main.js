@@ -14,8 +14,8 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
           document.getElementById('look-up').style.height = "0";
           $("#right").css('margin-left', '10px');
           $(".tree-panel").css('width', '99.5%');
-          $("#left").removeClass("col-md-3 col-lg-3 col-sm-3 col-3");
-          $("#right").removeClass("col-md-9 col-lg-9 col-sm-9 col-9");
+          $("#left").removeClass("col-md-2 col-lg-2 col-sm-2 col-2");
+          $("#right").removeClass("col-md-10 col-lg-10 col-sm-10 col-10");
           $("#right").addClass("col-md-12 col-lg-12 col-sm-12 col-12");
           document.getElementById('mouseAnatomyHeading').style.visibility = "visible";
 
@@ -37,6 +37,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
       }).selectmenu("menuWidget").addClass("overflow");
       document.getElementById('TSDropdownDiv').style.visibility = "visible";
       document.getElementById('mainDiv').style.visibility = "visible";
+      document.getElementById('expand-collapse').style.visibility = "visible";
         var offset = 250;
 
         var duration = 300;
@@ -73,7 +74,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             return false;
         })
         if(showAnnotation == true) {
-            TSDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+specimen_rid+'/stage:=left(Stage_ID)=(Vocabulary:Developmental_Stage:ID)/species:=left(Species)=(Vocabulary:Species:ID)/stage:Name,stage:Ordinal,Species_Name:=species:Name'
+            TSDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+specimen_rid+'/stage:=left(Stage_ID)=(Vocabulary:Developmental_Stage:ID)/species:=left(Species)=(Vocabulary:Species:ID)/stage:Name,stage:Ordinal,stage:Approximate_Equivalent_Age,Species_Name:=species:Name'
             var $el = $("#number");
             $el.empty();
             $.getJSON(TSDataURL, function(TSData) {
@@ -87,7 +88,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                         document.getElementsByClassName('error')[0].style.visibility = "visible";
                         document.getElementsByTagName("p")[0].innerHTML="Error: Only specimens of species, 'Mus musculus', are supported.<br />Specimen RID: "+specimen_rid+", Species: "+TSData[0]['Species_Name'];
                     } else {
-                        var stage = TSData[0]['Name']
+                        var stage = TSData[0]['Name'] + ": " + TSData[0]['Approximate_Equivalent_Age']
                         $el.append($("<option></option>")
                         .attr("value", stage).text(stage));
                         $('#number').val(stage);
@@ -101,13 +102,13 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             });
         }
         else {
-            TSDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Vocabulary:Developmental_Stage/stage:=left(Stage_Type)=(Vocabulary:Stage_Type:ID)/Name=Theiler%20Stage/M:Ordinal,M:Name@sort(Ordinal)'
+            TSDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Vocabulary:Developmental_Stage/stage:=left(Stage_Type)=(Vocabulary:Stage_Type:ID)/Name=Theiler%20Stage/M:Ordinal,M:Name,M:Approximate_Equivalent_Age@sort(Ordinal)'
             var $el = $("#number");
             $el.empty(); // remove old options
             $.getJSON(TSDataURL, function(TSData) {
                 $.each(TSData, function(index, data) {
                     $el.append($("<option></option>")
-                    .attr("value", data['Ordinal']).text(data['Name']));
+                    .attr("value", data['Ordinal']).text(data['Name'] + ": " + data['Approximate_Equivalent_Age']));
                 });
                 $el.append($("<option></option>")
                 .attr("value", "All").text("All TS"));
@@ -497,10 +498,10 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                     noteImgSrc = note != '' && note != null ? "<img class='contains-note' src=" + noteIcon + " title='Note: " + note + "'></img>" : "";
 
                 isObjectAnnotated = true;
-                objectColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + objectText + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + "</span>"
+                objectColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + objectText + " (" + data[0].object_dbxref + ")" + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + "</span>"
             } else {
                 isObjectAnnotated = false;
-                objectColumnData = "<span class='display-text'>" + objectText + "</span>"
+                objectColumnData = "<span class='display-text'>" + objectText + " (" + data[0].object_dbxref + ")" + "</span>"
             }
             specimen_expression_annotations = extraAttributes.find(function(obj) {
               return obj.Region == data[0].subject_dbxref
@@ -525,10 +526,10 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                     noteImgSrc = note != '' && note != null ? "<img class='contains-note' src=" + noteIcon + " title='Note: " + note + "'></img>" : "";
 
                 isSubjectAnnotated = true;
-                subjectColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + subjectText + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + "</span>"
+                subjectColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + subjectText + " (" + data[0].subject_dbxref + ")" + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + "</span>"
             } else {
                 isSubjectAnnotated = false;
-                subjectColumnData = "<span class='display-text'>" + subjectText + "</span>"
+                subjectColumnData = "<span class='display-text'>" + subjectText + " (" + data[0].subject_dbxref + ")" + "</span>"
             }
 
             var id = 0
@@ -615,10 +616,10 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                         noteImgSrc = note != '' && note != null ? "<img class='contains-note' src=" + noteIcon + " title='Note: " + note + "'></img>" : "";
 
                     isObjectAnnotated = true;
-                    objectColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + objectText + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + "</span>";
+                    objectColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + objectText + " (" + data[i].object_dbxref + ")" + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + "</span>";
                 } else {
                     isObjectAnnotated = false;
-                    objectColumnData = "<span class='display-text'>" + objectText + "</span>";
+                    objectColumnData = "<span class='display-text'>" + objectText + " (" + data[i].object_dbxref + ")" + "</span>";
                 }
                 specimen_expression_annotations = extraAttributes.find(function(obj) {
                   return obj.Region == data[i].subject_dbxref
@@ -643,10 +644,10 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                         noteImgSrc = note != '' && note != null ? "<img class='contains-note' src=" + noteIcon + " title='Note: " + note + "'></img>" : "";
 
                     isSubjectAnnotated = true;
-                    subjectColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + subjectText + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + "</span>"
+                    subjectColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + subjectText + " (" + data[i].subject_dbxref + ")" + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + "</span>"
                 } else {
                     isSubjectAnnotated = false;
-                    subjectColumnData = "<span class='display-text'>" + subjectText + "</span>"
+                    subjectColumnData = "<span class='display-text'>" + subjectText + " (" + data[i].subject_dbxref + ")"  + "</span>"
                 }
 
 
