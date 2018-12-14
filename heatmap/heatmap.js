@@ -122,7 +122,7 @@ heatmapApp.controller('HeatmapController', function HeatmapController($scope, $h
 			$scope.allHeatmapsLoaded = true;
 		});
 	};
-	$scope.openArrayData = function(){
+	$scope.openArrayData = function () {
 		var choice = $rootScope.NCBI_Symbol;
 		var facet = {
 			"and": [{
@@ -130,11 +130,11 @@ heatmapApp.controller('HeatmapController', function HeatmapController($scope, $h
 				"entity": "false",
 				"choices": [choice],
 				"source": [
-					{"outbound": ["Gene_Expression", "Array_Data_NCBI_GeneID_fkey"]},
+					{ "outbound": ["Gene_Expression", "Array_Data_NCBI_GeneID_fkey"] },
 					"NCBI_Symbol"
 				]
 			}]
-		}
+		};
 		window.location = window.origin + "/chaise/recordset/" + ERMrest.createPath("2", "Gene_Expression", "Array_Data", facet);
 	}
 });
