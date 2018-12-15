@@ -178,7 +178,8 @@ var setSourceForFilter;
                     "displayname": displayname,
                     "ermrest_path": query
                 }
-                window.location = window.origin + "/chaise/recordset/" + ERMrest.createPath("2", "Gene_Expression", "Specimen", null, customFacet);
+                var location = window.origin + "/chaise/recordset/" + ERMrest.createPath("2", "Gene_Expression", "Specimen", null, customFacet);
+                window.open(location, "_blank");
                 console.log(vm.booleanSearchModel.rows);
             }
 
