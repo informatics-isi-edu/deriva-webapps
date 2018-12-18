@@ -337,6 +337,11 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                             // .tree-panel is the scrollable parent content area
                             $(".tree-panel")[0].scrollTop = tree.get_node(firstTermId, true).children('.jstree-anchor').get(0).offsetTop + searchAreaHeight;
                         }, 0)
+                    } else {
+                        // no annotated terms, show warning
+                        document.getElementsByClassName('loader')[0].style.display = "none";
+                        document.getElementById('warning-message')[0].style.visibility = "visible";
+                        document.getElementById('warning-message')[0].innerHTML="Warning: No annotated terms for the given specimen.";
                     }
                 })
             document.getElementsByClassName('loader')[0].style.display = "none";
