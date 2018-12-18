@@ -75,21 +75,26 @@
                     <table ng-form="form.formContainer" class="table table-hover filterTable" cellspacing="10">
                         <tbody>
                             <tr>
-                                <td><span class="text-danger"><b>*</b></span>Strength</td>
-                                <td><span class="text-danger"><b>*</b></span>In Anatomical Source</td>
-                                <td><span class="text-danger"><b>*</b></span>Stages</td>
+                                <td></td>
+                                <td><span class="text-danger"><b>*</b></span>&nbsp;Strength</td>
+                                <td><span class="text-danger"><b>*</b></span>&nbsp;In Anatomical Source</td>
+                                <td><span class="text-danger"><b>*</b></span>&nbsp;Stages</td>
                                 <td>With Pattern</td>
                                 <td>At Location</td>
                                 <td>Actions</td>
                             </tr>
                             <tr ng-repeat="(rowIndex, row) in form.booleanSearchModel.rows track by $index" ng-class="{'activeRow':rowIndex==form.currentRow}"
                                 ng-click="::form.changeActiveRow(rowIndex);" ng-form="form.formContainer.row[rowIndex]">
-
+                                <td ng-hide="rowIndex == 0">
+                                    AND
+                                </td>
+                                <td ng-show="rowIndex == 0">
+                                </td>
                                 <td>
                                     <select ng-model="form.booleanSearchModel.rows[rowIndex].strength" ng-options="s for s in options.strengthOptions"></select>
                                 </td>
                                 <td ng-form="form.formContainer.row[rowIndex].source">
-                                    <input ng-model="form.booleanSearchModel.rows[rowIndex].source.name" ng-disabled="true"
+                                    <input class="red-text" ng-model="form.booleanSearchModel.rows[rowIndex].source.name" ng-disabled="true"
                                         ng-required="true"></input>
                                     <div ng-messages="form.formContainer.row[rowIndex].source.$error" ng-show="form.formContainer.$submitted && form.formContainer.row[rowIndex].source.$invalid"
                                         class="text-danger" role="alert">
