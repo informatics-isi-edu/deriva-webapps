@@ -527,7 +527,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                     cameraIcon = specimen_expression_annotations.image ? createCameraElement(specimen_expression_annotations.image) : "" ;
 
                 isObjectAnnotated = true;
-                objectColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + objectText + " (" + data[0].object_dbxref + ")" + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + cameraIcon + "</span>"
+                objectColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + objectText + " (" + data[0].object_dbxref + ") " + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + cameraIcon + "</span>"
             } else {
                 isObjectAnnotated = false;
                 objectColumnData = "<span class='display-text'>" + objectText + " (" + data[0].object_dbxref + ")" + "</span>"
@@ -556,7 +556,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                     cameraIcon = specimen_expression_annotations.image ? createCameraElement(specimen_expression_annotations.image) : "" ;
 
                 isSubjectAnnotated = true;
-                subjectColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + subjectText + " (" + data[0].subject_dbxref + ")" + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + cameraIcon + "</span>"
+                subjectColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + subjectText + " (" + data[0].subject_dbxref + ") " + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + cameraIcon + "</span>"
             } else {
                 isSubjectAnnotated = false;
                 subjectColumnData = "<span class='display-text'>" + subjectText + " (" + data[0].subject_dbxref + ")" + "</span>"
@@ -647,7 +647,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                         cameraIcon = specimen_expression_annotations.image ? createCameraElement(specimen_expression_annotations.image) : "" ;
 
                     isObjectAnnotated = true;
-                    objectColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + objectText + " (" + data[i].object_dbxref + ")" + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + cameraIcon + "</span>";
+                    objectColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + objectText + " (" + data[i].object_dbxref + ") " + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + cameraIcon + "</span>";
                 } else {
                     isObjectAnnotated = false;
                     objectColumnData = "<span class='display-text'>" + objectText + " (" + data[i].object_dbxref + ")" + "</span>";
@@ -676,7 +676,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                         cameraIcon = specimen_expression_annotations.image ? createCameraElement(specimen_expression_annotations.image) : "" ;
 
                     isSubjectAnnotated = true;
-                    subjectColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + subjectText + " (" + data[i].subject_dbxref + ")" + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + cameraIcon + "</span>"
+                    subjectColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + subjectText + " (" + data[i].subject_dbxref + ") " + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + cameraIcon + "</span>"
                 } else {
                     isSubjectAnnotated = false;
                     subjectColumnData = "<span class='display-text'>" + subjectText + " (" + data[i].subject_dbxref + ")"  + "</span>"
@@ -923,6 +923,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
         }
 
         function createCameraElement(imageUrl) {
+            (new Image()).src = imageUrl;
             return '<span class="image-popup"><span class="glyphicon glyphicon-camera"></span><div class="image-container"><img src="' + imageUrl + '" width="500px"></img></div></span>';
         }
 
