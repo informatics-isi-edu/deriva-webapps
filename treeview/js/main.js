@@ -94,7 +94,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                     $("#number").selectmenu("refresh");
                     $("#number").prop("disabled", true);
                     $("#number").selectmenu("refresh");
-                    if (true) {
+                    if (TSData === undefined || TSData.length == 0) {
                         $(".loader")[0].style.display = "none";
                         $("#warning-message").css("display", "");
                         $("#alert-warning-text")[0].innerHTML="Developmental Stage does not exist for Specimen RID : "+specimen_rid;
