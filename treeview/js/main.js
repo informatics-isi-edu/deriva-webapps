@@ -73,31 +73,34 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             }, duration);
             return false;
         })
+        $(".close").click(function(event) {
+            event.preventDefault();
+            $("#warning-message")[0].style.display = "none";
+        });
         if(showAnnotation == true) {
             TSDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+specimen_rid+'/stage:=left(Stage_ID)=(Vocabulary:Developmental_Stage:ID)/species:=left(Species)=(Vocabulary:Species:ID)/stage:Name,stage:Ordinal,stage:Approximate_Equivalent_Age,Species_Name:=species:Name'
             var $el = $("#number");
             $el.empty();
             $.getJSON(TSDataURL, function(TSData) {
-                if (TSData === undefined || TSData.length == 0) {
+                if (TSData[0]['Species_Name'] !== "Mus musculus") {
                     document.getElementsByClassName('loader')[0].style.display = "none";
                     document.getElementsByClassName('error')[0].style.visibility = "visible";
-                    document.getElementsByTagName("p")[0].innerHTML="Error: Developmental Stage does not exist for Specimen RID : "+specimen_rid;
+                    document.getElementsByTagName("p")[0].innerHTML="Error: Only specimens of species, 'Mus musculus', are supported.<br />Specimen RID: "+specimen_rid+", Species: "+TSData[0]['Species_Name'];
                 } else {
-                    if (TSData[0]['Species_Name'] !== "Mus musculus") {
-                        document.getElementsByClassName('loader')[0].style.display = "none";
-                        document.getElementsByClassName('error')[0].style.visibility = "visible";
-                        document.getElementsByTagName("p")[0].innerHTML="Error: Only specimens of species, 'Mus musculus', are supported.<br />Specimen RID: "+specimen_rid+", Species: "+TSData[0]['Species_Name'];
-                    } else {
-                        var stage = TSData[0]['Name'] + ": " + TSData[0]['Approximate_Equivalent_Age']
-                        $el.append($("<option></option>")
-                        .attr("value", stage).text(stage));
-                        $('#number').val(stage);
-                        $("#number").selectmenu("refresh");
-                        $("#number").prop("disabled", true);
-                        $("#number").selectmenu("refresh");
-                        TS_ordinal = TSData[0]['Ordinal'];
-                        buildPresentationData(showAnnotation, filter_prefix, TS_ordinal, specimen_rid)
+                    var stage = TSData[0]['Name'] + ": " + TSData[0]['Approximate_Equivalent_Age']
+                    $el.append($("<option></option>")
+                    .attr("value", stage).text(stage));
+                    $('#number').val(stage);
+                    $("#number").selectmenu("refresh");
+                    $("#number").prop("disabled", true);
+                    $("#number").selectmenu("refresh");
+                    if (true) {
+                        $(".loader")[0].style.display = "none";
+                        $("#warning-message").css("display", "");
+                        $("#alert-warning-text")[0].innerHTML="Developmental Stage does not exist for Specimen RID : "+specimen_rid;
                     }
+                    TS_ordinal = TSData[0]['Ordinal'];
+                    buildPresentationData(showAnnotation, filter_prefix, TS_ordinal, specimen_rid)
                 }
             });
         }
@@ -337,11 +340,11 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                             // .tree-panel is the scrollable parent content area
                             $(".tree-panel")[0].scrollTop = tree.get_node(firstTermId, true).children('.jstree-anchor').get(0).offsetTop + searchAreaHeight;
                         }, 0)
-                    } else {
-                        // no annotated terms, show warning
-                        document.getElementsByClassName('loader')[0].style.display = "none";
-                        document.getElementById('warning-message')[0].style.visibility = "visible";
-                        document.getElementById('warning-message')[0].innerHTML="Warning: No annotated terms for the given specimen.";
+                    } else if (specimen_rid) {
+                        // no annotated terms and a specimen ID, show warning
+                        $(".loader")[0].style.display = "none";
+                        $("#warning-message").css("display", "");
+                        $("#alert-warning-text")[0].innerHTML="No annotated terms for the given specimen.";
                     }
                 })
             document.getElementsByClassName('loader')[0].style.display = "none";
