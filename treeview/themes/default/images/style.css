@@ -20,7 +20,13 @@
 
 #TSDropdownDiv {
   margin-right: 4px;
-  /* Just so it's visible */
+}
+
+.image-container {
+    display:none;
+    position:absolute;
+    z-index:10;
+    left: 100;
 }
 
 #plugins4_q {

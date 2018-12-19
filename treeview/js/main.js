@@ -311,7 +311,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                         });
 
                         $(".contains-note").click(function(event) {
-                            var self = $(this)
+                            var self = $(this);
                             // stops propagating the click event to the onclick function defined
                             event.stopPropagation();
                             // stops triggering the event the <a href="..."> tag
@@ -321,6 +321,26 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                                 self.tooltip('disable');
                                 self.tooltip('enable');
                             }, 5000)
+                        });
+
+                        function showImageThumbnail(el, event) {
+                            // stops propagating the click event to the onclick function defined
+                            event.stopPropagation();
+                            // stops triggering the event the <a href="..."> tag
+                            event.preventDefault();
+
+                            el[0].style.display = "unset";
+                            setTimeout(function () {
+                                el[0].style.display = "none";
+                            }, 5000)
+                        }
+
+                        $(".image-popup").click(function(event) {
+                            showImageThumbnail($(this).find('.image-container'), event);
+                        });
+
+                        $(".image-popup").hover(function(event) {
+                            showImageThumbnail($(this).find('.image-container'), event);
                         });
 
                         /* Scroll to Term */
@@ -381,7 +401,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                     json = data
                 }).done(function() {
                   if(specimen_rid != '') {
-                    var extraAttributesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+specimen_rid+'/N:=left(RID)=(Gene_Expression:Specimen_Expression:Specimen)/M:RID,Region:=N:Region,strength:=N:Strength,strengthModifier:=N:Strength_Modifier,pattern:=N:Pattern,density:=N:Density,densityChange:=N:Density_Direction,densityMagnitude:=N:Density_Magnitude,densityNote:=N:Density_Note,note:=N:Notes';
+                    var extraAttributesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+specimen_rid+'/N:=left(RID)=(Gene_Expression:Specimen_Expression:Specimen)/$M/I:=left(RID)=(Gene_Expression:Image:Specimen_RID)/M:RID,Region:=N:Region,strength:=N:Strength,strengthModifier:=N:Strength_Modifier,pattern:=N:Pattern,density:=N:Density,densityChange:=N:Density_Direction,densityMagnitude:=N:Density_Magnitude,densityNote:=N:Density_Note,note:=N:Notes,image:=I:Image_URL';
                     $.getJSON(extraAttributesURL, function(data) {
                         extraAttributes = data
                     }).done(function() {
@@ -394,7 +414,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                 });
             } else {
                 var treeDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=left(Subject)=(Vocabulary:Anatomy:ID)/$M/F2:=left(Object)=(Vocabulary:Anatomy:ID)/$M/subject_dbxref:=M:Subject,object_dbxref:=M:Object,subject:=F1:Name,object:=F2:Name';
-                var extraAttributesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+specimen_rid+'/N:=left(RID)=(Gene_Expression:Specimen_Expression:Specimen)/M:RID,Region:=N:Region,strength:=N:Strength,strengthModifier:=N:Strength_Modifier,pattern:=N:Pattern,density:=N:Density,densityChange:=N:Density_Direction,densityMagnitude:=N:Density_Magnitude,densityNote:=N:Density_Note,note:=N:Notes';
+                var extraAttributesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+specimen_rid+'/N:=left(RID)=(Gene_Expression:Specimen_Expression:Specimen)/$M/I:=left(RID)=(Gene_Expression:Image:Specimen_RID)/M:RID,Region:=N:Region,strength:=N:Strength,strengthModifier:=N:Strength_Modifier,pattern:=N:Pattern,density:=N:Density,densityChange:=N:Density_Direction,densityMagnitude:=N:Density_Magnitude,densityNote:=N:Density_Note,note:=N:Notes,image:=I:Image_URL';
                 var isolatedNodesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy/s:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Subject)/Subject::null::/$t/o:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Object)/Object::null::/$t/dbxref:=t:ID,name:=t:Name';
                 var json = [],
                     extraAttributes, isolatedNodes, region;
@@ -503,10 +523,11 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                     strengthImgSrc = strengthIcon != '' ? "<img src=" + strengthIcon + "></img>" : "",
                     densityChangeImgSrc = densityChangeIcon != '' ? "<img src=" + densityChangeIcon + "></img>" : "",
                     densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img class='contains-note' src=" + densityNoteIcon + " title='Density Note: " + densityNote + "'></img>" : "",
-                    noteImgSrc = note != '' && note != null ? "<img class='contains-note' src=" + noteIcon + " title='Note: " + note + "'></img>" : "";
+                    noteImgSrc = note != '' && note != null ? "<img class='contains-note' src=" + noteIcon + " title='Note: " + note + "'></img>" : "",
+                    cameraIcon = specimen_expression_annotations.image ? createCameraElement(specimen_expression_annotations.image) : "" ;
 
                 isObjectAnnotated = true;
-                objectColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + objectText + " (" + data[0].object_dbxref + ")" + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + "</span>"
+                objectColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + objectText + " (" + data[0].object_dbxref + ")" + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + cameraIcon + "</span>"
             } else {
                 isObjectAnnotated = false;
                 objectColumnData = "<span class='display-text'>" + objectText + " (" + data[0].object_dbxref + ")" + "</span>"
@@ -531,10 +552,11 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                     strengthImgSrc = strengthIcon != '' ? "<img src=" + strengthIcon + "></img>" : "",
                     densityChangeImgSrc = densityChangeIcon != '' ? "<img src=" + densityChangeIcon + "></img>" : "",
                     densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img class='contains-note' src=" + densityNoteIcon + " title='Density Note: " + densityNote + "'></img>" : "",
-                    noteImgSrc = note != '' && note != null ? "<img class='contains-note' src=" + noteIcon + " title='Note: " + note + "'></img>" : "";
+                    noteImgSrc = note != '' && note != null ? "<img class='contains-note' src=" + noteIcon + " title='Note: " + note + "'></img>" : "",
+                    cameraIcon = specimen_expression_annotations.image ? createCameraElement(specimen_expression_annotations.image) : "" ;
 
                 isSubjectAnnotated = true;
-                subjectColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + subjectText + " (" + data[0].subject_dbxref + ")" + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + "</span>"
+                subjectColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + subjectText + " (" + data[0].subject_dbxref + ")" + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + cameraIcon + "</span>"
             } else {
                 isSubjectAnnotated = false;
                 subjectColumnData = "<span class='display-text'>" + subjectText + " (" + data[0].subject_dbxref + ")" + "</span>"
@@ -621,10 +643,11 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                         strengthImgSrc = strengthIcon != '' ? "<img src=" + strengthIcon + "></img>" : "",
                         densityChangeImgSrc = densityChangeIcon != '' ? "<img src=" + densityChangeIcon + "></img>" : "",
                         densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img class='contains-note' src=" + densityNoteIcon + " title='Density Note: " + densityNote + "'></img>" : "",
-                        noteImgSrc = note != '' && note != null ? "<img class='contains-note' src=" + noteIcon + " title='Note: " + note + "'></img>" : "";
+                        noteImgSrc = note != '' && note != null ? "<img class='contains-note' src=" + noteIcon + " title='Note: " + note + "'></img>" : "",
+                        cameraIcon = specimen_expression_annotations.image ? createCameraElement(specimen_expression_annotations.image) : "" ;
 
                     isObjectAnnotated = true;
-                    objectColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + objectText + " (" + data[i].object_dbxref + ")" + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + "</span>";
+                    objectColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + objectText + " (" + data[i].object_dbxref + ")" + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + cameraIcon + "</span>";
                 } else {
                     isObjectAnnotated = false;
                     objectColumnData = "<span class='display-text'>" + objectText + " (" + data[i].object_dbxref + ")" + "</span>";
@@ -649,10 +672,11 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                         strengthImgSrc = strengthIcon != '' ? "<img src=" + strengthIcon + "></img>" : "",
                         densityChangeImgSrc = densityChangeIcon != '' ? "<img src=" + densityChangeIcon + "></img>" : "",
                         densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img class='contains-note' src=" + densityNoteIcon + " title='Density Note: " + densityNote + "'></img>" : "",
-                        noteImgSrc = note != '' && note != null ? "<img class='contains-note' src=" + noteIcon + " title='Note: " + note + "'></img>" : "";
+                        noteImgSrc = note != '' && note != null ? "<img class='contains-note' src=" + noteIcon + " title='Note: " + note + "'></img>" : "",
+                        cameraIcon = specimen_expression_annotations.image ? createCameraElement(specimen_expression_annotations.image) : "" ;
 
                     isSubjectAnnotated = true;
-                    subjectColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + subjectText + " (" + data[i].subject_dbxref + ")" + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + "</span>"
+                    subjectColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + subjectText + " (" + data[i].subject_dbxref + ")" + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + cameraIcon + "</span>"
                 } else {
                     isSubjectAnnotated = false;
                     subjectColumnData = "<span class='display-text'>" + subjectText + " (" + data[i].subject_dbxref + ")"  + "</span>"
@@ -896,6 +920,10 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                 default:
                     return "";
             }
+        }
+
+        function createCameraElement(imageUrl) {
+            return '<span class="image-popup"><span class="glyphicon glyphicon-camera"></span><div class="image-container"><img src="' + imageUrl + '" width="500px"></img></div></span>';
         }
 
         // returns FIRST matching node
