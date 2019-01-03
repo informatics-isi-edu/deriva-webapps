@@ -339,10 +339,6 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                             showImageThumbnail($(this).find('.image-container'), event);
                         });
 
-                        $(".image-popup").hover(function(event) {
-                            showImageThumbnail($(this).find('.image-container'), event);
-                        });
-
                         /* Scroll to Term */
                         // scroll content to first annotated term
                         var firstTermId = annotated_terms[0];
@@ -626,6 +622,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                     specimen_expression_annotations = extraAttributes.find(function(obj) {
                       return obj.Region == data[i].object_dbxref
                     })
+
                 if (showAnnotation && typeof specimen_expression_annotations != 'undefined') {
                     if(annotated_term == "") {
                       annotated_term = objectText
