@@ -2,48 +2,48 @@ var annotated_term="";
 var annotated_terms=[];
 define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
     $(document).ready(function() {
-      if (window.location.href.indexOf("Specimen_RID=") !== -1) {
-          specimen_rid = findGetParameter('Specimen_RID')
-          showAnnotation = true;
-          document.getElementById('left').style.visibility = "visible";
-          document.getElementById('look-up').style.height = "100%";
-          document.getElementById('mouseAnatomyHeading').style.display = "none";
-      } else {
-          specimen_rid = ''
-          showAnnotation = false;
-          document.getElementById('look-up').style.height = "0";
-          $("#right").css('margin-left', '10px');
-          $(".tree-panel").css('width', '99.5%');
-          $("#left").removeClass("col-md-2 col-lg-2 col-sm-2 col-2");
-          $("#right").removeClass("col-md-10 col-lg-10 col-sm-10 col-10");
-          $("#right").addClass("col-md-12 col-lg-12 col-sm-12 col-12");
-          document.getElementById('mouseAnatomyHeading').style.visibility = "visible";
+        var JSONData, showAnnotation, filter_prefix, isCacheEnabled, cacheData, id_parameter, TSDataURL, TS_ordinal;
+        if (window.location.href.indexOf("Specimen_RID=") !== -1) {
+            id_parameter = findGetParameter('Specimen_RID')
+            showAnnotation = true;
+            document.getElementById('left').style.visibility = "visible";
+            document.getElementById('look-up').style.height = "100%";
+            document.getElementById('mouseAnatomyHeading').style.display = "none";
+        } else {
+            id_parameter = ''
+            showAnnotation = false;
+            document.getElementById('look-up').style.height = "0";
+            $("#right").css('margin-left', '10px');
+            $(".tree-panel").css('width', '99.5%');
+            $("#left").removeClass("col-md-2 col-lg-2 col-sm-2 col-2");
+            $("#right").removeClass("col-md-10 col-lg-10 col-sm-10 col-10");
+            $("#right").addClass("col-md-12 col-lg-12 col-sm-12 col-12");
+            document.getElementById('mouseAnatomyHeading').style.visibility = "visible";
 
-      }
-      var parentAppExists = false;
-      var nodeClickCallback;
-      if (window.location.href.indexOf("Parent_App=") !== -1) {
-          var appName = findGetParameter('Parent_App');
-          if (appName !== null) {
-              if (typeof treeviewConfig.nodeClickCallback[appName] !== "undefined") {
-                  parentAppExists = true;
-                  nodeClickCallback = treeviewConfig.nodeClickCallback[appName];
-              }
-          }
-      }
-      document.getElementById('loadIcon').style.visibility = "visible";
-      $("#number").selectmenu({
-        appendTo: "#TSDropdownDiv"
-      }).selectmenu("menuWidget").addClass("overflow");
-      document.getElementById('TSDropdownDiv').style.visibility = "visible";
-      document.getElementById('mainDiv').style.visibility = "visible";
-      document.getElementById('expand-collapse').style.visibility = "visible";
+        }
+        var parentAppExists = false;
+        var nodeClickCallback;
+        if (window.location.href.indexOf("Parent_App=") !== -1) {
+            var appName = findGetParameter('Parent_App');
+            if (appName !== null) {
+                if (typeof treeviewConfig.nodeClickCallback[appName] !== "undefined") {
+                    parentAppExists = true;
+                    nodeClickCallback = treeviewConfig.nodeClickCallback[appName];
+                }
+            }
+        }
+        document.getElementById('loadIcon').style.visibility = "visible";
+        $("#number").selectmenu({
+            appendTo: "#TSDropdownDiv"
+        }).selectmenu("menuWidget").addClass("overflow");
+        document.getElementById('TSDropdownDiv').style.visibility = "visible";
+        document.getElementById('mainDiv').style.visibility = "visible";
+        document.getElementById('expand-collapse').style.visibility = "visible";
         var offset = 250;
 
         var duration = 300;
 
         var location = window.location.href;
-        var JSONData, showAnnotation, filter_prefix, isCacheEnabled, cacheData, specimen_rid, TSDataURL, TS_ordinal;
         if (location.indexOf("prefix_filter=") !== -1) {
             var prefix_filter_value = findGetParameter('prefix_filter')
             filter_prefix = prefix_filter_value;
@@ -51,10 +51,10 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             filter_prefix = "";
         }
         if (location.indexOf("Specimen_RID=") !== -1) {
-            specimen_rid = findGetParameter('Specimen_RID')
+            id_parameter = findGetParameter('Specimen_RID')
             showAnnotation = true;
         } else {
-            specimen_rid = ''
+            id_parameter = ''
             showAnnotation = false;
         }
 
@@ -78,14 +78,14 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             $("#warning-message")[0].style.display = "none";
         });
         if(showAnnotation == true) {
-            TSDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+specimen_rid+'/stage:=left(Stage_ID)=(Vocabulary:Developmental_Stage:ID)/species:=left(Species)=(Vocabulary:Species:ID)/stage:Name,stage:Ordinal,stage:Approximate_Equivalent_Age,Species_Name:=species:Name'
+            TSDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+id_parameter+'/stage:=left(Stage_ID)=(Vocabulary:Developmental_Stage:ID)/species:=left(Species)=(Vocabulary:Species:ID)/stage:Name,stage:Ordinal,stage:Approximate_Equivalent_Age,Species_Name:=species:Name'
             var $el = $("#number");
             $el.empty();
             $.getJSON(TSDataURL, function(TSData) {
                 if (TSData[0]['Species_Name'] !== "Mus musculus") {
                     document.getElementsByClassName('loader')[0].style.display = "none";
                     document.getElementsByClassName('error')[0].style.visibility = "visible";
-                    document.getElementsByTagName("p")[0].innerHTML="Error: Only specimens of species, 'Mus musculus', are supported.<br />Specimen RID: "+specimen_rid+", Species: "+TSData[0]['Species_Name'];
+                    document.getElementsByTagName("p")[0].innerHTML="Error: Only specimens of species, 'Mus musculus', are supported.<br />Specimen RID: "+id_parameter+", Species: "+TSData[0]['Species_Name'];
                 } else {
                     var stage = TSData[0]['Name'] + ": " + TSData[0]['Approximate_Equivalent_Age']
                     $el.append($("<option></option>")
@@ -97,10 +97,10 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                     if (TSData === undefined || TSData.length == 0) {
                         $(".loader")[0].style.display = "none";
                         $("#warning-message").css("display", "");
-                        $("#alert-warning-text")[0].innerHTML="Developmental Stage does not exist for Specimen RID : "+specimen_rid;
+                        $("#alert-warning-text")[0].innerHTML="Developmental Stage does not exist for Specimen RID : "+id_parameter;
                     }
                     TS_ordinal = TSData[0]['Ordinal'];
-                    buildPresentationData(showAnnotation, filter_prefix, TS_ordinal, specimen_rid)
+                    buildPresentationData(showAnnotation, filter_prefix, TS_ordinal, id_parameter)
                 }
             });
         }
@@ -128,10 +128,10 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                     $("#reset_text").prop("disabled", true);
 
                     TS_ordinal = $("#number").val()
-                    buildPresentationData(showAnnotation, filter_prefix, TS_ordinal, specimen_rid)
+                    buildPresentationData(showAnnotation, filter_prefix, TS_ordinal, id_parameter)
                 })
                 TS_ordinal = $("#number").val()
-                buildPresentationData(showAnnotation, filter_prefix, TS_ordinal, specimen_rid)
+                buildPresentationData(showAnnotation, filter_prefix, TS_ordinal, id_parameter)
             })
         }
         $("#reset_text").click(function() {
@@ -356,7 +356,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                             // .tree-panel is the scrollable parent content area
                             $(".tree-panel")[0].scrollTop = tree.get_node(firstTermId, true).children('.jstree-anchor').get(0).offsetTop + searchAreaHeight;
                         }, 0)
-                    } else if (specimen_rid) {
+                    } else if (id_parameter) {
                         // no annotated terms and a specimen ID, show warning
                         $(".loader")[0].style.display = "none";
                         $("#warning-message").css("display", "");
@@ -384,7 +384,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             });
         }
 
-        function buildPresentationData(showAnnotation, prefixVal, TS_val, specimen_rid) {
+        function buildPresentationData(showAnnotation, prefixVal, TS_val, id_parameter) {
             var presentationData = [];
             // Returns json - Query 1 : https://dev.rebuildingakidney.org/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of/F1:=left(subject_dbxref)=(Anatomy_terms:dbxref)/$M/F2:=left(object_dbxref)=(Anatomy_terms:dbxref)/$M/subject_dbxref:=M:subject_dbxref,object_dbxref,subject:=F1:name,object:=F2:name
             // Returns extraAttributes - Query 2 : https://dev.rebuildingakidney.org/ermrest/catalog/2/attribute/M:=Gene_Expression:Specimen_Expression/RID=Q-PQ16/$M/RID:=M:RID,Region:=M:Region,strength:=M:Strength,pattern:=M:Pattern,density:=M:Density,densityChange:=M:Density_Direction,densityNote:=M:Density_Note
@@ -396,8 +396,8 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                 $.getJSON(treeDataURL, function(data) {
                     json = data
                 }).done(function() {
-                  if(specimen_rid != '') {
-                    var extraAttributesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+specimen_rid+'/N:=left(RID)=(Gene_Expression:Specimen_Expression:Specimen)/$M/I:=left(RID)=(Gene_Expression:Image:Specimen_RID)/M:RID,Region:=N:Region,strength:=N:Strength,strengthModifier:=N:Strength_Modifier,pattern:=N:Pattern,density:=N:Density,densityChange:=N:Density_Direction,densityMagnitude:=N:Density_Magnitude,densityNote:=N:Density_Note,note:=N:Notes,image:=I:Image_URL';
+                  if(id_parameter != '') {
+                    var extraAttributesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+id_parameter+'/N:=left(RID)=(Gene_Expression:Specimen_Expression:Specimen)/$M/I:=left(RID)=(Gene_Expression:Image:Specimen_RID)/M:RID,Region:=N:Region,strength:=N:Strength,strengthModifier:=N:Strength_Modifier,pattern:=N:Pattern,density:=N:Density,densityChange:=N:Density_Direction,densityMagnitude:=N:Density_Magnitude,densityNote:=N:Density_Note,note:=N:Notes,image:=I:Image_URL';
                     $.getJSON(extraAttributesURL, function(data) {
                         extraAttributes = data
                     }).done(function() {
@@ -410,7 +410,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                 });
             } else {
                 var treeDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=left(Subject)=(Vocabulary:Anatomy:ID)/$M/F2:=left(Object)=(Vocabulary:Anatomy:ID)/$M/subject_dbxref:=M:Subject,object_dbxref:=M:Object,subject:=F1:Name,object:=F2:Name';
-                var extraAttributesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+specimen_rid+'/N:=left(RID)=(Gene_Expression:Specimen_Expression:Specimen)/$M/I:=left(RID)=(Gene_Expression:Image:Specimen_RID)/M:RID,Region:=N:Region,strength:=N:Strength,strengthModifier:=N:Strength_Modifier,pattern:=N:Pattern,density:=N:Density,densityChange:=N:Density_Direction,densityMagnitude:=N:Density_Magnitude,densityNote:=N:Density_Note,note:=N:Notes,image:=I:Image_URL';
+                var extraAttributesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+id_parameter+'/N:=left(RID)=(Gene_Expression:Specimen_Expression:Specimen)/$M/I:=left(RID)=(Gene_Expression:Image:Specimen_RID)/M:RID,Region:=N:Region,strength:=N:Strength,strengthModifier:=N:Strength_Modifier,pattern:=N:Pattern,density:=N:Density,densityChange:=N:Density_Direction,densityMagnitude:=N:Density_Magnitude,densityNote:=N:Density_Note,note:=N:Notes,image:=I:Image_URL';
                 var isolatedNodesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy/s:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Subject)/Subject::null::/$t/o:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Object)/Object::null::/$t/dbxref:=t:ID,name:=t:Name';
                 var json = [],
                     extraAttributes, isolatedNodes, region;
@@ -420,7 +420,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                     $.getJSON(isolatedNodesURL, function(data) {
                         isolatedNodes = data
                     }).done(function() {
-                      if(specimen_rid != '') {
+                      if(id_parameter != '') {
                         $.getJSON(extraAttributesURL, function(data) {
                             extraAttributes = data
                         }).done(function() {
@@ -920,8 +920,9 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
         }
 
         function createCameraElement(imageUrl) {
+            // preloads the image
             (new Image()).src = imageUrl;
-            return '<span class="image-popup"><span class="glyphicon glyphicon-camera"></span><div class="image-container"><img src="' + imageUrl + '" width="500px"></img></div></span>';
+            return '<span class="image-popup"><img src="resources/images/camera-icon.png"></img><div class="image-container"><img src="' + imageUrl + '" width="500px"></img></div></span>'
         }
 
         // returns FIRST matching node
