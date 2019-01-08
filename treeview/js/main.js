@@ -1,8 +1,15 @@
-var annotated_term="";
-var annotated_terms=[];
+var annotated_term  = "";
+var annotated_terms = [];
 define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
     $(document).ready(function() {
-        var JSONData, showAnnotation, filter_prefix, isCacheEnabled, cacheData, id_parameter, TSDataURL, TS_ordinal;
+        var JSONData, showAnnotation, filter_prefix, isCacheEnabled, cacheData, id_parameter, filterUrl, filterValue;
+
+        // NOTE: refactor into 2 sections:
+        //  - parameter extraction and data setup
+        //  - component setup using selectors
+
+        // TODO: refactor into get all URL params
+        // var queryParams = stripQueryParams();
         if (window.location.href.indexOf("Specimen_RID=") !== -1) {
             id_parameter = findGetParameter('Specimen_RID')
             showAnnotation = true;
@@ -22,6 +29,8 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
 
         }
         var parentAppExists = false;
+        // TODO: refactor with above stripQueryParams function
+        // nodeClickCallback should be function in code here. Repalce function in config with string to match against
         var nodeClickCallback;
         if (window.location.href.indexOf("Parent_App=") !== -1) {
             var appName = findGetParameter('Parent_App');
@@ -34,15 +43,14 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
         }
         document.getElementById('loadIcon').style.visibility = "visible";
         $("#number").selectmenu({
-            appendTo: "#TSDropdownDiv"
+            appendTo: "#filterDropDown"
         }).selectmenu("menuWidget").addClass("overflow");
-        document.getElementById('TSDropdownDiv').style.visibility = "visible";
+        document.getElementById('filterDropDown').style.visibility = "visible";
         document.getElementById('mainDiv').style.visibility = "visible";
         document.getElementById('expand-collapse').style.visibility = "visible";
+
         var offset = 250;
-
         var duration = 300;
-
         var location = window.location.href;
         if (location.indexOf("prefix_filter=") !== -1) {
             var prefix_filter_value = findGetParameter('prefix_filter')
@@ -50,6 +58,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
         } else {
             filter_prefix = "";
         }
+
         if (location.indexOf("Specimen_RID=") !== -1) {
             id_parameter = findGetParameter('Specimen_RID')
             showAnnotation = true;
@@ -71,45 +80,51 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             $("html, .tree-panel").animate({
                 scrollTop: 0
             }, duration);
+            // is this needed?
             return false;
         })
+        // 'X' in warning message
         $(".close").click(function(event) {
             event.preventDefault();
             $("#warning-message")[0].style.display = "none";
         });
+        // if selected_filter in config and said identifier is present in url
         if(showAnnotation == true) {
-            TSDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+id_parameter+'/stage:=left(Stage_ID)=(Vocabulary:Developmental_Stage:ID)/species:=left(Species)=(Vocabulary:Species:ID)/stage:Name,stage:Ordinal,stage:Approximate_Equivalent_Age,Species_Name:=species:Name'
+            filterUrl = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+id_parameter+'/stage:=left(Stage_ID)=(Vocabulary:Developmental_Stage:ID)/species:=left(Species)=(Vocabulary:Species:ID)/stage:Name,stage:Ordinal,stage:Approximate_Equivalent_Age,Species_Name:=species:Name'
             var $el = $("#number");
             $el.empty();
-            $.getJSON(TSDataURL, function(TSData) {
-                if (TSData[0]['Species_Name'] !== "Mus musculus") {
+            $.getJSON(filterUrl, function(filterData) {
+                // TODO: error handling because only Mouse is supported
+                if (filterData[0]['Species_Name'] !== "Mus musculus") {
                     document.getElementsByClassName('loader')[0].style.display = "none";
                     document.getElementsByClassName('error')[0].style.visibility = "visible";
-                    document.getElementsByTagName("p")[0].innerHTML="Error: Only specimens of species, 'Mus musculus', are supported.<br />Specimen RID: "+id_parameter+", Species: "+TSData[0]['Species_Name'];
+                    document.getElementsByTagName("p")[0].innerHTML="Error: Only specimens of species, 'Mus musculus', are supported.<br />Specimen RID: "+id_parameter+", Species: "+filterData[0]['Species_Name'];
                 } else {
-                    var stage = TSData[0]['Name'] + ": " + TSData[0]['Approximate_Equivalent_Age']
+                    var selected_option = filterData[0]['Name'] + ": " + filterData[0]['Approximate_Equivalent_Age']
+                    // only add selected option to the list
                     $el.append($("<option></option>")
-                    .attr("value", stage).text(stage));
-                    $('#number').val(stage);
+                    .attr("value", selected_option).text(selected_option));
+                    $('#number').val(selected_option);
                     $("#number").selectmenu("refresh");
                     $("#number").prop("disabled", true);
                     $("#number").selectmenu("refresh");
-                    if (TSData === undefined || TSData.length == 0) {
+                    // We have a mouse, but there is no filter data for this specimen (stage data)
+                    if (filterData === undefined || filterData.length == 0) {
                         $(".loader")[0].style.display = "none";
                         $("#warning-message").css("display", "");
                         $("#alert-warning-text")[0].innerHTML="Developmental Stage does not exist for Specimen RID : "+id_parameter;
                     }
-                    TS_ordinal = TSData[0]['Ordinal'];
-                    buildPresentationData(showAnnotation, filter_prefix, TS_ordinal, id_parameter)
+                    filterValue = filterData[0]['Ordinal'];
+                    buildPresentationData(showAnnotation, filter_prefix, filterValue, id_parameter)
                 }
             });
-        }
-        else {
-            TSDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Vocabulary:Developmental_Stage/stage:=left(Stage_Type)=(Vocabulary:Stage_Type:ID)/Name=Theiler%20Stage/M:Ordinal,M:Name,M:Approximate_Equivalent_Age@sort(Ordinal)'
+        } else {
+            filterUrl = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Vocabulary:Developmental_Stage/stage:=left(Stage_Type)=(Vocabulary:Stage_Type:ID)/Name=Theiler%20Stage/M:Ordinal,M:Name,M:Approximate_Equivalent_Age@sort(Ordinal)'
             var $el = $("#number");
             $el.empty(); // remove old options
-            $.getJSON(TSDataURL, function(TSData) {
-                $.each(TSData, function(index, data) {
+            $.getJSON(filterUrl, function(filterData) {
+                // add all options from filter data to list
+                $.each(filterData, function(index, data) {
                     $el.append($("<option></option>")
                     .attr("value", data['Ordinal']).text(data['Name'] + ": " + data['Approximate_Equivalent_Age']));
                 });
@@ -117,6 +132,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                 .attr("value", "All").text("All TS"));
                 $('#number').val('28');
                 $("#number").selectmenu("refresh");
+                // TODO: register event for dropdown menu. could go somewhere else?
                 $("#number").on('selectmenuchange', function() {
                     document.getElementsByClassName('loader')[0].style.display = "block";
                     document.getElementById('jstree').style.visibility = "hidden";
@@ -127,11 +143,11 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                     $("#collapse_all_btn").prop("disabled", true);
                     $("#reset_text").prop("disabled", true);
 
-                    TS_ordinal = $("#number").val()
-                    buildPresentationData(showAnnotation, filter_prefix, TS_ordinal, id_parameter)
+                    filterValue = $("#number").val()
+                    buildPresentationData(showAnnotation, filter_prefix, filterValue, id_parameter)
                 })
-                TS_ordinal = $("#number").val()
-                buildPresentationData(showAnnotation, filter_prefix, TS_ordinal, id_parameter)
+                filterValue = $("#number").val()
+                buildPresentationData(showAnnotation, filter_prefix, filterValue, id_parameter)
             })
         }
         $("#reset_text").click(function() {
@@ -166,6 +182,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             $("#jstree").jstree('close_all');
         })
 
+        // legend panel setup
         function toggleIcon (el) {
             var innerClass = el[0].className;
             if (innerClass.includes("glyphicon-chevron-down")) {
@@ -213,6 +230,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                         close_opened_onclear: true
                     },
                     sort: function(a, b) {
+                        // sort based on the base text (attached to nodes before given to jstree)
                         var a_text = this.get_node(a).original.base_text.toLowerCase();
                         var b_text = this.get_node(b).original.base_text.toLowerCase();
 
@@ -220,6 +238,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                     }
                 })
                 .on('search.jstree', function(e, data) {
+                    // after search, if nodes were found, scroll to the first node in the list (may not be the first to appear in the tree. check this?)
                     if (data.nodes.length) {
                         e.preventDefault()
                         setTimeout(function() {
@@ -231,6 +250,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                     checkIfSearchItemExists()
                 })
                 .on('open_node.jstree', function () {
+                    // add the annotated class to all parent nodes of current node that was just opened
                     var tree = $("div#jstree").jstree();
 
                     // applies the annotated class to ancestors of an annotated descendant that were opened
@@ -239,6 +259,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                         var node = tree.get_node(id);
 
                         // highlight parents
+                        // TODO: this might be redundent. Check if function triggers when each aprent is opened too but make sure it doesn't annotate other opened nodes like siblings
                         node.parents.forEach(function (parentId) {
                             if (parentId != '#') {
                                 var parentSelector = "#" + parentId + " > a .display-text";
@@ -335,6 +356,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                             }, 5000)
                         }
 
+                        // show image preview only on click
                         $(".image-popup").click(function(event) {
                             showImageThumbnail($(this).find('.image-container'), event);
                         });
@@ -343,6 +365,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                         // scroll content to first annotated term
                         var firstTermId = annotated_terms[0];
                         // calculate which term is the highest up in the tree to scroll to
+                        // TODO: a similar calculation should be used for search.jstree function wrapper
                         annotated_terms.forEach(function (id) {
                             var currTerm = $("#"+id);
                             var firstTerm = $("#"+firstTermId);
@@ -384,14 +407,15 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             });
         }
 
-        function buildPresentationData(showAnnotation, prefixVal, TS_val, id_parameter) {
+        // filter_order_val is currently the ordinal associated with the stage data. It's used in tree data requests for leq/geq clauses
+        function buildPresentationData(showAnnotation, prefixVal, filter_order_val, id_parameter) {
             var presentationData = [];
             // Returns json - Query 1 : https://dev.rebuildingakidney.org/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of/F1:=left(subject_dbxref)=(Anatomy_terms:dbxref)/$M/F2:=left(object_dbxref)=(Anatomy_terms:dbxref)/$M/subject_dbxref:=M:subject_dbxref,object_dbxref,subject:=F1:name,object:=F2:name
             // Returns extraAttributes - Query 2 : https://dev.rebuildingakidney.org/ermrest/catalog/2/attribute/M:=Gene_Expression:Specimen_Expression/RID=Q-PQ16/$M/RID:=M:RID,Region:=M:Region,strength:=M:Strength,pattern:=M:Pattern,density:=M:Density,densityChange:=M:Density_Direction,densityNote:=M:Density_Note
             // Returns isolated nodes - Query 3 : https://dev.rebuildingakidney.org/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy_terms/s:=left(dbxref)=(Vocabulary:Anatomy_Part_Of:subject_dbxref)/subject_dbxref::null::/$t/o:=left(dbxref)=(Vocabulary:Anatomy_Part_Of:object_dbxref)/object_dbxref::null::/$t/dbxref:=t:dbxref,name:=t:name
-            if (TS_val != "" && TS_val != "All") {
+            if (filter_order_val != "" && filter_order_val != "All") {
                 var json, treeDataURL;
-                treeDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=left(Subject)=(Vocabulary:Anatomy:ID)/Subject_Starts_at_Ordinal:=left(Starts_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::leq::' + TS_val + '/$F1/Subject_Ends_At_Ordinal:=left(Ends_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::geq::' + TS_val + '/$M/F2:=left(Object)=(Vocabulary:Anatomy:ID)/Object_Starts_at_Ordinal:=left(Starts_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::leq::' + TS_val + '/$F2/Object_Ends_At_Ordinal:=left(Ends_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::geq::' + TS_val + '/$M/subject_dbxref:=M:Subject,object_dbxref:=M:Object,subject:=F1:Name,object:=F2:Name'
+                treeDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=left(Subject)=(Vocabulary:Anatomy:ID)/Subject_Starts_at_Ordinal:=left(Starts_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::leq::' + filter_order_val + '/$F1/Subject_Ends_At_Ordinal:=left(Ends_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::geq::' + filter_order_val + '/$M/F2:=left(Object)=(Vocabulary:Anatomy:ID)/Object_Starts_at_Ordinal:=left(Starts_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::leq::' + filter_order_val + '/$F2/Object_Ends_At_Ordinal:=left(Ends_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::geq::' + filter_order_val + '/$M/subject_dbxref:=M:Subject,object_dbxref:=M:Object,subject:=F1:Name,object:=F2:Name'
 
                 $.getJSON(treeDataURL, function(data) {
                     json = data
@@ -401,11 +425,11 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                     $.getJSON(extraAttributesURL, function(data) {
                         extraAttributes = data
                     }).done(function() {
-                        refreshOrBuildTree(json,extraAttributes,showAnnotation, [], prefixVal, TS_val)
+                        refreshOrBuildTree(json,extraAttributes,showAnnotation, [], prefixVal, filter_order_val)
                     })
                   }
                   else {
-                    refreshOrBuildTree(json,[],showAnnotation, [], prefixVal, TS_val)
+                    refreshOrBuildTree(json,[],showAnnotation, [], prefixVal, filter_order_val)
                   }
                 });
             } else {
@@ -424,18 +448,18 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                         $.getJSON(extraAttributesURL, function(data) {
                             extraAttributes = data
                         }).done(function() {
-                            refreshOrBuildTree(json,extraAttributes,showAnnotation, isolatedNodes, prefixVal, TS_val)
+                            refreshOrBuildTree(json,extraAttributes,showAnnotation, isolatedNodes, prefixVal, filter_order_val)
                         })
                       }
                       else {
-                        refreshOrBuildTree(json,[],showAnnotation, isolatedNodes, prefixVal, TS_val)
+                        refreshOrBuildTree(json,[],showAnnotation, isolatedNodes, prefixVal, filter_order_val)
                       }
                     })
                 });
             }
         }
 
-        function refreshOrBuildTree(json, extraAttributes, showAnnotation, isolatedNodes, prefixVal, TS_val) {
+        function refreshOrBuildTree(json, extraAttributes, showAnnotation, isolatedNodes, prefixVal, filter_order_val) {
           if (showAnnotation == false) {
             forest = processData(json, [], showAnnotation, isolatedNodes, prefixVal);
           } else {
@@ -446,7 +470,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
               presentationData.push(forest.trees[g].node);
           var finalData = buildTree(presentationData);
           console.log("**END**");
-          if (TS_val != "" && ($('#jstree').jstree(true) != false)) {
+          if (filter_order_val != "" && ($('#jstree').jstree(true) != false)) {
               $('#jstree').jstree(true).settings.core.data = finalData;
               $('#jstree').jstree(true).refresh();
               document.getElementsByClassName('loader')[0].style.display = "none";
@@ -494,17 +518,18 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
         }
 
         function processData(data, extraAttributes, showAnnotation, isolatedNodes, prefixVal) {
-            var objectText = data[0].object,
-                subjectText = data[0].subject,
+            var isParentAnnotated, isChildAnnotated, parentColumnData, childColumnData;
+
+            // TODO: move part of or all of below into a reuseable function
+            var parentText = data[0].object,
+                childText = data[0].subject,
                 specimen_expression_annotations = extraAttributes.find(function(obj) {
                   return obj.Region == data[0].object_dbxref
                 })
 
-            var isObjectAnnotated, isSubjectAnnotated, objectColumnData, subjectColumnData;
-
             if (showAnnotation && typeof specimen_expression_annotations != 'undefined') {
                 if(annotated_term == "") {
-                  annotated_term = objectText
+                  annotated_term = parentText
                 }
                 var densityIcon = getDensityIcon(specimen_expression_annotations.density),
                     densityChangeIcon = getDensityChangeIcon(specimen_expression_annotations.densityChange, specimen_expression_annotations.densityMagnitude),
@@ -522,18 +547,20 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                     noteImgSrc = note != '' && note != null ? "<img class='contains-note' src=" + noteIcon + " title='Note: " + note + "'></img>" : "",
                     cameraIcon = specimen_expression_annotations.image ? createCameraElement(specimen_expression_annotations.image) : "" ;
 
-                isObjectAnnotated = true;
-                objectColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + objectText + " (" + data[0].object_dbxref + ") " + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + cameraIcon + "</span>"
+                isParentAnnotated = true;
+                parentColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + parentText + " (" + data[0].object_dbxref + ") " + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + cameraIcon + "</span>"
             } else {
-                isObjectAnnotated = false;
-                objectColumnData = "<span class='display-text'>" + objectText + " (" + data[0].object_dbxref + ")" + "</span>"
+                isParentAnnotated = false;
+                parentColumnData = "<span class='display-text'>" + parentText + " (" + data[0].object_dbxref + ")" + "</span>"
             }
+
+            // TODO: move part of or all of below into a reuseable function
             specimen_expression_annotations = extraAttributes.find(function(obj) {
               return obj.Region == data[0].subject_dbxref
             })
             if (showAnnotation && typeof specimen_expression_annotations != 'undefined') {
                 if(annotated_term == "") {
-                  annotated_term = subjectText
+                  annotated_term = childText
                 }
                 var densityIcon = getDensityIcon(specimen_expression_annotations.density),
                     densityChangeIcon = getDensityChangeIcon(specimen_expression_annotations.densityChange, specimen_expression_annotations.densityMagnitude),
@@ -551,33 +578,33 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                     noteImgSrc = note != '' && note != null ? "<img class='contains-note' src=" + noteIcon + " title='Note: " + note + "'></img>" : "",
                     cameraIcon = specimen_expression_annotations.image ? createCameraElement(specimen_expression_annotations.image) : "" ;
 
-                isSubjectAnnotated = true;
-                subjectColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + subjectText + " (" + data[0].subject_dbxref + ") " + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + cameraIcon + "</span>"
+                isChildAnnotated = true;
+                childColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + childText + " (" + data[0].subject_dbxref + ") " + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + cameraIcon + "</span>"
             } else {
-                isSubjectAnnotated = false;
-                subjectColumnData = "<span class='display-text'>" + subjectText + " (" + data[0].subject_dbxref + ")" + "</span>"
+                isChildAnnotated = false;
+                childColumnData = "<span class='display-text'>" + childText + " (" + data[0].subject_dbxref + ")" + "</span>"
             }
 
             var id = 0
             var parent = {
-                text: objectColumnData,
+                text: parentColumnData,
                 parent: [],
                 children: [],
                 dbxref: data[0].object_dbxref,
-                annotated: isObjectAnnotated,
-                base_text: objectText,
+                annotated: isParentAnnotated,
+                base_text: parentText,
                 a_attr: {
                     'href': '/chaise/record/#2/Vocabulary:Anatomy/ID=' + data[0].object_dbxref.replace(/:/g, '%3A'),
                     'style': 'display:inline;'
                 }
             };
             var child = {
-                text: subjectColumnData,
+                text: childColumnData,
                 parent: [],
                 children: [],
                 dbxref: data[0].subject_dbxref,
-                annotated: isSubjectAnnotated,
-                base_text: subjectText,
+                annotated: isChildAnnotated,
+                base_text: childText,
                 a_attr: {
                     'href': '/chaise/record/#2/Vocabulary:Anatomy/ID=' + data[0].subject_dbxref.replace(/:/g, '%3A'),
                     'style': 'display:inline;'
@@ -617,15 +644,16 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             }
 
             for (var i = 1; i < data.length; i++) {
-                var subjectText = data[i].subject,
-                    objectText = data[i].object,
+                var childText = data[i].subject,
+                    parentText = data[i].object,
                     specimen_expression_annotations = extraAttributes.find(function(obj) {
                       return obj.Region == data[i].object_dbxref
                     })
 
+                // TODO: move part of or all of below into a reuseable function
                 if (showAnnotation && typeof specimen_expression_annotations != 'undefined') {
                     if(annotated_term == "") {
-                      annotated_term = objectText
+                      annotated_term = parentText
                     }
                     var densityIcon = getDensityIcon(specimen_expression_annotations.density),
                         densityChangeIcon = getDensityChangeIcon(specimen_expression_annotations.densityChange, specimen_expression_annotations.densityMagnitude),
@@ -643,18 +671,20 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                         noteImgSrc = note != '' && note != null ? "<img class='contains-note' src=" + noteIcon + " title='Note: " + note + "'></img>" : "",
                         cameraIcon = specimen_expression_annotations.image ? createCameraElement(specimen_expression_annotations.image) : "" ;
 
-                    isObjectAnnotated = true;
-                    objectColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + objectText + " (" + data[i].object_dbxref + ") " + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + cameraIcon + "</span>";
+                    isParentAnnotated = true;
+                    parentColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + parentText + " (" + data[i].object_dbxref + ") " + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + cameraIcon + "</span>";
                 } else {
-                    isObjectAnnotated = false;
-                    objectColumnData = "<span class='display-text'>" + objectText + " (" + data[i].object_dbxref + ")" + "</span>";
+                    isParentAnnotated = false;
+                    parentColumnData = "<span class='display-text'>" + parentText + " (" + data[i].object_dbxref + ")" + "</span>";
                 }
+
+                // TODO: move part of or all of below into a reuseable function
                 specimen_expression_annotations = extraAttributes.find(function(obj) {
                   return obj.Region == data[i].subject_dbxref
                 })
                 if (showAnnotation && typeof specimen_expression_annotations != 'undefined') {
                     if(annotated_term == "") {
-                      annotated_term = subjectText
+                      annotated_term = childText
                     }
                     var densityIcon = getDensityIcon(specimen_expression_annotations.density),
                         densityChangeIcon = getDensityChangeIcon(specimen_expression_annotations.densityChange, specimen_expression_annotations.densityMagnitude),
@@ -672,34 +702,34 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                         noteImgSrc = note != '' && note != null ? "<img class='contains-note' src=" + noteIcon + " title='Note: " + note + "'></img>" : "",
                         cameraIcon = specimen_expression_annotations.image ? createCameraElement(specimen_expression_annotations.image) : "" ;
 
-                    isSubjectAnnotated = true;
-                    subjectColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + subjectText + " (" + data[i].subject_dbxref + ") " + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + cameraIcon + "</span>"
+                    isChildAnnotated = true;
+                    childColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + childText + " (" + data[i].subject_dbxref + ") " + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + cameraIcon + "</span>"
                 } else {
-                    isSubjectAnnotated = false;
-                    subjectColumnData = "<span class='display-text'>" + subjectText + " (" + data[i].subject_dbxref + ")"  + "</span>"
+                    isChildAnnotated = false;
+                    childColumnData = "<span class='display-text'>" + childText + " (" + data[i].subject_dbxref + ")"  + "</span>"
                 }
 
 
 
                 var parent = {
-                    text: objectColumnData,
+                    text: parentColumnData,
                     parent: [],
                     children: [],
                     dbxref: data[i].object_dbxref,
-                    annotated: isObjectAnnotated,
-                    base_text: objectText,
+                    annotated: isParentAnnotated,
+                    base_text: parentText,
                     a_attr: {
                         'href': '/chaise/record/#2/Vocabulary:Anatomy/ID=' + data[i].object_dbxref.replace(/:/g, '%3A'),
                         'style': 'display:inline;'
                     }
                 };
                 var child = {
-                    text: subjectColumnData,
+                    text: childColumnData,
                     parent: [],
                     children: [],
                     dbxref: data[i].subject_dbxref,
-                    annotated: isSubjectAnnotated,
-                    base_text: subjectText,
+                    annotated: isChildAnnotated,
+                    base_text: childText,
                     a_attr: {
                         'href': '/chaise/record/#2/Vocabulary:Anatomy/ID=' + data[i].subject_dbxref.replace(/:/g, '%3A'),
                         'style': 'display:inline;'
@@ -782,6 +812,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
 
         }
 
+        // Queue object/class constructor
         function Queue() {
             var a = [],
                 b = 0;
@@ -807,6 +838,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             }
         };
 
+        // Tree object/class constructor
         function Tree(node) {
             var s = node.a_attr;
             if (parentAppExists) {
@@ -816,6 +848,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
                 var l = "'/chaise/record/#2/Vocabulary:Anatomy/ID=" + linkId + "','_blank'";
                 s["onClick"] = "window.open(" + l + ");";
             }
+            // properties stored under "original" property on jstree_node object
             var node = {
                 text: node.text,
                 dbxref: node.dbxref,
@@ -835,6 +868,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             this.trees = [];
         }
 
+        // TODO: functions to vcreate icons need to be generalized
         function getDensityIcon(density) {
             switch (density) {
                 case 'High':
@@ -925,6 +959,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             return '<span class="image-popup"><img src="resources/images/camera-icon.png"></img><div class="image-container"><img src="' + imageUrl + '" width="500px"></img></div></span>'
         }
 
+        // functions for the tree object/class
         // returns FIRST matching node
         Tree.prototype.traverseBF = function(dbxref) {
             var queue = new Queue();
@@ -965,6 +1000,7 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
             }
         };
 
+        // TODO: what is this doing? Should it be moved to other "setup functions"?
         $(function() {
             $("#plugins4").jstree({
                 "plugins": ["search"]
@@ -982,9 +1018,12 @@ define(["jstree", "jstreegrid", "jquery-ui"], function(jstree, jstreegrid) {
         });
 
 
+        // refactor to just be a getter
+        // add another function to strip params
         function findGetParameter(parameterName) {
             var result = null,
                 tmp = [];
+            // search is denoted by '?', it is everything including the '?' and after it
             var items = window.location.search.substr(1).split("&");
             for (var index = 0; index < items.length; index++) {
                 tmp = items[index].split("=");

@@ -1,4 +1,4 @@
-// 1. clean up query (including explicitly capture species)
+// 1. clean up query (including explicitly captured species)
 // 2. change variable names (identify all required fields)
 // 3. build templating env
 
