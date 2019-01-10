@@ -39,10 +39,6 @@
                         <span>Boolean Search</span>
                     </h3>
                 </div>
-                <div class="pull-right">
-                    <button id="submit-button" class="btn btn-primary btn-inverted" type="submit" ng-disabled="form.submissionButtonDisabled"
-                        ng-click="::form.submit()" ng-attr-tooltip-placement="bottom-right" ng-attr-uib-tooltip="Submit query to search specimens">Search Specimen</button>
-                </div>
             </div>
         </div>
         <div id="appSpinner" ng-show="!form.initialized">
@@ -64,9 +60,31 @@
             </div>
             <div class="booleanSearchContainer">
                 <div class="sideMargin">
+                    <div class="input-group inlineClass">
+                        <input id="filtersInput" ng-model="form.filters" ng-required="true" placeholder="Boolean Query"></input>
+                        <button id="clear-filter-btn" class="btn btn-primary btn-inverted center-block btn-height filter-btn"
+                            ng-click="::form.removeAll($event);" type="button" tooltip-placement="auto top" uib-tooltip="Clear all filters">
+                            <span class="glyphicon glyphicon-remove"></span>
+                        </button>
+                        <button id="submit-button" class="btn btn-primary btn-inverted btn-height filter-btn" type="submit"
+                            ng-disabled="form.submissionButtonDisabled" ng-click="::form.submit()"
+                            ng-attr-tooltip-placement="auto top" ng-attr-uib-tooltip="Submit query to search specimens">Search
+                            Specimen</button>
+                    </div>
+                    <div class="btn-group">
+                        <button id="validate-filter-btn" class="btn btn-primary btn-inverted center-block btn-height" ng-click="::form.validateQuery();"
+                            type="button" tooltip-placement="auto top" uib-tooltip="Validate filters query text">
+                            Validate
+                        </button>
+                        <button id="save-filter-btn" class="btn btn-primary btn-inverted center-block btn-height"
+                            ng-click="::form.saveFilters();" type="button" tooltip-placement="auto top" uib-tooltip="Save entered query as a text file">
+                            <span class="glyphicon glyphicon-save"></span>
+                        </button>
+                    </div>
                     <div id="addButtonDiv" class="btn-group pull-right">
-                        <button id="create-filter-btn" class="btn btn-primary btn-inverted center-block" ng-click="::form.copyFilterRow();"
-                            type="button" tooltip-placement="left" uib-tooltip="Add more search filters" ng-disabled="form.booleanSearchModel.rows.length == filterRowLimit">
+                        <button id="create-filter-btn" class="btn btn-primary btn-inverted center-block btn-height"
+                            ng-click="::form.copyFilterRow();" type="button" tooltip-placement="auto top" uib-tooltip="Add more search filters"
+                            ng-disabled="form.booleanSearchModel.rows.length == filterRowLimit">
                             <span class="glyphicon glyphicon-plus"></span>
                         </button>
                     </div>
@@ -91,11 +109,12 @@
                                 <td ng-show="rowIndex == 0">
                                 </td>
                                 <td>
-                                    <select ng-model="form.booleanSearchModel.rows[rowIndex].strength" ng-options="s for s in options.strengthOptions"></select>
+                                    <select ng-model="form.booleanSearchModel.rows[rowIndex].strength" ng-options="s for s in options.strengthOptions"
+                                        ng-change="::form.changeSelection(rowIndex)"></select>
                                 </td>
                                 <td ng-form="form.formContainer.row[rowIndex].source">
-                                    <input class="red-text" ng-model="form.booleanSearchModel.rows[rowIndex].source.name" ng-disabled="true"
-                                        ng-required="true"></input>
+                                    <input class="red-text" ng-model="form.booleanSearchModel.rows[rowIndex].source.name"
+                                        ng-disabled="true" ng-required="true"></input>
                                     <div ng-messages="form.formContainer.row[rowIndex].source.$error" ng-show="form.formContainer.$submitted && form.formContainer.row[rowIndex].source.$invalid"
                                         class="text-danger" role="alert">
                                         <div ng-message="required">Please enter a value for this field.</div>
@@ -104,15 +123,18 @@
                                 <td>
                                     <span>From: </span>
                                     <select ng-model="form.booleanSearchModel.rows[rowIndex].stageFrom" ng-options="s.Name for s in options.fromStageOptions"
-                                        ng-change="form.setToStageOptions(rowIndex)"></select>
+                                        ng-change="form.setToStageOptions(rowIndex); form.changeSelection(rowIndex)"></select>
                                     <span>To: </span>
-                                    <select ng-model="form.booleanSearchModel.rows[rowIndex].stageTo" ng-options="s.Name for s in form.booleanSearchModel.rows[rowIndex].toStageOptions"></select>
+                                    <select ng-model="form.booleanSearchModel.rows[rowIndex].stageTo" ng-options="s.Name for s in form.booleanSearchModel.rows[rowIndex].toStageOptions"
+                                        ng-change="::form.changeSelection(rowIndex)"></select>
                                 </td>
                                 <td>
-                                    <select ng-model="form.booleanSearchModel.rows[rowIndex].pattern" ng-options="s for s in options.patternOptions"></select>
+                                    <select ng-model="form.booleanSearchModel.rows[rowIndex].pattern" ng-options="s for s in options.patternOptions"
+                                        ng-change="::form.changeSelection(rowIndex)"></select>
                                 </td>
                                 <td>
-                                    <select ng-model="form.booleanSearchModel.rows[rowIndex].location" ng-options="s for s in options.locationOptions"></select>
+                                    <select ng-model="form.booleanSearchModel.rows[rowIndex].location" ng-options="s for s in options.locationOptions"
+                                        ng-change="::form.changeSelection(rowIndex)"></select>
                                 </td>
                                 <td>
                                     <div>
