@@ -19,7 +19,7 @@ var treeviewConfig = {
             query_pattern: "/ermrest/catalog/2/attributegroup/M:=Vocabulary:Species/id=M:Name,M:ID,M:Name@sort(Name)",
             default_id: 'Mus musculus', // note: might not be required?
             selected_filter: {
-                required_url_parameters: [Species], // if url param is present, false or null if not
+                required_url_parameters: ["Species"], // if url param is present, false or null if not
                 selected_id: "{{{$url_parameter.Species}}}",
                 if_empty: false // if the selected_id is not in the list (e.g. null/empty array/1+), use this stage.. If this is not defined or false, just throw an error
             }
@@ -33,7 +33,7 @@ var treeviewConfig = {
             // pre-selected through url parameter: either run the query to get the same row or choose existing value
             selected_filter: {
                 // stage_data_query_pattern_with_id:
-                required_url_parameters: [Specimen_RID],
+                required_url_parameters: ["Specimen_RID"],
                 selected_query_pattern: "/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID={{{$url_parameter.Specimen_RID}}}/stage:=(Stage_ID)=(Vocabulary:Developmental_Stage:ID)/id:=stage:Name,stage:Name,stage:Ordinal,stage:Approximate_Equivalent_Age,Species_Name:=M:Species",
                 selected_id: "{{{$url_parameter.Specimen_RID}}}", // either query_pattern or selected_id for specific value
                 if_empty: "All_Stages" // if the selected_id is not in the list (e.g. null/empty array/1+), use this stage.. If this is not defined, just throw an error
@@ -47,9 +47,7 @@ var treeviewConfig = {
                         id: 'All_Stages',
                         name: 'All Stages',
                         Approximate_Equivalent_Age: ''
-                    },
-                    tree_query_pattern: "/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=left(Subject)=(Vocabulary:Anatomy:ID)/$M/F2:=left(Object)=(Vocabulary:Anatomy:ID)/F1:Species={{{$url_parameter.Species}}}/F2:Species={{{$url_parameter.Species}}}/$M/subject_dbxref:=M:Subject,object_dbxref:=M:Object,subject:=F1:Name,object:=F2:Name",
-                    isolated_nodes_query_pattern: "/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy/Species={{{$url_parameter.Species}}}/s:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Subject)/Subject::null::/$t/o:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Object)/Object::null::/$t/id=t:ID,dbxref:=t:ID,name:=t:Name"
+                    }
                 }
             ]
         }
@@ -58,14 +56,24 @@ var treeviewConfig = {
     // main tree
     tree: {
         // required in projection list: parent_id, parent_name, child_id, child_name
-        tree_query_pattern: "/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=(Subject)=(Vocabulary:Anatomy:ID)/Subject_Starts_at_Ordinal:=(Starts_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::leq::{{{$filters.1.Ordinal}}}/$F1/Subject_Ends_At_Ordinal:=(Ends_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::geq::{{{$filters.1.Ordinal}}}/$M/F2:=(Object)=(Vocabulary:Anatomy:ID)/Object_Starts_at_Ordinal:=(Starts_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::leq::{{{$filters.1.Ordinal}}}/$F2/Object_Ends_At_Ordinal:=(Ends_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::geq::{{{$filters.1.Ordinal}}}/$M/child_id:=M:Subject,parent_id:=M:Object,child_name:=F1:Name,parent_name:=F2:Name",
+        queries: [
+            {
+                filter_set: ["*", "All Stages"],
+                tree_query: "/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=left(Subject)=(Vocabulary:Anatomy:ID)/$M/F2:=left(Object)=(Vocabulary:Anatomy:ID)/F1:Species={{{Species}}}/F2:Species={{{Species}}}/$M/child_id:=M:Subject,parent_id:=M:Object,child:=F1:Name,parent:=F2:Name",
+                isolated_nodes_query: "/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy/Species={{{Species}}}/s:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Subject)/Subject::null::/$t/o:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Object)/Object::null::/$t/id=t:ID,dbxref:=t:ID,name:=t:Name"
+            },
+            {
+                filter_set: ["*", "*"],
+                tree_query: "/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=(Subject)=(Vocabulary:Anatomy:ID)/Subject_Starts_at_Ordinal:=(Starts_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::leq::{{{$filters.1.Ordinal}}}/$F1/Subject_Ends_At_Ordinal:=(Ends_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::geq::{{{$filters.1.Ordinal}}}/$M/F2:=(Object)=(Vocabulary:Anatomy:ID)/Object_Starts_at_Ordinal:=(Starts_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::leq::{{{$filters.1.Ordinal}}}/$F2/Object_Ends_At_Ordinal:=(Ends_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::geq::{{{$filters.1.Ordinal}}}/$M/child_id:=M:Subject,parent_id:=M:Object,child:=F1:Name,parent:=F2:Name",
+                isolated_nodes_query: "/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy/start:=(Starts_At)=(Vocabulary:Developmental_Stage:Name)/start:Ordinal::leq::{{{$filters.1.Ordinal}}}/$t/end:=(Ends_At)=(Vocabulary:Developmental_Stage:Name)/end:Ordinal::geq::{{{$filters.1.Ordinal}}}/$t/s:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Subject)/Subject::null::/$t/o:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Object)/Object::null::/$t/id:=t:ID,dbxref:=t:ID,name:=t:Name,t:Starts_At,t:Ends_At"
+            }
+        ],
+
         hide_id: false, // default is false
 
         // not sure how to deal with this.. maybe just get a chaise table?
         tree_click_event: "redirect", // "redirect", "boolean_search", false (no event)
         // tree_click_event_link: "/chaise/record/#2/Vocabulary:Anatomy/ID={{{$node_id}}}", // only define if "redirect" above?
-
-        isolated_nodes_query_pattern: "https://dev.gudmap.org/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy/start:=(Starts_At)=(Vocabulary:Developmental_Stage:Name)/start:Ordinal::leq::{{{$filters.1.Ordinal}}}/$t/end:=(Ends_At)=(Vocabulary:Developmental_Stage:Name)/end:Ordinal::geq::{{{$filters.1.Ordinal}}}/$t/s:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Subject)/Subject::null::/$t/o:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Object)/Object::null::/$t/id:=t:ID,dbxref:=t:ID,name:=t:Name,t:Starts_At,t:Ends_At"
 
         /* -- sql query
         select a."Name", a."Starts_At", a."Ends_At"
@@ -84,7 +92,7 @@ var treeviewConfig = {
     annotation: {
         // annotation: a list of node with extra attributes
         // required: id
-        annotation_query_pattern: "/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID={{{$url_parameter.Specimen_RID}}}/N:=left(RID)=(Gene_Expression:Specimen_Expression:Specimen)/$M/I:=left(RID)=(Gene_Expression:Image:Specimen_RID)/id:=M:Region,M:RID,Region:=N:Region,strength:=N:Strength,strengthModifier:=N:Strength_Modifier,pattern:=N:Pattern,density:=N:Density,densityChange:=N:Density_Direction,densityMagnitude:=N:Density_Magnitude,densityNote:=N:Density_Note,note:=N:Notes,image:=I:Image_URL",
+        annotation_query_pattern: "/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID={{{$url_parameter.Specimen_RID}}}/N:=left(RID)=(Gene_Expression:Specimen_Expression:Specimen)/$M/I:=left(RID)=(Gene_Expression:Image:Specimen_RID)/id:=N:Region,M:RID,Region:=N:Region,strength:=N:Strength,strengthModifier:=N:Strength_Modifier,pattern:=N:Pattern,density:=N:Density,densityChange:=N:Density_Direction,densityMagnitude:=N:Density_Magnitude,densityNote:=N:Density_Note,note:=N:Notes,image:=I:Image_URL",
         // keys should map to the columns listed in extra_attributes_columns
         // inner keys should be the value of that column with icon location as the value
         extra_attributes_icons: {
@@ -166,8 +174,6 @@ var treeviewConfig = {
         }
     }
 };
-
-​
 
 if (typeof module === 'object' && module.exports && typeof require === 'function') {
     exports.config = treeviewConfig;
