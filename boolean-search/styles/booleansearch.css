@@ -74,6 +74,7 @@
     overflow-x: scroll;
     height: 92vh;
 }
+
 .resizable-panel.close-panel{
     width:0px;
     flex-basis:0px !important;
@@ -81,6 +82,17 @@
 .resizable-panel.close-panel .treeView {
     width:0px;
 }
+
+.btn {
+    border-radius: 0px;
+}
+.center-block {
+    display:inline;
+}
+.inlineClass {
+    display: inline;
+}
+
 #appSpinner{
     background: #fff;
     width: 130px;
@@ -108,4 +120,28 @@ img.spinner {
 
 .red-text {
     color: red;
+}
+
+#filtersInput {
+    width:50%;
+    height:33px;
+    border: 1px solid #2e6da4;
+    border-right: none;
+    padding: 4px;
+    float: left;
+    clear: none;
+}
+
+.btn-height {
+    height:33px;
+}
+
+.filter-btn {
+    float: left;
+    clear: none;
+    border-left: none;
+}
+
+.btn-group {
+    margin-left: 10px;
 }
