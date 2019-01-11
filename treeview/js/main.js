@@ -142,7 +142,7 @@ var annotated_terms = [];
                  * "NCBITaxon:9598"   = "Pan troglodytes"
                  **/
                 // Change Species to be a join on Vocab:Species
-                filterUrl = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Vocabulary:Developmental_Stage/Species=NCBITaxon%3A10090/id:=M:Name,M:Ordinal,M:Name,M:Approximate_Equivalent_Age@sort(Ordinal)';
+                filterUrl = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Vocabulary:Developmental_Stage/species:=(Species)=(Vocabulary:Species:ID)/species:Name=Mus%20musculus/id:=M:Name,M:Ordinal,M:Name,M:Approximate_Equivalent_Age@sort(Ordinal)';
                 var $el = $("#number");
                 $el.empty(); // remove old options
                 $.getJSON(filterUrl, function(filterData) {
