@@ -2,22 +2,36 @@
 
 <head>
     <title>Anatomy Trees</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../../chaise/styles/vendor/bootstrap.css">
+    <!-- issue with using out own jquery-ui css is that it will be missing icons/images that have a relative path on jquery website -->
+    <!-- <link rel="stylesheet" href="resources/styles/jquery-ui.css"> -->
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <!-- <script src="https://code.jquery.com/jquery-3.2.1.js" integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE=" crossorigin="anonymous"></script> -->
-    <script src="util/jquery.js"></script>
+    <script src="../../chaise/scripts/vendor/jquery-3.3.1.min.js"></script>
     <script src="util/jquery-ui.js"></script>
     <script src="util/jstree.js"></script>
     <script src="util/jstreegrid.js"></script>
+    <script src="../../chaise/scripts/vendor/bootstrap-3.3.7.min.js"></script>
     <script src="util/q.js"></script>
     <script src="../../ermrestjs/ermrest.js"></script>
     <link rel="stylesheet" href="themes/default/images/style.css" />
     <script src="treeview-config.js"></script>
     <script src="js/main.js"></script>
-    <!-- <script data-main="js/main"></script> -->
 </head>
 
 <body>
+    <div id="schematic-modal" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h3 id="schematic-title">Some image</h3>
+                </div>
+                <div class="modal-body">
+                    <img width="500px"></img>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="row">
       <!-- @media (max-width:250px) -->
         <div id="left" class="col-md-2 col-lg-2 col-sm-2 col-2" style="@media (max-width:250px)">

@@ -1,5 +1,6 @@
 var annotated_term  = "";
 var annotated_terms = [];
+var image_hash = {};
 (function() {
     $(document).ready(function() {
         // jstree, jquery, ermrestJS, q (promise library) each expose a module that's available in the execution environment
@@ -367,21 +368,22 @@ var annotated_terms = [];
                             }, 5000)
                         });
 
-                        function showImageThumbnail(el, event) {
+                        function showImageModal(image_path, text, event) {
                             // stops propagating the click event to the onclick function defined
                             event.stopPropagation();
                             // stops triggering the event the <a href="..."> tag
                             event.preventDefault();
 
-                            el[0].style.display = "unset";
-                            setTimeout(function () {
-                                el[0].style.display = "none";
-                            }, 5000)
+                            $(".modal-body > img")[0].src = image_path;
+                            $("#schematic-title")[0].innerHTML = text;
+                            $("#schematic-modal").modal('show');
                         }
 
                         // show image preview only on click
-                        $(".image-popup").click(function(event) {
-                            showImageThumbnail($(this).find('.image-container'), event);
+                        $(".schematic-popup-icon").click(function(event) {
+                            // n_id of the parent node
+                            var node = tree.get_node($(this).closest("li")[0].id);
+                            showImageModal(node.original.image_path, node.original.base_text, event);
                         });
 
                         /* Scroll to Term */
@@ -545,7 +547,7 @@ var annotated_terms = [];
             }
 
             function processData(data, extraAttributes, showAnnotation, isolatedNodes, prefixVal) {
-                var isParentAnnotated, isChildAnnotated, parentColumnData, childColumnData;
+                var isParentAnnotated, isChildAnnotated, parentColumnData, childColumnData, parentImage, childImage;
 
                 // TODO: move part of or all of below into a reuseable function
                 var parentText = data[0].parent,
@@ -576,6 +578,7 @@ var annotated_terms = [];
                         cameraIcon = specimen_expression_annotations.image ? createCameraElement(specimen_expression_annotations.image) : "" ;
 
                     isParentAnnotated = true;
+                    parentImage = specimen_expression_annotations.image || null;
                     parentColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + parentText + " (" + data[0].parent_id + ") " + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + cameraIcon + "</span>"
                 } else {
                     isParentAnnotated = false;
@@ -607,6 +610,7 @@ var annotated_terms = [];
                         cameraIcon = specimen_expression_annotations.image ? createCameraElement(specimen_expression_annotations.image) : "" ;
 
                     isChildAnnotated = true;
+                    childImage = specimen_expression_annotations.image || null;
                     childColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + childText + " (" + data[0].child_id + ") " + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + cameraIcon + "</span>"
                 } else {
                     isChildAnnotated = false;
@@ -621,6 +625,7 @@ var annotated_terms = [];
                     dbxref: data[0].parent_id,
                     annotated: isParentAnnotated,
                     base_text: parentText,
+                    image_path: parentImage,
                     a_attr: {
                         'href': '/chaise/record/#2/Vocabulary:Anatomy/ID=' + data[0].parent_id.replace(/:/g, '%3A'),
                         'style': 'display:inline;'
@@ -633,6 +638,7 @@ var annotated_terms = [];
                     dbxref: data[0].child_id,
                     annotated: isChildAnnotated,
                     base_text: childText,
+                    image_path: childImage,
                     a_attr: {
                         'href': '/chaise/record/#2/Vocabulary:Anatomy/ID=' + data[0].child_id.replace(/:/g, '%3A'),
                         'style': 'display:inline;'
@@ -701,6 +707,7 @@ var annotated_terms = [];
                             cameraIcon = specimen_expression_annotations.image ? createCameraElement(specimen_expression_annotations.image) : "" ;
 
                         isParentAnnotated = true;
+                        parentImage = specimen_expression_annotations.image || null;
                         parentColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + parentText + " (" + data[i].parent_id + ") " + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + cameraIcon + "</span>";
                     } else {
                         isParentAnnotated = false;
@@ -732,6 +739,7 @@ var annotated_terms = [];
                             cameraIcon = specimen_expression_annotations.image ? createCameraElement(specimen_expression_annotations.image) : "" ;
 
                         isChildAnnotated = true;
+                        childImage = specimen_expression_annotations.image || null;
                         childColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + childText + " (" + data[i].child_id + ") " + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + cameraIcon + "</span>"
                     } else {
                         isChildAnnotated = false;
@@ -747,6 +755,7 @@ var annotated_terms = [];
                         dbxref: data[i].parent_id,
                         annotated: isParentAnnotated,
                         base_text: parentText,
+                        image_path: parentImage,
                         a_attr: {
                             'href': '/chaise/record/#2/Vocabulary:Anatomy/ID=' + data[i].parent_id.replace(/:/g, '%3A'),
                             'style': 'display:inline;'
@@ -759,6 +768,7 @@ var annotated_terms = [];
                         dbxref: data[i].child_id,
                         annotated: isChildAnnotated,
                         base_text: childText,
+                        image_path: childImage,
                         a_attr: {
                             'href': '/chaise/record/#2/Vocabulary:Anatomy/ID=' + data[i].child_id.replace(/:/g, '%3A'),
                             'style': 'display:inline;'
@@ -881,6 +891,7 @@ var annotated_terms = [];
                     dbxref: node.dbxref,
                     annotated: node.annotated,
                     base_text: node.base_text,
+                    image_path: node.image_path,
                     children: node.children,
                     parent: node.parent,
                     a_attr: s,
@@ -978,9 +989,10 @@ var annotated_terms = [];
             }
 
             function createCameraElement(imageUrl) {
+                // image_hash
                 // preloads the image
                 (new Image()).src = imageUrl;
-                return '<span class="image-popup"><img src="resources/images/camera-icon.png"></img><div class="image-container"><img src="' + imageUrl + '" width="500px"></img></div></span>'
+                return '<span class="schematic-popup-icon"><img src="resources/images/camera-icon.png"></img></span>'
             }
 
             // functions for the tree object/class
