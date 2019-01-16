@@ -1,6 +1,3 @@
-var annotated_term  = "";
-var annotated_terms = [];
-var image_hash = {};
 (function() {
     $(document).ready(function() {
         // jstree, jquery, ermrestJS, q (promise library) each expose a module that's available in the execution environment
@@ -13,6 +10,12 @@ var image_hash = {};
 
         ERMrest.onload().then(function () {
             var JSONData, showAnnotation, filter_prefix, isCacheEnabled, cacheData, id_parameter, filterUrl, filterValue;
+            var annotated_term  = "";
+            var annotated_terms = [];
+            // key/values from uri
+            var urlParams = {};
+            // keys defined in templating
+            var queryParamNames = [];
 
             /*** For Handlebars templating ***/
             // Example of how it works, actually super simple
@@ -23,9 +26,28 @@ var image_hash = {};
             //  - component setup using selectors
 
             // TODO: refactor into get all URL params
-            // var queryParams = stripQueryParams();
+            console.log(treeviewConfig);
+            // collect query params in urlParams object
+            window.location.search.substr(1).split("&").forEach(function(param) {
+                // part[0] is the param key
+                // part[1] is the param value
+                var parts = param.split("=");
+                urlParams[parts[0]] = parts[1];
+            });
+
+            // need to preserve order, so we have a list
+            treeviewConfig.filters.forEach(function(filter) {
+                filter.selected_filter.required_url_parameters.forEach(function(param) {
+                    queryParamNames.push(param);
+                });
+            });
+
+            var templateParams = {
+                $url_parameters: urlParams
+            }
+            // I think this should always be the last param in treeviewConfig.filters?
             if (window.location.href.indexOf("Specimen_RID=") !== -1) {
-                id_parameter = findGetParameter('Specimen_RID')
+                id_parameter = findGetParameter('Specimen_RID');
                 showAnnotation = true;
                 document.getElementById('left').style.visibility = "visible";
                 document.getElementById('look-up').style.height = "100%";
@@ -432,17 +454,14 @@ var image_hash = {};
                 });
             }
 
-            // filter_order_val is currently the ordinal associated with the stage data. It's used in tree data requests for leq/geq clauses
-            function buildPresentationData(showAnnotation, prefixVal, filter_order_val, id_parameter) {
+            // filterOrderVal is currently the ordinal associated with the stage data. It's used in tree data requests for leq/geq clauses
+            function buildPresentationData(showAnnotation, prefixVal, filterOrderVal, id_parameter) {
                 var treeDataURL, isolatedNodesURL, extraAttributesURL;
                 var json, isolatedNodes, extraAttributes,
                     presentationData = [];
-                // Returns json - Query 1 : https://dev.rebuildingakidney.org/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of/F1:=left(subject_dbxref)=(Anatomy_terms:dbxref)/$M/F2:=left(object_dbxref)=(Anatomy_terms:dbxref)/$M/subject_dbxref:=M:subject_dbxref,object_dbxref,subject:=F1:name,object:=F2:name
-                // Returns extraAttributes - Query 2 : https://dev.rebuildingakidney.org/ermrest/catalog/2/attribute/M:=Gene_Expression:Specimen_Expression/RID=Q-PQ16/$M/RID:=M:RID,Region:=M:Region,strength:=M:Strength,pattern:=M:Pattern,density:=M:Density,densityChange:=M:Density_Direction,densityNote:=M:Density_Note
-                // Returns isolated nodes - Query 3 : https://dev.rebuildingakidney.org/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy_terms/s:=left(dbxref)=(Vocabulary:Anatomy_Part_Of:subject_dbxref)/subject_dbxref::null::/$t/o:=left(dbxref)=(Vocabulary:Anatomy_Part_Of:object_dbxref)/object_dbxref::null::/$t/dbxref:=t:dbxref,name:=t:name
-                if (filter_order_val != "" && filter_order_val != "All") {
-                    treeDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=(Subject)=(Vocabulary:Anatomy:ID)/Subject_Starts_at_Ordinal:=(Starts_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::leq::' + filter_order_val + '/$F1/Subject_Ends_At_Ordinal:=(Ends_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::geq::' + filter_order_val + '/$M/F2:=(Object)=(Vocabulary:Anatomy:ID)/Object_Starts_at_Ordinal:=(Starts_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::leq::' + filter_order_val + '/$F2/Object_Ends_At_Ordinal:=(Ends_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::geq::' + filter_order_val + '/$M/child_id:=M:Subject,parent_id:=M:Object,child:=F1:Name,parent:=F2:Name'
-                    isolatedNodesURL = 'https://'+window.location.hostname+"/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy/start:=(Starts_At)=(Vocabulary:Developmental_Stage:Name)/start:Ordinal::leq::" + filter_order_val + "/$t/end:=(Ends_At)=(Vocabulary:Developmental_Stage:Name)/end:Ordinal::geq::" + filter_order_val + "/$t/s:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Subject)/Subject::null::/$t/o:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Object)/Object::null::/$t/id:=t:ID,dbxref:=t:ID,name:=t:Name,t:Starts_At,t:Ends_At";
+
+                // defined inline because of scoped variables
+                function getTreeData(treeDataURL, isolatedNodesURL) {
                     $.getJSON(treeDataURL, function(data) {
                         json = data
                     }).done(function() {
@@ -450,44 +469,36 @@ var image_hash = {};
                             isolatedNodes = data
                         }).done(function() {
                             if(id_parameter != '') {
-                                extraAttributesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+id_parameter+'/N:=left(RID)=(Gene_Expression:Specimen_Expression:Specimen)/$M/I:=left(RID)=(Gene_Expression:Image:Specimen_RID)/id:=N:Region,M:RID,Region:=N:Region,strength:=N:Strength,strengthModifier:=N:Strength_Modifier,pattern:=N:Pattern,density:=N:Density,densityChange:=N:Density_Direction,densityMagnitude:=N:Density_Magnitude,densityNote:=N:Density_Note,note:=N:Notes,image:=I:Image_URL';
+                                // use variable template replacement to fill in the URI pattern
+                                extraAttributesURL = 'https://' + window.location.hostname + ERMrest._renderHandlebarsTemplate(treeviewConfig.annotation.annotation_query_pattern, templateParams);
                                 $.getJSON(extraAttributesURL, function(data) {
                                     extraAttributes = data
                                 }).done(function() {
-                                    refreshOrBuildTree(json, extraAttributes, showAnnotation, isolatedNodes, prefixVal, filter_order_val)
+                                    refreshOrBuildTree(json, extraAttributes, showAnnotation, isolatedNodes, prefixVal, filterOrderVal)
                                 })
                             }
                             else {
-                                refreshOrBuildTree(json, [], showAnnotation, isolatedNodes, prefixVal, filter_order_val)
-                            }
-                        })
-                    });
-                } else {
-                    treeDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=left(Subject)=(Vocabulary:Anatomy:ID)/$M/F2:=left(Object)=(Vocabulary:Anatomy:ID)/F1:Species=Mus%20musculus/F2:Species=Mus%20musculus/$M/child_id:=M:Subject,parent_id:=M:Object,child:=F1:Name,parent:=F2:Name';
-                    isolatedNodesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy/Species=Mus%20musculus/s:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Subject)/Subject::null::/$t/o:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Object)/Object::null::/$t/id=t:ID,dbxref:=t:ID,name:=t:Name';
-                    $.getJSON(treeDataURL, function(data) {
-                        json = data
-                    }).done(function() {
-                        $.getJSON(isolatedNodesURL, function(data) {
-                            isolatedNodes = data
-                        }).done(function() {
-                            if(id_parameter != '') {
-                                extraAttributesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+id_parameter+'/N:=left(RID)=(Gene_Expression:Specimen_Expression:Specimen)/$M/I:=left(RID)=(Gene_Expression:Image:Specimen_RID)/id:=N:Region,M:RID,Region:=N:Region,strength:=N:Strength,strengthModifier:=N:Strength_Modifier,pattern:=N:Pattern,density:=N:Density,densityChange:=N:Density_Direction,densityMagnitude:=N:Density_Magnitude,densityNote:=N:Density_Note,note:=N:Notes,image:=I:Image_URL';
-                                $.getJSON(extraAttributesURL, function(data) {
-                                    extraAttributes = data
-                                }).done(function() {
-                                    refreshOrBuildTree(json, extraAttributes, showAnnotation, isolatedNodes, prefixVal, filter_order_val)
-                                })
-                            }
-                            else {
-                                refreshOrBuildTree(json, [], showAnnotation, isolatedNodes, prefixVal, filter_order_val)
+                                refreshOrBuildTree(json, [], showAnnotation, isolatedNodes, prefixVal, filterOrderVal)
                             }
                         })
                     });
                 }
+
+                // Returns json - Query 1 : https://dev.rebuildingakidney.org/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of/F1:=left(subject_dbxref)=(Anatomy_terms:dbxref)/$M/F2:=left(object_dbxref)=(Anatomy_terms:dbxref)/$M/subject_dbxref:=M:subject_dbxref,object_dbxref,subject:=F1:name,object:=F2:name
+                // Returns extraAttributes - Query 2 : https://dev.rebuildingakidney.org/ermrest/catalog/2/attribute/M:=Gene_Expression:Specimen_Expression/RID=Q-PQ16/$M/RID:=M:RID,Region:=M:Region,strength:=M:Strength,pattern:=M:Pattern,density:=M:Density,densityChange:=M:Density_Direction,densityNote:=M:Density_Note
+                // Returns isolated nodes - Query 3 : https://dev.rebuildingakidney.org/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy_terms/s:=left(dbxref)=(Vocabulary:Anatomy_Part_Of:subject_dbxref)/subject_dbxref::null::/$t/o:=left(dbxref)=(Vocabulary:Anatomy_Part_Of:object_dbxref)/object_dbxref::null::/$t/dbxref:=t:dbxref,name:=t:name
+                if (filterOrderVal != "" && filterOrderVal != "All") {
+                    filterOrderTreeDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=(Subject)=(Vocabulary:Anatomy:ID)/Subject_Starts_at_Ordinal:=(Starts_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::leq::' + filterOrderVal + '/$F1/Subject_Ends_At_Ordinal:=(Ends_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::geq::' + filterOrderVal + '/$M/F2:=(Object)=(Vocabulary:Anatomy:ID)/Object_Starts_at_Ordinal:=(Starts_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::leq::' + filterOrderVal + '/$F2/Object_Ends_At_Ordinal:=(Ends_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::geq::' + filterOrderVal + '$F1/F1I:=left(Schematic)=(Schematics:Schematic:RID)/$F2/F2I:=left(Schematic)=(Schematics:Schematic:RID)/$M/child_id:=M:Subject,parent_id:=M:Object,child:=F1:Name,parent:=F2:Name,child_image:=F1I:Search_Thumbnail,parent_image:=F2I:Search_Thumbnail'
+                    filterOrderIsolatedNodesURL = 'https://'+window.location.hostname+"/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy/start:=(Starts_At)=(Vocabulary:Developmental_Stage:Name)/start:Ordinal::leq::" + filterOrderVal + "/$t/end:=(Ends_At)=(Vocabulary:Developmental_Stage:Name)/end:Ordinal::geq::" + filterOrderVal + "/$t/s:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Subject)/Subject::null::/$t/o:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Object)/Object::null::/$t/I:=left(Schematic)=(Schematics:Schematic:RID)/$t/id:=t:ID,dbxref:=t:ID,name:=t:Name,t:Starts_At,t:Ends_At,image:=I:Search_Thumbnail";
+                    getTreeData(filterOrderTreeDataURL, filterOrderIsolatedNodesURL);
+                } else {
+                    noFilterOrderTreeDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=left(Subject)=(Vocabulary:Anatomy:ID)/$M/F2:=left(Object)=(Vocabulary:Anatomy:ID)/F1:Species=Mus%20musculus/F2:Species=Mus%20musculus/$M/child_id:=M:Subject,parent_id:=M:Object,child:=F1:Name,parent:=F2:Name';
+                    noFilterOrderIsolatedNodesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy/Species=Mus%20musculus/s:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Subject)/Subject::null::/$t/o:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Object)/Object::null::/$t/id=t:ID,dbxref:=t:ID,name:=t:Name';
+                    getTreeData(noFilterOrderTreeDataURL, noFilterOrderIsolatedNodesURL);
+                }
             }
 
-            function refreshOrBuildTree(json, extraAttributes, showAnnotation, isolatedNodes, prefixVal, filter_order_val) {
+            function refreshOrBuildTree(json, extraAttributes, showAnnotation, isolatedNodes, prefixVal, filterOrderVal) {
                 if (showAnnotation == false) {
                     forest = processData(json, [], showAnnotation, isolatedNodes, prefixVal);
                 } else {
@@ -499,7 +510,7 @@ var image_hash = {};
                 }
                 var finalData = buildTree(presentationData);
                 console.log("**END**");
-                if (filter_order_val != "" && ($('#jstree').jstree(true) != false)) {
+                if (filterOrderVal != "" && ($('#jstree').jstree(true) != false)) {
                     $('#jstree').jstree(true).settings.core.data = finalData;
                     $('#jstree').jstree(true).refresh();
                     document.getElementsByClassName('loader')[0].style.display = "none";
@@ -549,101 +560,57 @@ var image_hash = {};
             function processData(data, extraAttributes, showAnnotation, isolatedNodes, prefixVal) {
                 var isParentAnnotated, isChildAnnotated, parentColumnData, childColumnData, parentImage, childImage;
 
-                // TODO: move part of or all of below into a reuseable function
-                var parentText = data[0].parent,
-                    childText = data[0].child;
+                // creates the column data from the supplied id and text and attaches that data to the obj provided
+                function createColumnData(id, text) {
+                    var obj = {
+                        parent: [],
+                        children: [],
+                        dbxref: id,
+                        base_text: text,
+                        a_attr: {
+                            'href': '/chaise/record/#2/Vocabulary:Anatomy/ID=' + id.replace(/:/g, '%3A'),
+                            'style': 'display:inline;'
+                        }
+                    };
+                    var specimen_expression_annotations = extraAttributes.find(function(attrs) {
+                            return attrs.Region == id
+                        });
 
-                var specimen_expression_annotations = extraAttributes.find(function(obj) {
-                        return obj.Region == data[0].parent_id
-                    });
+                    if (showAnnotation && typeof specimen_expression_annotations != 'undefined') {
+                        if (annotated_term == "") annotated_term = text;
+                        var densityIcon = getDensityIcon(specimen_expression_annotations.density),
+                            densityChangeIcon = getDensityChangeIcon(specimen_expression_annotations.densityChange, specimen_expression_annotations.densityMagnitude),
+                            densityNoteIcon = getDensityNoteIcon(specimen_expression_annotations.densityNote),
+                            densityNote = specimen_expression_annotations.densityNote,
+                            noteIcon = getDensityNoteIcon(specimen_expression_annotations.note),
+                            note = specimen_expression_annotations.note,
+                            patternIcon = getPatternIcon(specimen_expression_annotations.pattern),
+                            strengthIcon = getStrengthIcon(specimen_expression_annotations.strength, specimen_expression_annotations.strengthModifier),
+                            densityImgSrc = densityIcon != '' ? "<img src=" + densityIcon + "></img>" : "",
+                            patternImgSrc = patternIcon != '' ? "<img src=" + patternIcon + "></img>" : "",
+                            strengthImgSrc = strengthIcon != '' ? "<img src=" + strengthIcon + "></img>" : "",
+                            densityChangeImgSrc = densityChangeIcon != '' ? "<img src=" + densityChangeIcon + "></img>" : "",
+                            densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img class='contains-note' src=" + densityNoteIcon + " title='Density Note: " + densityNote + "'></img>" : "",
+                            noteImgSrc = note != '' && note != null ? "<img class='contains-note' src=" + noteIcon + " title='Note: " + note + "'></img>" : "",
+                            cameraIcon = specimen_expression_annotations.image ? createCameraElement(specimen_expression_annotations.image) : "" ;
 
-                if (showAnnotation && typeof specimen_expression_annotations != 'undefined') {
-                    if(annotated_term == "") {
-                        annotated_term = parentText
+                        obj.annotated = true;
+                        obj.image_path = specimen_expression_annotations.image || null;
+                        obj.text = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + text + " (" + id + ") " + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + cameraIcon + "</span>"
+                    } else {
+                        obj.annotated = false;
+                        obj.text = "<span class='display-text'>" + text + " (" + id + ")" + "</span>"
                     }
-                    var densityIcon = getDensityIcon(specimen_expression_annotations.density),
-                        densityChangeIcon = getDensityChangeIcon(specimen_expression_annotations.densityChange, specimen_expression_annotations.densityMagnitude),
-                        densityNoteIcon = getDensityNoteIcon(specimen_expression_annotations.densityNote),
-                        densityNote = specimen_expression_annotations.densityNote,
-                        noteIcon = getDensityNoteIcon(specimen_expression_annotations.note),
-                        note = specimen_expression_annotations.note,
-                        patternIcon = getPatternIcon(specimen_expression_annotations.pattern),
-                        strengthIcon = getStrengthIcon(specimen_expression_annotations.strength, specimen_expression_annotations.strengthModifier),
-                        densityImgSrc = densityIcon != '' ? "<img src=" + densityIcon + "></img>" : "",
-                        patternImgSrc = patternIcon != '' ? "<img src=" + patternIcon + "></img>" : "",
-                        strengthImgSrc = strengthIcon != '' ? "<img src=" + strengthIcon + "></img>" : "",
-                        densityChangeImgSrc = densityChangeIcon != '' ? "<img src=" + densityChangeIcon + "></img>" : "",
-                        densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img class='contains-note' src=" + densityNoteIcon + " title='Density Note: " + densityNote + "'></img>" : "",
-                        noteImgSrc = note != '' && note != null ? "<img class='contains-note' src=" + noteIcon + " title='Note: " + note + "'></img>" : "",
-                        cameraIcon = specimen_expression_annotations.image ? createCameraElement(specimen_expression_annotations.image) : "" ;
 
-                    isParentAnnotated = true;
-                    parentImage = specimen_expression_annotations.image || null;
-                    parentColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + parentText + " (" + data[0].parent_id + ") " + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + cameraIcon + "</span>"
-                } else {
-                    isParentAnnotated = false;
-                    parentColumnData = "<span class='display-text'>" + parentText + " (" + data[0].parent_id + ")" + "</span>"
+                    return obj;
                 }
 
-                // TODO: move part of or all of below into a reuseable function
-                specimen_expression_annotations = extraAttributes.find(function(obj) {
-                    return obj.Region == data[0].child_id
-                })
-                if (showAnnotation && typeof specimen_expression_annotations != 'undefined') {
-                    if(annotated_term == "") {
-                        annotated_term = childText
-                    }
-                    var densityIcon = getDensityIcon(specimen_expression_annotations.density),
-                        densityChangeIcon = getDensityChangeIcon(specimen_expression_annotations.densityChange, specimen_expression_annotations.densityMagnitude),
-                        densityNoteIcon = getDensityNoteIcon(specimen_expression_annotations.densityNote),
-                        densityNote = specimen_expression_annotations.densityNote,
-                        noteIcon = getDensityNoteIcon(specimen_expression_annotations.note),
-                        note = specimen_expression_annotations.note,
-                        patternIcon = getPatternIcon(specimen_expression_annotations.pattern),
-                        strengthIcon = getStrengthIcon(specimen_expression_annotations.strength, specimen_expression_annotations.strengthModifier),
-                        densityImgSrc = densityIcon != '' ? "<img src=" + densityIcon + "></img>" : "",
-                        patternImgSrc = patternIcon != '' ? "<img src=" + patternIcon + "></img>" : "",
-                        strengthImgSrc = strengthIcon != '' ? "<img src=" + strengthIcon + "></img>" : "",
-                        densityChangeImgSrc = densityChangeIcon != '' ? "<img src=" + densityChangeIcon + "></img>" : "",
-                        densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img class='contains-note' src=" + densityNoteIcon + " title='Density Note: " + densityNote + "'></img>" : "",
-                        noteImgSrc = note != '' && note != null ? "<img class='contains-note' src=" + noteIcon + " title='Note: " + note + "'></img>" : "",
-                        cameraIcon = specimen_expression_annotations.image ? createCameraElement(specimen_expression_annotations.image) : "" ;
+                // create column data for first extra attributes parent
+                var parent = createColumnData(data[0].parent_id, data[0].parent);
 
-                    isChildAnnotated = true;
-                    childImage = specimen_expression_annotations.image || null;
-                    childColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + childText + " (" + data[0].child_id + ") " + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + cameraIcon + "</span>"
-                } else {
-                    isChildAnnotated = false;
-                    childColumnData = "<span class='display-text'>" + childText + " (" + data[0].child_id + ")" + "</span>"
-                }
+                // create column data for first extra attributes child
+                var child = createColumnData(data[0].child_id, data[0].child);
 
-                var id = 0
-                var parent = {
-                    text: parentColumnData,
-                    parent: [],
-                    children: [],
-                    dbxref: data[0].parent_id,
-                    annotated: isParentAnnotated,
-                    base_text: parentText,
-                    image_path: parentImage,
-                    a_attr: {
-                        'href': '/chaise/record/#2/Vocabulary:Anatomy/ID=' + data[0].parent_id.replace(/:/g, '%3A'),
-                        'style': 'display:inline;'
-                    }
-                };
-                var child = {
-                    text: childColumnData,
-                    parent: [],
-                    children: [],
-                    dbxref: data[0].child_id,
-                    annotated: isChildAnnotated,
-                    base_text: childText,
-                    image_path: childImage,
-                    a_attr: {
-                        'href': '/chaise/record/#2/Vocabulary:Anatomy/ID=' + data[0].child_id.replace(/:/g, '%3A'),
-                        'style': 'display:inline;'
-                    }
-                };
                 var forest = new Forest(parent);
                 if ((prefixVal != "" && parent.dbxref.startsWith("UBERON") == false) || prefixVal == "") {
                     var tree = new Tree(parent);
@@ -657,7 +624,7 @@ var image_hash = {};
                 // Get all isolated nodes as parent nodes
 
                 for (var j = 0; j < isolatedNodes.length; j++) {
-                    var parent = {
+                    var isolatedNode = {
                         text: "<span>" + isolatedNodes[j].name + "</span>",
                         parent: [],
                         children: [],
@@ -671,109 +638,19 @@ var image_hash = {};
                             "class": "jstree-leaf"
                         }
                     };
-                    if ((prefixVal != "" && parent.dbxref.startsWith("UBERON") == false) || prefixVal == "") {
-                        var tree = new Tree(parent);
+                    if ((prefixVal != "" && isolatedNode.dbxref.startsWith("UBERON") == false) || prefixVal == "") {
+                        var tree = new Tree(isolatedNode);
                         forest.trees.push(tree);
                     }
                 }
 
                 for (var i = 1; i < data.length; i++) {
-                    var childText = data[i].child,
-                        parentText = data[i].parent;
+                    // create column data for the ith extra attributes parent
+                    var parent = createColumnData(data[i].parent_id, data[i].parent);
 
-                    var specimen_expression_annotations = extraAttributes.find(function(obj) {
-                        return obj.Region == data[i].parent_id
-                    });
+                    // create column data for the ith extra attributes child
+                    var child = createColumnData(data[i].child_id, data[i].child);
 
-                    // TODO: move part of or all of below into a reuseable function
-                    if (showAnnotation && typeof specimen_expression_annotations != 'undefined') {
-                        if(annotated_term == "") {
-                            annotated_term = parentText
-                        }
-                        var densityIcon = getDensityIcon(specimen_expression_annotations.density),
-                            densityChangeIcon = getDensityChangeIcon(specimen_expression_annotations.densityChange, specimen_expression_annotations.densityMagnitude),
-                            densityNoteIcon = getDensityNoteIcon(specimen_expression_annotations.densityNote),
-                            densityNote = specimen_expression_annotations.densityNote,
-                            noteIcon = getDensityNoteIcon(specimen_expression_annotations.note),
-                            note = specimen_expression_annotations.note,
-                            patternIcon = getPatternIcon(specimen_expression_annotations.pattern),
-                            strengthIcon = getStrengthIcon(specimen_expression_annotations.strength, specimen_expression_annotations.strengthModifier),
-                            densityImgSrc = densityIcon != '' ? "<img src=" + densityIcon + "></img>" : "",
-                            patternImgSrc = patternIcon != '' ? "<img src=" + patternIcon + "></img>" : "",
-                            strengthImgSrc = strengthIcon != '' ? "<img src=" + strengthIcon + "></img>" : "",
-                            densityChangeImgSrc = densityChangeIcon != '' ? "<img src=" + densityChangeIcon + "></img>" : "",
-                            densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img class='contains-note' src=" + densityNoteIcon + " title='Density Note: " + densityNote + "'></img>" : "",
-                            noteImgSrc = note != '' && note != null ? "<img class='contains-note' src=" + noteIcon + " title='Note: " + note + "'></img>" : "",
-                            cameraIcon = specimen_expression_annotations.image ? createCameraElement(specimen_expression_annotations.image) : "" ;
-
-                        isParentAnnotated = true;
-                        parentImage = specimen_expression_annotations.image || null;
-                        parentColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + parentText + " (" + data[i].parent_id + ") " + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + cameraIcon + "</span>";
-                    } else {
-                        isParentAnnotated = false;
-                        parentColumnData = "<span class='display-text'>" + parentText + " (" + data[i].parent_id + ")" + "</span>";
-                    }
-
-                    // TODO: move part of or all of below into a reuseable function
-                    specimen_expression_annotations = extraAttributes.find(function(obj) {
-                        return obj.Region == data[i].child_id
-                    })
-                    if (showAnnotation && typeof specimen_expression_annotations != 'undefined') {
-                        if(annotated_term == "") {
-                            annotated_term = childText
-                        }
-                        var densityIcon = getDensityIcon(specimen_expression_annotations.density),
-                            densityChangeIcon = getDensityChangeIcon(specimen_expression_annotations.densityChange, specimen_expression_annotations.densityMagnitude),
-                            densityNoteIcon = getDensityNoteIcon(specimen_expression_annotations.densityNote),
-                            densityNote = specimen_expression_annotations.densityNote,
-                            noteIcon = getDensityNoteIcon(specimen_expression_annotations.note),
-                            note = specimen_expression_annotations.note,
-                            patternIcon = getPatternIcon(specimen_expression_annotations.pattern),
-                            strengthIcon = getStrengthIcon(specimen_expression_annotations.strength, specimen_expression_annotations.strengthModifier),
-                            densityImgSrc = densityIcon != '' ? "<img src=" + densityIcon + "></img>" : "",
-                            patternImgSrc = patternIcon != '' ? "<img src=" + patternIcon + "></img>" : "",
-                            strengthImgSrc = strengthIcon != '' ? "<img src=" + strengthIcon + "></img>" : "",
-                            densityChangeImgSrc = densityChangeIcon != '' ? "<img src=" + densityChangeIcon + "></img>" : "",
-                            densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img class='contains-note' src=" + densityNoteIcon + " title='Density Note: " + densityNote + "'></img>" : "",
-                            noteImgSrc = note != '' && note != null ? "<img class='contains-note' src=" + noteIcon + " title='Note: " + note + "'></img>" : "",
-                            cameraIcon = specimen_expression_annotations.image ? createCameraElement(specimen_expression_annotations.image) : "" ;
-
-                        isChildAnnotated = true;
-                        childImage = specimen_expression_annotations.image || null;
-                        childColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + childText + " (" + data[i].child_id + ") " + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + cameraIcon + "</span>"
-                    } else {
-                        isChildAnnotated = false;
-                        childColumnData = "<span class='display-text'>" + childText + " (" + data[i].child_id + ")"  + "</span>"
-                    }
-
-
-
-                    var parent = {
-                        text: parentColumnData,
-                        parent: [],
-                        children: [],
-                        dbxref: data[i].parent_id,
-                        annotated: isParentAnnotated,
-                        base_text: parentText,
-                        image_path: parentImage,
-                        a_attr: {
-                            'href': '/chaise/record/#2/Vocabulary:Anatomy/ID=' + data[i].parent_id.replace(/:/g, '%3A'),
-                            'style': 'display:inline;'
-                        }
-                    };
-                    var child = {
-                        text: childColumnData,
-                        parent: [],
-                        children: [],
-                        dbxref: data[i].child_id,
-                        annotated: isChildAnnotated,
-                        base_text: childText,
-                        image_path: childImage,
-                        a_attr: {
-                            'href': '/chaise/record/#2/Vocabulary:Anatomy/ID=' + data[i].child_id.replace(/:/g, '%3A'),
-                            'style': 'display:inline;'
-                        }
-                    };
                     if ((prefixVal != "" && parent.dbxref.startsWith("UBERON") == false) || prefixVal == "") {
                         var tree = new Tree(parent);
                         if ((prefixVal != "" && child.dbxref.startsWith("UBERON") == false) || prefixVal == "") {
@@ -791,12 +668,12 @@ var image_hash = {};
 
                         // find if a node relationship exists (multiple can but we care about one because the rest will be trimmed)
                         if (!parentNode) {
-                            parentNode = tree.contains(tree, data[i].parent_id);
+                            parentNode = tree.contains(tree, parent.dbxref);
                             if (parentNode) parentIndex = f;
                         }
                         // find if a node relationship exists (multiple can but we care about one because the rest will be trimmed)
                         if (!childNode) {
-                            childNode = tree.contains(tree, data[i].child_id);
+                            childNode = tree.contains(tree, child.dbxref);
                             if (childNode) childIndex = f;
                         }
                     }
@@ -843,7 +720,7 @@ var image_hash = {};
                             }
                         }
                     }
-                }
+                }  // end for loop over data
 
                 return (forest);
 
@@ -886,7 +763,7 @@ var image_hash = {};
                     s["onClick"] = "window.open(" + l + ");";
                 }
                 // properties stored under "original" property on jstree_node object
-                var node = {
+                var newNode = {
                     text: node.text,
                     dbxref: node.dbxref,
                     annotated: node.annotated,
@@ -897,7 +774,7 @@ var image_hash = {};
                     a_attr: s,
                     li_attr: node.li_attr
                 };
-                this.node = node;
+                this.node = newNode;
             }
             var tress = [];
 
@@ -1052,19 +929,8 @@ var image_hash = {};
                 });
             });
 
-
-            // refactor to just be a getter
-            // add another function to strip params
             function findGetParameter(parameterName) {
-                var result = null,
-                tmp = [];
-                // search is denoted by '?', it is everything including the '?' and after it
-                var items = window.location.search.substr(1).split("&");
-                for (var index = 0; index < items.length; index++) {
-                    tmp = items[index].split("=");
-                    if (tmp[0] === parameterName) result = decodeURIComponent(tmp[1]);
-                }
-                return result;
+                return urlParams[parameterName];
             }
         }); // end of ERMrest.onload
     }); // end of document ready
