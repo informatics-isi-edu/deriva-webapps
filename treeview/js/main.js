@@ -277,23 +277,7 @@ var image_hash = {};
                     // add the annotated class to all parent nodes of current node that was just opened
                     var tree = $("div#jstree").jstree();
 
-                    // applies the annotated class to ancestors of an annotated descendant that were opened
-                    annotated_terms.forEach(function (id) {
-                        // get the node
-                        var node = tree.get_node(id);
-
-                        // highlight parents
-                        // TODO: this might be redundent. Check if function triggers when each aprent is opened too but make sure it doesn't annotate other opened nodes like siblings
-                        node.parents.forEach(function (parentId) {
-                            if (parentId != '#') {
-                                var parentSelector = "#" + parentId + " > a .display-text";
-                                document.querySelectorAll(parentSelector).forEach(function (el) {
-                                    $(el).addClass("annotated");
-                                });
-                            }
-                        });
-                    });
-
+                    // defined here because nodes are destroyed when closed, so need to be reattached on each node being opened
                     function showImageModal(image_path, text, event) {
                         // stops propagating the click event to the onclick function defined
                         event.stopPropagation();
@@ -311,6 +295,45 @@ var image_hash = {};
                         var node = tree.get_node($(this).closest("li")[0].id);
                         showImageModal(node.original.image_path, node.original.base_text, event);
                     });
+
+                    if (annotated_term != "") {
+                        // applies the annotated class to ancestors of an annotated descendant that were opened
+                        annotated_terms.forEach(function (id) {
+                            // get the node
+                            var node = tree.get_node(id);
+
+                            // highlight parents
+                            // TODO: this might be redundent. Check if function triggers when each aprent is opened too but make sure it doesn't annotate other opened nodes like siblings
+                            node.parents.forEach(function (parentId) {
+                                if (parentId != '#') {
+                                    var parentSelector = "#" + parentId + " > a .display-text";
+                                    document.querySelectorAll(parentSelector).forEach(function (el) {
+                                        $(el).addClass("annotated");
+                                    });
+                                }
+                            });
+                        });
+
+                        /* TOOLTIPS */
+                        // once tree has loaded, create tooltips instead of relying on title and hover
+                        // tooltips ONLY trigger on click when they are 'disabled', if enabled hover activates them too
+                        $(".contains-note").tooltip({
+                            trigger: 'click',
+                            placement: 'bottom'
+                        });
+
+                        $(".contains-note").click(function(event) {
+                            var self = $(this);
+                            // stops propagating the click event to the onclick function defined
+                            event.stopPropagation();
+                            // stops triggering the event the <a href="..."> tag
+                            event.preventDefault();
+                            self.tooltip('show');
+                            setTimeout(function () {
+                                self.tooltip('hide');
+                            }, 5000)
+                        });
+                    }
                 })
                 .on('open_all.jstree', function() {
                     setTimeout(function() {
@@ -363,27 +386,6 @@ var image_hash = {};
                         /* highlight opened nodes */
                         // highlighting parents is callback on "open_node"
                         openNodeAndParents();
-
-                        /* TOOLTIPS */
-                        // once tree has loaded, create tooltips instead of relying on title and hover
-                        // tooltips ONLY trigger on click when they are 'disabled', if enabled hover activates them too
-                        $(".contains-note").tooltip({
-                            trigger: 'click',
-                            placement: 'bottom'
-                        });
-
-                        $(".contains-note").click(function(event) {
-                            var self = $(this);
-                            // stops propagating the click event to the onclick function defined
-                            event.stopPropagation();
-                            // stops triggering the event the <a href="..."> tag
-                            event.preventDefault();
-                            self.tooltip('enable').tooltip('open');
-                            setTimeout(function () {
-                                self.tooltip('disable');
-                                self.tooltip('enable');
-                            }, 5000)
-                        });
 
                         /* Scroll to Term */
                         // scroll content to first annotated term
