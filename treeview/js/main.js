@@ -293,6 +293,24 @@ var image_hash = {};
                             }
                         });
                     });
+
+                    function showImageModal(image_path, text, event) {
+                        // stops propagating the click event to the onclick function defined
+                        event.stopPropagation();
+                        // stops triggering the event the <a href="..."> tag
+                        event.preventDefault();
+
+                        $(".modal-body > img")[0].src = image_path;
+                        $("#schematic-title")[0].innerHTML = text;
+                        $("#schematic-modal").modal('show');
+                    }
+
+                    // show image preview only on click
+                    $(".schematic-popup-icon").click(function(event) {
+                        // n_id of the parent node
+                        var node = tree.get_node($(this).closest("li")[0].id);
+                        showImageModal(node.original.image_path, node.original.base_text, event);
+                    });
                 })
                 .on('open_all.jstree', function() {
                     setTimeout(function() {
@@ -319,10 +337,9 @@ var image_hash = {};
                     }, 100);
                 })
                 .on('loaded.jstree', function(e, data) {
+                    var tree = $("div#jstree").jstree();
+
                     if(annotated_term != "") {
-                        var tree = $("div#jstree").jstree();
-
-
                         function openNodeAndParents() {
                             annotated_terms.forEach(function (id) {
                                 // get the node
@@ -366,24 +383,6 @@ var image_hash = {};
                                 self.tooltip('disable');
                                 self.tooltip('enable');
                             }, 5000)
-                        });
-
-                        function showImageModal(image_path, text, event) {
-                            // stops propagating the click event to the onclick function defined
-                            event.stopPropagation();
-                            // stops triggering the event the <a href="..."> tag
-                            event.preventDefault();
-
-                            $(".modal-body > img")[0].src = image_path;
-                            $("#schematic-title")[0].innerHTML = text;
-                            $("#schematic-modal").modal('show');
-                        }
-
-                        // show image preview only on click
-                        $(".schematic-popup-icon").click(function(event) {
-                            // n_id of the parent node
-                            var node = tree.get_node($(this).closest("li")[0].id);
-                            showImageModal(node.original.image_path, node.original.base_text, event);
                         });
 
                         /* Scroll to Term */
