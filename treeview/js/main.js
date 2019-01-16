@@ -110,10 +110,10 @@ var image_hash = {};
                 // ERMrest._http.get(filterUrl)
                 $.getJSON(filterUrl, function(filterData) {
                     // TODO: error handling because only Mouse is supported
-                    if (filterData[0]['Species'] !== "Mus musculus") {
+                    if (!filterData[0] || filterData[0]['Species'] !== "Mus musculus") {
                         document.getElementsByClassName('loader')[0].style.display = "none";
                         document.getElementsByClassName('error')[0].style.visibility = "visible";
-                        document.getElementsByTagName("p")[0].innerHTML="Error: Only specimens of species, 'Mus musculus', are supported.<br />Specimen RID: "+id_parameter+", Species: "+filterData[0]['Species'];
+                        document.getElementsByTagName("p")[0].innerHTML="Error: Only specimens of species, 'Mus musculus', are supported.<br />Specimen RID: "+id_parameter+", Species: "+(filterData[0] ? filterData[0]['Species'] : "null");
                     } else {
                         var selected_option = filterData[0]['Name'] + ": " + filterData[0]['Approximate_Equivalent_Age']
                         // only add selected option to the list
@@ -441,8 +441,8 @@ var image_hash = {};
                 // Returns extraAttributes - Query 2 : https://dev.rebuildingakidney.org/ermrest/catalog/2/attribute/M:=Gene_Expression:Specimen_Expression/RID=Q-PQ16/$M/RID:=M:RID,Region:=M:Region,strength:=M:Strength,pattern:=M:Pattern,density:=M:Density,densityChange:=M:Density_Direction,densityNote:=M:Density_Note
                 // Returns isolated nodes - Query 3 : https://dev.rebuildingakidney.org/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy_terms/s:=left(dbxref)=(Vocabulary:Anatomy_Part_Of:subject_dbxref)/subject_dbxref::null::/$t/o:=left(dbxref)=(Vocabulary:Anatomy_Part_Of:object_dbxref)/object_dbxref::null::/$t/dbxref:=t:dbxref,name:=t:name
                 if (filter_order_val != "" && filter_order_val != "All") {
-                    treeDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=(Subject)=(Vocabulary:Anatomy:ID)/Subject_Starts_at_Ordinal:=(Starts_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::leq::' + filter_order_val + '/$F1/Subject_Ends_At_Ordinal:=(Ends_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::geq::' + filter_order_val + '/$M/F2:=(Object)=(Vocabulary:Anatomy:ID)/Object_Starts_at_Ordinal:=(Starts_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::leq::' + filter_order_val + '/$F2/Object_Ends_At_Ordinal:=(Ends_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::geq::' + filter_order_val + '/$M/child_id:=M:Subject,parent_id:=M:Object,child:=F1:Name,parent:=F2:Name'
-                    isolatedNodesURL = 'https://'+window.location.hostname+"/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy/start:=(Starts_At)=(Vocabulary:Developmental_Stage:Name)/start:Ordinal::leq::" + filter_order_val + "/$t/end:=(Ends_At)=(Vocabulary:Developmental_Stage:Name)/end:Ordinal::geq::" + filter_order_val + "/$t/s:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Subject)/Subject::null::/$t/o:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Object)/Object::null::/$t/id:=t:ID,dbxref:=t:ID,name:=t:Name,t:Starts_At,t:Ends_At";
+                    treeDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=(Subject)=(Vocabulary:Anatomy:ID)/Subject_Starts_at_Ordinal:=(Starts_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::leq::' + filter_order_val + '/$F1/Subject_Ends_At_Ordinal:=(Ends_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::geq::' + filter_order_val + '/$M/F2:=(Object)=(Vocabulary:Anatomy:ID)/Object_Starts_at_Ordinal:=(Starts_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::leq::' + filter_order_val + '/$F2/Object_Ends_At_Ordinal:=(Ends_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::geq::' + filter_order_val + '/$F1/F1I:=left(Schematic)=(Schematics:Schematic:RID)/$F2/F2I:=left(Schematic)=(Schematics:Schematic:RID)/$M/child_id:=M:Subject,parent_id:=M:Object,child:=F1:Name,parent:=F2:Name,child_image:=F1I:Search_Thumbnail,parent_image:=F2I:Search_Thumbnail'
+                    isolatedNodesURL = 'https://'+window.location.hostname+"/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy/start:=(Starts_At)=(Vocabulary:Developmental_Stage:Name)/start:Ordinal::leq::" + filter_order_val + "/$t/end:=(Ends_At)=(Vocabulary:Developmental_Stage:Name)/end:Ordinal::geq::" + filter_order_val + "/$t/s:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Subject)/Subject::null::/$t/o:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Object)/Object::null::/$t/I:=left(Schematic)=(Schematics:Schematic:RID)/$t/id:=t:ID,dbxref:=t:ID,name:=t:Name,t:Starts_At,t:Ends_At,image:=I:Search_Thumbnail";
                     $.getJSON(treeDataURL, function(data) {
                         json = data
                     }).done(function() {
@@ -450,7 +450,7 @@ var image_hash = {};
                             isolatedNodes = data
                         }).done(function() {
                             if(id_parameter != '') {
-                                extraAttributesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+id_parameter+'/N:=left(RID)=(Gene_Expression:Specimen_Expression:Specimen)/$M/I:=left(RID)=(Gene_Expression:Image:Specimen_RID)/id:=N:Region,M:RID,Region:=N:Region,strength:=N:Strength,strengthModifier:=N:Strength_Modifier,pattern:=N:Pattern,density:=N:Density,densityChange:=N:Density_Direction,densityMagnitude:=N:Density_Magnitude,densityNote:=N:Density_Note,note:=N:Notes,image:=I:Image_URL';
+                                extraAttributesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+id_parameter+'/N:=left(RID)=(Gene_Expression:Specimen_Expression:Specimen)/$M/id:=N:Region,M:RID,Region:=N:Region,strength:=N:Strength,strengthModifier:=N:Strength_Modifier,pattern:=N:Pattern,density:=N:Density,densityChange:=N:Density_Direction,densityMagnitude:=N:Density_Magnitude,densityNote:=N:Density_Note,note:=N:Notes';
                                 $.getJSON(extraAttributesURL, function(data) {
                                     extraAttributes = data
                                 }).done(function() {
@@ -463,8 +463,8 @@ var image_hash = {};
                         })
                     });
                 } else {
-                    treeDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=left(Subject)=(Vocabulary:Anatomy:ID)/$M/F2:=left(Object)=(Vocabulary:Anatomy:ID)/F1:Species=Mus%20musculus/F2:Species=Mus%20musculus/$M/child_id:=M:Subject,parent_id:=M:Object,child:=F1:Name,parent:=F2:Name';
-                    isolatedNodesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy/Species=Mus%20musculus/s:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Subject)/Subject::null::/$t/o:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Object)/Object::null::/$t/id=t:ID,dbxref:=t:ID,name:=t:Name';
+                    treeDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=left(Subject)=(Vocabulary:Anatomy:ID)/$M/F2:=left(Object)=(Vocabulary:Anatomy:ID)/F1:Species=Mus%20musculus/F2:Species=Mus%20musculus/$F1/F1I:=left(Schematic)=(Schematics:Schematic:RID)/$F2/F2I:=left(Schematic)=(Schematics:Schematic:RID)/$M/child_id:=M:Subject,parent_id:=M:Object,child:=F1:Name,parent:=F2:Name,child_image:=F1I:Search_Thumbnail,parent_image:=F2I:Search_Thumbnail';
+                    isolatedNodesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy/Species=Mus%20musculus/s:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Subject)/Subject::null::/$t/o:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Object)/Object::null::/$t/I:=left(Schematic)=(Schematics:Schematic:RID)/$t/id=t:ID,dbxref:=t:ID,name:=t:Name,image:=I:Search_Thumbnail';
                     $.getJSON(treeDataURL, function(data) {
                         json = data
                     }).done(function() {
@@ -472,7 +472,7 @@ var image_hash = {};
                             isolatedNodes = data
                         }).done(function() {
                             if(id_parameter != '') {
-                                extraAttributesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+id_parameter+'/N:=left(RID)=(Gene_Expression:Specimen_Expression:Specimen)/$M/I:=left(RID)=(Gene_Expression:Image:Specimen_RID)/id:=N:Region,M:RID,Region:=N:Region,strength:=N:Strength,strengthModifier:=N:Strength_Modifier,pattern:=N:Pattern,density:=N:Density,densityChange:=N:Density_Direction,densityMagnitude:=N:Density_Magnitude,densityNote:=N:Density_Note,note:=N:Notes,image:=I:Image_URL';
+                                extraAttributesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+id_parameter+'/N:=left(RID)=(Gene_Expression:Specimen_Expression:Specimen)/$M/id:=N:Region,M:RID,Region:=N:Region,strength:=N:Strength,strengthModifier:=N:Strength_Modifier,pattern:=N:Pattern,density:=N:Density,densityChange:=N:Density_Direction,densityMagnitude:=N:Density_Magnitude,densityNote:=N:Density_Note,note:=N:Notes';
                                 $.getJSON(extraAttributesURL, function(data) {
                                     extraAttributes = data
                                 }).done(function() {
@@ -557,6 +557,7 @@ var image_hash = {};
                         return obj.Region == data[0].parent_id
                     });
 
+                var cameraIcon = data[0].parent_image ? createCameraElement(data[0].parent_image) : "" ;
                 if (showAnnotation && typeof specimen_expression_annotations != 'undefined') {
                     if(annotated_term == "") {
                         annotated_term = parentText
@@ -574,21 +575,23 @@ var image_hash = {};
                         strengthImgSrc = strengthIcon != '' ? "<img src=" + strengthIcon + "></img>" : "",
                         densityChangeImgSrc = densityChangeIcon != '' ? "<img src=" + densityChangeIcon + "></img>" : "",
                         densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img class='contains-note' src=" + densityNoteIcon + " title='Density Note: " + densityNote + "'></img>" : "",
-                        noteImgSrc = note != '' && note != null ? "<img class='contains-note' src=" + noteIcon + " title='Note: " + note + "'></img>" : "",
-                        cameraIcon = specimen_expression_annotations.image ? createCameraElement(specimen_expression_annotations.image) : "" ;
+                        noteImgSrc = note != '' && note != null ? "<img class='contains-note' src=" + noteIcon + " title='Note: " + note + "'></img>" : "";
 
                     isParentAnnotated = true;
-                    parentImage = specimen_expression_annotations.image || null;
+                    parentImage = data[0].parent_image;
                     parentColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + parentText + " (" + data[0].parent_id + ") " + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + cameraIcon + "</span>"
                 } else {
                     isParentAnnotated = false;
-                    parentColumnData = "<span class='display-text'>" + parentText + " (" + data[0].parent_id + ")" + "</span>"
+                    parentImage = data[0].parent_image;
+                    parentColumnData = "<span><span class='display-text'>" + parentText + " (" + data[0].parent_id + ")" + "</span> " + cameraIcon + "</span>"
                 }
 
                 // TODO: move part of or all of below into a reuseable function
                 specimen_expression_annotations = extraAttributes.find(function(obj) {
                     return obj.Region == data[0].child_id
                 })
+
+                var cameraIcon = data[0].child_image ? createCameraElement(data[0].child_image) : "" ;
                 if (showAnnotation && typeof specimen_expression_annotations != 'undefined') {
                     if(annotated_term == "") {
                         annotated_term = childText
@@ -606,15 +609,15 @@ var image_hash = {};
                         strengthImgSrc = strengthIcon != '' ? "<img src=" + strengthIcon + "></img>" : "",
                         densityChangeImgSrc = densityChangeIcon != '' ? "<img src=" + densityChangeIcon + "></img>" : "",
                         densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img class='contains-note' src=" + densityNoteIcon + " title='Density Note: " + densityNote + "'></img>" : "",
-                        noteImgSrc = note != '' && note != null ? "<img class='contains-note' src=" + noteIcon + " title='Note: " + note + "'></img>" : "",
-                        cameraIcon = specimen_expression_annotations.image ? createCameraElement(specimen_expression_annotations.image) : "" ;
+                        noteImgSrc = note != '' && note != null ? "<img class='contains-note' src=" + noteIcon + " title='Note: " + note + "'></img>" : "";
 
                     isChildAnnotated = true;
-                    childImage = specimen_expression_annotations.image || null;
+                    childImage = data[0].child_image;
                     childColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + childText + " (" + data[0].child_id + ") " + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + cameraIcon + "</span>"
                 } else {
                     isChildAnnotated = false;
-                    childColumnData = "<span class='display-text'>" + childText + " (" + data[0].child_id + ")" + "</span>"
+                    childImage = data[0].child_image;
+                    childColumnData = "<span><span class='display-text'>" + childText + " (" + data[0].child_id + ")" + "</span> " + cameraIcon + "</span>"
                 }
 
                 var id = 0
@@ -657,8 +660,9 @@ var image_hash = {};
                 // Get all isolated nodes as parent nodes
 
                 for (var j = 0; j < isolatedNodes.length; j++) {
+                    var isolatedNodeImage = isolatedNodes[j].image ? createCameraElement(isolatedNodes[j].image) : "" ;
                     var parent = {
-                        text: "<span>" + isolatedNodes[j].name + "</span>",
+                        text: "<span>" + isolatedNodes[j].name + " (" + isolatedNodes[j].dbxref + ") " + isolatedNodeImage + "</span>",
                         parent: [],
                         children: [],
                         dbxref: isolatedNodes[j].dbxref,
@@ -686,6 +690,7 @@ var image_hash = {};
                     });
 
                     // TODO: move part of or all of below into a reuseable function
+                    var cameraIcon = data[i].parent_image ? createCameraElement(data[i].parent_image) : "" ;
                     if (showAnnotation && typeof specimen_expression_annotations != 'undefined') {
                         if(annotated_term == "") {
                             annotated_term = parentText
@@ -703,21 +708,22 @@ var image_hash = {};
                             strengthImgSrc = strengthIcon != '' ? "<img src=" + strengthIcon + "></img>" : "",
                             densityChangeImgSrc = densityChangeIcon != '' ? "<img src=" + densityChangeIcon + "></img>" : "",
                             densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img class='contains-note' src=" + densityNoteIcon + " title='Density Note: " + densityNote + "'></img>" : "",
-                            noteImgSrc = note != '' && note != null ? "<img class='contains-note' src=" + noteIcon + " title='Note: " + note + "'></img>" : "",
-                            cameraIcon = specimen_expression_annotations.image ? createCameraElement(specimen_expression_annotations.image) : "" ;
+                            noteImgSrc = note != '' && note != null ? "<img class='contains-note' src=" + noteIcon + " title='Note: " + note + "'></img>" : "";
 
                         isParentAnnotated = true;
-                        parentImage = specimen_expression_annotations.image || null;
+                        parentImage = data[i].parent_image;
                         parentColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + parentText + " (" + data[i].parent_id + ") " + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + cameraIcon + "</span>";
                     } else {
                         isParentAnnotated = false;
-                        parentColumnData = "<span class='display-text'>" + parentText + " (" + data[i].parent_id + ")" + "</span>";
+                        parentImage = data[i].parent_image;
+                        parentColumnData = "<span><span class='display-text'>" + parentText + " (" + data[i].parent_id + ")" + "</span> " + cameraIcon + "</span>";
                     }
 
                     // TODO: move part of or all of below into a reuseable function
                     specimen_expression_annotations = extraAttributes.find(function(obj) {
                         return obj.Region == data[i].child_id
                     })
+                    var cameraIcon = data[i].child_image ? createCameraElement(data[i].child_image) : "" ;
                     if (showAnnotation && typeof specimen_expression_annotations != 'undefined') {
                         if(annotated_term == "") {
                             annotated_term = childText
@@ -735,18 +741,16 @@ var image_hash = {};
                             strengthImgSrc = strengthIcon != '' ? "<img src=" + strengthIcon + "></img>" : "",
                             densityChangeImgSrc = densityChangeIcon != '' ? "<img src=" + densityChangeIcon + "></img>" : "",
                             densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img class='contains-note' src=" + densityNoteIcon + " title='Density Note: " + densityNote + "'></img>" : "",
-                            noteImgSrc = note != '' && note != null ? "<img class='contains-note' src=" + noteIcon + " title='Note: " + note + "'></img>" : "",
-                            cameraIcon = specimen_expression_annotations.image ? createCameraElement(specimen_expression_annotations.image) : "" ;
+                            noteImgSrc = note != '' && note != null ? "<img class='contains-note' src=" + noteIcon + " title='Note: " + note + "'></img>" : "";
 
                         isChildAnnotated = true;
-                        childImage = specimen_expression_annotations.image || null;
+                        childImage = data[i].child_image;
                         childColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + childText + " (" + data[i].child_id + ") " + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + cameraIcon + "</span>"
                     } else {
                         isChildAnnotated = false;
-                        childColumnData = "<span class='display-text'>" + childText + " (" + data[i].child_id + ")"  + "</span>"
+                        childImage = data[i].child_image;
+                        childColumnData = "<span><span class='display-text'>" + childText + " (" + data[i].child_id + ")"  + "</span> " + cameraIcon + "</span>";
                     }
-
-
 
                     var parent = {
                         text: parentColumnData,
