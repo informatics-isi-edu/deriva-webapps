@@ -98,23 +98,35 @@ var treeviewConfig = {
         extra_attributes_icons: {
             strength: {
                 hide_label_display: false, // if null or not there, show label
+                before_text: true,
                 // mapping of label name and icon
                 labels: {
                     "not detected": "resources/images/ExpressionMapping/ExpressionStrengthsKey/notDetected.gif",
                     uncertain: "resources/images/ExpressionMapping/ExpressionStrengthsKey/Uncertain.gif",
-                    present: "resources/images/ExpressionMapping/ExpressionStrengthsKey/Present(unspecifiedStrength).gif"
+                    present: {
+                        strengthModifier: {
+                            labels: {
+                                strong: "resources/images/ExpressionMapping/ExpressionStrengthsKey/Present(strong).gif",
+                                moderate: "resources/images/ExpressionMapping/ExpressionStrengthsKey/Present(moderate).gif",
+                                weak: "resources/images/ExpressionMapping/ExpressionStrengthsKey/Present(weak).gif",
+                                default: "resources/images/ExpressionMapping/ExpressionStrengthsKey/Present(unspecifiedStrength).gif"
+                            }
+                        },
+                    }
                 }
             },
-            strengthModifier: {
+            density: {
                 hide_label_display: false,
+                before_text: false,
                 labels: {
-                    strong: "resources/images/ExpressionMapping/ExpressionStrengthsKey/Present(strong).gif",
-                    moderate: "resources/images/ExpressionMapping/ExpressionStrengthsKey/Present(moderate).gif",
-                    weak: "resources/images/ExpressionMapping/ExpressionStrengthsKey/Present(weak).gif"
+                    High: "resources/images/NerveDensity/RelativeToTotal/high.png",
+                    Low: "resources/images/NerveDensity/RelativeToTotal/low.png",
+                    Medium: "resources/images/NerveDensity/RelativeToTotal/medium.png"
                 }
             },
             pattern: {
                 hide_label_display: false,
+                before_text: false,
                 labels: {
                     graded: "resources/images/ExpressionMapping/ExpressionPatternKey/Graded.png",
                     homogeneous: "resources/images/ExpressionMapping/ExpressionPatternKey/Homogeneous.png",
@@ -125,44 +137,41 @@ var treeviewConfig = {
                     ubiquitous: "resources/images/ExpressionMapping/ExpressionPatternKey/Ubiquitous.png"
                 }
             },
-            density: {
-                hide_label_display: false,
-                labels: {
-                    High: "resources/images/NerveDensity/RelativeToTotal/high.png",
-                    Low: "resources/images/NerveDensity/RelativeToTotal/low.png",
-                    Medium: "resources/images/NerveDensity/RelativeToTotal/medium.png"
-                }
-            },
             densityChange: {
                 hide_label_display: false,
+                before_text: false,
                 labels: {
                     Decreased: {
                         densityMagnitude: {
-                            Large: "resources/images/NerveDensity/RelativeToP0/dec_large.png",
-                            Small: "resources/images/NerveDensity/RelativeToP0/dec_small.png",
-                            default: "resources/images/NerveDensity/RelativeToP0/dec_small.png"  // else case (including null)
+                            labels: {
+                                Large: "resources/images/NerveDensity/RelativeToP0/dec_large.png",
+                                Small: "resources/images/NerveDensity/RelativeToP0/dec_small.png",
+                                default: "resources/images/NerveDensity/RelativeToP0/dec_small.png"  // else case (including null)
+                            }
                         }
                     },
                     Increased: {
                         densityMagnitude: {
-                            Large: "resources/images/NerveDensity/RelativeToP0/inc_large.png",
-                            Small: "resources/images/NerveDensity/RelativeToP0/inc_small.png",
-                            default: "resources/images/NerveDensity/RelativeToP0/inc_small.png"
+                            labels: {
+                                Large: "resources/images/NerveDensity/RelativeToP0/inc_large.png",
+                                Small: "resources/images/NerveDensity/RelativeToP0/inc_small.png",
+                                default: "resources/images/NerveDensity/RelativeToP0/inc_small.png"
+                            }
                         }
                     }
                 }
             },
             densityNote: {
                 hide_label_display: false,
+                before_text: false,
+                has_tooltip: true,
                 labels: "resources/images/NerveDensity/note.gif"
             },
             note: {
                 hide_label_display: false,
+                before_text: false,
+                has_tooltip: true,
                 labels: "resources/images/NerveDensity/note.gif"
-            },
-            schematic: {
-                hide_label_display : false,
-                labels: "resources/images/camera-icon.png"
             }
         }
     },

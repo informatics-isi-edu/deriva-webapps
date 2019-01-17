@@ -489,12 +489,12 @@
                 // Returns extraAttributes - Query 2 : https://dev.rebuildingakidney.org/ermrest/catalog/2/attribute/M:=Gene_Expression:Specimen_Expression/RID=Q-PQ16/$M/RID:=M:RID,Region:=M:Region,strength:=M:Strength,pattern:=M:Pattern,density:=M:Density,densityChange:=M:Density_Direction,densityNote:=M:Density_Note
                 // Returns isolated nodes - Query 3 : https://dev.rebuildingakidney.org/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy_terms/s:=left(dbxref)=(Vocabulary:Anatomy_Part_Of:subject_dbxref)/subject_dbxref::null::/$t/o:=left(dbxref)=(Vocabulary:Anatomy_Part_Of:object_dbxref)/object_dbxref::null::/$t/dbxref:=t:dbxref,name:=t:name
                 if (filterOrderVal != "" && filterOrderVal != "All") {
-                    filterOrderTreeDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=(Subject)=(Vocabulary:Anatomy:ID)/Subject_Starts_at_Ordinal:=(Starts_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::leq::' + filterOrderVal + '/$F1/Subject_Ends_At_Ordinal:=(Ends_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::geq::' + filterOrderVal + '/$M/F2:=(Object)=(Vocabulary:Anatomy:ID)/Object_Starts_at_Ordinal:=(Starts_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::leq::' + filterOrderVal + '/$F2/Object_Ends_At_Ordinal:=(Ends_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::geq::' + filterOrderVal + '$F1/F1I:=left(Schematic)=(Schematics:Schematic:RID)/$F2/F2I:=left(Schematic)=(Schematics:Schematic:RID)/$M/child_id:=M:Subject,parent_id:=M:Object,child:=F1:Name,parent:=F2:Name,child_image:=F1I:Search_Thumbnail,parent_image:=F2I:Search_Thumbnail'
+                    filterOrderTreeDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=(Subject)=(Vocabulary:Anatomy:ID)/Subject_Starts_at_Ordinal:=(Starts_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::leq::' + filterOrderVal + '/$F1/Subject_Ends_At_Ordinal:=(Ends_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::geq::' + filterOrderVal + '/$M/F2:=(Object)=(Vocabulary:Anatomy:ID)/Object_Starts_at_Ordinal:=(Starts_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::leq::' + filterOrderVal + '/$F2/Object_Ends_At_Ordinal:=(Ends_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::geq::' + filterOrderVal + '/$F1/F1I:=left(Schematic)=(Schematics:Schematic:RID)/$F2/F2I:=left(Schematic)=(Schematics:Schematic:RID)/$M/child_id:=M:Subject,parent_id:=M:Object,child:=F1:Name,parent:=F2:Name,child_image:=F1I:Search_Thumbnail,parent_image:=F2I:Search_Thumbnail'
                     filterOrderIsolatedNodesURL = 'https://'+window.location.hostname+"/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy/start:=(Starts_At)=(Vocabulary:Developmental_Stage:Name)/start:Ordinal::leq::" + filterOrderVal + "/$t/end:=(Ends_At)=(Vocabulary:Developmental_Stage:Name)/end:Ordinal::geq::" + filterOrderVal + "/$t/s:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Subject)/Subject::null::/$t/o:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Object)/Object::null::/$t/I:=left(Schematic)=(Schematics:Schematic:RID)/$t/id:=t:ID,dbxref:=t:ID,name:=t:Name,t:Starts_At,t:Ends_At,image:=I:Search_Thumbnail";
                     getTreeData(filterOrderTreeDataURL, filterOrderIsolatedNodesURL);
                 } else {
-                    noFilterOrderTreeDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=left(Subject)=(Vocabulary:Anatomy:ID)/$M/F2:=left(Object)=(Vocabulary:Anatomy:ID)/F1:Species=Mus%20musculus/F2:Species=Mus%20musculus/$M/child_id:=M:Subject,parent_id:=M:Object,child:=F1:Name,parent:=F2:Name';
-                    noFilterOrderIsolatedNodesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy/Species=Mus%20musculus/s:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Subject)/Subject::null::/$t/o:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Object)/Object::null::/$t/id=t:ID,dbxref:=t:ID,name:=t:Name';
+                    noFilterOrderTreeDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=left(Subject)=(Vocabulary:Anatomy:ID)/$M/F2:=left(Object)=(Vocabulary:Anatomy:ID)/F1:Species=Mus%20musculus/F2:Species=Mus%20musculus/$F1/F1I:=left(Schematic)=(Schematics:Schematic:RID)/$F2/F2I:=left(Schematic)=(Schematics:Schematic:RID)/$M/child_id:=M:Subject,parent_id:=M:Object,child:=F1:Name,parent:=F2:Name,child_image:=F1I:Search_Thumbnail,parent_image:=F2I:Search_Thumbnail';
+                    noFilterOrderIsolatedNodesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy/Species=Mus%20musculus/s:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Subject)/Subject::null::/$t/o:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Object)/Object::null::/$t/I:=left(Schematic)=(Schematics:Schematic:RID)/$t/id=t:ID,dbxref:=t:ID,name:=t:Name,image:=I:Search_Thumbnail';
                     getTreeData(noFilterOrderTreeDataURL, noFilterOrderIsolatedNodesURL);
                 }
             }
@@ -559,15 +559,18 @@
             }
 
             function processData(data, extraAttributes, showAnnotation, isolatedNodes, prefixVal) {
-                var isParentAnnotated, isChildAnnotated, parentColumnData, childColumnData, parentImage, childImage;
-
+                var extraAttributesConfig = treeviewConfig.annotation.extra_attributes_icons;
                 // creates the column data from the supplied id and text and attaches that data to the obj provided
-                function createColumnData(id, text) {
+                function createColumnData(id, text, image) {
+                    var beforeIcons = [],
+                        afterIcons  = [];
+
                     var obj = {
                         parent: [],
                         children: [],
                         dbxref: id,
                         base_text: text,
+                        image_path: image,
                         a_attr: {
                             'href': '/chaise/record/#2/Vocabulary:Anatomy/ID=' + id.replace(/:/g, '%3A'),
                             'style': 'display:inline;'
@@ -577,40 +580,42 @@
                             return attrs.Region == id
                         });
 
+                    var cameraIcon = image ? createCameraElement(image) : "";
                     if (showAnnotation && typeof specimen_expression_annotations != 'undefined') {
                         if (annotated_term == "") annotated_term = text;
-                        var densityIcon = getDensityIcon(specimen_expression_annotations.density),
-                            densityChangeIcon = getDensityChangeIcon(specimen_expression_annotations.densityChange, specimen_expression_annotations.densityMagnitude),
-                            densityNoteIcon = getDensityNoteIcon(specimen_expression_annotations.densityNote),
-                            densityNote = specimen_expression_annotations.densityNote,
-                            noteIcon = getDensityNoteIcon(specimen_expression_annotations.note),
-                            note = specimen_expression_annotations.note,
-                            patternIcon = getPatternIcon(specimen_expression_annotations.pattern),
-                            strengthIcon = getStrengthIcon(specimen_expression_annotations.strength, specimen_expression_annotations.strengthModifier),
-                            densityImgSrc = densityIcon != '' ? "<img src=" + densityIcon + "></img>" : "",
-                            patternImgSrc = patternIcon != '' ? "<img src=" + patternIcon + "></img>" : "",
-                            strengthImgSrc = strengthIcon != '' ? "<img src=" + strengthIcon + "></img>" : "",
-                            densityChangeImgSrc = densityChangeIcon != '' ? "<img src=" + densityChangeIcon + "></img>" : "",
-                            densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img class='contains-note' src=" + densityNoteIcon + " title='Density Note: " + densityNote + "'></img>" : "",
-                            noteImgSrc = note != '' && note != null ? "<img class='contains-note' src=" + noteIcon + " title='Note: " + note + "'></img>" : "",
-                            cameraIcon = specimen_expression_annotations.image ? createCameraElement(specimen_expression_annotations.image) : "" ;
+                        // create icons and assign them to before or after arrays
+                        Object.keys(extraAttributesConfig).forEach(function (key) {
+                            var icon = generateIcon(extraAttributesConfig[key], key, specimen_expression_annotations);
 
+                            if (icon) extraAttributesConfig[key].before_text ? beforeIcons.push(icon) : afterIcons.push(icon);
+                        });
+
+                        // generate HTML that should appear in front of ndoe text
+                        var beforeIconsHTML = "";
+                        beforeIcons.forEach(function (icon) {
+                            beforeIconsHTML += icon;
+                        });
+
+                        // generate HTML that should appear after node text
+                        var afterIconsHTML = "";
+                        afterIcons.forEach(function (icon) {
+                            afterIconsHTML += icon;
+                        });
                         obj.annotated = true;
-                        obj.image_path = specimen_expression_annotations.image || null;
-                        obj.text = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + text + " (" + id + ") " + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + cameraIcon + "</span>"
+                        obj.text = "<span>"+beforeIconsHTML+"<span class='annotated display-text'>"+text+" ("+id+") </span>"+afterIconsHTML+cameraIcon+"</span>";
                     } else {
                         obj.annotated = false;
-                        obj.text = "<span class='display-text'>" + text + " (" + id + ")" + "</span>"
+                        obj.text = "<span><span class='display-text'>"+text+" ("+id+") </span> "+cameraIcon+"</span>"
                     }
 
                     return obj;
                 }
 
                 // create column data for first extra attributes parent
-                var parent = createColumnData(data[0].parent_id, data[0].parent);
+                var parent = createColumnData(data[0].parent_id, data[0].parent, data[0].parent_image);
 
                 // create column data for first extra attributes child
-                var child = createColumnData(data[0].child_id, data[0].child);
+                var child = createColumnData(data[0].child_id, data[0].child, data[0].child_image);
 
                 var forest = new Forest(parent);
                 if ((prefixVal != "" && parent.dbxref.startsWith("UBERON") == false) || prefixVal == "") {
@@ -626,12 +631,13 @@
 
                 for (var j = 0; j < isolatedNodes.length; j++) {
                     var isolatedNodeImage = isolatedNodes[j].image ? createCameraElement(isolatedNodes[j].image) : "" ;
-                    var parent = {
+                    var isolatedNode = {
                         text: "<span>" + isolatedNodes[j].name + " (" + isolatedNodes[j].dbxref + ") " + isolatedNodeImage + "</span>",
                         parent: [],
                         children: [],
                         dbxref: isolatedNodes[j].dbxref,
                         base_text: isolatedNodes[j].name,
+                        image_path: isolatedNodes[j].image,
                         a_attr: {
                             'href': '/chaise/record/#2/Vocabulary:Anatomy/ID=' + isolatedNodes[j].dbxref.replace(/:/g, '%3A'),
                             'style': 'display:inline;'
@@ -648,10 +654,10 @@
 
                 for (var i = 1; i < data.length; i++) {
                     // create column data for the ith extra attributes parent
-                    var parent = createColumnData(data[i].parent_id, data[i].parent);
+                    var parent = createColumnData(data[i].parent_id, data[i].parent, data[i].parent_image);
 
                     // create column data for the ith extra attributes child
-                    var child = createColumnData(data[i].child_id, data[i].child);
+                    var child = createColumnData(data[i].child_id, data[i].child, data[i].child_image);
 
                     if ((prefixVal != "" && parent.dbxref.startsWith("UBERON") == false) || prefixVal == "") {
                         var tree = new Tree(parent);
@@ -785,86 +791,30 @@
                 this.trees = [];
             }
 
-            // TODO: functions to vcreate icons need to be generalized
-            function getDensityIcon(density) {
-                switch (density) {
-                    case 'High':
-                        return "resources/images/NerveDensity/RelativeToTotal/high.png";
-                    case 'Low':
-                        return "resources/images/NerveDensity/RelativeToTotal/low.png";
-                    case 'Medium':
-                        return "resources/images/NerveDensity/RelativeToTotal/medium.png";
-                    default:
-                        return "";
+            // generic function to generate annotated icons based on config
+            function generateIcon(iconConfig, key, values) {
+                var value = values[key];
+                // if the labels set is a string, return that string (should be a path to an icon)
+                if (typeof iconConfig.labels == "string") return generateIconHTML(iconConfig.labels, iconConfig.has_tooltip, key, value);
+
+                var iconPath = iconConfig.labels[value];
+                // if we get a string, return, else recurse
+                if (typeof iconPath == "string" || !iconPath) {
+
+                    return generateIconHTML(iconPath, iconConfig.has_tooltip, key, value);
                 }
+
+                var nestedKey = Object.keys(iconPath)[0];
+                return generateIcon(iconPath[nestedKey], nestedKey, values);
             }
 
-            function getDensityChangeIcon(change, magnitude) {
-                switch (change) {
-                    case 'Decreased':
-                        switch (magnitude) {
-                            case 'Large':
-                                return "resources/images/NerveDensity/RelativeToP0/dec_large.png";
-                            default:
-                                return "resources/images/NerveDensity/RelativeToP0/dec_small.png";
-                            }
-                    case 'Increased':
-                        switch (magnitude) {
-                            case 'Large':
-                                return "resources/images/NerveDensity/RelativeToP0/inc_large.png";
-                            default:
-                                return "resources/images/NerveDensity/RelativeToP0/inc_small.png";
-                        }
-                    default:
-                        return "";
-                }
-            }
-
-            function getDensityNoteIcon(densityNote) {
-                return (densityNote != null) ? "resources/images/NerveDensity/note.gif" : "";
-            }
-
-            function getPatternIcon(pattern) {
-                switch (pattern) {
-                    case 'graded':
-                        return "resources/images/ExpressionMapping/ExpressionPatternKey/Graded.png";
-                    case 'homogeneous':
-                        return "resources/images/ExpressionMapping/ExpressionPatternKey/Homogeneous.png";
-                    case 'regional':
-                        return "resources/images/ExpressionMapping/ExpressionPatternKey/Regional.png";
-                    case 'restricted':
-                        return "resources/images/ExpressionMapping/ExpressionPatternKey/Restricted.png";
-                    case 'single cell':
-                        return "resources/images/ExpressionMapping/ExpressionPatternKey/SingleCell.png";
-                    case 'spotted':
-                        return "resources/images/ExpressionMapping/ExpressionPatternKey/Spotted.png";
-                    case 'ubiquitous':
-                        return "resources/images/ExpressionMapping/ExpressionPatternKey/Ubiquitous.png";
-                    default:
-                        return "";
-                }
-            }
-
-            function getStrengthIcon(strength, strengthModifier) {
-                switch (strength) {
-                    case 'not detected':
-                        return "resources/images/ExpressionMapping/ExpressionStrengthsKey/notDetected.gif";
-                    case 'uncertain':
-                        return "resources/images/ExpressionMapping/ExpressionStrengthsKey/Uncertain.gif";
-                    case 'present':
-                        switch (strengthModifier) {
-                            case 'strong':
-                                return "resources/images/ExpressionMapping/ExpressionStrengthsKey/Present(strong).gif";
-                            case 'moderate':
-                                return "resources/images/ExpressionMapping/ExpressionStrengthsKey/Present(moderate).gif";
-                            case 'weak':
-                                return "resources/images/ExpressionMapping/ExpressionStrengthsKey/Present(weak).gif";
-                            default:
-                                return "resources/images/ExpressionMapping/ExpressionStrengthsKey/Present(unspecifiedStrength).gif";
-                        }
-                    default:
-                        return "";
-                }
+            // after an icon path has been chosen, create the html element
+            function generateIconHTML(path, hasTooltip, key, value) {
+                if (!path) return null;
+                var html = "<img src='" + path + "'";
+                // attach tooltip is available, value will be the tooltip
+                if (hasTooltip) html += " class='contains-note' title='"+key+": "+value+"'";
+                return html + "></img>";
             }
 
             function createCameraElement(imageUrl) {
