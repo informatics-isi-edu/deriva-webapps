@@ -132,10 +132,10 @@
                 // ERMrest._http.get(filterUrl)
                 $.getJSON(filterUrl, function(filterData) {
                     // TODO: error handling because only Mouse is supported
-                    if (filterData[0]['Species'] !== "Mus musculus") {
+                    if (!filterData[0] || filterData[0]['Species'] !== "Mus musculus") {
                         document.getElementsByClassName('loader')[0].style.display = "none";
                         document.getElementsByClassName('error')[0].style.visibility = "visible";
-                        document.getElementsByTagName("p")[0].innerHTML="Error: Only specimens of species, 'Mus musculus', are supported.<br />Specimen RID: "+id_parameter+", Species: "+filterData[0]['Species'];
+                        document.getElementsByTagName("p")[0].innerHTML="Error: Only specimens of species, 'Mus musculus', are supported.<br />Specimen RID: "+id_parameter+", Species: "+(filterData[0] ? filterData[0]['Species'] : "null");
                     } else {
                         var selected_option = filterData[0]['Name'] + ": " + filterData[0]['Approximate_Equivalent_Age']
                         // only add selected option to the list
@@ -299,22 +299,63 @@
                     // add the annotated class to all parent nodes of current node that was just opened
                     var tree = $("div#jstree").jstree();
 
-                    // applies the annotated class to ancestors of an annotated descendant that were opened
-                    annotated_terms.forEach(function (id) {
-                        // get the node
-                        var node = tree.get_node(id);
+                    // defined here because nodes are destroyed when closed, so need to be reattached on each node being opened
+                    function showImageModal(image_path, text, event) {
+                        // stops propagating the click event to the onclick function defined
+                        event.stopPropagation();
+                        // stops triggering the event the <a href="..."> tag
+                        event.preventDefault();
 
-                        // highlight parents
-                        // TODO: this might be redundent. Check if function triggers when each aprent is opened too but make sure it doesn't annotate other opened nodes like siblings
-                        node.parents.forEach(function (parentId) {
-                            if (parentId != '#') {
-                                var parentSelector = "#" + parentId + " > a .display-text";
-                                document.querySelectorAll(parentSelector).forEach(function (el) {
-                                    $(el).addClass("annotated");
-                                });
-                            }
-                        });
+                        $(".modal-body > img")[0].src = image_path;
+                        $("#schematic-title")[0].innerHTML = text;
+                        $("#schematic-modal").modal('show');
+                    }
+
+                    // show image preview only on click
+                    $(".schematic-popup-icon").click(function(event) {
+                        // n_id of the parent node
+                        var node = tree.get_node($(this).closest("li")[0].id);
+                        showImageModal(node.original.image_path, node.original.base_text, event);
                     });
+
+                    if (annotated_term != "") {
+                        // applies the annotated class to ancestors of an annotated descendant that were opened
+                        annotated_terms.forEach(function (id) {
+                            // get the node
+                            var node = tree.get_node(id);
+
+                            // highlight parents
+                            // TODO: this might be redundent. Check if function triggers when each aprent is opened too but make sure it doesn't annotate other opened nodes like siblings
+                            node.parents.forEach(function (parentId) {
+                                if (parentId != '#') {
+                                    var parentSelector = "#" + parentId + " > a .display-text";
+                                    document.querySelectorAll(parentSelector).forEach(function (el) {
+                                        $(el).addClass("annotated");
+                                    });
+                                }
+                            });
+                        });
+
+                        /* TOOLTIPS */
+                        // once tree has loaded, create tooltips instead of relying on title and hover
+                        // tooltips ONLY trigger on click when they are 'disabled', if enabled hover activates them too
+                        $(".contains-note").tooltip({
+                            trigger: 'click',
+                            placement: 'bottom'
+                        });
+
+                        $(".contains-note").click(function(event) {
+                            var self = $(this);
+                            // stops propagating the click event to the onclick function defined
+                            event.stopPropagation();
+                            // stops triggering the event the <a href="..."> tag
+                            event.preventDefault();
+                            self.tooltip('show');
+                            setTimeout(function () {
+                                self.tooltip('hide');
+                            }, 5000)
+                        });
+                    }
                 })
                 .on('open_all.jstree', function() {
                     setTimeout(function() {
@@ -341,10 +382,9 @@
                     }, 100);
                 })
                 .on('loaded.jstree', function(e, data) {
+                    var tree = $("div#jstree").jstree();
+
                     if(annotated_term != "") {
-                        var tree = $("div#jstree").jstree();
-
-
                         function openNodeAndParents() {
                             annotated_terms.forEach(function (id) {
                                 // get the node
@@ -368,45 +408,6 @@
                         /* highlight opened nodes */
                         // highlighting parents is callback on "open_node"
                         openNodeAndParents();
-
-                        /* TOOLTIPS */
-                        // once tree has loaded, create tooltips instead of relying on title and hover
-                        // tooltips ONLY trigger on click when they are 'disabled', if enabled hover activates them too
-                        $(".contains-note").tooltip({
-                            trigger: 'click',
-                            placement: 'bottom'
-                        });
-
-                        $(".contains-note").click(function(event) {
-                            var self = $(this);
-                            // stops propagating the click event to the onclick function defined
-                            event.stopPropagation();
-                            // stops triggering the event the <a href="..."> tag
-                            event.preventDefault();
-                            self.tooltip('enable').tooltip('open');
-                            setTimeout(function () {
-                                self.tooltip('disable');
-                                self.tooltip('enable');
-                            }, 5000)
-                        });
-
-                        function showImageModal(image_path, text, event) {
-                            // stops propagating the click event to the onclick function defined
-                            event.stopPropagation();
-                            // stops triggering the event the <a href="..."> tag
-                            event.preventDefault();
-
-                            $(".modal-body > img")[0].src = image_path;
-                            $("#schematic-title")[0].innerHTML = text;
-                            $("#schematic-modal").modal('show');
-                        }
-
-                        // show image preview only on click
-                        $(".schematic-popup-icon").click(function(event) {
-                            // n_id of the parent node
-                            var node = tree.get_node($(this).closest("li")[0].id);
-                            showImageModal(node.original.image_path, node.original.base_text, event);
-                        });
 
                         /* Scroll to Term */
                         // scroll content to first annotated term
@@ -624,8 +625,9 @@
                 // Get all isolated nodes as parent nodes
 
                 for (var j = 0; j < isolatedNodes.length; j++) {
-                    var isolatedNode = {
-                        text: "<span>" + isolatedNodes[j].name + "</span>",
+                    var isolatedNodeImage = isolatedNodes[j].image ? createCameraElement(isolatedNodes[j].image) : "" ;
+                    var parent = {
+                        text: "<span>" + isolatedNodes[j].name + " (" + isolatedNodes[j].dbxref + ") " + isolatedNodeImage + "</span>",
                         parent: [],
                         children: [],
                         dbxref: isolatedNodes[j].dbxref,

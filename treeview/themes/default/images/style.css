@@ -544,8 +544,9 @@ input {
 
 .jstree-default .jstree-search {
     font-style: italic;
-    color: blue;
-    font-weight: bold;
+    /* color: blue; */
+    /* font-weight: bold; */
+    background-color: #efefa6;
 }
 
 .jstree-default .jstree-no-checkboxes .jstree-checkbox {

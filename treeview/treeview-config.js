@@ -59,8 +59,8 @@ var treeviewConfig = {
         queries: [
             {
                 filter_set: ["*", "All Stages"],
-                tree_query: "/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=left(Subject)=(Vocabulary:Anatomy:ID)/$M/F2:=left(Object)=(Vocabulary:Anatomy:ID)/F1:Species={{{Species}}}/F2:Species={{{Species}}}/$M/child_id:=M:Subject,parent_id:=M:Object,child:=F1:Name,parent:=F2:Name",
-                isolated_nodes_query: "/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy/Species={{{Species}}}/s:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Subject)/Subject::null::/$t/o:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Object)/Object::null::/$t/id=t:ID,dbxref:=t:ID,name:=t:Name"
+                tree_query: "/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=left(Subject)=(Vocabulary:Anatomy:ID)/$M/F2:=left(Object)=(Vocabulary:Anatomy:ID)/F1:Species={{{Species}}}/F2:Species={{{Species}}}/$F1/F1I:=left(Schematic)=(Schematics:Schematic:RID)/$F2/F2I:=left(Schematic)=(Schematics:Schematic:RID)/$M/child_id:=M:Subject,parent_id:=M:Object,child:=F1:Name,parent:=F2:Name,child_image:=F1I:Search_Thumbnail,parent_image:=F2I:Search_Thumbnail",
+                isolated_nodes_query: "/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy/Species={{{Species}}}/s:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Subject)/Subject::null::/$t/o:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Object)/Object::null::/$t/I:=left(Schematic)=(Schematics:Schematic:RID)/$t/id=t:ID,dbxref:=t:ID,name:=t:Name,image:=I:Search_Thumbnail"
             },
             {
                 filter_set: ["*", "*"],
@@ -92,7 +92,7 @@ var treeviewConfig = {
     annotation: {
         // annotation: a list of node with extra attributes
         // required: id
-        annotation_query_pattern: "/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID={{{$url_parameters.Specimen_RID}}}/N:=left(RID)=(Gene_Expression:Specimen_Expression:Specimen)/$M/I:=left(RID)=(Gene_Expression:Image:Specimen_RID)/id:=N:Region,M:RID,Region:=N:Region,strength:=N:Strength,strengthModifier:=N:Strength_Modifier,pattern:=N:Pattern,density:=N:Density,densityChange:=N:Density_Direction,densityMagnitude:=N:Density_Magnitude,densityNote:=N:Density_Note,note:=N:Notes,image:=I:Image_URL",
+        annotation_query_pattern: "/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID={{{$url_parameters.Specimen_RID}}}/N:=left(RID)=(Gene_Expression:Specimen_Expression:Specimen)/$M/id:=N:Region,M:RID,Region:=N:Region,strength:=N:Strength,strengthModifier:=N:Strength_Modifier,pattern:=N:Pattern,density:=N:Density,densityChange:=N:Density_Direction,densityMagnitude:=N:Density_Magnitude,densityNote:=N:Density_Note,note:=N:Notes",
         // keys should map to the columns listed in extra_attributes_columns
         // inner keys should be the value of that column with icon location as the value
         extra_attributes_icons: {
