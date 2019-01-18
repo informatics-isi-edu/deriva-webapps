@@ -493,35 +493,11 @@
                     filterOrderIsolatedNodesURL = 'https://'+window.location.hostname+"/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy/start:=(Starts_At)=(Vocabulary:Developmental_Stage:Name)/start:Ordinal::leq::" + filterOrderVal + "/$t/end:=(Ends_At)=(Vocabulary:Developmental_Stage:Name)/end:Ordinal::geq::" + filterOrderVal + "/$t/s:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Subject)/Subject::null::/$t/o:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Object)/Object::null::/$t/I:=left(Schematic)=(Schematics:Schematic:RID)/$t/id:=t:ID,dbxref:=t:ID,name:=t:Name,t:Starts_At,t:Ends_At,image:=I:Search_Thumbnail";
                     getTreeData(filterOrderTreeDataURL, filterOrderIsolatedNodesURL);
                 } else {
-<<<<<<< HEAD
                     // TODO: need a link between Vocabulary:Anatomy and Vocabulary:Species
                     // one path Anatomy -> Developmental_Stage -> Species
                     noFilterOrderTreeDataURL = 'https://'+window.location.hostname+"/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=left(Subject)=(Vocabulary:Anatomy:ID)/F1I:=left(Schematic)=(Schematics:Schematic:RID)/$M/F2:=left(Object)=(Vocabulary:Anatomy:ID)/F2I:=left(Schematic)=(Schematics:Schematic:RID)/$M/child_id:=M:Subject,parent_id:=M:Object,child:=F1:Name,parent:=F2:Name,child_image:=F1I:Search_Thumbnail,parent_image:=F2I:Search_Thumbnail";
                     noFilterOrderIsolatedNodesURL = 'https://'+window.location.hostname+"/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy/s:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Subject)/Subject::null::/$t/o:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Object)/Object::null::/$t/I:=left(Schematic)=(Schematics:Schematic:RID)/$t/id:=t:ID,dbxref:=t:ID,name:=t:Name,image:=I:Search_Thumbnail";
                     getTreeData(noFilterOrderTreeDataURL, noFilterOrderIsolatedNodesURL);
-=======
-                    treeDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=left(Subject)=(Vocabulary:Anatomy:ID)/$M/F2:=left(Object)=(Vocabulary:Anatomy:ID)/$F1/F1I:=left(Schematic)=(Schematics:Schematic:RID)/$F2/F2I:=left(Schematic)=(Schematics:Schematic:RID)/$M/child_id:=M:Subject,parent_id:=M:Object,child:=F1:Name,parent:=F2:Name,child_image:=F1I:Search_Thumbnail,parent_image:=F2I:Search_Thumbnail';
-                    isolatedNodesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy/s:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Subject)/Subject::null::/$t/o:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Object)/Object::null::/$t/I:=left(Schematic)=(Schematics:Schematic:RID)/$t/id:=t:ID,dbxref:=t:ID,name:=t:Name,image:=I:Search_Thumbnail';
-                    $.getJSON(treeDataURL, function(data) {
-                        json = data
-                    }).done(function() {
-                        $.getJSON(isolatedNodesURL, function(data) {
-                            isolatedNodes = data
-                        }).done(function() {
-                            if(id_parameter != '') {
-                                extraAttributesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+id_parameter+'/N:=left(RID)=(Gene_Expression:Specimen_Expression:Specimen)/$M/id:=N:Region,M:RID,Region:=N:Region,strength:=N:Strength,strengthModifier:=N:Strength_Modifier,pattern:=N:Pattern,density:=N:Density,densityChange:=N:Density_Direction,densityMagnitude:=N:Density_Magnitude,densityNote:=N:Density_Note,note:=N:Notes';
-                                $.getJSON(extraAttributesURL, function(data) {
-                                    extraAttributes = data
-                                }).done(function() {
-                                    refreshOrBuildTree(json, extraAttributes, showAnnotation, isolatedNodes, prefixVal, filter_order_val)
-                                })
-                            }
-                            else {
-                                refreshOrBuildTree(json, [], showAnnotation, isolatedNodes, prefixVal, filter_order_val)
-                            }
-                        })
-                    });
->>>>>>> master
                 }
             }
 
