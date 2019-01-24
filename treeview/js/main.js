@@ -9,49 +9,64 @@
         ERMrest.configure(null, Q);
 
         ERMrest.onload().then(function () {
-            var JSONData, showAnnotation, filter_prefix, isCacheEnabled, cacheData, id_parameter, filterUrl, filterValue;
+            var showAnnotation, filter_prefix, id_parameter, filterUrl, filterValue, columnName;
             var annotated_term  = "";
-            var annotated_terms = [];
-            // key/values from uri
-            var urlParams = {};
-            // keys defined in templating
-            var queryParamNames = [];
+            var annotated_terms = [],
+                urlParams       = {}, // key/values from uri
+                urlParamNames   = [], // keys defined in url
+                queryParams     = {}, // key/values from uri and defaults in config
+                queryParamNames = [], // keys defined in templating
+                requiredParams  = []; // params that are required and are used for identification purposes
 
-            /*** For Handlebars templating ***/
-            // Example of how it works, actually super simple
-            // console.log(ERMrest._renderHandlebarsTemplate("John says {{{John}}}", {John: "hello"}));
+            var templateParams = {
+                $filters: {},
+                $url_parameters: {}
+            }
 
             // NOTE: refactor into 2 sections:
             //  - parameter extraction and data setup
             //  - component setup using selectors
 
-            // TODO: refactor into get all URL params
-            console.log(treeviewConfig);
-            // collect query params in urlParams object
+            // collect url params that appear in url in urlParams object
             window.location.search.substr(1).split("&").forEach(function(param) {
+                if (!param) return;
                 // part[0] is the param key
                 // part[1] is the param value
                 var parts = param.split("=");
                 urlParams[parts[0]] = parts[1];
+                urlParamNames.push(parts[0]);
             });
 
-            // need to preserve order, so we have a list
-            treeviewConfig.filters.forEach(function(filter) {
-                filter.selected_filter.required_url_parameters.forEach(function(param) {
-                    queryParamNames.push(param);
+            // collect query params based on configuration
+            treeviewConfig.filters.forEach(function(filter, idx) {
+                filter.selected_filter.required_url_parameters.forEach(function (param) {
+                    // if param is not in url, get it's default value
+                    queryParams[param] = urlParams[param] ?  urlParams[param] : filter.default_id;
+                    requiredParams.push(param);
                 });
+                // no values will exist yet until they are selected below
+                queryParams[filter.filter_column_name] = null;
+                queryParamNames.push(filter.filter_column_name);
             });
 
-            var templateParams = {
-                $url_parameters: urlParams
-            }
-            // I think this should always be the last param in treeviewConfig.filters?
-            if (window.location.href.indexOf("Specimen_RID=") !== -1) {
-                id_parameter = findGetParameter('Specimen_RID');
+            // console.log("url param names: ", urlParamNames);
+            // console.log("url param values: ", urlParams);
+            // console.log("required param names: ", requiredParams);
+            // console.log("query param names: ", queryParamNames);
+            // console.log("query param values: ", queryParams);
+
+            templateParams.$url_parameters = queryParams;
+
+            console.log(templateParams);
+
+            // NOTE: should this always be the last param in treeviewConfig.filters[last].selected_filter.required_url_parameters?
+            var idParamName = requiredParams[requiredParams.length-1];
+            if (urlParams[idParamName]) {
+                id_parameter = queryParams[idParamName];
                 showAnnotation = true;
                 document.getElementById('left').style.visibility = "visible";
                 document.getElementById('look-up').style.height = "100%";
-                document.getElementById('mouseAnatomyHeading').style.display = "none";
+                document.getElementById('anatomyHeading').style.display = "none";
             } else {
                 id_parameter = ''
                 showAnnotation = false;
@@ -61,22 +76,15 @@
                 $("#left").removeClass("col-md-2 col-lg-2 col-sm-2 col-2");
                 $("#right").removeClass("col-md-10 col-lg-10 col-sm-10 col-10");
                 $("#right").addClass("col-md-12 col-lg-12 col-sm-12 col-12");
-                document.getElementById('mouseAnatomyHeading').style.visibility = "visible";
+                var headingEl = document.getElementById('anatomyHeading');
+                headingEl.style.visibility = "visible";
+                $(headingEl).children("h3")[0].innerHTML = ERMrest._renderHandlebarsTemplate(treeviewConfig.title_markdown_pattern, templateParams);
+            }
 
-            }
-            var parentAppExists = false;
-            // TODO: refactor with above stripQueryParams function
-            // nodeClickCallback should be function in code here. Repalce function in config with string to match against
-            var nodeClickCallback;
-            if (window.location.href.indexOf("Parent_App=") !== -1) {
-                var appName = findGetParameter('Parent_App');
-                if (appName !== null) {
-                    if (typeof treeviewConfig.nodeClickCallback[appName] !== "undefined") {
-                        parentAppExists = true;
-                        nodeClickCallback = treeviewConfig.nodeClickCallback[appName];
-                    }
-                }
-            }
+            // determine if a parent app exists and change state of treeview to accomodate for it
+            var appName = urlParams["Parent_App"] || null;
+            parentAppExists = appName !== null;
+
             document.getElementById('loadIcon').style.visibility = "visible";
             $("#number").selectmenu({
                 appendTo: "#filterDropDown"
@@ -88,19 +96,12 @@
             var offset = 250;
             var duration = 300;
             var location = window.location.href;
+            // TODO: is this still necessary
             if (location.indexOf("prefix_filter=") !== -1) {
                 var prefix_filter_value = findGetParameter('prefix_filter')
                 filter_prefix = prefix_filter_value;
             } else {
                 filter_prefix = "";
-            }
-
-            if (location.indexOf("Specimen_RID=") !== -1) {
-                id_parameter = findGetParameter('Specimen_RID')
-                showAnnotation = true;
-            } else {
-                id_parameter = ''
-                showAnnotation = false;
             }
 
             $(".tree-panel").scroll(function() {
@@ -126,35 +127,48 @@
             });
             // if selected_filter in config and said identifier is present in url
             if(showAnnotation == true) {
-                filterUrl = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+id_parameter+'/stage:=left(Stage_ID)=(Vocabulary:Developmental_Stage:ID)/id:=stage:Name,stage:Name,stage:Ordinal,stage:Approximate_Equivalent_Age,Species:=M:Species'
-                var $el = $("#number");
-                $el.empty();
-                // ERMrest._http.get(filterUrl)
-                $.getJSON(filterUrl, function(filterData) {
-                    // TODO: error handling because only Mouse is supported
-                    if (!filterData[0] || filterData[0]['Species'] !== "Mus musculus") {
-                        document.getElementsByClassName('loader')[0].style.display = "none";
-                        document.getElementsByClassName('error')[0].style.visibility = "visible";
-                        document.getElementsByTagName("p")[0].innerHTML="Error: Only specimens of species, 'Mus musculus', are supported.<br />Specimen RID: "+id_parameter+", Species: "+(filterData[0] ? filterData[0]['Species'] : "null");
-                    } else {
-                        var selected_option = filterData[0]['Name'] + ": " + filterData[0]['Approximate_Equivalent_Age']
-                        // only add selected option to the list
-                        $el.append($("<option></option>")
-                        .attr("value", selected_option).text(selected_option));
-                        $('#number').val(selected_option);
-                        $("#number").selectmenu("refresh");
-                        $("#number").prop("disabled", true);
-                        $("#number").selectmenu("refresh");
-                        // We have a mouse, but there is no filter data for this specimen (stage data)
-                        if (filterData === undefined || filterData.length == 0) {
-                            $(".loader")[0].style.display = "none";
-                            $("#warning-message").css("display", "");
-                            $("#alert-warning-text")[0].innerHTML="Developmental Stage does not exist for Specimen RID : "+id_parameter;
+                treeviewConfig.filters.forEach(function (filter, idx) {
+                    // need to account for filter data
+                    var queryPattern = filter.selected_filter.selected_query_pattern || filter.query_pattern
+                    filterUrl = 'https://' + window.location.hostname + ERMrest._renderHandlebarsTemplate(queryPattern, templateParams);
+                    var $el = $("#number");
+                    $el.empty();
+                    // ERMrest._http.get(filterUrl)
+                    $.getJSON(filterUrl, function(filterData) {
+                        // TODO: remove if statement when we want to support multiple filters
+                        if (idx == treeviewConfig.filters.length-1) {
+                            // TODO: error handling because only Mouse is supported
+                            if (!filterData[0] || filterData[0]['Species'] !== "Mus musculus") {
+                                document.getElementsByClassName('loader')[0].style.display = "none";
+                                document.getElementsByClassName('error')[0].style.visibility = "visible";
+                                document.getElementsByTagName("p")[0].innerHTML="Error: Only specimens of species, 'Mus musculus', are supported.<br />Specimen RID: "+id_parameter+", Species: "+(filterData[0] ? filterData[0]['Species'] : "null");
+                            } else {
+                                var selected_option = ERMrest._renderHandlebarsTemplate(filter.display_text, filterData[0]);
+                                // only add selected option to the list
+                                $el.append($("<option></option>")
+                                .attr("value", selected_option).text(selected_option));
+                                $('#number').val(selected_option);
+                                $("#number").selectmenu("refresh");
+                                $("#number").prop("disabled", true);
+                                $("#number").selectmenu("refresh");
+                                // We have a mouse, but there is no filter data for this specimen (stage data)
+                                if (filterData === undefined || filterData.length == 0) {
+                                    $(".loader")[0].style.display = "none";
+                                    $("#warning-message").css("display", "");
+                                    $("#alert-warning-text")[0].innerHTML="Developmental Stage does not exist for Specimen RID : "+id_parameter;
+                                }
+
+                                // filter_column_name should be the column name you want for filtering data
+                                columnName = filter.filter_column_name;
+                                filterValue = filterData[0][columnName];
+
+                                templateParams.$filters[columnName] = filterValue;
+                                queryParams[columnName] = filterValue;
+                                buildPresentationData(showAnnotation, filter_prefix, filterValue, id_parameter)
+                            }
                         }
-                        filterValue = filterData[0]['Ordinal'];
-                        buildPresentationData(showAnnotation, filter_prefix, filterValue, id_parameter)
-                    }
-                });
+                    }); // end getJSON
+                }); // end forEach
             } else {
                 /**
                  * Vocabulary:Developmental_Stage:Species is a foreign key to Vocabulary:Species:ID which have the following values
@@ -165,36 +179,61 @@
                  * "NCBITaxon:9598"   = "Pan troglodytes"
                  **/
                 // Change Species to be a join on Vocab:Species
-                filterUrl = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Vocabulary:Developmental_Stage/species:=(Species)=(Vocabulary:Species:ID)/species:Name=Mus%20musculus/id:=M:Name,M:Ordinal,M:Name,M:Approximate_Equivalent_Age@sort(Ordinal)';
-                var $el = $("#number");
-                $el.empty(); // remove old options
-                $.getJSON(filterUrl, function(filterData) {
-                    // add all options from filter data to list
-                    $.each(filterData, function(index, data) {
-                        $el.append($("<option></option>")
-                        .attr("value", data['Ordinal']).text(data['Name'] + ": " + data['Approximate_Equivalent_Age']));
-                    });
-                    $el.append($("<option></option>")
-                    .attr("value", "All").text("All TS"));
-                    $('#number').val('28');
-                    $("#number").selectmenu("refresh");
-                    // TODO: register event for dropdown menu. could go somewhere else?
-                    $("#number").on('selectmenuchange', function() {
-                        document.getElementsByClassName('loader')[0].style.display = "block";
-                        document.getElementById('jstree').style.visibility = "hidden";
-                        $("#number").prop("disabled", true);
-                        $('#plugins4_q').prop("disabled", true);
-                        $("#search_btn").prop("disabled", true);
-                        $("#expand_all_btn").prop("disabled", true);
-                        $("#collapse_all_btn").prop("disabled", true);
-                        $("#reset_text").prop("disabled", true);
+                // filterUrl = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Vocabulary:Developmental_Stage/species:=(Species)=(Vocabulary:Species:ID)/species:Name=Mus%20musculus/id:=M:Name,M:Ordinal,M:Name,M:Approximate_Equivalent_Age@sort(Ordinal)';
 
-                        filterValue = $("#number").val()
-                        buildPresentationData(showAnnotation, filter_prefix, filterValue, id_parameter)
-                    })
-                    filterValue = $("#number").val()
-                    buildPresentationData(showAnnotation, filter_prefix, filterValue, id_parameter)
-                })
+                function getValAndBuildData() {
+                    filterValue = $("#number").val();
+                    columnName = filter.filter_column_name;
+
+                    templateParams.$filters[columnName] = filterValue;
+                    // filter_column_name should be the column name you want for filtering data
+                    queryParams[columnName] = filterValue;
+                    buildPresentationData(showAnnotation, filter_prefix, filterValue, id_parameter);
+                }
+
+                // TODO: this shouldn't be hardcoded to filters[1]
+                treeviewConfig.filters.forEach(function (filter, idx) {
+                    filterUrl = 'https://' + window.location.hostname + ERMrest._renderHandlebarsTemplate(filter.query_pattern, templateParams);
+                    var $el = $("#number");
+                    $el.empty(); // remove old options
+                    $.getJSON(filterUrl, function(filterData) {
+                        // TODO: remove if statement when we want to support multiple filters
+                        if (idx == treeviewConfig.filters.length-1) {
+                            // add all options from filter data to list
+                            filterData.forEach(function(data, index) {
+                                $el.append($("<option></option>")
+                                .attr("value", data['Ordinal'])
+                                .text(ERMrest._renderHandlebarsTemplate(filter.display_text, data)));
+                            });
+                            // append extra filter options
+                            if (filter.extra_filter_options) {
+                                filter.extra_filter_options.forEach(function (option) {
+                                    $el.append($("<option></option>")
+                                    .attr("value", option.values.id)
+                                    .text(ERMrest._renderHandlebarsTemplate(filter.display_text, option.values)));
+                                });
+                            }
+                            // select default
+                            $('#number').val(filter.default_id);
+                            $("#number").selectmenu("refresh");
+                            // TODO: register event for dropdown menu. could go somewhere else?
+                            $("#number").on('selectmenuchange', function() {
+                                document.getElementsByClassName('loader')[0].style.display = "block";
+                                document.getElementById('jstree').style.visibility = "hidden";
+                                $("#number").prop("disabled", true);
+                                $('#plugins4_q').prop("disabled", true);
+                                $("#search_btn").prop("disabled", true);
+                                $("#expand_all_btn").prop("disabled", true);
+                                $("#collapse_all_btn").prop("disabled", true);
+                                $("#reset_text").prop("disabled", true);
+
+                                getValAndBuildData();
+                            });
+
+                            getValAndBuildData();
+                        }
+                    });
+                });
             }
             $("#reset_text").click(function() {
                 document.getElementById('plugins4_q').value = "";
@@ -457,7 +496,7 @@
 
             // filterOrderVal is currently the ordinal associated with the stage data. It's used in tree data requests for leq/geq clauses
             function buildPresentationData(showAnnotation, prefixVal, filterOrderVal, id_parameter) {
-                var treeDataURL, isolatedNodesURL, extraAttributesURL;
+                var treeURL, isolatedURL, extraAttributesURL;
                 var json, isolatedNodes, extraAttributes,
                     presentationData = [];
 
@@ -485,19 +524,32 @@
                     });
                 }
 
+                // used to compare the current selected filter values to the filter sets defined in the config to determine which queries to use (also defined in the config with each filter set)
+                function compareFilters(filterSet) {
+                    var matchedFilters = 0;
+                    filterSet.forEach(function (filter, index) {
+                        var paramName = queryParamNames[index];
+                        var paramValue = queryParams[paramName];
+                        if (filter == paramValue || filter == "*") matchedFilters++;
+                    });
+
+                    return matchedFilters == filterSet.length;
+                }
+
                 // Returns json - Query 1 : https://dev.rebuildingakidney.org/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of/F1:=left(subject_dbxref)=(Anatomy_terms:dbxref)/$M/F2:=left(object_dbxref)=(Anatomy_terms:dbxref)/$M/subject_dbxref:=M:subject_dbxref,object_dbxref,subject:=F1:name,object:=F2:name
                 // Returns extraAttributes - Query 2 : https://dev.rebuildingakidney.org/ermrest/catalog/2/attribute/M:=Gene_Expression:Specimen_Expression/RID=Q-PQ16/$M/RID:=M:RID,Region:=M:Region,strength:=M:Strength,pattern:=M:Pattern,density:=M:Density,densityChange:=M:Density_Direction,densityNote:=M:Density_Note
                 // Returns isolated nodes - Query 3 : https://dev.rebuildingakidney.org/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy_terms/s:=left(dbxref)=(Vocabulary:Anatomy_Part_Of:subject_dbxref)/subject_dbxref::null::/$t/o:=left(dbxref)=(Vocabulary:Anatomy_Part_Of:object_dbxref)/object_dbxref::null::/$t/dbxref:=t:dbxref,name:=t:name
-                if (filterOrderVal != "" && filterOrderVal != "All") {
-                    filterOrderTreeDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=(Subject)=(Vocabulary:Anatomy:ID)/Subject_Starts_at_Ordinal:=(Starts_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::leq::' + filterOrderVal + '/$F1/Subject_Ends_At_Ordinal:=(Ends_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::geq::' + filterOrderVal + '/$M/F2:=(Object)=(Vocabulary:Anatomy:ID)/Object_Starts_at_Ordinal:=(Starts_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::leq::' + filterOrderVal + '/$F2/Object_Ends_At_Ordinal:=(Ends_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::geq::' + filterOrderVal + '/$F1/F1I:=left(Schematic)=(Schematics:Schematic:RID)/$F2/F2I:=left(Schematic)=(Schematics:Schematic:RID)/$M/child_id:=M:Subject,parent_id:=M:Object,child:=F1:Name,parent:=F2:Name,child_image:=F1I:Search_Thumbnail,parent_image:=F2I:Search_Thumbnail'
-                    filterOrderIsolatedNodesURL = 'https://'+window.location.hostname+"/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy/start:=(Starts_At)=(Vocabulary:Developmental_Stage:Name)/start:Ordinal::leq::" + filterOrderVal + "/$t/end:=(Ends_At)=(Vocabulary:Developmental_Stage:Name)/end:Ordinal::geq::" + filterOrderVal + "/$t/s:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Subject)/Subject::null::/$t/o:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Object)/Object::null::/$t/I:=left(Schematic)=(Schematics:Schematic:RID)/$t/id:=t:ID,dbxref:=t:ID,name:=t:Name,t:Starts_At,t:Ends_At,image:=I:Search_Thumbnail";
-                    getTreeData(filterOrderTreeDataURL, filterOrderIsolatedNodesURL);
-                } else {
-                    // TODO: need a link between Vocabulary:Anatomy and Vocabulary:Species
-                    // one path Anatomy -> Developmental_Stage -> Species
-                    noFilterOrderTreeDataURL = 'https://'+window.location.hostname+"/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=left(Subject)=(Vocabulary:Anatomy:ID)/F1I:=left(Schematic)=(Schematics:Schematic:RID)/$M/F2:=left(Object)=(Vocabulary:Anatomy:ID)/F2I:=left(Schematic)=(Schematics:Schematic:RID)/$M/child_id:=M:Subject,parent_id:=M:Object,child:=F1:Name,parent:=F2:Name,child_image:=F1I:Search_Thumbnail,parent_image:=F2I:Search_Thumbnail";
-                    noFilterOrderIsolatedNodesURL = 'https://'+window.location.hostname+"/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy/s:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Subject)/Subject::null::/$t/o:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Object)/Object::null::/$t/I:=left(Schematic)=(Schematics:Schematic:RID)/$t/id:=t:ID,dbxref:=t:ID,name:=t:Name,image:=I:Search_Thumbnail";
-                    getTreeData(noFilterOrderTreeDataURL, noFilterOrderIsolatedNodesURL);
+
+                // iterate over filter sets to figure out which filter set to use
+                // last filter set should be generic (aka ["*", "*"])
+                for (var j=0; j<treeviewConfig.tree.queries.length; j++){
+                    var queryConfig = treeviewConfig.tree.queries[j];
+                    if (compareFilters(queryConfig.filter_set)) {
+                        treeURL = ERMrest._renderHandlebarsTemplate(queryConfig.tree_query, templateParams);
+                        isolatedURL = ERMrest._renderHandlebarsTemplate(queryConfig.isolated_nodes_query, templateParams);
+                        getTreeData(treeURL, isolatedURL);
+                        break; // can't break out of forEach loop, hence use of for loop instead
+                    }
                 }
             }
 
@@ -567,6 +619,7 @@
                     var beforeIcons = [],
                         afterIcons  = [];
 
+                    templateParams.$node_id = ERMrest._fixedEncodeURIComponent(id);
                     var obj = {
                         parent: [],
                         children: [],
@@ -574,7 +627,7 @@
                         base_text: text,
                         image_path: image,
                         a_attr: {
-                            'href': '/chaise/record/#2/Vocabulary:Anatomy/ID=' + id.replace(/:/g, '%3A'),
+                            'href': ERMrest._renderHandlebarsTemplate(treeviewConfig.tree.click_event_callback, templateParams),
                             'style': 'display:inline;'
                         }
                     };
@@ -633,6 +686,7 @@
 
                 for (var j = 0; j < isolatedNodes.length; j++) {
                     var isolatedNodeImage = isolatedNodes[j].image ? createCameraElement(isolatedNodes[j].image) : "" ;
+                    templateParams.$node_id = ERMrest._fixedEncodeURIComponent(isolatedNodes[j].dbxref);
                     var isolatedNode = {
                         text: "<span>" + isolatedNodes[j].name + " (" + isolatedNodes[j].dbxref + ") " + isolatedNodeImage + "</span>",
                         parent: [],
@@ -641,7 +695,7 @@
                         base_text: isolatedNodes[j].name,
                         image_path: isolatedNodes[j].image,
                         a_attr: {
-                            'href': '/chaise/record/#2/Vocabulary:Anatomy/ID=' + isolatedNodes[j].dbxref.replace(/:/g, '%3A'),
+                            'href': ERMrest._renderHandlebarsTemplate(treeviewConfig.tree.click_event_callback, templateParams),
                             'style': 'display:inline;'
                         },
                         li_attr: {
@@ -766,10 +820,13 @@
             function Tree(node) {
                 var s = node.a_attr;
                 if (parentAppExists) {
+                    // assuming Parent_App is booleanSearch
                     s["onClick"] = nodeClickCallback(node);
+                // } else if (treeviewConfig.tree.click_event === "redirect") {
                 } else {
-                    var linkId = node.dbxref.replace(/:/g, '%3A');
-                    var l = "'/chaise/record/#2/Vocabulary:Anatomy/ID=" + linkId + "','_blank'";
+                    // TODO: this function should be exposed as public in ermrestJS
+                    templateParams.$node_id = ERMrest._fixedEncodeURIComponent(node.dbxref);
+                    var l = "'" + ERMrest._renderHandlebarsTemplate(treeviewConfig.tree.click_event_callback, templateParams) + "','_blank'";
                     s["onClick"] = "window.open(" + l + ");";
                 }
                 // properties stored under "original" property on jstree_node object
@@ -800,7 +857,7 @@
                 if (typeof iconConfig.labels == "string") return generateIconHTML(iconConfig.labels, iconConfig.has_tooltip, key, value);
 
                 var iconPath = iconConfig.labels[value];
-                // if we get a string, return, else recurse
+                // if we get a string, return, else recurse (it should be an object again)
                 if (typeof iconPath == "string" || !iconPath) {
 
                     return generateIconHTML(iconPath, iconConfig.has_tooltip, key, value);
@@ -824,6 +881,11 @@
                 // preloads the image
                 (new Image()).src = imageUrl;
                 return '<span class="schematic-popup-icon"><img src="resources/images/camera-icon.png"></img></span>'
+            }
+
+            function nodeClickCallback(node) {
+                var sourceObject = '{ "id": "' + node.dbxref + '", "name": "' + node.base_text + '" }';
+                return 'parent.setSourceForFilter(' + sourceObject + ');';
             }
 
             // functions for the tree object/class
