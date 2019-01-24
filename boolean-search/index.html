@@ -31,7 +31,7 @@
 </head>
 
 <body>
-    <div ng-controller="BooleanSearchController as form">
+    <div ng-controller="BooleanSearchController as form" id="appDiv">
         <div class="row">
             <div id="titleBar" class="col-xs-12 meta-icons">
                 <div id="title" class="pull-left">
@@ -46,7 +46,7 @@
             <div style="margin-top: 15px;">Loading...</div>
         </div>
         <div class="content-container" ng-show="form.initialized">
-            <div class="resizable-panel resizable" resizable r-directions=["right"] r-flex="true" ng-class="{'open-panel': treeviewOpen, 'close-panel': !treeviewOpen}">
+            <div class="resizable-panel resizable" ng-class="{'open-panel': treeviewOpen, 'close-panel': !treeviewOpen}">
                 <div class="treeview-panel">
                     <tree-view></tree-view>
                 </div>
