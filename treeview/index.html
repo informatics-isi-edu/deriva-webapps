@@ -178,27 +178,24 @@
                     <h3></h3>
                 </div>
                 <div id="parent">
-                    <div id="filterDropDown" style="display:inline;visibility:hidden;">
+                    <div id="filterDropDown" style="visibility:hidden;">
                         <select name="number" id="number">
                         </select>
                     </div>
-                    <div id="mainDiv" class="input-group has-feedback" style="display:inline;visibility:hidden;">
-                        <span class="input-group-btn">
-                            <input type="text" id="plugins4_q" value="" class="input form-control" placeholder="Search"></input>
-                            <div class="form-control-feedback" style="cursor:pointer; right:-4px; top:25px; pointer-events:all; z-index:5;">
-                                <span class="glyphicon glyphicon-remove" id="reset_text"></span>
-                            </div>
-                            <button type="button" id="search_btn" class="btn btn-primary btn-inverted">
-                                <span class="glyphicon glyphicon-search"></span>
-                            </button>
-                        </span>
+                    <div id="searchDiv" class="input-group" style="visibility:hidden;">
+                        <input type="text" id="plugins4_q" value="" class="input form-control" placeholder="Search"></input>
+                        <button type="button" id="reset_text" class="btn btn-primary btn-inverted input-btn">
+                            <span class="glyphicon glyphicon-remove" ></span>
+                        </button>
+                        <button type="button" id="search_btn" class="btn btn-primary btn-inverted input-btn">
+                            <span class="glyphicon glyphicon-search"></span>
+                        </button>                        
+                        <button type="button" id="expand_all_btn" class="btn btn-primary btn-inverted">Expand
+                            All</button>
+                        <button type="button" id="collapse_all_btn" class="btn btn-primary btn-inverted">Collapse
+                            All</button>
                     </div>
-                </div>
-                <div id="expand-collapse" class="btn-group" style="margin-top:5px;visibility:hidden;">
-                    <button type="button" id="expand_all_btn" class="btn btn-primary btn-inverted" style="margin-left:8px;border-radius:0;">Expand All</button>
-                    <button type="button" id="collapse_all_btn" class="btn btn-primary btn-inverted" style="border-radius:0;">Collapse All</button>
-                </div>
-
+                </div>  
                 <p class="error" id="error-message" style="visibility:hidden;margin-left:5px;"></p>
                 <p id="warning-message" class="alert alert-dismissible alert-warning" style="display:none;margin-left:5px;">
                     <button type="button" class="close"><span aria-hidden="true">&times;</span></button>

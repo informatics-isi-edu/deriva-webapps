@@ -14,14 +14,48 @@
 }
 
 #parent {
-  display: flex;
-  margin-top: 1em;
+    overflow:hidden;
+    margin-top: 1em;
 }
 
 #filterDropDown {
-  margin-right: 4px;
+  float:left;
 }
 
+#searchDiv {
+    overflow: hidden;
+}
+
+@media screen and (max-width: 830px){
+    #filterDropDown {
+        float: none;
+        margin-right: 0;
+        margin-bottom: 5px;
+        width:auto;
+    }
+    #plugins4_q {
+        width: 15em !important;
+    }
+}
+
+#reset_text{
+    border-left:none;
+}
+
+.btn{
+    border-radius:0;
+}
+
+.input-btn {
+    float: left;
+    clear: none;
+    border-left: none;
+}
+
+#expand_all_btn {
+    margin-left: 5px;
+    border-right: none;
+}
 #plugins4_q {
     display: inline;
     margin: 0em 0em 0em 0.5em;

@@ -1,5 +1,10 @@
+#appDiv {
+    height:100%;
+    width:100%;
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
 #titleBar{
-    margin-bottom:10px;
     padding: 15px 40px 10px 40px; /* padding-left and padding-right sides are to equal the left and right paddings of .container-fluid */
     background-color: #f1f1f1;
     box-shadow: 0 4px 2px -2px rgba(0,0,0,0.4);
@@ -7,6 +12,9 @@
 }
 #addButtonDiv{
     margin-bottom: 10px;
+}
+.row{
+    height: 3%;
 }
 .filterTable{
     border: 1px solid #ddd;
@@ -36,24 +44,25 @@
     -webkit-box-flex: 1;
     display: flex;
     flex:1;
-    margin-top: 5px;
+    height:96%;
 }
 .resizable-panel.open-panel{
     flex:0 0 40vw;
-    min-width:200px;
     padding-left:5px;
+    min-width: 580px;
 }
 
 .resizable-panel {
     padding-top:5px;
     position: relative;
-    max-width: 50vw;
+    max-width: 710px;
     z-index: 2;
-    height: 92vh;
+    height: 98%;
 }
 .treeview-panel {
     transition: all 1s;
     height: 100%;
+    border-right: 1px solid #2e6da4;
 }
 .resize-btn {
     top: 100px;
@@ -63,7 +72,7 @@
 }
 .sidePanFiddler {
     border-left:none;
-    border-radius:0px 15px 15px 0px;
+    border-radius:0px 15px 15px 0px !important;
 }
 .booleanSearchContainer{
     flex: 1;
@@ -71,8 +80,8 @@
     z-index:1 ;
     overflow-y:auto;
     padding-top:15px;
-    overflow-x: scroll;
-    height: 92vh;
+    overflow-x: auto;
+    height: 100%;
 }
 
 .resizable-panel.close-panel{

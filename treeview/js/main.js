@@ -90,8 +90,7 @@
                 appendTo: "#filterDropDown"
             }).selectmenu("menuWidget").addClass("overflow");
             document.getElementById('filterDropDown').style.visibility = "visible";
-            document.getElementById('mainDiv').style.visibility = "visible";
-            document.getElementById('expand-collapse').style.visibility = "visible";
+            document.getElementById('searchDiv').style.visibility = "visible";
 
             var offset = 250;
             var duration = 300;
