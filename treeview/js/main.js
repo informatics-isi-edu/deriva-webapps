@@ -235,6 +235,10 @@
                     });
                 });
             }
+
+            function setupDomElements() {
+                
+            }
             $("#reset_text").click(function() {
                 document.getElementById('plugins4_q').value = "";
                 $("#jstree").jstree('clear_search');
