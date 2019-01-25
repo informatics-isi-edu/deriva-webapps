@@ -1,6 +1,3 @@
-var annotated_term  = "";
-var annotated_terms = [];
-var image_hash = {};
 (function() {
     $(document).ready(function() {
         // jstree, jquery, ermrestJS, q (promise library) each expose a module that's available in the execution environment
@@ -12,198 +9,267 @@ var image_hash = {};
         ERMrest.configure(null, Q);
 
         ERMrest.onload().then(function () {
-            var JSONData, showAnnotation, filter_prefix, isCacheEnabled, cacheData, id_parameter, filterUrl, filterValue;
+            var showAnnotation, id_parameter, filterUrl, filterValue, columnName, parentAppExists;
+            var annotated_term  = "";
+            var annotated_terms = [],
+                urlParams       = {}, // key/values from uri
+                urlParamNames   = [], // keys defined in url
+                queryParams     = {}, // key/values from uri and defaults in config
+                queryParamNames = [], // keys defined in templating
+                requiredParams  = []; // params that are required and are used for identification purposes
 
-            /*** For Handlebars templating ***/
-            // Example of how it works, actually super simple
-            // console.log(ERMrest._renderHandlebarsTemplate("John says {{{John}}}", {John: "hello"}));
-
-            // NOTE: refactor into 2 sections:
-            //  - parameter extraction and data setup
-            //  - component setup using selectors
-
-            // TODO: refactor into get all URL params
-            // var queryParams = stripQueryParams();
-            if (window.location.href.indexOf("Specimen_RID=") !== -1) {
-                id_parameter = findGetParameter('Specimen_RID')
-                showAnnotation = true;
-                document.getElementById('left').style.visibility = "visible";
-                document.getElementById('look-up').style.height = "100%";
-                document.getElementById('mouseAnatomyHeading').style.display = "none";
-            } else {
-                id_parameter = ''
-                showAnnotation = false;
-                document.getElementById('look-up').style.height = "0";
-                $("#right").css('margin-left', '10px');
-                $(".tree-panel").css('width', '99.5%');
-                $("#left").removeClass("col-md-2 col-lg-2 col-sm-2 col-2");
-                $("#right").removeClass("col-md-10 col-lg-10 col-sm-10 col-10");
-                $("#right").addClass("col-md-12 col-lg-12 col-sm-12 col-12");
-                document.getElementById('mouseAnatomyHeading').style.visibility = "visible";
-
-            }
-            var parentAppExists = false;
-            // TODO: refactor with above stripQueryParams function
-            // nodeClickCallback should be function in code here. Repalce function in config with string to match against
-            var nodeClickCallback;
-            if (window.location.href.indexOf("Parent_App=") !== -1) {
-                var appName = findGetParameter('Parent_App');
-                if (appName !== null) {
-                    if (typeof treeviewConfig.nodeClickCallback[appName] !== "undefined") {
-                        parentAppExists = true;
-                        nodeClickCallback = treeviewConfig.nodeClickCallback[appName];
-                    }
-                }
-            }
-            document.getElementById('loadIcon').style.visibility = "visible";
-            $("#number").selectmenu({
-                appendTo: "#filterDropDown"
-            }).selectmenu("menuWidget").addClass("overflow");
-            document.getElementById('filterDropDown').style.visibility = "visible";
-            document.getElementById('searchDiv').style.visibility = "visible";
-
-            var offset = 250;
-            var duration = 300;
-            var location = window.location.href;
-            if (location.indexOf("prefix_filter=") !== -1) {
-                var prefix_filter_value = findGetParameter('prefix_filter')
-                filter_prefix = prefix_filter_value;
-            } else {
-                filter_prefix = "";
+            var templateParams = {
+                $filters: {},
+                $url_parameters: {}
             }
 
-            if (location.indexOf("Specimen_RID=") !== -1) {
-                id_parameter = findGetParameter('Specimen_RID')
-                showAnnotation = true;
-            } else {
-                id_parameter = ''
-                showAnnotation = false;
-            }
-
-            $(".tree-panel").scroll(function() {
-                $( "#number" ).selectmenu( "close" );
-                if ($(this).scrollTop() > offset) {
-                    $(".back-to-top").fadeIn(duration);
-                } else {
-                    $(".back-to-top").fadeOut(duration);
-                }
+            // collect url params that appear in url in urlParams object
+            window.location.search.substr(1).split("&").forEach(function(param) {
+                if (!param) return;
+                // part[0] is the param key
+                // part[1] is the param value
+                var parts = param.split("=");
+                urlParams[parts[0]] = parts[1];
+                urlParamNames.push(parts[0]);
             });
-            $(".back-to-top").click(function(event) {
-                event.preventDefault();
-                $("html, .tree-panel").animate({
-                    scrollTop: 0
-                }, duration);
-                // is this needed?
-                return false;
-            })
-            // 'X' in warning message
-            $(".close").click(function(event) {
-                event.preventDefault();
-                $("#warning-message")[0].style.display = "none";
+
+            // collect query params based on configuration
+            treeviewConfig.filters.forEach(function(filter, idx) {
+                filter.selected_filter.required_url_parameters.forEach(function (param) {
+                    // if param is not in url, get it's default value
+                    queryParams[param] = urlParams[param] ?  urlParams[param] : filter.default_id;
+                    requiredParams.push(param);
+                });
+                // no values will exist yet until they are selected below
+                queryParams[filter.filter_column_name] = null;
+                queryParamNames.push(filter.filter_column_name);
             });
+
+            templateParams.$url_parameters = queryParams;
+/* ===== End parameter extraction ===== */
+
+            // function to reduce duplicated logic for collecting filter value from dropdown and re-fetching tree data
+            function getValAndBuildData(name, value) {
+                templateParams.$filters[name] = value;
+                // filter_column_name (in config document) should be the column name you want for filtering data
+                queryParams[name] = value;
+                buildPresentationData(showAnnotation, value, id_parameter);
+            }
+
             // if selected_filter in config and said identifier is present in url
             if(showAnnotation == true) {
-                filterUrl = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+id_parameter+'/stage:=left(Stage_ID)=(Vocabulary:Developmental_Stage:ID)/id:=stage:Name,stage:Name,stage:Ordinal,stage:Approximate_Equivalent_Age,Species:=M:Species'
-                var $el = $("#number");
-                $el.empty();
-                // ERMrest._http.get(filterUrl)
-                $.getJSON(filterUrl, function(filterData) {
-                    // TODO: error handling because only Mouse is supported
-                    if (!filterData[0] || filterData[0]['Species'] !== "Mus musculus") {
-                        document.getElementsByClassName('loader')[0].style.display = "none";
-                        document.getElementsByClassName('error')[0].style.visibility = "visible";
-                        document.getElementsByTagName("p")[0].innerHTML="Error: Only specimens of species, 'Mus musculus', are supported.<br />Specimen RID: "+id_parameter+", Species: "+(filterData[0] ? filterData[0]['Species'] : "null");
-                    } else {
-                        var selected_option = filterData[0]['Name'] + ": " + filterData[0]['Approximate_Equivalent_Age']
-                        // only add selected option to the list
-                        $el.append($("<option></option>")
-                        .attr("value", selected_option).text(selected_option));
-                        $('#number').val(selected_option);
-                        $("#number").selectmenu("refresh");
-                        $("#number").prop("disabled", true);
-                        $("#number").selectmenu("refresh");
-                        // We have a mouse, but there is no filter data for this specimen (stage data)
-                        if (filterData === undefined || filterData.length == 0) {
-                            $(".loader")[0].style.display = "none";
-                            $("#warning-message").css("display", "");
-                            $("#alert-warning-text")[0].innerHTML="Developmental Stage does not exist for Specimen RID : "+id_parameter;
+                treeviewConfig.filters.forEach(function (filter, idx) {
+                    // need to account for filter data
+                    var queryPattern = filter.selected_filter.selected_query_pattern || filter.query_pattern
+                    filterUrl = 'https://' + window.location.hostname + ERMrest._renderHandlebarsTemplate(queryPattern, templateParams);
+                    var $el = $("#number");
+                    $el.empty();
+                    $.getJSON(filterUrl, function(filterData) {
+                        // TODO: remove if statement when we want to support multiple filters
+                        if (idx == treeviewConfig.filters.length-1) {
+                            // TODO: error handling because only Mouse is supported
+                            if (!filterData[0] || filterData[0]['Species'] !== "Mus musculus") {
+                                document.getElementsByClassName('loader')[0].style.display = "none";
+                                document.getElementsByClassName('error')[0].style.visibility = "visible";
+                                document.getElementsByTagName("p")[0].innerHTML="Error: Only specimens of species, 'Mus musculus', are supported.<br />Specimen RID: "+id_parameter+", Species: "+(filterData[0] ? filterData[0]['Species'] : "null");
+                            } else {
+                                var selected_option = ERMrest._renderHandlebarsTemplate(filter.display_text, filterData[0]);
+                                // only add selected option to the list
+                                $el.append($("<option></option>")
+                                .attr("value", selected_option).text(selected_option));
+                                $('#number').val(selected_option);
+                                $("#number").selectmenu("refresh");
+                                $("#number").prop("disabled", true);
+                                $("#number").selectmenu("refresh");
+                                // We have a mouse, but there is no filter data for this specimen (stage data)
+                                if (filterData === undefined || filterData.length == 0) {
+                                    $(".loader")[0].style.display = "none";
+                                    $("#warning-message").css("display", "");
+                                    $("#alert-warning-text")[0].innerHTML="Developmental Stage does not exist for Specimen RID : "+id_parameter;
+                                }
+
+                                // filter_column_name should be the column name you want for filtering data
+                                columnName = filter.filter_column_name;
+                                filterValue = filterData[0][columnName];
+                                getValAndBuildData(columnName, filterValue);
+                            }
                         }
-                        filterValue = filterData[0]['Ordinal'];
-                        buildPresentationData(showAnnotation, filter_prefix, filterValue, id_parameter)
+                    }); // end getJSON
+                }); // end forEach
+            } else {
+                treeviewConfig.filters.forEach(function (filter, idx) {
+                    filterUrl = 'https://' + window.location.hostname + ERMrest._renderHandlebarsTemplate(filter.query_pattern, templateParams);
+                    var $el = $("#number");
+                    $el.empty(); // remove old options
+                    $.getJSON(filterUrl, function(filterData) {
+                        // TODO: remove if statement when we want to support multiple filters
+                        if (idx == treeviewConfig.filters.length-1) {
+                            // add all options from filter data to list
+                            filterData.forEach(function(data, index) {
+                                $el.append($("<option></option>")
+                                .attr("value", data['Ordinal'])
+                                .text(ERMrest._renderHandlebarsTemplate(filter.display_text, data)));
+                            });
+                            // append extra filter options
+                            if (filter.extra_filter_options) {
+                                filter.extra_filter_options.forEach(function (option) {
+                                    $el.append($("<option></option>")
+                                    .attr("value", option.values.id)
+                                    .text(ERMrest._renderHandlebarsTemplate(filter.display_text, option.values)));
+                                });
+                            }
+                            // select default
+                            $('#number').val(filter.default_id);
+                            $("#number").selectmenu("refresh");
+                            $("#number").on('selectmenuchange', function() {
+                                document.getElementsByClassName('loader')[0].style.display = "block";
+                                document.getElementById('jstree').style.visibility = "hidden";
+                                $("#number").prop("disabled", true);
+                                $('#plugins4_q').prop("disabled", true);
+                                $("#search_btn").prop("disabled", true);
+                                $("#expand_all_btn").prop("disabled", true);
+                                $("#collapse_all_btn").prop("disabled", true);
+                                $("#reset_text").prop("disabled", true);
+
+                                filterValue = $("#number").val();
+                                columnName = filter.filter_column_name;
+                                getValAndBuildData(columnName, filterValue);
+                            });
+
+                            filterValue = $("#number").val();
+                            columnName = filter.filter_column_name;
+                            getValAndBuildData(columnName, filterValue);
+                        }
+                    });
+                });
+            }
+
+/* ===== End Data Setup ===== */
+            setupDomElements();
+            // the end of script execution
+/* ===== End DOM Setup  ===== */
+            // functions defined below assist in data setup and DOM setup
+
+            function setupDomElements() {
+                // NOTE: should this always be the last param in treeviewConfig.filters[last].selected_filter.required_url_parameters?
+                var idParamName = requiredParams[requiredParams.length-1];
+                if (urlParams[idParamName]) {
+                    // we have an id param, so make sure the left panel is visible and title is hidden
+                    id_parameter = queryParams[idParamName];
+                    showAnnotation = true;
+                    document.getElementById('left').style.visibility = "visible";
+                    document.getElementById('look-up').style.height = "100%";
+                    document.getElementById('anatomyHeading').style.display = "none";
+                } else {
+                    // no id so change the UX to hide the left panel
+                    id_parameter = ''
+                    showAnnotation = false;
+                    document.getElementById('look-up').style.height = "0";
+                    $("#right").css('margin-left', '10px');
+                    $(".tree-panel").css('width', '99.5%');
+                    $("#left").removeClass("col-md-2 col-lg-2 col-sm-2 col-2");
+                    $("#right").removeClass("col-md-10 col-lg-10 col-sm-10 col-10");
+                    $("#right").addClass("col-md-12 col-lg-12 col-sm-12 col-12");
+                    var headingEl = document.getElementById('anatomyHeading');
+                    headingEl.style.visibility = "visible";
+                    $(headingEl).children("h3")[0].innerHTML = ERMrest._renderHandlebarsTemplate(treeviewConfig.title_markdown_pattern, templateParams);
+                }
+
+                // create and configure dropdown menu
+                $("#number").selectmenu({
+                    appendTo: "#filterDropDown"
+                }).selectmenu("menuWidget").addClass("overflow");
+                document.getElementById('filterDropDown').style.visibility = "visible";
+
+                // determine if a parent app exists and change state of treeview to accomodate for it
+                var appName = urlParams["Parent_App"] || null;
+                parentAppExists = appName !== null;
+
+                // make sure search div and load icon are visible
+                // hide load icon later when data comes back
+                document.getElementById('loadIcon').style.visibility = "visible";
+                document.getElementById('searchDiv').style.visibility = "visible";
+
+                // as tree scrolls, calculate if the back to top button should show
+                $(".tree-panel").scroll(function() {
+                    $( "#number" ).selectmenu( "close" );
+                    if ($(this).scrollTop() > 250) {
+                        $(".back-to-top").fadeIn(300);
+                    } else {
+                        $(".back-to-top").fadeOut(300);
                     }
                 });
-            } else {
-                /**
-                 * Vocabulary:Developmental_Stage:Species is a foreign key to Vocabulary:Species:ID which have the following values
-                 * the below is in the format of (Vocabulary:Species:ID = Vocabulary:Species:Name)
-                 * "NCBITaxon:9606"   = "Homo sapiens"
-                 * "NCBITaxon:10090"  = "Mus musculus"
-                 * "NCBITaxon:7955"   = "Danio rerio"
-                 * "NCBITaxon:9598"   = "Pan troglodytes"
-                 **/
-                // Change Species to be a join on Vocab:Species
-                filterUrl = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Vocabulary:Developmental_Stage/species:=(Species)=(Vocabulary:Species:ID)/species:Name=Mus%20musculus/id:=M:Name,M:Ordinal,M:Name,M:Approximate_Equivalent_Age@sort(Ordinal)';
-                var $el = $("#number");
-                $el.empty(); // remove old options
-                $.getJSON(filterUrl, function(filterData) {
-                    // add all options from filter data to list
-                    $.each(filterData, function(index, data) {
-                        $el.append($("<option></option>")
-                        .attr("value", data['Ordinal']).text(data['Name'] + ": " + data['Approximate_Equivalent_Age']));
+
+                // button that apears on bottom right to quickly jump back to the top
+                $(".back-to-top").click(function(event) {
+                    event.preventDefault();
+                    $("html, .tree-panel").animate({
+                        scrollTop: 0
+                    }, 300);
+                });
+
+                // 'X' in warning message
+                $(".close").click(function(event) {
+                    event.preventDefault();
+                    $("#warning-message")[0].style.display = "none";
+                });
+
+                // clear search box text
+                $("#reset_text").click(function() {
+                    document.getElementById('plugins4_q').value = "";
+                    $("#jstree").jstree('clear_search');
+                });
+
+                $("#search_btn").click(function() {
+                    var v = $('#plugins4_q').val();
+                    $('#jstree').jstree(true).search(v);
+                });
+
+                // expand all nodes, disable other DOM elements while the nodes are being opened
+                $("#expand_all_btn").click(function() {
+                    disableControls();
+                    $("#jstree").jstree('open_all');
+                });
+
+                // close all nodes, disable other DOM elements while the nodes are being closed
+                $("#collapse_all_btn").click(function() {
+                    disableControls();
+                    $("#jstree").jstree('close_all');
+                });
+
+                // there are currently 4 facet panels for the legend
+                $('#look-up .panel-default').toArray().forEach(function(panel, index) {
+                    var panelBodySelector = "#facets-" + (index+1);
+                    $(panelBodySelector+'-heading').click(function() {
+                        $(panelBodySelector).toggleClass('hide-panel');
+                        toggleIcon($(panelBodySelector+'-heading > span'));
                     });
-                    $el.append($("<option></option>")
-                    .attr("value", "All").text("All TS"));
-                    $('#number').val('28');
-                    $("#number").selectmenu("refresh");
-                    // TODO: register event for dropdown menu. could go somewhere else?
-                    $("#number").on('selectmenuchange', function() {
-                        document.getElementsByClassName('loader')[0].style.display = "block";
-                        document.getElementById('jstree').style.visibility = "hidden";
-                        $("#number").prop("disabled", true);
-                        $('#plugins4_q').prop("disabled", true);
-                        $("#search_btn").prop("disabled", true);
-                        $("#expand_all_btn").prop("disabled", true);
-                        $("#collapse_all_btn").prop("disabled", true);
-                        $("#reset_text").prop("disabled", true);
+                });
 
-                        filterValue = $("#number").val()
-                        buildPresentationData(showAnnotation, filter_prefix, filterValue, id_parameter)
-                    })
-                    filterValue = $("#number").val()
-                    buildPresentationData(showAnnotation, filter_prefix, filterValue, id_parameter)
-                })
+                // NOTE: not sure why this is wrapped in a jquery function
+                $(function() {
+                    $("#plugins4").jstree({
+                        "plugins": ["search"]
+                    });
+                    var to = false;
+                    $('#plugins4_q').keyup(function() {
+                        if (to) {
+                            clearTimeout(to);
+                        }
+                        to = setTimeout(function() {
+                            var v = $('#plugins4_q').val();
+                            $('#jstree').jstree(true).search(v);
+                        }, 1400);
+                    });
+                });
             }
-            $("#reset_text").click(function() {
-                document.getElementById('plugins4_q').value = "";
-                $("#jstree").jstree('clear_search');
-            })
 
-            $("#search_btn").click(function() {
-                var v = $('#plugins4_q').val();
-                $('#jstree').jstree(true).search(v);
-            })
-            $("#expand_all_btn").click(function() {
-                document.getElementsByClassName('loader')[0].style.display = "visible";
-                document.getElementById('jstree').style.visibility = "none";
-                $("#number").prop("disabled", true);
-                $('#plugins4_q').prop("disabled", true);
-                $("#search_btn").prop("disabled", true);
-                $("#expand_all_btn").prop("disabled", true);
-                $("#collapse_all_btn").prop("disabled", true);
-                $("#reset_text").prop("disabled", true);
-                $("#jstree").jstree('open_all');
-            })
-            $("#collapse_all_btn").click(function() {
-                document.getElementsByClassName('loader')[0].style.display = "visible";
-                document.getElementById('jstree').style.visibility = "none";
-                $("#number").prop("disabled", true);
-                $('#plugins4_q').prop("disabled", true);
-                $("#search_btn").prop("disabled", true);
-                $("#expand_all_btn").prop("disabled", true);
-                $("#collapse_all_btn").prop("disabled", true);
-                $("#reset_text").prop("disabled", true);
-                $("#jstree").jstree('close_all');
-            })
+            function checkIfSearchItemExists() {
+                if ($('#plugins4_q').val() !== '') {
+                    var v = $('#plugins4_q').val();
+                    $('#jstree').jstree(true).search(v);
+                }
+            }
 
             // legend panel setup
             function toggleIcon (el) {
@@ -217,20 +283,39 @@ var image_hash = {};
                 }
             }
 
-            // there are currently 4 facet panels for the legend
-            $('#look-up .panel-default').toArray().forEach(function(panel, index) {
-                var panelBodySelector = "#facets-" + (index+1);
-                $(panelBodySelector+'-heading').click(function() {
-                    $(panelBodySelector).toggleClass('hide-panel');
-                    toggleIcon($(panelBodySelector+'-heading > span'));
-                });
-            });
+            // show the loading spinner and hide the tree, disable the rest of the controls
+            function disableControls() {
+                document.getElementsByClassName('loader')[0].style.display = "visible";
+                document.getElementById('jstree').style.visibility = "none";
+                $("#number").prop("disabled", true);
+                $('#plugins4_q').prop("disabled", true);
+                $("#search_btn").prop("disabled", true);
+                $("#expand_all_btn").prop("disabled", true);
+                $("#collapse_all_btn").prop("disabled", true);
+                $("#reset_text").prop("disabled", true);
+            }
 
-            function checkIfSearchItemExists() {
-                if ($('#plugins4_q').val() !== '') {
-                    var v = $('#plugins4_q').val();
-                    $('#jstree').jstree(true).search(v);
-                }
+            // hide loading spinner and show the tree, enable the rest of the controls
+            function enableControls() {
+                $("#number").prop("disabled", false);
+                $('#plugins4_q').prop("disabled", false);
+                $("#search_btn").prop("disabled", false);
+                $("#expand_all_btn").prop("disabled", false);
+                $("#collapse_all_btn").prop("disabled", false);
+                $("#reset_text").prop("disabled", false);
+                document.getElementsByClassName('loader')[0].style.display = "none";
+                document.getElementById('jstree').style.visibility = "visible";
+            }
+
+            function showImageModal(image_path, text, event) {
+                // stops propagating the click event to the onclick function defined
+                event.stopPropagation();
+                // stops triggering the event the <a href="..."> tag
+                event.preventDefault();
+
+                $(".modal-body > img")[0].src = image_path;
+                $("#schematic-title")[0].innerHTML = text;
+                $("#schematic-modal").modal('show');
             }
 
             function buildTreeAndAssignEvents(presentationData) {
@@ -277,17 +362,6 @@ var image_hash = {};
                     var tree = $("div#jstree").jstree();
 
                     // defined here because nodes are destroyed when closed, so need to be reattached on each node being opened
-                    function showImageModal(image_path, text, event) {
-                        // stops propagating the click event to the onclick function defined
-                        event.stopPropagation();
-                        // stops triggering the event the <a href="..."> tag
-                        event.preventDefault();
-
-                        $(".modal-body > img")[0].src = image_path;
-                        $("#schematic-title")[0].innerHTML = text;
-                        $("#schematic-modal").modal('show');
-                    }
-
                     // show image preview only on click
                     $(".schematic-popup-icon").click(function(event) {
                         // n_id of the parent node
@@ -336,26 +410,12 @@ var image_hash = {};
                 })
                 .on('open_all.jstree', function() {
                     setTimeout(function() {
-                        $("#number").prop("disabled", false);
-                        $('#plugins4_q').prop("disabled", false);
-                        $("#search_btn").prop("disabled", false);
-                        $("#expand_all_btn").prop("disabled", false);
-                        $("#collapse_all_btn").prop("disabled", false);
-                        $("#reset_text").prop("disabled", false);
-                        document.getElementsByClassName('loader')[0].style.display = "none";
-                        document.getElementById('jstree').style.visibility = "visible";
+                        enableControls();
                     }, 100);
                 })
                 .on('close_all.jstree', function() {
                     setTimeout(function() {
-                        $("#number").prop("disabled", false);
-                        $('#plugins4_q').prop("disabled", false);
-                        $("#search_btn").prop("disabled", false);
-                        $("#expand_all_btn").prop("disabled", false);
-                        $("#collapse_all_btn").prop("disabled", false);
-                        $("#reset_text").prop("disabled", false);
-                        document.getElementsByClassName('loader')[0].style.display = "none";
-                        document.getElementById('jstree').style.visibility = "visible";
+                        enableControls();
                     }, 100);
                 })
                 .on('loaded.jstree', function(e, data) {
@@ -410,15 +470,9 @@ var image_hash = {};
                         $("#warning-message").css("display", "");
                         $("#alert-warning-text")[0].innerHTML="No annotated terms for the given specimen.";
                     }
-                })
-                document.getElementsByClassName('loader')[0].style.display = "none";
-                document.getElementById('jstree').style.visibility = "visible";
-                $("#number").prop("disabled", false);
-                $('#plugins4_q').prop("disabled", false);
-                $("#search_btn").prop("disabled", false);
-                $("#expand_all_btn").prop("disabled", false);
-                $("#collapse_all_btn").prop("disabled", false);
-                $("#reset_text").prop("disabled", false);
+                }); // end registering event listeners for jstree
+
+                enableControls();
                 $("a#change").click(function() {
                     var tree = $("div#jstree").jstree(),
                         nodename = tree.get_node("#").children[0],
@@ -432,17 +486,14 @@ var image_hash = {};
                 });
             }
 
-            // filter_order_val is currently the ordinal associated with the stage data. It's used in tree data requests for leq/geq clauses
-            function buildPresentationData(showAnnotation, prefixVal, filter_order_val, id_parameter) {
-                var treeDataURL, isolatedNodesURL, extraAttributesURL;
+            // filterOrderVal is currently the ordinal associated with the stage data. It's used in tree data requests for leq/geq clauses
+            function buildPresentationData(showAnnotation, filterOrderVal, id_parameter) {
+                var treeURL, isolatedURL, extraAttributesURL;
                 var json, isolatedNodes, extraAttributes,
                     presentationData = [];
-                // Returns json - Query 1 : https://dev.rebuildingakidney.org/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of/F1:=left(subject_dbxref)=(Anatomy_terms:dbxref)/$M/F2:=left(object_dbxref)=(Anatomy_terms:dbxref)/$M/subject_dbxref:=M:subject_dbxref,object_dbxref,subject:=F1:name,object:=F2:name
-                // Returns extraAttributes - Query 2 : https://dev.rebuildingakidney.org/ermrest/catalog/2/attribute/M:=Gene_Expression:Specimen_Expression/RID=Q-PQ16/$M/RID:=M:RID,Region:=M:Region,strength:=M:Strength,pattern:=M:Pattern,density:=M:Density,densityChange:=M:Density_Direction,densityNote:=M:Density_Note
-                // Returns isolated nodes - Query 3 : https://dev.rebuildingakidney.org/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy_terms/s:=left(dbxref)=(Vocabulary:Anatomy_Part_Of:subject_dbxref)/subject_dbxref::null::/$t/o:=left(dbxref)=(Vocabulary:Anatomy_Part_Of:object_dbxref)/object_dbxref::null::/$t/dbxref:=t:dbxref,name:=t:name
-                if (filter_order_val != "" && filter_order_val != "All") {
-                    treeDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=(Subject)=(Vocabulary:Anatomy:ID)/Subject_Starts_at_Ordinal:=(Starts_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::leq::' + filter_order_val + '/$F1/Subject_Ends_At_Ordinal:=(Ends_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::geq::' + filter_order_val + '/$M/F2:=(Object)=(Vocabulary:Anatomy:ID)/Object_Starts_at_Ordinal:=(Starts_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::leq::' + filter_order_val + '/$F2/Object_Ends_At_Ordinal:=(Ends_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::geq::' + filter_order_val + '/$F1/F1I:=left(Schematic)=(Schematics:Schematic:RID)/$F2/F2I:=left(Schematic)=(Schematics:Schematic:RID)/$M/child_id:=M:Subject,parent_id:=M:Object,child:=F1:Name,parent:=F2:Name,child_image:=F1I:Search_Thumbnail,parent_image:=F2I:Search_Thumbnail'
-                    isolatedNodesURL = 'https://'+window.location.hostname+"/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy/start:=(Starts_At)=(Vocabulary:Developmental_Stage:Name)/start:Ordinal::leq::" + filter_order_val + "/$t/end:=(Ends_At)=(Vocabulary:Developmental_Stage:Name)/end:Ordinal::geq::" + filter_order_val + "/$t/s:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Subject)/Subject::null::/$t/o:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Object)/Object::null::/$t/I:=left(Schematic)=(Schematics:Schematic:RID)/$t/id:=t:ID,dbxref:=t:ID,name:=t:Name,t:Starts_At,t:Ends_At,image:=I:Search_Thumbnail";
+
+                // defined inline because of scoped variables
+                function getTreeData(treeDataURL, isolatedNodesURL) {
                     $.getJSON(treeDataURL, function(data) {
                         json = data
                     }).done(function() {
@@ -450,66 +501,61 @@ var image_hash = {};
                             isolatedNodes = data
                         }).done(function() {
                             if(id_parameter != '') {
-                                extraAttributesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+id_parameter+'/N:=left(RID)=(Gene_Expression:Specimen_Expression:Specimen)/$M/id:=N:Region,M:RID,Region:=N:Region,strength:=N:Strength,strengthModifier:=N:Strength_Modifier,pattern:=N:Pattern,density:=N:Density,densityChange:=N:Density_Direction,densityMagnitude:=N:Density_Magnitude,densityNote:=N:Density_Note,note:=N:Notes';
+                                extraAttributesURL = 'https://' + window.location.hostname + ERMrest._renderHandlebarsTemplate(treeviewConfig.annotation.annotation_query_pattern, templateParams);
                                 $.getJSON(extraAttributesURL, function(data) {
                                     extraAttributes = data
                                 }).done(function() {
-                                    refreshOrBuildTree(json, extraAttributes, showAnnotation, isolatedNodes, prefixVal, filter_order_val)
+                                    refreshOrBuildTree(json, extraAttributes, showAnnotation, isolatedNodes, filterOrderVal)
                                 })
                             }
                             else {
-                                refreshOrBuildTree(json, [], showAnnotation, isolatedNodes, prefixVal, filter_order_val)
+                                refreshOrBuildTree(json, [], showAnnotation, isolatedNodes, filterOrderVal)
                             }
                         })
                     });
-                } else {
-                    treeDataURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=left(Subject)=(Vocabulary:Anatomy:ID)/$M/F2:=left(Object)=(Vocabulary:Anatomy:ID)/$F1/F1I:=left(Schematic)=(Schematics:Schematic:RID)/$F2/F2I:=left(Schematic)=(Schematics:Schematic:RID)/$M/child_id:=M:Subject,parent_id:=M:Object,child:=F1:Name,parent:=F2:Name,child_image:=F1I:Search_Thumbnail,parent_image:=F2I:Search_Thumbnail';
-                    isolatedNodesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy/s:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Subject)/Subject::null::/$t/o:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Object)/Object::null::/$t/I:=left(Schematic)=(Schematics:Schematic:RID)/$t/id:=t:ID,dbxref:=t:ID,name:=t:Name,image:=I:Search_Thumbnail';
-                    $.getJSON(treeDataURL, function(data) {
-                        json = data
-                    }).done(function() {
-                        $.getJSON(isolatedNodesURL, function(data) {
-                            isolatedNodes = data
-                        }).done(function() {
-                            if(id_parameter != '') {
-                                extraAttributesURL = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID='+id_parameter+'/N:=left(RID)=(Gene_Expression:Specimen_Expression:Specimen)/$M/id:=N:Region,M:RID,Region:=N:Region,strength:=N:Strength,strengthModifier:=N:Strength_Modifier,pattern:=N:Pattern,density:=N:Density,densityChange:=N:Density_Direction,densityMagnitude:=N:Density_Magnitude,densityNote:=N:Density_Note,note:=N:Notes';
-                                $.getJSON(extraAttributesURL, function(data) {
-                                    extraAttributes = data
-                                }).done(function() {
-                                    refreshOrBuildTree(json, extraAttributes, showAnnotation, isolatedNodes, prefixVal, filter_order_val)
-                                })
-                            }
-                            else {
-                                refreshOrBuildTree(json, [], showAnnotation, isolatedNodes, prefixVal, filter_order_val)
-                            }
-                        })
+                }
+
+                // used to compare the current selected filter values to the filter sets defined in the config to determine which queries to use (also defined in the config with each filter set)
+                function compareFilters(filterSet) {
+                    var matchedFilters = 0;
+                    filterSet.forEach(function (filter, index) {
+                        var paramName = queryParamNames[index];
+                        var paramValue = queryParams[paramName];
+                        if (filter == paramValue || filter == "*") matchedFilters++;
                     });
+
+                    return matchedFilters == filterSet.length;
+                }
+
+                // iterate over filter sets to figure out which filter set to use
+                // last filter set should be generic (aka ["*", "*"])
+                for (var j=0; j<treeviewConfig.tree.queries.length; j++){
+                    var queryConfig = treeviewConfig.tree.queries[j];
+                    if (compareFilters(queryConfig.filter_set)) {
+                        treeURL = ERMrest._renderHandlebarsTemplate(queryConfig.tree_query, templateParams);
+                        isolatedURL = ERMrest._renderHandlebarsTemplate(queryConfig.isolated_nodes_query, templateParams);
+                        getTreeData(treeURL, isolatedURL);
+                        break; // can't break out of forEach loop, hence use of for loop instead
+                    }
                 }
             }
 
-            function refreshOrBuildTree(json, extraAttributes, showAnnotation, isolatedNodes, prefixVal, filter_order_val) {
+            function refreshOrBuildTree(json, extraAttributes, showAnnotation, isolatedNodes, filterOrderVal) {
                 if (showAnnotation == false) {
-                    forest = processData(json, [], showAnnotation, isolatedNodes, prefixVal);
+                    forest = processData(json, [], showAnnotation, isolatedNodes);
                 } else {
-                    forest = processData(json, extraAttributes, showAnnotation, isolatedNodes, prefixVal);
+                    forest = processData(json, extraAttributes, showAnnotation, isolatedNodes);
                 }
                 var presentationData = [];
-                for (var g = 0; g < forest.trees.length; g++) {
-                    presentationData.push(forest.trees[g].node);
-                }
+                forest.trees.forEach(function (tree) {
+                    presentationData.push(tree.node);
+                });
                 var finalData = buildTree(presentationData);
                 console.log("**END**");
-                if (filter_order_val != "" && ($('#jstree').jstree(true) != false)) {
+                if (filterOrderVal != "" && ($('#jstree').jstree(true) != false)) {
                     $('#jstree').jstree(true).settings.core.data = finalData;
                     $('#jstree').jstree(true).refresh();
-                    document.getElementsByClassName('loader')[0].style.display = "none";
-                    document.getElementById('jstree').style.visibility = "visible";
-                    $("#number").prop("disabled", false);
-                    $('#plugins4_q').prop("disabled", false);
-                    $("#search_btn").prop("disabled", false);
-                    $("#expand_all_btn").prop("disabled", false);
-                    $("#collapse_all_btn").prop("disabled", false);
-                    $("#reset_text").prop("disabled", false);
+                    enableControls();
                 } else {
                     buildTreeAndAssignEvents(finalData)
                 }
@@ -546,298 +592,148 @@ var image_hash = {};
                 return presentationData;
             }
 
-            function processData(data, extraAttributes, showAnnotation, isolatedNodes, prefixVal) {
-                var isParentAnnotated, isChildAnnotated, parentColumnData, childColumnData, parentImage, childImage;
+            function processData(data, extraAttributes, showAnnotation, isolatedNodes) {
+                var extraAttributesConfig = treeviewConfig.annotation.extra_attributes_icons;
+                // creates the column data from the supplied id and text and attaches that data to the obj provided
+                function createColumnData(id, text, image) {
+                    var beforeIcons = [],
+                        afterIcons  = [];
 
-                // TODO: move part of or all of below into a reuseable function
-                var parentText = data[0].parent,
-                    childText = data[0].child;
-
-                var specimen_expression_annotations = extraAttributes.find(function(obj) {
-                        return obj.Region == data[0].parent_id
-                    });
-
-                var cameraIcon = data[0].parent_image ? createCameraElement(data[0].parent_image) : "" ;
-                if (showAnnotation && typeof specimen_expression_annotations != 'undefined') {
-                    if(annotated_term == "") {
-                        annotated_term = parentText
-                    }
-                    var densityIcon = getDensityIcon(specimen_expression_annotations.density),
-                        densityChangeIcon = getDensityChangeIcon(specimen_expression_annotations.densityChange, specimen_expression_annotations.densityMagnitude),
-                        densityNoteIcon = getDensityNoteIcon(specimen_expression_annotations.densityNote),
-                        densityNote = specimen_expression_annotations.densityNote,
-                        noteIcon = getDensityNoteIcon(specimen_expression_annotations.note),
-                        note = specimen_expression_annotations.note,
-                        patternIcon = getPatternIcon(specimen_expression_annotations.pattern),
-                        strengthIcon = getStrengthIcon(specimen_expression_annotations.strength, specimen_expression_annotations.strengthModifier),
-                        densityImgSrc = densityIcon != '' ? "<img src=" + densityIcon + "></img>" : "",
-                        patternImgSrc = patternIcon != '' ? "<img src=" + patternIcon + "></img>" : "",
-                        strengthImgSrc = strengthIcon != '' ? "<img src=" + strengthIcon + "></img>" : "",
-                        densityChangeImgSrc = densityChangeIcon != '' ? "<img src=" + densityChangeIcon + "></img>" : "",
-                        densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img class='contains-note' src=" + densityNoteIcon + " title='Density Note: " + densityNote + "'></img>" : "",
-                        noteImgSrc = note != '' && note != null ? "<img class='contains-note' src=" + noteIcon + " title='Note: " + note + "'></img>" : "";
-
-                    isParentAnnotated = true;
-                    parentImage = data[0].parent_image;
-                    parentColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + parentText + " (" + data[0].parent_id + ") " + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + cameraIcon + "</span>"
-                } else {
-                    isParentAnnotated = false;
-                    parentImage = data[0].parent_image;
-                    parentColumnData = "<span><span class='display-text'>" + parentText + " (" + data[0].parent_id + ")" + "</span> " + cameraIcon + "</span>"
-                }
-
-                // TODO: move part of or all of below into a reuseable function
-                specimen_expression_annotations = extraAttributes.find(function(obj) {
-                    return obj.Region == data[0].child_id
-                })
-
-                var cameraIcon = data[0].child_image ? createCameraElement(data[0].child_image) : "" ;
-                if (showAnnotation && typeof specimen_expression_annotations != 'undefined') {
-                    if(annotated_term == "") {
-                        annotated_term = childText
-                    }
-                    var densityIcon = getDensityIcon(specimen_expression_annotations.density),
-                        densityChangeIcon = getDensityChangeIcon(specimen_expression_annotations.densityChange, specimen_expression_annotations.densityMagnitude),
-                        densityNoteIcon = getDensityNoteIcon(specimen_expression_annotations.densityNote),
-                        densityNote = specimen_expression_annotations.densityNote,
-                        noteIcon = getDensityNoteIcon(specimen_expression_annotations.note),
-                        note = specimen_expression_annotations.note,
-                        patternIcon = getPatternIcon(specimen_expression_annotations.pattern),
-                        strengthIcon = getStrengthIcon(specimen_expression_annotations.strength, specimen_expression_annotations.strengthModifier),
-                        densityImgSrc = densityIcon != '' ? "<img src=" + densityIcon + "></img>" : "",
-                        patternImgSrc = patternIcon != '' ? "<img src=" + patternIcon + "></img>" : "",
-                        strengthImgSrc = strengthIcon != '' ? "<img src=" + strengthIcon + "></img>" : "",
-                        densityChangeImgSrc = densityChangeIcon != '' ? "<img src=" + densityChangeIcon + "></img>" : "",
-                        densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img class='contains-note' src=" + densityNoteIcon + " title='Density Note: " + densityNote + "'></img>" : "",
-                        noteImgSrc = note != '' && note != null ? "<img class='contains-note' src=" + noteIcon + " title='Note: " + note + "'></img>" : "";
-
-                    isChildAnnotated = true;
-                    childImage = data[0].child_image;
-                    childColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + childText + " (" + data[0].child_id + ") " + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + cameraIcon + "</span>"
-                } else {
-                    isChildAnnotated = false;
-                    childImage = data[0].child_image;
-                    childColumnData = "<span><span class='display-text'>" + childText + " (" + data[0].child_id + ")" + "</span> " + cameraIcon + "</span>"
-                }
-
-                var id = 0
-                var parent = {
-                    text: parentColumnData,
-                    parent: [],
-                    children: [],
-                    dbxref: data[0].parent_id,
-                    annotated: isParentAnnotated,
-                    base_text: parentText,
-                    image_path: parentImage,
-                    a_attr: {
-                        'href': '/chaise/record/#2/Vocabulary:Anatomy/ID=' + data[0].parent_id.replace(/:/g, '%3A'),
-                        'style': 'display:inline;'
-                    }
-                };
-                var child = {
-                    text: childColumnData,
-                    parent: [],
-                    children: [],
-                    dbxref: data[0].child_id,
-                    annotated: isChildAnnotated,
-                    base_text: childText,
-                    image_path: childImage,
-                    a_attr: {
-                        'href': '/chaise/record/#2/Vocabulary:Anatomy/ID=' + data[0].child_id.replace(/:/g, '%3A'),
-                        'style': 'display:inline;'
-                    }
-                };
-                var forest = new Forest(parent);
-                if ((prefixVal != "" && parent.dbxref.startsWith("UBERON") == false) || prefixVal == "") {
-                    var tree = new Tree(parent);
-                    if (child.dbxref.startsWith("UBERON") == false) {
-                        var tree1 = new Tree(child);
-                        parent.children.push(child);
-                        child.parent.push(parent);
-                    }
-                    forest.trees.push(tree);
-                }
-                // Get all isolated nodes as parent nodes
-
-                for (var j = 0; j < isolatedNodes.length; j++) {
-                    var isolatedNodeImage = isolatedNodes[j].image ? createCameraElement(isolatedNodes[j].image) : "" ;
-                    var parent = {
-                        text: "<span>" + isolatedNodes[j].name + " (" + isolatedNodes[j].dbxref + ") " + isolatedNodeImage + "</span>",
+                    templateParams.$node_id = ERMrest._fixedEncodeURIComponent(id);
+                    var obj = {
                         parent: [],
                         children: [],
-                        dbxref: isolatedNodes[j].dbxref,
-                        base_text: isolatedNodes[j].name,
+                        dbxref: id,
+                        base_text: text,
+                        image_path: image,
                         a_attr: {
-                            'href': '/chaise/record/#2/Vocabulary:Anatomy/ID=' + isolatedNodes[j].dbxref.replace(/:/g, '%3A'),
+                            'href': ERMrest._renderHandlebarsTemplate(treeviewConfig.tree.click_event_callback, templateParams),
+                            'style': 'display:inline;'
+                        }
+                    };
+                    var specimen_expression_annotations = extraAttributes.find(function(attrs) {
+                            return attrs.Region == id
+                        });
+
+                    var cameraIcon = image ? createCameraElement(image) : "";
+                    if (showAnnotation && typeof specimen_expression_annotations != 'undefined') {
+                        if (annotated_term == "") annotated_term = text;
+                        // create icons and assign them to before or after arrays
+                        Object.keys(extraAttributesConfig).forEach(function (key) {
+                            var icon = generateIcon(extraAttributesConfig[key], key, specimen_expression_annotations);
+
+                            if (icon) extraAttributesConfig[key].before_text ? beforeIcons.push(icon) : afterIcons.push(icon);
+                        });
+
+                        // generate HTML that should appear in front of ndoe text
+                        var beforeIconsHTML = "";
+                        beforeIcons.forEach(function (icon) {
+                            beforeIconsHTML += icon;
+                        });
+
+                        // generate HTML that should appear after node text
+                        var afterIconsHTML = "";
+                        afterIcons.forEach(function (icon) {
+                            afterIconsHTML += icon;
+                        });
+                        obj.annotated = true;
+                        obj.text = "<span>"+beforeIconsHTML+"<span class='annotated display-text'>"+text+" ("+id+") </span>"+afterIconsHTML+cameraIcon+"</span>";
+                    } else {
+                        obj.annotated = false;
+                        obj.text = "<span><span class='display-text'>"+text+" ("+id+") </span> "+cameraIcon+"</span>"
+                    }
+
+                    return obj;
+                }
+
+                // create column data for first extra attributes parent
+                var parent = createColumnData(data[0].parent_id, data[0].parent, data[0].parent_image);
+
+                // create column data for first extra attributes child
+                var child = createColumnData(data[0].child_id, data[0].child, data[0].child_image);
+
+                var forest = new Forest(parent);
+                var tree1 = new Tree(child); // NOTE: tree1 is not used, but the Tree constructor registers the onclick event
+                parent.children.push(child);
+                child.parent.push(parent);
+                forest.trees.push(new Tree(parent));
+
+                // Get all isolated nodes as parent nodes
+                isolatedNodes.forEach(function (node) {
+                    var isolatedNodeImage = node.image ? createCameraElement(node.image) : "" ;
+                    templateParams.$node_id = ERMrest._fixedEncodeURIComponent(node.dbxref);
+                    var isolatedNode = {
+                        text: "<span>" + node.name + " (" + node.dbxref + ") " + isolatedNodeImage + "</span>",
+                        parent: [],
+                        children: [],
+                        dbxref: node.dbxref,
+                        base_text: node.name,
+                        image_path: node.image,
+                        a_attr: {
+                            'href': ERMrest._renderHandlebarsTemplate(treeviewConfig.tree.click_event_callback, templateParams),
                             'style': 'display:inline;'
                         },
                         li_attr: {
                             "class": "jstree-leaf"
                         }
                     };
-                    if ((prefixVal != "" && parent.dbxref.startsWith("UBERON") == false) || prefixVal == "") {
-                        var tree = new Tree(parent);
-                        forest.trees.push(tree);
-                    }
-                }
+                    forest.trees.push(new Tree(isolatedNode));
+                });
 
-                for (var i = 1; i < data.length; i++) {
-                    var childText = data[i].child,
-                        parentText = data[i].parent;
+                data.forEach(function (datum, index) {
+                    if (index == 0) return;
 
-                    var specimen_expression_annotations = extraAttributes.find(function(obj) {
-                        return obj.Region == data[i].parent_id
-                    });
+                    // create column data for the ith extra attributes parent
+                    var parent = createColumnData(datum.parent_id, datum.parent, datum.parent_image);
 
-                    // TODO: move part of or all of below into a reuseable function
-                    var cameraIcon = data[i].parent_image ? createCameraElement(data[i].parent_image) : "" ;
-                    if (showAnnotation && typeof specimen_expression_annotations != 'undefined') {
-                        if(annotated_term == "") {
-                            annotated_term = parentText
-                        }
-                        var densityIcon = getDensityIcon(specimen_expression_annotations.density),
-                            densityChangeIcon = getDensityChangeIcon(specimen_expression_annotations.densityChange, specimen_expression_annotations.densityMagnitude),
-                            densityNoteIcon = getDensityNoteIcon(specimen_expression_annotations.densityNote),
-                            densityNote = specimen_expression_annotations.densityNote,
-                            noteIcon = getDensityNoteIcon(specimen_expression_annotations.note),
-                            note = specimen_expression_annotations.note,
-                            patternIcon = getPatternIcon(specimen_expression_annotations.pattern),
-                            strengthIcon = getStrengthIcon(specimen_expression_annotations.strength, specimen_expression_annotations.strengthModifier),
-                            densityImgSrc = densityIcon != '' ? "<img src=" + densityIcon + "></img>" : "",
-                            patternImgSrc = patternIcon != '' ? "<img src=" + patternIcon + "></img>" : "",
-                            strengthImgSrc = strengthIcon != '' ? "<img src=" + strengthIcon + "></img>" : "",
-                            densityChangeImgSrc = densityChangeIcon != '' ? "<img src=" + densityChangeIcon + "></img>" : "",
-                            densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img class='contains-note' src=" + densityNoteIcon + " title='Density Note: " + densityNote + "'></img>" : "",
-                            noteImgSrc = note != '' && note != null ? "<img class='contains-note' src=" + noteIcon + " title='Note: " + note + "'></img>" : "";
+                    // create column data for the ith extra attributes child
+                    var child = createColumnData(datum.child_id, datum.child, datum.child_image);
 
-                        isParentAnnotated = true;
-                        parentImage = data[i].parent_image;
-                        parentColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + parentText + " (" + data[i].parent_id + ") " + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + cameraIcon + "</span>";
-                    } else {
-                        isParentAnnotated = false;
-                        parentImage = data[i].parent_image;
-                        parentColumnData = "<span><span class='display-text'>" + parentText + " (" + data[i].parent_id + ")" + "</span> " + cameraIcon + "</span>";
-                    }
-
-                    // TODO: move part of or all of below into a reuseable function
-                    specimen_expression_annotations = extraAttributes.find(function(obj) {
-                        return obj.Region == data[i].child_id
-                    })
-                    var cameraIcon = data[i].child_image ? createCameraElement(data[i].child_image) : "" ;
-                    if (showAnnotation && typeof specimen_expression_annotations != 'undefined') {
-                        if(annotated_term == "") {
-                            annotated_term = childText
-                        }
-                        var densityIcon = getDensityIcon(specimen_expression_annotations.density),
-                            densityChangeIcon = getDensityChangeIcon(specimen_expression_annotations.densityChange, specimen_expression_annotations.densityMagnitude),
-                            densityNoteIcon = getDensityNoteIcon(specimen_expression_annotations.densityNote),
-                            densityNote = specimen_expression_annotations.densityNote,
-                            noteIcon = getDensityNoteIcon(specimen_expression_annotations.note),
-                            note = specimen_expression_annotations.note,
-                            patternIcon = getPatternIcon(specimen_expression_annotations.pattern),
-                            strengthIcon = getStrengthIcon(specimen_expression_annotations.strength, specimen_expression_annotations.strengthModifier),
-                            densityImgSrc = densityIcon != '' ? "<img src=" + densityIcon + "></img>" : "",
-                            patternImgSrc = patternIcon != '' ? "<img src=" + patternIcon + "></img>" : "",
-                            strengthImgSrc = strengthIcon != '' ? "<img src=" + strengthIcon + "></img>" : "",
-                            densityChangeImgSrc = densityChangeIcon != '' ? "<img src=" + densityChangeIcon + "></img>" : "",
-                            densityNoteImgSrc = densityNote != '' && densityNote != null ? "<img class='contains-note' src=" + densityNoteIcon + " title='Density Note: " + densityNote + "'></img>" : "",
-                            noteImgSrc = note != '' && note != null ? "<img class='contains-note' src=" + noteIcon + " title='Note: " + note + "'></img>" : "";
-
-                        isChildAnnotated = true;
-                        childImage = data[i].child_image;
-                        childColumnData = "<span>" + strengthImgSrc + "<span class='annotated display-text'>" + childText + " (" + data[i].child_id + ") " + "</span>" + densityImgSrc + patternImgSrc + densityChangeImgSrc + densityNoteImgSrc + noteImgSrc + cameraIcon + "</span>"
-                    } else {
-                        isChildAnnotated = false;
-                        childImage = data[i].child_image;
-                        childColumnData = "<span><span class='display-text'>" + childText + " (" + data[i].child_id + ")"  + "</span> " + cameraIcon + "</span>";
-                    }
-
-                    var parent = {
-                        text: parentColumnData,
-                        parent: [],
-                        children: [],
-                        dbxref: data[i].parent_id,
-                        annotated: isParentAnnotated,
-                        base_text: parentText,
-                        image_path: parentImage,
-                        a_attr: {
-                            'href': '/chaise/record/#2/Vocabulary:Anatomy/ID=' + data[i].parent_id.replace(/:/g, '%3A'),
-                            'style': 'display:inline;'
-                        }
-                    };
-                    var child = {
-                        text: childColumnData,
-                        parent: [],
-                        children: [],
-                        dbxref: data[i].child_id,
-                        annotated: isChildAnnotated,
-                        base_text: childText,
-                        image_path: childImage,
-                        a_attr: {
-                            'href': '/chaise/record/#2/Vocabulary:Anatomy/ID=' + data[i].child_id.replace(/:/g, '%3A'),
-                            'style': 'display:inline;'
-                        }
-                    };
-                    if ((prefixVal != "" && parent.dbxref.startsWith("UBERON") == false) || prefixVal == "") {
-                        var tree = new Tree(parent);
-                        if ((prefixVal != "" && child.dbxref.startsWith("UBERON") == false) || prefixVal == "") {
-                            var tree1 = new Tree(child);
-                            parent.children.push(child);
-                            child.parent.push(parent);
-                        }
-                    }
+                    var tree1 = new Tree(child); // NOTE: tree1 is not used, but the Tree constructor registers the onclick event
+                    parent.children.push(child);
+                    child.parent.push(parent);
                     var parentNode = false;
                     var childNode = false;
                     var childIndex = -1;
                     var parentIndex = -1;
-                    for (var f = 0; f < forest.trees.length; f++) {
-                        var tree = forest.trees[f];
 
+                    // search through the whole tree and determine if a parent or child node can be found
+                    forest.trees.forEach(function (tree, idx) {
                         // find if a node relationship exists (multiple can but we care about one because the rest will be trimmed)
                         if (!parentNode) {
-                            parentNode = tree.contains(tree, data[i].parent_id);
-                            if (parentNode) parentIndex = f;
+                            parentNode = tree.contains(tree, parent.dbxref);
+                            if (parentNode) parentIndex = idx;
                         }
                         // find if a node relationship exists (multiple can but we care about one because the rest will be trimmed)
                         if (!childNode) {
-                            childNode = tree.contains(tree, data[i].child_id);
-                            if (childNode) childIndex = f;
+                            childNode = tree.contains(tree, child.dbxref);
+                            if (childNode) childIndex = idx;
                         }
-                    }
+                    });
 
+                    // determine if the node exists yet
                     if (!parentNode && !childNode) {
-                        if ((prefixVal != "" && parent.dbxref.startsWith("UBERON") == false) || prefixVal == "") {
-                            var tree = new Tree(parent);
-                            forest.trees.push(tree);
-                        }
-                    }
-                    //parent node exist, add child to parent node
-                    else if (parentNode && !childNode) {
-                        if ((prefixVal != "" && child.dbxref.startsWith("UBERON") == false) || prefixVal == "") {
-                            parentNode.children.push(child);
-                        }
-                    }
-                    //child node exist, add parent to child node
-                    //delete child from the forest as child is no longer root
-                    else if (!parentNode && childNode) {
-                        if ((prefixVal != "" && parent.dbxref.startsWith("UBERON") == false) || prefixVal == "") {
-                            parent.children.pop();
-                            parent.children.push(childNode);
-                            childNode.parent.push(parent);
-                            tree = new Tree(parent);
-                            jloop:
-                            for (var t = 0; t < forest.trees.length; t++) {
-                                if (forest.trees[t].node.dbxref == childNode.dbxref) {
-                                    forest.trees.splice(t, 1);
-                                    break jloop;
-                                }
+                        forest.trees.push(new Tree(parent));
+                    } else if (parentNode && !childNode) {
+                        // parent node exist, add child to parent node
+                        parentNode.children.push(child);
+                    } else if (!parentNode && childNode) {
+                        // child node exist, add parent to child node
+                        // delete child from the forest as child is no longer root
+                        parent.children.pop();
+                        parent.children.push(childNode);
+                        childNode.parent.push(parent);
+                        jloop:
+                        for (var t = 0; t < forest.trees.length; t++) {
+                            if (forest.trees[t].node.dbxref == childNode.dbxref) {
+                                forest.trees.splice(t, 1);
+                                break jloop;
                             }
-                            forest.trees.push(tree);
                         }
-                    }
-                    //child and parent node, both are present then add child to parent
-                    //and remove the child form the forest
-                    else if (parentNode && childNode) {
+                        forest.trees.push(new Tree(parent));
+                    } else if (parentNode && childNode) {
+                        // child and parent node, both are present then add child to parent
+                        // and remove the child from the forest
                         parentNode.children.push(childNode);
                         ploop:
                         for (var q = 0; q < forest.trees.length; q++) {
@@ -847,10 +743,48 @@ var image_hash = {};
                             }
                         }
                     }
-                }
+                });
 
                 return (forest);
 
+            }
+
+            // generic function to generate annotated icons based on config
+            function generateIcon(iconConfig, key, values) {
+                var value = values[key];
+                // if the labels set is a string, return that string (should be a path to an icon)
+                if (typeof iconConfig.labels == "string") return generateIconHTML(iconConfig.labels, iconConfig.has_tooltip, key, value);
+
+                var iconPath = iconConfig.labels[value];
+                // if we get a string, return, else recurse (it should be an object again)
+                if (typeof iconPath == "string" || !iconPath) {
+
+                    return generateIconHTML(iconPath, iconConfig.has_tooltip, key, value);
+                }
+
+                var nestedKey = Object.keys(iconPath)[0];
+                return generateIcon(iconPath[nestedKey], nestedKey, values);
+            }
+
+            // after an icon path has been chosen, create the html element
+            function generateIconHTML(path, hasTooltip, key, value) {
+                if (!path) return null;
+                var html = "<img src='" + path + "'";
+                // attach tooltip is available, value will be the tooltip
+                if (hasTooltip) html += " class='contains-note' title='"+key+": "+value+"'";
+                return html + "></img>";
+            }
+
+            function createCameraElement(imageUrl) {
+                // image_hash
+                // preloads the image
+                (new Image()).src = imageUrl;
+                return '<span class="schematic-popup-icon"><img src="resources/images/camera-icon.png"></img></span>'
+            }
+
+            function nodeClickCallback(node) {
+                var sourceObject = '{ "id": "' + node.dbxref + '", "name": "' + node.base_text + '" }';
+                return 'parent.setSourceForFilter(' + sourceObject + ');';
             }
 
             // Queue object/class constructor
@@ -879,18 +813,25 @@ var image_hash = {};
                 }
             };
 
+            function Forest(node) {
+                var tree = new Tree(node);
+                this.trees = [];
+            }
+
             // Tree object/class constructor
             function Tree(node) {
                 var s = node.a_attr;
                 if (parentAppExists) {
+                    // assuming Parent_App is booleanSearch
                     s["onClick"] = nodeClickCallback(node);
                 } else {
-                    var linkId = node.dbxref.replace(/:/g, '%3A');
-                    var l = "'/chaise/record/#2/Vocabulary:Anatomy/ID=" + linkId + "','_blank'";
+                    // TODO: this function should be exposed as public in ermrestJS
+                    templateParams.$node_id = ERMrest._fixedEncodeURIComponent(node.dbxref);
+                    var l = "'" + ERMrest._renderHandlebarsTemplate(treeviewConfig.tree.click_event_callback, templateParams) + "','_blank'";
                     s["onClick"] = "window.open(" + l + ");";
                 }
                 // properties stored under "original" property on jstree_node object
-                var node = {
+                var newNode = {
                     text: node.text,
                     dbxref: node.dbxref,
                     annotated: node.annotated,
@@ -901,102 +842,7 @@ var image_hash = {};
                     a_attr: s,
                     li_attr: node.li_attr
                 };
-                this.node = node;
-            }
-            var tress = [];
-
-            function Forest(node) {
-                var tree = new Tree(node);
-                this.trees = [];
-            }
-
-            // TODO: functions to vcreate icons need to be generalized
-            function getDensityIcon(density) {
-                switch (density) {
-                    case 'High':
-                        return "resources/images/NerveDensity/RelativeToTotal/high.png";
-                    case 'Low':
-                        return "resources/images/NerveDensity/RelativeToTotal/low.png";
-                    case 'Medium':
-                        return "resources/images/NerveDensity/RelativeToTotal/medium.png";
-                    default:
-                        return "";
-                }
-            }
-
-            function getDensityChangeIcon(change, magnitude) {
-                switch (change) {
-                    case 'Decreased':
-                        switch (magnitude) {
-                            case 'Large':
-                                return "resources/images/NerveDensity/RelativeToP0/dec_large.png";
-                            default:
-                                return "resources/images/NerveDensity/RelativeToP0/dec_small.png";
-                            }
-                    case 'Increased':
-                        switch (magnitude) {
-                            case 'Large':
-                                return "resources/images/NerveDensity/RelativeToP0/inc_large.png";
-                            default:
-                                return "resources/images/NerveDensity/RelativeToP0/inc_small.png";
-                        }
-                    default:
-                        return "";
-                }
-            }
-
-            function getDensityNoteIcon(densityNote) {
-                return (densityNote != null) ? "resources/images/NerveDensity/note.gif" : "";
-            }
-
-            function getPatternIcon(pattern) {
-                switch (pattern) {
-                    case 'graded':
-                        return "resources/images/ExpressionMapping/ExpressionPatternKey/Graded.png";
-                    case 'homogeneous':
-                        return "resources/images/ExpressionMapping/ExpressionPatternKey/Homogeneous.png";
-                    case 'regional':
-                        return "resources/images/ExpressionMapping/ExpressionPatternKey/Regional.png";
-                    case 'restricted':
-                        return "resources/images/ExpressionMapping/ExpressionPatternKey/Restricted.png";
-                    case 'single cell':
-                        return "resources/images/ExpressionMapping/ExpressionPatternKey/SingleCell.png";
-                    case 'spotted':
-                        return "resources/images/ExpressionMapping/ExpressionPatternKey/Spotted.png";
-                    case 'ubiquitous':
-                        return "resources/images/ExpressionMapping/ExpressionPatternKey/Ubiquitous.png";
-                    default:
-                        return "";
-                }
-            }
-
-            function getStrengthIcon(strength, strengthModifier) {
-                switch (strength) {
-                    case 'not detected':
-                        return "resources/images/ExpressionMapping/ExpressionStrengthsKey/notDetected.gif";
-                    case 'uncertain':
-                        return "resources/images/ExpressionMapping/ExpressionStrengthsKey/Uncertain.gif";
-                    case 'present':
-                        switch (strengthModifier) {
-                            case 'strong':
-                                return "resources/images/ExpressionMapping/ExpressionStrengthsKey/Present(strong).gif";
-                            case 'moderate':
-                                return "resources/images/ExpressionMapping/ExpressionStrengthsKey/Present(moderate).gif";
-                            case 'weak':
-                                return "resources/images/ExpressionMapping/ExpressionStrengthsKey/Present(weak).gif";
-                            default:
-                                return "resources/images/ExpressionMapping/ExpressionStrengthsKey/Present(unspecifiedStrength).gif";
-                        }
-                    default:
-                        return "";
-                }
-            }
-
-            function createCameraElement(imageUrl) {
-                // image_hash
-                // preloads the image
-                (new Image()).src = imageUrl;
-                return '<span class="schematic-popup-icon"><img src="resources/images/camera-icon.png"></img></span>'
+                this.node = newNode;
             }
 
             // functions for the tree object/class
@@ -1038,38 +884,6 @@ var image_hash = {};
                     throw new Error('Cannot add node to a non-existent parent.');
                 }
             };
-
-            // TODO: what is this doing? Should it be moved to other "setup functions"?
-            $(function() {
-                $("#plugins4").jstree({
-                    "plugins": ["search"]
-                });
-                var to = false;
-                $('#plugins4_q').keyup(function() {
-                    if (to) {
-                        clearTimeout(to);
-                    }
-                    to = setTimeout(function() {
-                        var v = $('#plugins4_q').val();
-                        $('#jstree').jstree(true).search(v);
-                    }, 1400);
-                });
-            });
-
-
-            // refactor to just be a getter
-            // add another function to strip params
-            function findGetParameter(parameterName) {
-                var result = null,
-                tmp = [];
-                // search is denoted by '?', it is everything including the '?' and after it
-                var items = window.location.search.substr(1).split("&");
-                for (var index = 0; index < items.length; index++) {
-                    tmp = items[index].split("=");
-                    if (tmp[0] === parameterName) result = decodeURIComponent(tmp[1]);
-                }
-                return result;
-            }
         }); // end of ERMrest.onload
     }); // end of document ready
 })()
