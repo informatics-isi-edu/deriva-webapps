@@ -9,7 +9,7 @@
         ERMrest.configure(null, Q);
 
         ERMrest.onload().then(function () {
-            var showAnnotation, filter_prefix, id_parameter, filterUrl, filterValue, columnName;
+            var showAnnotation, id_parameter, filterUrl, filterValue, columnName, parentAppExists;
             var annotated_term  = "";
             var annotated_terms = [],
                 urlParams       = {}, // key/values from uri
@@ -22,10 +22,6 @@
                 $filters: {},
                 $url_parameters: {}
             }
-
-            // NOTE: refactor into 2 sections:
-            //  - parameter extraction and data setup
-            //  - component setup using selectors
 
             // collect url params that appear in url in urlParams object
             window.location.search.substr(1).split("&").forEach(function(param) {
@@ -49,81 +45,17 @@
                 queryParamNames.push(filter.filter_column_name);
             });
 
-            // console.log("url param names: ", urlParamNames);
-            // console.log("url param values: ", urlParams);
-            // console.log("required param names: ", requiredParams);
-            // console.log("query param names: ", queryParamNames);
-            // console.log("query param values: ", queryParams);
-
             templateParams.$url_parameters = queryParams;
+/* ===== End parameter extraction ===== */
 
-            console.log(templateParams);
-
-            // NOTE: should this always be the last param in treeviewConfig.filters[last].selected_filter.required_url_parameters?
-            var idParamName = requiredParams[requiredParams.length-1];
-            if (urlParams[idParamName]) {
-                id_parameter = queryParams[idParamName];
-                showAnnotation = true;
-                document.getElementById('left').style.visibility = "visible";
-                document.getElementById('look-up').style.height = "100%";
-                document.getElementById('anatomyHeading').style.display = "none";
-            } else {
-                id_parameter = ''
-                showAnnotation = false;
-                document.getElementById('look-up').style.height = "0";
-                $("#right").css('margin-left', '10px');
-                $(".tree-panel").css('width', '99.5%');
-                $("#left").removeClass("col-md-2 col-lg-2 col-sm-2 col-2");
-                $("#right").removeClass("col-md-10 col-lg-10 col-sm-10 col-10");
-                $("#right").addClass("col-md-12 col-lg-12 col-sm-12 col-12");
-                var headingEl = document.getElementById('anatomyHeading');
-                headingEl.style.visibility = "visible";
-                $(headingEl).children("h3")[0].innerHTML = ERMrest._renderHandlebarsTemplate(treeviewConfig.title_markdown_pattern, templateParams);
+            // function to reduce duplicated logic for collecting filter value from dropdown and re-fetching tree data
+            function getValAndBuildData(name, value) {
+                templateParams.$filters[name] = value;
+                // filter_column_name (in config document) should be the column name you want for filtering data
+                queryParams[name] = value;
+                buildPresentationData(showAnnotation, value, id_parameter);
             }
 
-            // determine if a parent app exists and change state of treeview to accomodate for it
-            var appName = urlParams["Parent_App"] || null;
-            parentAppExists = appName !== null;
-
-            document.getElementById('loadIcon').style.visibility = "visible";
-            $("#number").selectmenu({
-                appendTo: "#filterDropDown"
-            }).selectmenu("menuWidget").addClass("overflow");
-            document.getElementById('filterDropDown').style.visibility = "visible";
-            document.getElementById('searchDiv').style.visibility = "visible";
-
-            var offset = 250;
-            var duration = 300;
-            var location = window.location.href;
-            // TODO: is this still necessary
-            if (location.indexOf("prefix_filter=") !== -1) {
-                var prefix_filter_value = findGetParameter('prefix_filter')
-                filter_prefix = prefix_filter_value;
-            } else {
-                filter_prefix = "";
-            }
-
-            $(".tree-panel").scroll(function() {
-                $( "#number" ).selectmenu( "close" );
-                if ($(this).scrollTop() > offset) {
-                    $(".back-to-top").fadeIn(duration);
-                } else {
-                    $(".back-to-top").fadeOut(duration);
-                }
-            });
-            $(".back-to-top").click(function(event) {
-                event.preventDefault();
-                $("html, .tree-panel").animate({
-                    scrollTop: 0
-                }, duration);
-                // is this needed?
-                return false;
-            })
-            // 'X' in warning message
-            $(".close").click(function(event) {
-                event.preventDefault();
-                $("#warning-message")[0].style.display = "none";
-            });
             // if selected_filter in config and said identifier is present in url
             if(showAnnotation == true) {
                 treeviewConfig.filters.forEach(function (filter, idx) {
@@ -132,7 +64,6 @@
                     filterUrl = 'https://' + window.location.hostname + ERMrest._renderHandlebarsTemplate(queryPattern, templateParams);
                     var $el = $("#number");
                     $el.empty();
-                    // ERMrest._http.get(filterUrl)
                     $.getJSON(filterUrl, function(filterData) {
                         // TODO: remove if statement when we want to support multiple filters
                         if (idx == treeviewConfig.filters.length-1) {
@@ -160,37 +91,12 @@
                                 // filter_column_name should be the column name you want for filtering data
                                 columnName = filter.filter_column_name;
                                 filterValue = filterData[0][columnName];
-
-                                templateParams.$filters[columnName] = filterValue;
-                                queryParams[columnName] = filterValue;
-                                buildPresentationData(showAnnotation, filter_prefix, filterValue, id_parameter)
+                                getValAndBuildData(columnName, filterValue);
                             }
                         }
                     }); // end getJSON
                 }); // end forEach
             } else {
-                /**
-                 * Vocabulary:Developmental_Stage:Species is a foreign key to Vocabulary:Species:ID which have the following values
-                 * the below is in the format of (Vocabulary:Species:ID = Vocabulary:Species:Name)
-                 * "NCBITaxon:9606"   = "Homo sapiens"
-                 * "NCBITaxon:10090"  = "Mus musculus"
-                 * "NCBITaxon:7955"   = "Danio rerio"
-                 * "NCBITaxon:9598"   = "Pan troglodytes"
-                 **/
-                // Change Species to be a join on Vocab:Species
-                // filterUrl = 'https://'+window.location.hostname+'/ermrest/catalog/2/attributegroup/M:=Vocabulary:Developmental_Stage/species:=(Species)=(Vocabulary:Species:ID)/species:Name=Mus%20musculus/id:=M:Name,M:Ordinal,M:Name,M:Approximate_Equivalent_Age@sort(Ordinal)';
-
-                function getValAndBuildData() {
-                    filterValue = $("#number").val();
-                    columnName = filter.filter_column_name;
-
-                    templateParams.$filters[columnName] = filterValue;
-                    // filter_column_name should be the column name you want for filtering data
-                    queryParams[columnName] = filterValue;
-                    buildPresentationData(showAnnotation, filter_prefix, filterValue, id_parameter);
-                }
-
-                // TODO: this shouldn't be hardcoded to filters[1]
                 treeviewConfig.filters.forEach(function (filter, idx) {
                     filterUrl = 'https://' + window.location.hostname + ERMrest._renderHandlebarsTemplate(filter.query_pattern, templateParams);
                     var $el = $("#number");
@@ -215,7 +121,6 @@
                             // select default
                             $('#number').val(filter.default_id);
                             $("#number").selectmenu("refresh");
-                            // TODO: register event for dropdown menu. could go somewhere else?
                             $("#number").on('selectmenuchange', function() {
                                 document.getElementsByClassName('loader')[0].style.display = "block";
                                 document.getElementById('jstree').style.visibility = "hidden";
@@ -226,49 +131,145 @@
                                 $("#collapse_all_btn").prop("disabled", true);
                                 $("#reset_text").prop("disabled", true);
 
-                                getValAndBuildData();
+                                filterValue = $("#number").val();
+                                columnName = filter.filter_column_name;
+                                getValAndBuildData(columnName, filterValue);
                             });
 
-                            getValAndBuildData();
+                            filterValue = $("#number").val();
+                            columnName = filter.filter_column_name;
+                            getValAndBuildData(columnName, filterValue);
                         }
                     });
                 });
             }
 
-            function setupDomElements() {
-                
-            }
-            $("#reset_text").click(function() {
-                document.getElementById('plugins4_q').value = "";
-                $("#jstree").jstree('clear_search');
-            })
+/* ===== End Data Setup ===== */
+            setupDomElements();
+            // the end of script execution
+/* ===== End DOM Setup  ===== */
+            // functions defined below assist in data setup and DOM setup
 
-            $("#search_btn").click(function() {
-                var v = $('#plugins4_q').val();
-                $('#jstree').jstree(true).search(v);
-            })
-            $("#expand_all_btn").click(function() {
-                document.getElementsByClassName('loader')[0].style.display = "visible";
-                document.getElementById('jstree').style.visibility = "none";
-                $("#number").prop("disabled", true);
-                $('#plugins4_q').prop("disabled", true);
-                $("#search_btn").prop("disabled", true);
-                $("#expand_all_btn").prop("disabled", true);
-                $("#collapse_all_btn").prop("disabled", true);
-                $("#reset_text").prop("disabled", true);
-                $("#jstree").jstree('open_all');
-            })
-            $("#collapse_all_btn").click(function() {
-                document.getElementsByClassName('loader')[0].style.display = "visible";
-                document.getElementById('jstree').style.visibility = "none";
-                $("#number").prop("disabled", true);
-                $('#plugins4_q').prop("disabled", true);
-                $("#search_btn").prop("disabled", true);
-                $("#expand_all_btn").prop("disabled", true);
-                $("#collapse_all_btn").prop("disabled", true);
-                $("#reset_text").prop("disabled", true);
-                $("#jstree").jstree('close_all');
-            })
+            function setupDomElements() {
+                // NOTE: should this always be the last param in treeviewConfig.filters[last].selected_filter.required_url_parameters?
+                var idParamName = requiredParams[requiredParams.length-1];
+                if (urlParams[idParamName]) {
+                    // we have an id param, so make sure the left panel is visible and title is hidden
+                    id_parameter = queryParams[idParamName];
+                    showAnnotation = true;
+                    document.getElementById('left').style.visibility = "visible";
+                    document.getElementById('look-up').style.height = "100%";
+                    document.getElementById('anatomyHeading').style.display = "none";
+                } else {
+                    // no id so change the UX to hide the left panel
+                    id_parameter = ''
+                    showAnnotation = false;
+                    document.getElementById('look-up').style.height = "0";
+                    $("#right").css('margin-left', '10px');
+                    $(".tree-panel").css('width', '99.5%');
+                    $("#left").removeClass("col-md-2 col-lg-2 col-sm-2 col-2");
+                    $("#right").removeClass("col-md-10 col-lg-10 col-sm-10 col-10");
+                    $("#right").addClass("col-md-12 col-lg-12 col-sm-12 col-12");
+                    var headingEl = document.getElementById('anatomyHeading');
+                    headingEl.style.visibility = "visible";
+                    $(headingEl).children("h3")[0].innerHTML = ERMrest._renderHandlebarsTemplate(treeviewConfig.title_markdown_pattern, templateParams);
+                }
+
+                // create and configure dropdown menu
+                $("#number").selectmenu({
+                    appendTo: "#filterDropDown"
+                }).selectmenu("menuWidget").addClass("overflow");
+                document.getElementById('filterDropDown').style.visibility = "visible";
+
+                // determine if a parent app exists and change state of treeview to accomodate for it
+                var appName = urlParams["Parent_App"] || null;
+                parentAppExists = appName !== null;
+
+                // make sure search div and load icon are visible
+                // hide load icon later when data comes back
+                document.getElementById('loadIcon').style.visibility = "visible";
+                document.getElementById('searchDiv').style.visibility = "visible";
+
+                // as tree scrolls, calculate if the back to top button should show
+                $(".tree-panel").scroll(function() {
+                    $( "#number" ).selectmenu( "close" );
+                    if ($(this).scrollTop() > 250) {
+                        $(".back-to-top").fadeIn(300);
+                    } else {
+                        $(".back-to-top").fadeOut(300);
+                    }
+                });
+
+                // button that apears on bottom right to quickly jump back to the top
+                $(".back-to-top").click(function(event) {
+                    event.preventDefault();
+                    $("html, .tree-panel").animate({
+                        scrollTop: 0
+                    }, 300);
+                });
+
+                // 'X' in warning message
+                $(".close").click(function(event) {
+                    event.preventDefault();
+                    $("#warning-message")[0].style.display = "none";
+                });
+
+                // clear search box text
+                $("#reset_text").click(function() {
+                    document.getElementById('plugins4_q').value = "";
+                    $("#jstree").jstree('clear_search');
+                });
+
+                $("#search_btn").click(function() {
+                    var v = $('#plugins4_q').val();
+                    $('#jstree').jstree(true).search(v);
+                });
+
+                // expand all nodes, disable other DOM elements while the nodes are being opened
+                $("#expand_all_btn").click(function() {
+                    disableControls();
+                    $("#jstree").jstree('open_all');
+                });
+
+                // close all nodes, disable other DOM elements while the nodes are being closed
+                $("#collapse_all_btn").click(function() {
+                    disableControls();
+                    $("#jstree").jstree('close_all');
+                });
+
+                // there are currently 4 facet panels for the legend
+                $('#look-up .panel-default').toArray().forEach(function(panel, index) {
+                    var panelBodySelector = "#facets-" + (index+1);
+                    $(panelBodySelector+'-heading').click(function() {
+                        $(panelBodySelector).toggleClass('hide-panel');
+                        toggleIcon($(panelBodySelector+'-heading > span'));
+                    });
+                });
+
+                // NOTE: not sure why this is wrapped in a jquery function
+                $(function() {
+                    $("#plugins4").jstree({
+                        "plugins": ["search"]
+                    });
+                    var to = false;
+                    $('#plugins4_q').keyup(function() {
+                        if (to) {
+                            clearTimeout(to);
+                        }
+                        to = setTimeout(function() {
+                            var v = $('#plugins4_q').val();
+                            $('#jstree').jstree(true).search(v);
+                        }, 1400);
+                    });
+                });
+            }
+
+            function checkIfSearchItemExists() {
+                if ($('#plugins4_q').val() !== '') {
+                    var v = $('#plugins4_q').val();
+                    $('#jstree').jstree(true).search(v);
+                }
+            }
 
             // legend panel setup
             function toggleIcon (el) {
@@ -282,20 +283,39 @@
                 }
             }
 
-            // there are currently 4 facet panels for the legend
-            $('#look-up .panel-default').toArray().forEach(function(panel, index) {
-                var panelBodySelector = "#facets-" + (index+1);
-                $(panelBodySelector+'-heading').click(function() {
-                    $(panelBodySelector).toggleClass('hide-panel');
-                    toggleIcon($(panelBodySelector+'-heading > span'));
-                });
-            });
+            // show the loading spinner and hide the tree, disable the rest of the controls
+            function disableControls() {
+                document.getElementsByClassName('loader')[0].style.display = "visible";
+                document.getElementById('jstree').style.visibility = "none";
+                $("#number").prop("disabled", true);
+                $('#plugins4_q').prop("disabled", true);
+                $("#search_btn").prop("disabled", true);
+                $("#expand_all_btn").prop("disabled", true);
+                $("#collapse_all_btn").prop("disabled", true);
+                $("#reset_text").prop("disabled", true);
+            }
 
-            function checkIfSearchItemExists() {
-                if ($('#plugins4_q').val() !== '') {
-                    var v = $('#plugins4_q').val();
-                    $('#jstree').jstree(true).search(v);
-                }
+            // hide loading spinner and show the tree, enable the rest of the controls
+            function enableControls() {
+                $("#number").prop("disabled", false);
+                $('#plugins4_q').prop("disabled", false);
+                $("#search_btn").prop("disabled", false);
+                $("#expand_all_btn").prop("disabled", false);
+                $("#collapse_all_btn").prop("disabled", false);
+                $("#reset_text").prop("disabled", false);
+                document.getElementsByClassName('loader')[0].style.display = "none";
+                document.getElementById('jstree').style.visibility = "visible";
+            }
+
+            function showImageModal(image_path, text, event) {
+                // stops propagating the click event to the onclick function defined
+                event.stopPropagation();
+                // stops triggering the event the <a href="..."> tag
+                event.preventDefault();
+
+                $(".modal-body > img")[0].src = image_path;
+                $("#schematic-title")[0].innerHTML = text;
+                $("#schematic-modal").modal('show');
             }
 
             function buildTreeAndAssignEvents(presentationData) {
@@ -342,17 +362,6 @@
                     var tree = $("div#jstree").jstree();
 
                     // defined here because nodes are destroyed when closed, so need to be reattached on each node being opened
-                    function showImageModal(image_path, text, event) {
-                        // stops propagating the click event to the onclick function defined
-                        event.stopPropagation();
-                        // stops triggering the event the <a href="..."> tag
-                        event.preventDefault();
-
-                        $(".modal-body > img")[0].src = image_path;
-                        $("#schematic-title")[0].innerHTML = text;
-                        $("#schematic-modal").modal('show');
-                    }
-
                     // show image preview only on click
                     $(".schematic-popup-icon").click(function(event) {
                         // n_id of the parent node
@@ -401,26 +410,12 @@
                 })
                 .on('open_all.jstree', function() {
                     setTimeout(function() {
-                        $("#number").prop("disabled", false);
-                        $('#plugins4_q').prop("disabled", false);
-                        $("#search_btn").prop("disabled", false);
-                        $("#expand_all_btn").prop("disabled", false);
-                        $("#collapse_all_btn").prop("disabled", false);
-                        $("#reset_text").prop("disabled", false);
-                        document.getElementsByClassName('loader')[0].style.display = "none";
-                        document.getElementById('jstree').style.visibility = "visible";
+                        enableControls();
                     }, 100);
                 })
                 .on('close_all.jstree', function() {
                     setTimeout(function() {
-                        $("#number").prop("disabled", false);
-                        $('#plugins4_q').prop("disabled", false);
-                        $("#search_btn").prop("disabled", false);
-                        $("#expand_all_btn").prop("disabled", false);
-                        $("#collapse_all_btn").prop("disabled", false);
-                        $("#reset_text").prop("disabled", false);
-                        document.getElementsByClassName('loader')[0].style.display = "none";
-                        document.getElementById('jstree').style.visibility = "visible";
+                        enableControls();
                     }, 100);
                 })
                 .on('loaded.jstree', function(e, data) {
@@ -475,15 +470,9 @@
                         $("#warning-message").css("display", "");
                         $("#alert-warning-text")[0].innerHTML="No annotated terms for the given specimen.";
                     }
-                })
-                document.getElementsByClassName('loader')[0].style.display = "none";
-                document.getElementById('jstree').style.visibility = "visible";
-                $("#number").prop("disabled", false);
-                $('#plugins4_q').prop("disabled", false);
-                $("#search_btn").prop("disabled", false);
-                $("#expand_all_btn").prop("disabled", false);
-                $("#collapse_all_btn").prop("disabled", false);
-                $("#reset_text").prop("disabled", false);
+                }); // end registering event listeners for jstree
+
+                enableControls();
                 $("a#change").click(function() {
                     var tree = $("div#jstree").jstree(),
                         nodename = tree.get_node("#").children[0],
@@ -498,7 +487,7 @@
             }
 
             // filterOrderVal is currently the ordinal associated with the stage data. It's used in tree data requests for leq/geq clauses
-            function buildPresentationData(showAnnotation, prefixVal, filterOrderVal, id_parameter) {
+            function buildPresentationData(showAnnotation, filterOrderVal, id_parameter) {
                 var treeURL, isolatedURL, extraAttributesURL;
                 var json, isolatedNodes, extraAttributes,
                     presentationData = [];
@@ -512,16 +501,15 @@
                             isolatedNodes = data
                         }).done(function() {
                             if(id_parameter != '') {
-                                // use variable template replacement to fill in the URI pattern
                                 extraAttributesURL = 'https://' + window.location.hostname + ERMrest._renderHandlebarsTemplate(treeviewConfig.annotation.annotation_query_pattern, templateParams);
                                 $.getJSON(extraAttributesURL, function(data) {
                                     extraAttributes = data
                                 }).done(function() {
-                                    refreshOrBuildTree(json, extraAttributes, showAnnotation, isolatedNodes, prefixVal, filterOrderVal)
+                                    refreshOrBuildTree(json, extraAttributes, showAnnotation, isolatedNodes, filterOrderVal)
                                 })
                             }
                             else {
-                                refreshOrBuildTree(json, [], showAnnotation, isolatedNodes, prefixVal, filterOrderVal)
+                                refreshOrBuildTree(json, [], showAnnotation, isolatedNodes, filterOrderVal)
                             }
                         })
                     });
@@ -539,10 +527,6 @@
                     return matchedFilters == filterSet.length;
                 }
 
-                // Returns json - Query 1 : https://dev.rebuildingakidney.org/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of/F1:=left(subject_dbxref)=(Anatomy_terms:dbxref)/$M/F2:=left(object_dbxref)=(Anatomy_terms:dbxref)/$M/subject_dbxref:=M:subject_dbxref,object_dbxref,subject:=F1:name,object:=F2:name
-                // Returns extraAttributes - Query 2 : https://dev.rebuildingakidney.org/ermrest/catalog/2/attribute/M:=Gene_Expression:Specimen_Expression/RID=Q-PQ16/$M/RID:=M:RID,Region:=M:Region,strength:=M:Strength,pattern:=M:Pattern,density:=M:Density,densityChange:=M:Density_Direction,densityNote:=M:Density_Note
-                // Returns isolated nodes - Query 3 : https://dev.rebuildingakidney.org/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy_terms/s:=left(dbxref)=(Vocabulary:Anatomy_Part_Of:subject_dbxref)/subject_dbxref::null::/$t/o:=left(dbxref)=(Vocabulary:Anatomy_Part_Of:object_dbxref)/object_dbxref::null::/$t/dbxref:=t:dbxref,name:=t:name
-
                 // iterate over filter sets to figure out which filter set to use
                 // last filter set should be generic (aka ["*", "*"])
                 for (var j=0; j<treeviewConfig.tree.queries.length; j++){
@@ -556,29 +540,22 @@
                 }
             }
 
-            function refreshOrBuildTree(json, extraAttributes, showAnnotation, isolatedNodes, prefixVal, filterOrderVal) {
+            function refreshOrBuildTree(json, extraAttributes, showAnnotation, isolatedNodes, filterOrderVal) {
                 if (showAnnotation == false) {
-                    forest = processData(json, [], showAnnotation, isolatedNodes, prefixVal);
+                    forest = processData(json, [], showAnnotation, isolatedNodes);
                 } else {
-                    forest = processData(json, extraAttributes, showAnnotation, isolatedNodes, prefixVal);
+                    forest = processData(json, extraAttributes, showAnnotation, isolatedNodes);
                 }
                 var presentationData = [];
-                for (var g = 0; g < forest.trees.length; g++) {
-                    presentationData.push(forest.trees[g].node);
-                }
+                forest.trees.forEach(function (tree) {
+                    presentationData.push(tree.node);
+                });
                 var finalData = buildTree(presentationData);
                 console.log("**END**");
                 if (filterOrderVal != "" && ($('#jstree').jstree(true) != false)) {
                     $('#jstree').jstree(true).settings.core.data = finalData;
                     $('#jstree').jstree(true).refresh();
-                    document.getElementsByClassName('loader')[0].style.display = "none";
-                    document.getElementById('jstree').style.visibility = "visible";
-                    $("#number").prop("disabled", false);
-                    $('#plugins4_q').prop("disabled", false);
-                    $("#search_btn").prop("disabled", false);
-                    $("#expand_all_btn").prop("disabled", false);
-                    $("#collapse_all_btn").prop("disabled", false);
-                    $("#reset_text").prop("disabled", false);
+                    enableControls();
                 } else {
                     buildTreeAndAssignEvents(finalData)
                 }
@@ -615,7 +592,7 @@
                 return presentationData;
             }
 
-            function processData(data, extraAttributes, showAnnotation, isolatedNodes, prefixVal) {
+            function processData(data, extraAttributes, showAnnotation, isolatedNodes) {
                 var extraAttributesConfig = treeviewConfig.annotation.extra_attributes_icons;
                 // creates the column data from the supplied id and text and attaches that data to the obj provided
                 function createColumnData(id, text, image) {
@@ -676,27 +653,22 @@
                 var child = createColumnData(data[0].child_id, data[0].child, data[0].child_image);
 
                 var forest = new Forest(parent);
-                if ((prefixVal != "" && parent.dbxref.startsWith("UBERON") == false) || prefixVal == "") {
-                    var tree = new Tree(parent);
-                    if (child.dbxref.startsWith("UBERON") == false) {
-                        var tree1 = new Tree(child);
-                        parent.children.push(child);
-                        child.parent.push(parent);
-                    }
-                    forest.trees.push(tree);
-                }
-                // Get all isolated nodes as parent nodes
+                var tree1 = new Tree(child); // NOTE: tree1 is not used, but the Tree constructor registers the onclick event
+                parent.children.push(child);
+                child.parent.push(parent);
+                forest.trees.push(new Tree(parent));
 
-                for (var j = 0; j < isolatedNodes.length; j++) {
-                    var isolatedNodeImage = isolatedNodes[j].image ? createCameraElement(isolatedNodes[j].image) : "" ;
-                    templateParams.$node_id = ERMrest._fixedEncodeURIComponent(isolatedNodes[j].dbxref);
+                // Get all isolated nodes as parent nodes
+                isolatedNodes.forEach(function (node) {
+                    var isolatedNodeImage = node.image ? createCameraElement(node.image) : "" ;
+                    templateParams.$node_id = ERMrest._fixedEncodeURIComponent(node.dbxref);
                     var isolatedNode = {
-                        text: "<span>" + isolatedNodes[j].name + " (" + isolatedNodes[j].dbxref + ") " + isolatedNodeImage + "</span>",
+                        text: "<span>" + node.name + " (" + node.dbxref + ") " + isolatedNodeImage + "</span>",
                         parent: [],
                         children: [],
-                        dbxref: isolatedNodes[j].dbxref,
-                        base_text: isolatedNodes[j].name,
-                        image_path: isolatedNodes[j].image,
+                        dbxref: node.dbxref,
+                        base_text: node.name,
+                        image_path: node.image,
                         a_attr: {
                             'href': ERMrest._renderHandlebarsTemplate(treeviewConfig.tree.click_event_callback, templateParams),
                             'style': 'display:inline;'
@@ -705,79 +677,63 @@
                             "class": "jstree-leaf"
                         }
                     };
-                    if ((prefixVal != "" && isolatedNode.dbxref.startsWith("UBERON") == false) || prefixVal == "") {
-                        var tree = new Tree(isolatedNode);
-                        forest.trees.push(tree);
-                    }
-                }
+                    forest.trees.push(new Tree(isolatedNode));
+                });
 
-                for (var i = 1; i < data.length; i++) {
+                data.forEach(function (datum, index) {
+                    if (index == 0) return;
+
                     // create column data for the ith extra attributes parent
-                    var parent = createColumnData(data[i].parent_id, data[i].parent, data[i].parent_image);
+                    var parent = createColumnData(datum.parent_id, datum.parent, datum.parent_image);
 
                     // create column data for the ith extra attributes child
-                    var child = createColumnData(data[i].child_id, data[i].child, data[i].child_image);
+                    var child = createColumnData(datum.child_id, datum.child, datum.child_image);
 
-                    if ((prefixVal != "" && parent.dbxref.startsWith("UBERON") == false) || prefixVal == "") {
-                        var tree = new Tree(parent);
-                        if ((prefixVal != "" && child.dbxref.startsWith("UBERON") == false) || prefixVal == "") {
-                            var tree1 = new Tree(child);
-                            parent.children.push(child);
-                            child.parent.push(parent);
-                        }
-                    }
+                    var tree1 = new Tree(child); // NOTE: tree1 is not used, but the Tree constructor registers the onclick event
+                    parent.children.push(child);
+                    child.parent.push(parent);
                     var parentNode = false;
                     var childNode = false;
                     var childIndex = -1;
                     var parentIndex = -1;
-                    for (var f = 0; f < forest.trees.length; f++) {
-                        var tree = forest.trees[f];
 
+                    // search through the whole tree and determine if a parent or child node can be found
+                    forest.trees.forEach(function (tree, idx) {
                         // find if a node relationship exists (multiple can but we care about one because the rest will be trimmed)
                         if (!parentNode) {
                             parentNode = tree.contains(tree, parent.dbxref);
-                            if (parentNode) parentIndex = f;
+                            if (parentNode) parentIndex = idx;
                         }
                         // find if a node relationship exists (multiple can but we care about one because the rest will be trimmed)
                         if (!childNode) {
                             childNode = tree.contains(tree, child.dbxref);
-                            if (childNode) childIndex = f;
+                            if (childNode) childIndex = idx;
                         }
-                    }
+                    });
 
+                    // determine if the node exists yet
                     if (!parentNode && !childNode) {
-                        if ((prefixVal != "" && parent.dbxref.startsWith("UBERON") == false) || prefixVal == "") {
-                            var tree = new Tree(parent);
-                            forest.trees.push(tree);
-                        }
-                    }
-                    //parent node exist, add child to parent node
-                    else if (parentNode && !childNode) {
-                        if ((prefixVal != "" && child.dbxref.startsWith("UBERON") == false) || prefixVal == "") {
-                            parentNode.children.push(child);
-                        }
-                    }
-                    //child node exist, add parent to child node
-                    //delete child from the forest as child is no longer root
-                    else if (!parentNode && childNode) {
-                        if ((prefixVal != "" && parent.dbxref.startsWith("UBERON") == false) || prefixVal == "") {
-                            parent.children.pop();
-                            parent.children.push(childNode);
-                            childNode.parent.push(parent);
-                            tree = new Tree(parent);
-                            jloop:
-                            for (var t = 0; t < forest.trees.length; t++) {
-                                if (forest.trees[t].node.dbxref == childNode.dbxref) {
-                                    forest.trees.splice(t, 1);
-                                    break jloop;
-                                }
+                        forest.trees.push(new Tree(parent));
+                    } else if (parentNode && !childNode) {
+                        // parent node exist, add child to parent node
+                        parentNode.children.push(child);
+                    } else if (!parentNode && childNode) {
+                        // child node exist, add parent to child node
+                        // delete child from the forest as child is no longer root
+                        parent.children.pop();
+                        parent.children.push(childNode);
+                        childNode.parent.push(parent);
+                        jloop:
+                        for (var t = 0; t < forest.trees.length; t++) {
+                            if (forest.trees[t].node.dbxref == childNode.dbxref) {
+                                forest.trees.splice(t, 1);
+                                break jloop;
                             }
-                            forest.trees.push(tree);
                         }
-                    }
-                    //child and parent node, both are present then add child to parent
-                    //and remove the child form the forest
-                    else if (parentNode && childNode) {
+                        forest.trees.push(new Tree(parent));
+                    } else if (parentNode && childNode) {
+                        // child and parent node, both are present then add child to parent
+                        // and remove the child from the forest
                         parentNode.children.push(childNode);
                         ploop:
                         for (var q = 0; q < forest.trees.length; q++) {
@@ -787,70 +743,10 @@
                             }
                         }
                     }
-                }  // end for loop over data
+                });
 
                 return (forest);
 
-            }
-
-            // Queue object/class constructor
-            function Queue() {
-                var a = [],
-                b = 0;
-                this.getLength = function() {
-                    return a.length - b
-                };
-                this.isEmpty = function() {
-                    return 0 == a.length
-                };
-                this.enqueue = function(b) {
-                    a.push(b)
-                };
-                this.dequeue = function() {
-                    // as long as not empty
-                    if (a.length != 0) {
-                        var c = a[b];
-                        2 * ++b >= a.length && (a = a.slice(b), b = 0);
-                        return c
-                    }
-                };
-                this.peek = function() {
-                    return 0 < a.length ? a[b] : void 0
-                }
-            };
-
-            // Tree object/class constructor
-            function Tree(node) {
-                var s = node.a_attr;
-                if (parentAppExists) {
-                    // assuming Parent_App is booleanSearch
-                    s["onClick"] = nodeClickCallback(node);
-                // } else if (treeviewConfig.tree.click_event === "redirect") {
-                } else {
-                    // TODO: this function should be exposed as public in ermrestJS
-                    templateParams.$node_id = ERMrest._fixedEncodeURIComponent(node.dbxref);
-                    var l = "'" + ERMrest._renderHandlebarsTemplate(treeviewConfig.tree.click_event_callback, templateParams) + "','_blank'";
-                    s["onClick"] = "window.open(" + l + ");";
-                }
-                // properties stored under "original" property on jstree_node object
-                var newNode = {
-                    text: node.text,
-                    dbxref: node.dbxref,
-                    annotated: node.annotated,
-                    base_text: node.base_text,
-                    image_path: node.image_path,
-                    children: node.children,
-                    parent: node.parent,
-                    a_attr: s,
-                    li_attr: node.li_attr
-                };
-                this.node = newNode;
-            }
-            var tress = [];
-
-            function Forest(node) {
-                var tree = new Tree(node);
-                this.trees = [];
             }
 
             // generic function to generate annotated icons based on config
@@ -889,6 +785,64 @@
             function nodeClickCallback(node) {
                 var sourceObject = '{ "id": "' + node.dbxref + '", "name": "' + node.base_text + '" }';
                 return 'parent.setSourceForFilter(' + sourceObject + ');';
+            }
+
+            // Queue object/class constructor
+            function Queue() {
+                var a = [],
+                b = 0;
+                this.getLength = function() {
+                    return a.length - b
+                };
+                this.isEmpty = function() {
+                    return 0 == a.length
+                };
+                this.enqueue = function(b) {
+                    a.push(b)
+                };
+                this.dequeue = function() {
+                    // as long as not empty
+                    if (a.length != 0) {
+                        var c = a[b];
+                        2 * ++b >= a.length && (a = a.slice(b), b = 0);
+                        return c
+                    }
+                };
+                this.peek = function() {
+                    return 0 < a.length ? a[b] : void 0
+                }
+            };
+
+            function Forest(node) {
+                var tree = new Tree(node);
+                this.trees = [];
+            }
+
+            // Tree object/class constructor
+            function Tree(node) {
+                var s = node.a_attr;
+                if (parentAppExists) {
+                    // assuming Parent_App is booleanSearch
+                    s["onClick"] = nodeClickCallback(node);
+                } else {
+                    // TODO: this function should be exposed as public in ermrestJS
+                    templateParams.$node_id = ERMrest._fixedEncodeURIComponent(node.dbxref);
+                    var l = "'" + ERMrest._renderHandlebarsTemplate(treeviewConfig.tree.click_event_callback, templateParams) + "','_blank'";
+                    s["onClick"] = "window.open(" + l + ");";
+                }
+                // properties stored under "original" property on jstree_node object
+                var newNode = {
+                    text: node.text,
+                    dbxref: node.dbxref,
+                    annotated: node.annotated,
+                    base_text: node.base_text,
+                    image_path: node.image_path,
+                    children: node.children,
+                    parent: node.parent,
+                    a_attr: s,
+                    li_attr: node.li_attr
+                };
+                this.node = newNode;
             }
 
             // functions for the tree object/class
@@ -930,27 +884,6 @@
                     throw new Error('Cannot add node to a non-existent parent.');
                 }
             };
-
-            // TODO: what is this doing? Should it be moved to other "setup functions"?
-            $(function() {
-                $("#plugins4").jstree({
-                    "plugins": ["search"]
-                });
-                var to = false;
-                $('#plugins4_q').keyup(function() {
-                    if (to) {
-                        clearTimeout(to);
-                    }
-                    to = setTimeout(function() {
-                        var v = $('#plugins4_q').val();
-                        $('#jstree').jstree(true).search(v);
-                    }, 1400);
-                });
-            });
-
-            function findGetParameter(parameterName) {
-                return urlParams[parameterName];
-            }
         }); // end of ERMrest.onload
     }); // end of document ready
 })()
