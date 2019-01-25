@@ -1,7 +1,3 @@
-// 1. clean up query (including explicitly captured species)
-// 2. change variable names (identify all required fields)
-// 3. build templating env
-
 // url paramters (accessed by $url_parameters)
 // - Species
 // - Specimen_RID
@@ -35,7 +31,6 @@ var treeviewConfig = {
             default_id: '23',
             // pre-selected through url parameter: either run the query to get the same row or choose existing value
             selected_filter: {
-                // stage_data_query_pattern_with_id:
                 required_url_parameters: ["Specimen_RID"],
                 selected_query_pattern: "/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID={{{$url_parameters.Specimen_RID}}}/stage:=(Stage_ID)=(Vocabulary:Developmental_Stage:ID)/id:=stage:Name,stage:Name,stage:Ordinal,stage:Approximate_Equivalent_Age,Species:=M:Species",
                 selected_id: "{{{$url_parameters.Specimen_RID}}}", // either query_pattern or selected_id for specific value
@@ -74,7 +69,7 @@ var treeviewConfig = {
 
         hide_id: false, // default is false
 
-        // click_event: "booleanSearch", // booleanSearch callback is in the js file. doesn't seem like it should be configurable
+        // click_event: "booleanSearch", // booleanSearch callback is in the js file. doesn't seem like the function should be configurable
         click_event: "redirect", // "redirect", "booleanSearch", false (no event)
         click_event_callback: "/chaise/record/#2/Vocabulary:Anatomy/ID={{{$node_id}}}", // only define if "redirect" above?
 
@@ -93,8 +88,6 @@ var treeviewConfig = {
 
     // extra attributes to annotate nodes with icons
     annotation: {
-        // annotation: a list of node with extra attributes
-        // required: id
         annotation_query_pattern: "/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID={{{$url_parameters.Specimen_RID}}}/N:=left(RID)=(Gene_Expression:Specimen_Expression:Specimen)/$M/id:=N:Region,M:RID,Region:=N:Region,strength:=N:Strength,strengthModifier:=N:Strength_Modifier,pattern:=N:Pattern,density:=N:Density,densityChange:=N:Density_Direction,densityMagnitude:=N:Density_Magnitude,densityNote:=N:Density_Note,note:=N:Notes",
         // keys should map to the columns listed in extra_attributes_columns
         // inner keys should be the value of that column with icon location as the value
@@ -176,13 +169,6 @@ var treeviewConfig = {
                 has_tooltip: true,
                 labels: "resources/images/NerveDensity/note.gif"
             }
-        }
-    },
-    // split this to a different config
-    nodeClickCallback:{
-        booleanSearch: function(node) {
-            var sourceObject = '{ "id": "' + node.dbxref + '", "name": "' + node.base_text + '" }';
-            return 'parent.setSourceForFilter(' + sourceObject + ');';
         }
     }
 };
