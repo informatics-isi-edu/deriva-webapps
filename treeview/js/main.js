@@ -397,14 +397,15 @@
 
                         $(".contains-note").click(function(event) {
                             var self = $(this);
+                            // triggers the toggle functionality
+                            self.tooltip();
+                        });
+
+                        $(".stop-propagation").click(function(event) {
                             // stops propagating the click event to the onclick function defined
                             event.stopPropagation();
                             // stops triggering the event the <a href="..."> tag
                             event.preventDefault();
-                            self.tooltip('show');
-                            setTimeout(function () {
-                                self.tooltip('hide');
-                            }, 5000)
                         });
                     }
                 })
@@ -627,17 +628,17 @@
 
                         // generate HTML that should appear in front of ndoe text
                         var beforeIconsHTML = "";
-                        beforeIcons.forEach(function (icon) {
-                            beforeIconsHTML += icon;
+                        beforeIcons.forEach(function (icon, index) {
+                            beforeIconsHTML += (index == 0 ? "" : " ") + icon;
                         });
 
                         // generate HTML that should appear after node text
                         var afterIconsHTML = "";
                         afterIcons.forEach(function (icon) {
-                            afterIconsHTML += icon;
+                            afterIconsHTML += " " + icon;
                         });
                         obj.annotated = true;
-                        obj.text = "<span>"+beforeIconsHTML+"<span class='annotated display-text'>"+text+" ("+id+") </span>"+afterIconsHTML+cameraIcon+"</span>";
+                        obj.text = "<span><span class='stop-propagation'>"+beforeIconsHTML+"</span><span class='annotated display-text'>"+text+" ("+id+") </span> <span class='stop-propagation'>"+afterIconsHTML+cameraIcon+"</span></span>";
                     } else {
                         obj.annotated = false;
                         obj.text = "<span><span class='display-text'>"+text+" ("+id+") </span> "+cameraIcon+"</span>"
@@ -768,15 +769,19 @@
 
             // after an icon path has been chosen, create the html element
             function generateIconHTML(path, hasTooltip, key, value) {
-                if (!path) return null;
+                if (!path || !value) return null;
                 var html = "<img src='" + path + "'";
-                // attach tooltip is available, value will be the tooltip
-                if (hasTooltip) html += " class='contains-note' title='"+key+": "+value+"'";
+                if (hasTooltip) {
+                    // tooltip is available, value will be the tooltip
+                    html += " class='contains-note' title='"+key+": "+value+"'";
+                } else {
+                    // there's no click event
+                    html += " class='no-click-events'";
+                }
                 return html + "></img>";
             }
 
             function createCameraElement(imageUrl) {
-                // image_hash
                 // preloads the image
                 (new Image()).src = imageUrl;
                 return '<span class="schematic-popup-icon"><img src="resources/images/camera-icon.png"></img></span>'

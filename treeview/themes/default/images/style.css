@@ -112,6 +112,17 @@ a.facet-heading-link:hover {
     margin-bottom: 16px;
 }
 
+.stop-propagation {
+    cursor: default;
+    /* allows text decoration to be overridden */
+    display: inline-block;
+    text-decoration: none;
+}
+
+.contains-note {
+    cursor: pointer;
+}
+
 .overflow {
     height: 200px;
 }
