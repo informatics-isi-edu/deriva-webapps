@@ -302,7 +302,7 @@ var setSourceForFilter;
                             message += err;
                             message += "</ul>";
                             var okActionMessage = "Click OK to <b>Refresh</b> the page."                     
-                            var error = new Errors.CustomError("Invalid Query", message); //, $window.location.href, okActionMessage);
+                            var error = new Errors.CustomError("Invalid Query", message, $window.location.href, okActionMessage);
                             ErrorService.handleException(error, true);
                         }
                     }
