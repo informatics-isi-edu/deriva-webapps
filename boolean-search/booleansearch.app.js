@@ -4,7 +4,7 @@ var setSourceForFilter;
     class filterModel {
         constructor(defaultOptions) {
             this.toStageOptions = defaultOptions.fromStageOptions;
-            this.strength = defaultOptions.strengthOptions[1];
+            this.strength = "present";
             this.source = {};
             this.stageFrom = defaultOptions.fromStageOptions[16];
             this.stageTo = defaultOptions.fromStageOptions[defaultOptions.fromStageOptions.length - 1];
@@ -17,7 +17,7 @@ var setSourceForFilter;
         'ngCookies',
         'chaise.utils',
         'chaise.filters',
-        'chaise.alerts',
+        'chaise.errors',
         'chaise.resizable',
         'ermrestjs',
         'ui.bootstrap'
@@ -98,7 +98,7 @@ var setSourceForFilter;
                 getSourceOptions: getSourceOptions
             }
         }])
-        .controller('BooleanSearchController', ['$scope', 'booleanSearchModel', 'AlertsService', 'defaultOptions', '$rootScope', 'ERMrest', '$window', 'modalUtils', 'filterOptions', function BooleanSearchController($scope, booleanSearchModel, AlertsService, defaultOptions, $rootScope, ERMrest, $window, modalUtils, filterOptions) {
+        .controller('BooleanSearchController', ['$scope', 'booleanSearchModel', 'defaultOptions', '$rootScope', 'ERMrest', '$window', 'filterOptions', 'Errors', 'ErrorService', function BooleanSearchController($scope, booleanSearchModel, defaultOptions, $rootScope, ERMrest, $window, filterOptions, Errors, ErrorService) {
             var config = Object.assign({}, booleanSearchConfig);
             $scope.options = defaultOptions;
             $scope.treeviewOpen = true;
@@ -236,12 +236,12 @@ var setSourceForFilter;
                                 ids.push(match[i].ID);
                             }
                             if (ids.filter(id => (id === row.source.id)).length == 0) {
-                                invalid.multipleSource += ("Multiple sources exist with the name: " + row.source.name+ "\n");
-                                invalid.multipleSource += ("Replace \"" + row.source.name + "\" with \"" + match[0].Name + " (" + match[0].ID + ")\"");
+                                invalid.multipleSource += ("<li>\"Multiple Anatomical Sources\" exist with the name: \"" + row.source.name+ "\". ");
+                                invalid.multipleSource += ("Replace \"<b>" + row.source.name + "</b>\" with \"<b>" + match[0].Name + " (" + match[0].ID + ")</b>\"");
                                 for (var i = 1; i < match.length; i++) {
-                                    invalid.multipleSource += (" or \"" + match[i].Name + " (" + match[i].ID + ")\"");
+                                    invalid.multipleSource += (" or \"<b>" + match[i].Name + " (" + match[i].ID + ")</b>\"");
                                 }
-                                invalid.multipleSource += "\n";
+                                invalid.multipleSource += "</li>";
                             }
                         } else {
                             row.source.id = match[0].ID;
@@ -297,12 +297,13 @@ var setSourceForFilter;
                             }
                             
                         } else {
-                            var message = "Following errors exist in the query:\n";
+                            var message = "Following errors exist in the query:<ul>";
                             var err = formErrorMessage(invalid);
                             message += err;
-                            console.log(message);
-                            alert(message);
-                            //AlertsService.addAlert("Error in Query.","error");
+                            message += "</ul>";
+                            var okActionMessage = "Click OK to <b>Refresh</b> the page."                     
+                            var error = new Errors.CustomError("Invalid Query", message); //, $window.location.href, okActionMessage);
+                            ErrorService.handleException(error, true);
                         }
                     }
                 });
@@ -310,16 +311,16 @@ var setSourceForFilter;
             function formErrorMessage(invalid) {
                 var message = "";
                 if (invalid.strength.length > 0) {
-                    message += errorMessageHelper(invalid.strength, "Strength value");
+                    message += errorMessageHelper(invalid.strength, "Strength");
                 }
                 if (invalid.source.length > 0) {
                     message += errorMessageHelper(invalid.source, "Anatomical Source");
                 }
                 if (invalid.fromStage.length > 0) {
-                    message += errorMessageHelper(invalid.fromStage, "From Stage value");
+                    message += errorMessageHelper(invalid.fromStage, "From Stage");
                 }
                 if (invalid.toStage.length > 0) {
-                    message += errorMessageHelper(invalid.toStage, "To Stage value");
+                    message += errorMessageHelper(invalid.toStage, "To Stage");
                 }
                 if (invalid.pattern.length > 0) {
                     message += errorMessageHelper(invalid.pattern, "Pattern");
@@ -333,14 +334,15 @@ var setSourceForFilter;
                 return message;
             }
             function errorMessageHelper(param, name) {
-                var message = "Invalid " + name;
+                var message = "<li>Invalid \"" + name;
                 if (param.length > 1) {
-                    message += "s: ";
+                    message += "\" values : ";
                 } else {
-                    message += " : ";
+                    message += "\" value : ";
                 }
+                message += "<b>"
                 message += (param.join(", "));
-                message += "\n";
+                message += "</b></li>";
                 return message;
             }
             function formQuery() {
@@ -469,7 +471,7 @@ var setSourceForFilter;
                 var form = vm.formContainer;
                 if (form.$invalid) {
                     vm.readyToSubmit = false;
-                    AlertsService.addAlert('Sorry, the data could not be submitted because there are errors on the form. Please check all fields and try again.', 'error');
+                    //AlertsService.addAlert('Sorry, the data could not be submitted because there are errors on the form. Please check all fields and try again.', 'error');
                     form.$setSubmitted();
                     return;
                 }
@@ -523,8 +525,9 @@ var setSourceForFilter;
                     $rootScope.dataLoaded.count++;
                 });
                 filterOptions.getPatternOptions().then(function (data) {
+                    defaultOptions.patternOptions.push("");
                     data.forEach(function (el) {
-                        if (el.Pattern == null) {
+                        if (el.Pattern == null || el.Pattern == "") {
                             return;
                         }
                         defaultOptions.patternOptions.push(el.Pattern);
@@ -532,8 +535,9 @@ var setSourceForFilter;
                     $rootScope.dataLoaded.count++;
                 });
                 filterOptions.getLocationOptions().then(function (data) {
+                    defaultOptions.locationOptions.push("");
                     data.forEach(function (el) {
-                        if (el.Pattern_Location == null) {
+                        if (el.Pattern_Location == null || el.Pattern_Location == "") {
                             return;
                         }
                         defaultOptions.locationOptions.push(el.Pattern_Location);
