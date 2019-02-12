@@ -72,8 +72,8 @@
                             Specimen</button>
                     </div>
                     <div class="btn-group">
-                        <button id="validate-filter-btn" class="btn btn-primary btn-inverted center-block btn-height" ng-click="::form.validateQuery();"
-                            type="button" tooltip-placement="auto top" uib-tooltip="Validate filters query text">
+                        <button id="validate-filter-btn" class="btn btn-primary btn-inverted center-block btn-height"
+                            ng-click="::form.validateQuery();" type="button" tooltip-placement="auto top" uib-tooltip="Validate filters query text">
                             <span class="glyphicon glyphicon-check"></span>
                         </button>
                         <button id="save-filter-btn" class="btn btn-primary btn-inverted center-block btn-height"
@@ -110,7 +110,11 @@
                                 </td>
                                 <td>
                                     <select ng-model="form.booleanSearchModel.rows[rowIndex].strength" ng-options="s for s in options.strengthOptions"
-                                        ng-change="::form.changeSelection(rowIndex)"></select>
+                                        ng-change="::form.changeSelection(rowIndex, 'strength')"></select>
+                                    <div ng-show="form.booleanSearchModel.rows[rowIndex].strengthInvalid" class="text-danger"
+                                        role="alert">
+                                        <div>Invalid Strength.</div>
+                                    </div>
                                 </td>
                                 <td ng-form="form.formContainer.row[rowIndex].source">
                                     <input class="red-text" ng-model="form.booleanSearchModel.rows[rowIndex].source.name"
@@ -119,22 +123,42 @@
                                         class="text-danger" role="alert">
                                         <div ng-message="required">Please enter a value for this field.</div>
                                     </div>
+                                    <div ng-show="form.booleanSearchModel.rows[rowIndex].sourceInvalid && !form.formContainer.row[rowIndex].source.$invalid" class="text-danger"
+                                        role="alert">
+                                        <div>Invalid Source.</div>
+                                    </div>
                                 </td>
                                 <td>
                                     <span>From: </span>
                                     <select ng-model="form.booleanSearchModel.rows[rowIndex].stageFrom" ng-options="s.Name for s in options.fromStageOptions"
-                                        ng-change="form.setToStageOptions(rowIndex); form.changeSelection(rowIndex)"></select>
+                                        ng-change="form.setToStageOptions(rowIndex); form.changeSelection(rowIndex, 'stageFrom')"></select>
                                     <span>To: </span>
                                     <select ng-model="form.booleanSearchModel.rows[rowIndex].stageTo" ng-options="s.Name for s in form.booleanSearchModel.rows[rowIndex].toStageOptions"
-                                        ng-change="::form.changeSelection(rowIndex)"></select>
+                                        ng-change="::form.changeSelection(rowIndex, 'stageTo')"></select>
+                                    <div ng-show="form.booleanSearchModel.rows[rowIndex].stageFromInvalid" class="text-danger"
+                                        role="alert">
+                                        <div>Invalid From Stage.</div>
+                                    </div>
+                                    <div ng-show="form.booleanSearchModel.rows[rowIndex].stageToInvalid" class="text-danger"
+                                        role="alert">
+                                        <div>Invalid To Stage.</div>
+                                    </div>
                                 </td>
                                 <td>
                                     <select ng-model="form.booleanSearchModel.rows[rowIndex].pattern" ng-options="s for s in options.patternOptions"
-                                        ng-change="::form.changeSelection(rowIndex)"></select>
+                                        ng-change="::form.changeSelection(rowIndex, 'pattern')"></select>
+                                    <div ng-show="form.booleanSearchModel.rows[rowIndex].patternInvalid" class="text-danger"
+                                        role="alert">
+                                        <div>Invalid Pattern.</div>
+                                    </div>
                                 </td>
                                 <td>
                                     <select ng-model="form.booleanSearchModel.rows[rowIndex].location" ng-options="s for s in options.locationOptions"
-                                        ng-change="::form.changeSelection(rowIndex)"></select>
+                                        ng-change="::form.changeSelection(rowIndex, 'location')"></select>
+                                    <div ng-show="form.booleanSearchModel.rows[rowIndex].locationInvalid" class="text-danger"
+                                        role="alert">
+                                        <div>Invalid Pattern Location.</div>
+                                    </div>
                                 </td>
                                 <td>
                                     <div>
