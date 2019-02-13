@@ -371,8 +371,8 @@ var setSourceForFilter;
                             var err = formErrorMessage(invalid);
                             message += err;
                             message += "</ul>";
-                            var okActionMessage = "Click OK to <b>Refresh</b> the page."
-                            var error = new Errors.CustomError("Invalid Query", message, $window.location.href, okActionMessage);
+                            var okActionMessage = "Click OK to <b>go back</b> to the page."
+                            var error = new Errors.CustomError("Invalid Query", message, $window.location.href, okActionMessage, true);
                             ErrorService.handleException(error, true);
                         }
                     }
