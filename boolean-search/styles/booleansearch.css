@@ -154,3 +154,11 @@ img.spinner {
 .btn-group {
     margin-left: 10px;
 }
+
+.modal-body li{
+    list-style-type: inherit;
+}
+
+span[uib-tooltip] {
+    border-bottom: 1px dotted black;
+}

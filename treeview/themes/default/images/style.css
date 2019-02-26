@@ -131,6 +131,7 @@ a.facet-heading-link:hover {
   height: 2.38em;
   border-radius: 0;
   border:1px solid #2e6da4;
+  width: 20em;
 }
 
 span#number-button {

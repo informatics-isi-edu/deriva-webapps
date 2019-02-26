@@ -4,12 +4,22 @@ var setSourceForFilter;
     class filterModel {
         constructor(defaultOptions) {
             this.toStageOptions = defaultOptions.fromStageOptions;
-            this.strength = defaultOptions.strengthOptions[1];
-            this.source = {};
+            this.strength = "present";
+            this.source = {
+                "name":""
+            };
             this.stageFrom = defaultOptions.fromStageOptions[16];
             this.stageTo = defaultOptions.fromStageOptions[defaultOptions.fromStageOptions.length - 1];
             this.pattern = "";
             this.location = "";
+
+            //Setting validity for all fields
+            this.strengthInvalid = false;
+            this.sourceInvalid = false;
+            this.stageFromInvalid = false;
+            this.stageToInvalid = false;
+            this.patternInvalid = false;
+            this.locationInvalid = false;
         }
     }
     angular.module('booleansearchApp', [
@@ -17,7 +27,7 @@ var setSourceForFilter;
         'ngCookies',
         'chaise.utils',
         'chaise.filters',
-        'chaise.alerts',
+        'chaise.errors',
         'chaise.resizable',
         'ermrestjs',
         'ui.bootstrap'
@@ -40,55 +50,88 @@ var setSourceForFilter;
             patternOptions: [],
             locationOptions: []
         })
-        .factory('filterOptions', ['$http', '$window', '$log', function ($http, $window, $log) {
+        .factory('filterOptions', ['$http', '$window', 'ERMrest', 'headInjector', 'MathUtils', function ($http, $window, ERMrest, headInjector, MathUtils) {
             var baseUrl = $window.location.origin;
             var specExprUrl = baseUrl + "/ermrest/catalog/2/attributegroup/Gene_Expression:Specimen_Expression";
             var devStageUrl = baseUrl + "/ermrest/catalog/2/attribute/Vocabulary:Developmental_Stage";
             var sourceUrl = baseUrl + "/ermrest/catalog/2/entity/Vocabulary:Anatomy";
+
+            // Configuring ERMrestjs service object and http module
+            var contextHeaderParams = { "cid": "boolean-search" };
+            var server = ERMrest.ermrestFactory.getServer(baseUrl + "/ermrest", contextHeaderParams);
+            var pid = MathUtils.uuid();
+            headInjector.setWindowName();
+            var getHeader = function(){
+                return {
+                    wid: $window.name,
+                    cid: "boolean-search",
+                    referrer: { "app": "boolean-search" },
+                    pid: pid,
+                    action: "facet"
+                };
+            }
+
             var getStrengthOptions = function () {
-                return $http.get(specExprUrl + "/Strength").then(function (response) {
+                var headers = {};
+                headers[ERMrest.contextHeaderName] = getHeader();
+                headers[ERMrest.contextHeaderName].schema_table = "Gene_Expression:Specimen_Expression";
+                headers[ERMrest.contextHeaderName].source = "Strength";
+                return server.http.get(specExprUrl + "/Strength", { headers: headers }).then(function success(response) {
                     return response.data;
                 }).catch(function (err) {
-                    $log.warn(err);
-                    return null;
-                })
+                    throw ERMrest.responseToError(err);
+                });
             };
+
             var getPatternOptions = function () {
-                return $http.get(specExprUrl + "/Pattern").then(function (response) {
+                var headers = {};
+                headers[ERMrest.contextHeaderName] = getHeader();
+                headers[ERMrest.contextHeaderName].schema_table = "Gene_Expression:Specimen_Expression";
+                headers[ERMrest.contextHeaderName].source = "Pattern";
+                return server.http.get(specExprUrl + "/Pattern", { headers: headers }).then(function (response) {
                     return response.data;
                 }).catch(function (err) {
-                    $log.warn(err);
-                    return null;
-                })
+                    throw ERMrest.responseToError(err);
+                });
             };
             var getLocationOptions = function () {
-                return $http.get(specExprUrl + "/Pattern_Location").then(function (response) {
+                var headers = {};
+                headers[ERMrest.contextHeaderName] = getHeader();
+                headers[ERMrest.contextHeaderName].schema_table = "Gene_Expression:Specimen_Expression";
+                headers[ERMrest.contextHeaderName].source = "Pattern_Location";
+                return server.http.get(specExprUrl + "/Pattern_Location", { headers: headers }).then(function (response) {
                     return response.data;
                 }).catch(function (err) {
-                    $log.warn(err);
-                    return null;
-                })
+                    throw ERMrest.responseToError(err);
+                });
             };
             var getStageOptions = function (species) {
-                return $http.get(devStageUrl + "/Species=" + encodeURIComponent(species) + "/Name,Ordinal@Sort(Ordinal)").then(function (response) {
+                var headers = {};
+                headers[ERMrest.contextHeaderName] = getHeader();
+                headers[ERMrest.contextHeaderName].schema_table = "Vocabulary:Developmental_Stage";
+                headers[ERMrest.contextHeaderName].source = "RID";
+                headers[ERMrest.contextHeaderName].entity = true;
+                return server.http.get(devStageUrl + "/Species=" + encodeURIComponent(species) + "/Name,Ordinal@Sort(Ordinal)", { headers: headers }).then(function (response) {
                     return response.data;
                 }).catch(function (err) {
-                    $log.warn(err);
-                    return null;
-                })
+                    throw ERMrest.responseToError(err);
+                });
             };
             var getSourceOptions = function (sources) {
+                var headers = {};
+                headers[ERMrest.contextHeaderName] = getHeader();
+                headers[ERMrest.contextHeaderName].schema_table = "Vocabulary:Anatomy";
+                headers[ERMrest.contextHeaderName].source = "Name";
                 var columnName = "Name=";
                 var queryParam = "/" + columnName + encodeURIComponent(sources[0]);
                 for (var i = 1; i < sources.length; i++) {
                     queryParam += (";" + columnName + encodeURIComponent(sources[i]));
                 }
-                return $http.get(sourceUrl + queryParam).then(function (response) {
+                return server.http.get(sourceUrl + queryParam, { headers: headers }).then(function (response) {
                     return response.data;
                 }).catch(function (err) {
-                    $log.warn(err);
-                    return null;
-                })
+                    throw ERMrest.responseToError(err);
+                });
             }
             return {
                 getStrengthOptions: getStrengthOptions,
@@ -98,7 +141,7 @@ var setSourceForFilter;
                 getSourceOptions: getSourceOptions
             }
         }])
-        .controller('BooleanSearchController', ['$scope', 'booleanSearchModel', 'AlertsService', 'defaultOptions', '$rootScope', 'ERMrest', '$window', 'modalUtils', 'filterOptions', function BooleanSearchController($scope, booleanSearchModel, AlertsService, defaultOptions, $rootScope, ERMrest, $window, modalUtils, filterOptions) {
+        .controller('BooleanSearchController', ['$scope', 'booleanSearchModel', 'defaultOptions', '$rootScope', 'ERMrest', '$window', 'filterOptions', 'Errors', 'ErrorService', function BooleanSearchController($scope, booleanSearchModel, defaultOptions, $rootScope, ERMrest, $window, filterOptions, Errors, ErrorService) {
             var config = Object.assign({}, booleanSearchConfig);
             $scope.options = defaultOptions;
             $scope.treeviewOpen = true;
@@ -138,6 +181,7 @@ var setSourceForFilter;
                 let row = new filterModel(defaultOptions);
                 rowset.push(row);
                 vm.currentRow = rowset.length - 1;
+                changeFiltersDisplayText();
             }
             function removeFilterRow(index, event) {
                 vm.booleanSearchModel.rows.splice(index, 1);
@@ -176,12 +220,15 @@ var setSourceForFilter;
                     name: value.name,
                     id: value.id
                 };
+                vm.booleanSearchModel.rows[vm.currentRow].sourceInvalid = false;
                 changeFiltersDisplayText();
                 $scope.$apply();
             };
 
-            function changeSelection(index) {
+            function changeSelection(index, field) {
                 if (vm.booleanSearchModel.rows[index].source != null) {
+                    var param = field+"Invalid";
+                    vm.booleanSearchModel.rows[index][param] = false;
                     changeFiltersDisplayText();
                 }
             }
@@ -229,22 +276,24 @@ var setSourceForFilter;
                         var match = data.filter(source => (source.Name === row.source.name));
                         if (match.length == 0) {
                             invalid.source.push(row.source.name);
+                            row.sourceInvalid = true;
                         } else if (match.length > 1) {
-                            var foundId = false;
                             var ids = [];
                             for (var i = 0; i < match.length; i++) {
                                 ids.push(match[i].ID);
                             }
                             if (ids.filter(id => (id === row.source.id)).length == 0) {
-                                invalid.multipleSource += ("Multiple sources exist with the name: " + row.source.name+ "\n");
-                                invalid.multipleSource += ("Replace \"" + row.source.name + "\" with \"" + match[0].Name + " (" + match[0].ID + ")\"");
+                                invalid.multipleSource += ("<li>\"Multiple Anatomical Sources\" exist with the name: \"" + row.source.name + "\". ");
+                                invalid.multipleSource += ("Replace \"<b>" + row.source.name + "</b>\" with \"<b>" + match[0].Name + " (" + match[0].ID + ")</b>\"");
                                 for (var i = 1; i < match.length; i++) {
-                                    invalid.multipleSource += (" or \"" + match[i].Name + " (" + match[i].ID + ")\"");
+                                    invalid.multipleSource += (" or \"<b>" + match[i].Name + " (" + match[i].ID + ")</b>\"");
                                 }
-                                invalid.multipleSource += "\n";
+                                invalid.multipleSource += "</li>";
                             }
+                            row.sourceInvalid = true;
                         } else {
                             row.source.id = match[0].ID;
+                            row.sourceInvalid = false;
                         }
                         if (index == vm.booleanSearchModel.rows.length - 1) {
                             validateOtherParams(invalid, submitQuery);
@@ -271,38 +320,60 @@ var setSourceForFilter;
                     if (!defaultOptions.strengthOptions.includes(row.strength)) {
                         valid = false;
                         invalid.strength.push(row.strength);
+                        row.strengthInvalid = true;
+                    } else {
+                        row.strengthInvalid = false;
                     }
                     if (defaultOptions.fromStageOptions.filter(fromStage => (fromStage.Name === row.stageFrom.Name && fromStage.Ordinal === row.stageFrom.Ordinal)).length == 0) {
                         valid = false;
                         invalid.fromStage.push(row.stageFrom.Name);
+                        row.stageFromInvalid = true;
+                    } else {
+                        row.stageFromInvalid = false;
                     }
                     if (defaultOptions.fromStageOptions.filter(toStage => (toStage.Name === row.stageTo.Name && toStage.Ordinal === row.stageTo.Ordinal)).length == 0) {
                         valid = false;
                         invalid.toStage.push(row.stageTo.Name);
+                        row.stageToInvalid = true;
+                    } else {
+                        row.stageToInvalid = false;
                     }
                     if (!defaultOptions.patternOptions.includes(row.pattern)) {
                         valid = false;
                         invalid.pattern.push(row.pattern);
+                        row.patternInvalid = true;
+                    } else {
+                        row.patternInvalid = false;
                     }
                     if (!defaultOptions.locationOptions.includes(row.location)) {
                         valid = false;
                         invalid.location.push(row.location);
+                        row.locationInvalid = true;
+                    } else {
+                        row.locationInvalid = false;
                     }
                     if (index == vm.booleanSearchModel.rows.length - 1) {
                         if (valid) {
-                            if(submitQuery){
+                            if (submitQuery) {
                                 formQuery();
                             } else {
                                 alert("All parameters are valid");
                             }
-                            
+
                         } else {
-                            var message = "Following errors exist in the query:\n";
+                            var form = vm.formContainer;
+                            if (form.$invalid) {
+                                vm.readyToSubmit = false;
+                                form.$setSubmitted();
+                                return;
+                            }
+                            var message = "Following errors exist in the query:<ul>";
                             var err = formErrorMessage(invalid);
                             message += err;
-                            console.log(message);
-                            alert(message);
-                            //AlertsService.addAlert("Error in Query.","error");
+                            message += "</ul>";
+                            var okActionMessage = "Click OK to <b>go back</b> to the page."
+                            var error = new Errors.CustomError("Invalid Query", message, $window.location.href, okActionMessage, true);
+                            ErrorService.handleException(error, true);
                         }
                     }
                 });
@@ -310,16 +381,16 @@ var setSourceForFilter;
             function formErrorMessage(invalid) {
                 var message = "";
                 if (invalid.strength.length > 0) {
-                    message += errorMessageHelper(invalid.strength, "Strength value");
+                    message += errorMessageHelper(invalid.strength, "Strength");
                 }
                 if (invalid.source.length > 0) {
                     message += errorMessageHelper(invalid.source, "Anatomical Source");
                 }
                 if (invalid.fromStage.length > 0) {
-                    message += errorMessageHelper(invalid.fromStage, "From Stage value");
+                    message += errorMessageHelper(invalid.fromStage, "From Stage");
                 }
                 if (invalid.toStage.length > 0) {
-                    message += errorMessageHelper(invalid.toStage, "To Stage value");
+                    message += errorMessageHelper(invalid.toStage, "To Stage");
                 }
                 if (invalid.pattern.length > 0) {
                     message += errorMessageHelper(invalid.pattern, "Pattern");
@@ -333,14 +404,15 @@ var setSourceForFilter;
                 return message;
             }
             function errorMessageHelper(param, name) {
-                var message = "Invalid " + name;
+                var message = "<li>Invalid \"" + name;
                 if (param.length > 1) {
-                    message += "s: ";
+                    message += "\" values : ";
                 } else {
-                    message += " : ";
+                    message += "\" value : ";
                 }
+                message += "<b>"
                 message += (param.join(", "));
-                message += "\n";
+                message += "</b></li>";
                 return message;
             }
             function formQuery() {
@@ -378,8 +450,8 @@ var setSourceForFilter;
                             strength = filter.substring(0, filter.indexOf("{"));
                     }
                     vm.booleanSearchModel.rows[index].strength = strength;
-
-                    if(vm.booleanSearchModel.rows[index].source == null){
+                    
+                    if (vm.booleanSearchModel.rows[index].source == null) {
                         vm.booleanSearchModel.rows[index].source = {};
                     }
                     var sourceStart = filter.indexOf("\"");
@@ -455,24 +527,11 @@ var setSourceForFilter;
                 });
             }
 
-            function validateQuery(){
+            function validateQuery() {
                 parseQueryText(false);
-                var form = vm.formContainer;
-                if (form.$invalid) {
-                    vm.readyToSubmit = false;                    
-                    form.$setSubmitted();
-                    return;
-                }
             }
             function submit() {
                 parseQueryText(true);
-                var form = vm.formContainer;
-                if (form.$invalid) {
-                    vm.readyToSubmit = false;
-                    AlertsService.addAlert('Sorry, the data could not be submitted because there are errors on the form. Please check all fields and try again.', 'error');
-                    form.$setSubmitted();
-                    return;
-                }
             }
 
             function saveFilters() {
@@ -523,8 +582,9 @@ var setSourceForFilter;
                     $rootScope.dataLoaded.count++;
                 });
                 filterOptions.getPatternOptions().then(function (data) {
+                    defaultOptions.patternOptions.push("");
                     data.forEach(function (el) {
-                        if (el.Pattern == null) {
+                        if (el.Pattern == null || el.Pattern == "") {
                             return;
                         }
                         defaultOptions.patternOptions.push(el.Pattern);
@@ -532,8 +592,9 @@ var setSourceForFilter;
                     $rootScope.dataLoaded.count++;
                 });
                 filterOptions.getLocationOptions().then(function (data) {
+                    defaultOptions.locationOptions.push("");
                     data.forEach(function (el) {
-                        if (el.Pattern_Location == null) {
+                        if (el.Pattern_Location == null || el.Pattern_Location == "") {
                             return;
                         }
                         defaultOptions.locationOptions.push(el.Pattern_Location);
