@@ -185,10 +185,11 @@
                 var appName = urlParams["Parent_App"] || null;
                 parentAppExists = appName !== null;
 
-                // make sure search div and load icon are visible
+                // make sure search div, expand/collapse, and load icon are visible
                 // hide load icon later when data comes back
                 document.getElementById('loadIcon').style.visibility = "visible";
                 document.getElementById('searchDiv').style.visibility = "visible";
+                document.getElementById('expandCollapse').style.visibility = "visible";
 
                 // as tree scrolls, calculate if the back to top button should show
                 $(".tree-panel").scroll(function() {

@@ -54,8 +54,8 @@
 
 #expand_all_btn {
     margin-left: 5px;
-    border-right: none;
 }
+
 #plugins4_q {
     display: inline;
     margin: 0em 0em 0em 0.5em;
@@ -136,6 +136,7 @@ a.facet-heading-link:hover {
 span#number-button {
     margin-left: 8px;
     padding-left: 1em;
+    width: unset;
 }
 
 .btn-primary {

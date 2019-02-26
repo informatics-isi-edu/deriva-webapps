@@ -189,13 +189,15 @@
                         </button>
                         <button type="button" id="search_btn" class="btn btn-primary btn-inverted input-btn">
                             <span class="glyphicon glyphicon-search"></span>
-                        </button>                        
-                        <button type="button" id="expand_all_btn" class="btn btn-primary btn-inverted">Expand
-                            All</button>
-                        <button type="button" id="collapse_all_btn" class="btn btn-primary btn-inverted">Collapse
-                            All</button>
+                        </button>
+                        <div id="expandCollapse" class="btn-group" style="visibility:hidden;">
+                            <button type="button" id="expand_all_btn" class="btn btn-primary btn-inverted">Expand
+                                All</button>
+                            <button type="button" id="collapse_all_btn" class="btn btn-primary btn-inverted">Collapse
+                                All</button>
+                        </div>
                     </div>
-                </div>  
+                </div>
                 <p class="error" id="error-message" style="visibility:hidden;margin-left:5px;"></p>
                 <p id="warning-message" class="alert alert-dismissible alert-warning" style="display:none;margin-left:5px;">
                     <button type="button" class="close"><span aria-hidden="true">&times;</span></button>
