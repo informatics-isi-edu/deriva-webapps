@@ -46,6 +46,7 @@
             });
 
             templateParams.$url_parameters = queryParams;
+            showAnnotation = queryParams[requiredParams[requiredParams.length-1]] ? true : false;
 /* ===== End parameter extraction ===== */
 
             // function to reduce duplicated logic for collecting filter value from dropdown and re-fetching tree data
@@ -68,7 +69,7 @@
                         // TODO: remove if statement when we want to support multiple filters
                         if (idx == treeviewConfig.filters.length-1) {
                             // TODO: error handling because only Mouse is supported
-                            if (!filterData[0] || filterData[0]['Species'] !== "Mus musculus") {
+                            if (filterData[0] && filterData[0]['Species'] !== "Mus musculus") {
                                 document.getElementsByClassName('loader')[0].style.display = "none";
                                 document.getElementsByClassName('error')[0].style.visibility = "visible";
                                 document.getElementsByTagName("p")[0].innerHTML="Error: Only specimens of species, 'Mus musculus', are supported.<br />Specimen RID: "+id_parameter+", Species: "+(filterData[0] ? filterData[0]['Species'] : "null");
@@ -82,15 +83,26 @@
                                 $("#number").prop("disabled", true);
                                 $("#number").selectmenu("refresh");
                                 // We have a mouse, but there is no filter data for this specimen (stage data)
-                                if (filterData === undefined || filterData.length == 0) {
+                                if (filterData === undefined || filterData.length == 0 || !filterData[0].Ordinal) {
                                     $(".loader")[0].style.display = "none";
                                     $("#warning-message").css("display", "");
                                     $("#alert-warning-text")[0].innerHTML="Developmental Stage does not exist for Specimen RID : "+id_parameter;
+                                    if (filter.selected_filter.if_empty_id) {
+                                        $el.append($("<option></option>")
+                                        .attr("value", filter.extra_filter_options[0].values.id)
+                                        .text(ERMrest._renderHandlebarsTemplate(filter.display_text, filter.extra_filter_options[0].values)));
+                                        $('#number').val(filter.extra_filter_options[0].values.id);
+                                        $("#number").selectmenu("refresh");
+                                        $("#number").prop("disabled", true);
+                                        $("#number").selectmenu("refresh");
+                                        filterValue = filter.extra_filter_options[0].values.id;
+                                    }
+                                } else {
+                                    filterValue = filterData[0][columnName];
                                 }
 
                                 // filter_column_name should be the column name you want for filtering data
                                 columnName = filter.filter_column_name;
-                                filterValue = filterData[0][columnName];
                                 getValAndBuildData(columnName, filterValue);
                             }
                         }
@@ -119,7 +131,7 @@
                                 });
                             }
                             // select default
-                            $('#number').val(filter.default_id);
+                            $('#number').val(filter.selected_filter.default);
                             $("#number").selectmenu("refresh");
                             $("#number").on('selectmenuchange', function() {
                                 document.getElementsByClassName('loader')[0].style.display = "block";

@@ -17,8 +17,9 @@ var treeviewConfig = {
             default_id: 'Mus musculus', // note: might not be required?
             selected_filter: {
                 required_url_parameters: ["Species"], // if url param is present, false or null if not
+                default: 'Mus musculus',
                 selected_id: "{{{$url_parameters.Species}}}",
-                if_empty: false // if the selected_id is not in the list (e.g. null/empty array/1+), use this stage.. If this is not defined or false, just throw an error
+                if_empty_id: false // if the selected_id is not in the list (e.g. null/empty array/1+), use this stage.. If this is not defined or false, just throw an error
             }
         },
         // stage
@@ -27,14 +28,14 @@ var treeviewConfig = {
             display_mode: "drop-down",
             display_text: "{{{Name}}}{{#if Approximate_Equivalent_Age}}: {{Approximate_Equivalent_Age}}{{/if}}",
             query_pattern: "/ermrest/catalog/2/attributegroup/M:=Vocabulary:Developmental_Stage/species:=(Species)=(Vocabulary:Species:ID)/Name={{{$url_parameters.Species}}}/$M/id:=M:Name,Ordinal,Name,Approximate_Equivalent_Age@sort(Ordinal)",
-            // default_id: 'TS23',
-            default_id: '23',
+            default_id: null,
             // pre-selected through url parameter: either run the query to get the same row or choose existing value
             selected_filter: {
                 required_url_parameters: ["Specimen_RID"],
-                selected_query_pattern: "/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID={{{$url_parameters.Specimen_RID}}}/stage:=(Stage_ID)=(Vocabulary:Developmental_Stage:ID)/id:=stage:Name,stage:Name,stage:Ordinal,stage:Approximate_Equivalent_Age,Species:=M:Species",
+                default: '23',
+                selected_query_pattern: "/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID={{{$url_parameters.Specimen_RID}}}/stage:=left(Stage_ID)=(Vocabulary:Developmental_Stage:ID)/id:=stage:Name,stage:Name,stage:Ordinal,stage:Approximate_Equivalent_Age,Species:=M:Species",
                 selected_id: "{{{$url_parameters.Specimen_RID}}}", // either query_pattern or selected_id for specific value
-                if_empty: "All_Stages" // if the selected_id is not in the list (e.g. null/empty array/1+), use this stage.. If this is not defined, just throw an error
+                if_empty_id: "All_Stages" // if the selected_id is not in the list (e.g. null/empty array/1+), use this stage.. If this is not defined, just throw an error
             },
 
             // extra-filter option
