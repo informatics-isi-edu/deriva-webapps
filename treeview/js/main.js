@@ -353,8 +353,8 @@
                     },
                     sort: function(a, b) {
                         // sort based on the base text (attached to nodes before given to jstree)
-                        var a_text = this.get_node(a).original.base_text.toLowerCase();
-                        var b_text = this.get_node(b).original.base_text.toLowerCase();
+                        var a_text = this.get_node(a).original.base_text.toLowerCase().trim();
+                        var b_text = this.get_node(b).original.base_text.toLowerCase().trim();
 
                         return a_text > b_text ? 1 : -1;
                     }
