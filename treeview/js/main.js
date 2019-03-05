@@ -82,6 +82,9 @@
                                 $("#number").selectmenu("refresh");
                                 $("#number").prop("disabled", true);
                                 $("#number").selectmenu("refresh");
+
+                                // filter_column_name should be the column name you want for filtering data
+                                columnName = filter.filter_column_name;
                                 // We have a mouse, but there is no filter data for this specimen (stage data)
                                 if (filterData === undefined || filterData.length == 0 || !filterData[0].Ordinal) {
                                     $(".loader")[0].style.display = "none";
@@ -101,8 +104,6 @@
                                     filterValue = filterData[0][columnName];
                                 }
 
-                                // filter_column_name should be the column name you want for filtering data
-                                columnName = filter.filter_column_name;
                                 getValAndBuildData(columnName, filterValue);
                             }
                         }
@@ -674,23 +675,11 @@
 
                 // Get all isolated nodes as parent nodes
                 isolatedNodes.forEach(function (node) {
-                    var isolatedNodeImage = node.image ? createCameraElement(node.image) : "" ;
-                    templateParams.$node_id = ERMrest._fixedEncodeURIComponent(node.dbxref);
-                    var isolatedNode = {
-                        text: "<span>" + node.name + " (" + node.dbxref + ") " + isolatedNodeImage + "</span>",
-                        parent: [],
-                        children: [],
-                        dbxref: node.dbxref,
-                        base_text: node.name,
-                        image_path: node.image,
-                        a_attr: {
-                            'href': ERMrest._renderHandlebarsTemplate(treeviewConfig.tree.click_event_callback, templateParams),
-                            'style': 'display:inline;'
-                        },
-                        li_attr: {
-                            "class": "jstree-leaf"
-                        }
-                    };
+                    var isolatedNode = createColumnData(node.dbxref, node.name, node.image);
+                    isolatedNode.li_attr = {
+                        "class": "jstree-leaf"
+                    }
+
                     forest.trees.push(new Tree(isolatedNode));
                 });
 
@@ -769,6 +758,8 @@
                 // if the labels set is a string, return that string (should be a path to an icon)
                 if (typeof iconConfig.labels == "string") return generateIconHTML(iconConfig.labels, iconConfig.has_tooltip, key, value);
 
+                // if no value from the data, use "default" as the value
+                if (!value && iconConfig.labels.default) value = "default";
                 var iconPath = iconConfig.labels[value];
                 // if we get a string, return, else recurse (it should be an object again)
                 if (typeof iconPath == "string" || !iconPath) {
