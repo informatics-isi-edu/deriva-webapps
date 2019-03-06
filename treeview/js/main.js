@@ -87,9 +87,8 @@
                                 columnName = filter.filter_column_name;
                                 // We have a mouse, but there is no filter data for this specimen (stage data)
                                 if (filterData === undefined || filterData.length == 0 || !filterData[0].Ordinal) {
-                                    $(".loader")[0].style.display = "none";
                                     $("#warning-message").css("display", "");
-                                    $("#alert-warning-text")[0].innerHTML="Developmental Stage does not exist for Specimen RID : "+id_parameter;
+                                    $("#alert-warning-text")[0].innerHTML="Developmental Stage does not exist for Specimen RID : "+id_parameter+". Terms for all stages will be shown instead.";
                                     if (filter.selected_filter.if_empty_id) {
                                         $el.append($("<option></option>")
                                         .attr("value", filter.extra_filter_options[0].values.id)
