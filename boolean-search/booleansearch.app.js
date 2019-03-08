@@ -50,7 +50,7 @@ var setSourceForFilter;
             patternOptions: [],
             locationOptions: []
         })
-        .factory('filterOptions', ['$http', '$window', 'ERMrest', 'headInjector', 'MathUtils', function ($http, $window, ERMrest, headInjector, MathUtils) {
+        .factory('filterOptions', ['$http', '$window', 'ERMrest', 'headInjector', 'MathUtils', 'UriUtils', function ($http, $window, ERMrest, headInjector, MathUtils, UriUtils) {
             var baseUrl = $window.location.origin;
             var specExprUrl = baseUrl + "/ermrest/catalog/2/attributegroup/Gene_Expression:Specimen_Expression";
             var devStageUrl = baseUrl + "/ermrest/catalog/2/attribute/Vocabulary:Developmental_Stage";
@@ -123,9 +123,9 @@ var setSourceForFilter;
                 headers[ERMrest.contextHeaderName].schema_table = "Vocabulary:Anatomy";
                 headers[ERMrest.contextHeaderName].source = "Name";
                 var columnName = "Name=";
-                var queryParam = "/" + columnName + encodeURIComponent(sources[0]);
+                var queryParam = "/" + columnName + UriUtils.fixedEncodeURIComponent(sources[0]);
                 for (var i = 1; i < sources.length; i++) {
-                    queryParam += (";" + columnName + encodeURIComponent(sources[i]));
+                    queryParam += (";" + columnName + UriUtils.fixedEncodeURIComponent(sources[i]));
                 }
                 return server.http.get(sourceUrl + queryParam, { headers: headers }).then(function (response) {
                     return response.data;
@@ -141,7 +141,7 @@ var setSourceForFilter;
                 getSourceOptions: getSourceOptions
             }
         }])
-        .controller('BooleanSearchController', ['$scope', 'booleanSearchModel', 'defaultOptions', '$rootScope', 'ERMrest', '$window', 'filterOptions', 'Errors', 'ErrorService', function BooleanSearchController($scope, booleanSearchModel, defaultOptions, $rootScope, ERMrest, $window, filterOptions, Errors, ErrorService) {
+        .controller('BooleanSearchController', ['$scope', 'booleanSearchModel', 'defaultOptions', '$rootScope', 'ERMrest', '$window', 'filterOptions', 'Errors', 'ErrorService', 'modalUtils', function BooleanSearchController($scope, booleanSearchModel, defaultOptions, $rootScope, ERMrest, $window, filterOptions, Errors, ErrorService, modalUtils) {
             var config = Object.assign({}, booleanSearchConfig);
             $scope.options = defaultOptions;
             $scope.treeviewOpen = true;
@@ -164,6 +164,7 @@ var setSourceForFilter;
             vm.submit = submit;
             vm.validateQuery = validateQuery;
             vm.saveFilters = saveFilters;
+            vm.showInfo = showInfo;
             $rootScope.$watch("dataLoaded.count", function (newValue, oldValue) {
                 if (newValue == 4) {
                     initialize();
@@ -289,8 +290,10 @@ var setSourceForFilter;
                                     invalid.multipleSource += (" or \"<b>" + match[i].Name + " (" + match[i].ID + ")</b>\"");
                                 }
                                 invalid.multipleSource += "</li>";
+                                row.sourceInvalid = true;
+                            } else {
+                                row.sourceInvalid = false;
                             }
-                            row.sourceInvalid = true;
                         } else {
                             row.source.id = match[0].ID;
                             row.sourceInvalid = false;
@@ -449,6 +452,10 @@ var setSourceForFilter;
                         default:
                             strength = filter.substring(0, filter.indexOf("{"));
                     }
+                    if(index == vm.booleanSearchModel.rows.length){
+                        let row = new filterModel(defaultOptions);
+                        vm.booleanSearchModel.rows.push(row);
+                    }
                     vm.booleanSearchModel.rows[index].strength = strength;
                     
                     if (vm.booleanSearchModel.rows[index].source == null) {
@@ -457,9 +464,9 @@ var setSourceForFilter;
                     var sourceStart = filter.indexOf("\"");
                     var sourceEnd = filter.lastIndexOf("\"");
                     var sourceName = filter.substring(sourceStart + 1, sourceEnd);
-                    if (sourceName.includes("(")) {
-                        var idStart = sourceName.indexOf("(");
-                        var idEnd = sourceName.indexOf(")");
+                    if (sourceName.includes(":")) {
+                        var idStart = sourceName.lastIndexOf("(");
+                        var idEnd = sourceName.lastIndexOf(")");
                         var id = sourceName.substring(idStart + 1, idEnd);
                         sourceName = sourceName.substring(0, idStart - 1);
                         vm.booleanSearchModel.rows[index].source.id = id;
@@ -551,6 +558,15 @@ var setSourceForFilter;
                 }
             }
 
+            function showInfo() {
+                modalUtils.showModal({
+                    templateUrl: "info.modal.html",
+                    controller: "InfoModalController",
+                    controllerAs: "ctrl",
+                    size: "lg"
+                }, false, false, false);
+            };
+
             function togglePanel() {
                 $scope.treeviewOpen = !$scope.treeviewOpen;
             }
@@ -559,6 +575,17 @@ var setSourceForFilter;
                 return { 'glyphicon glyphicon-triangle-left': $scope.treeviewOpen, 'glyphicon glyphicon-triangle-right': !$scope.treeviewOpen };
             }
 
+        }])
+        .controller('InfoModalController', ['$uibModalInstance', 'ERMrest', function InfoModalController($uibModalInstance, ERMrest) {
+            var vm = this;
+            var config = Object.assign({}, booleanSearchConfig);
+            vm.cancel = function () {
+                $uibModalInstance.dismiss('cancel');
+            };
+            var infoText = config.info;
+            ERMrest.onload().then(function() {
+                vm.infoText = ERMrest.renderMarkdown(infoText);
+            });
         }])
         .directive('treeView', ['$window', function ($window) {
             return {
