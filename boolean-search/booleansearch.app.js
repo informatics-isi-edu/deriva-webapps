@@ -141,7 +141,7 @@ var setSourceForFilter;
                 getSourceOptions: getSourceOptions
             }
         }])
-        .controller('BooleanSearchController', ['$scope', 'booleanSearchModel', 'defaultOptions', '$rootScope', 'ERMrest', '$window', 'filterOptions', 'Errors', 'ErrorService', 'modalUtils', function BooleanSearchController($scope, booleanSearchModel, defaultOptions, $rootScope, ERMrest, $window, filterOptions, Errors, ErrorService, modalUtils) {
+        .controller('BooleanSearchController', ['$scope', 'booleanSearchModel', 'defaultOptions', '$rootScope', 'ERMrest', '$window', 'filterOptions', 'Errors', 'ErrorService', 'modalUtils', 'UriUtils', function BooleanSearchController($scope, booleanSearchModel, defaultOptions, $rootScope, ERMrest, $window, filterOptions, Errors, ErrorService, modalUtils, UriUtils) {
             var config = Object.assign({}, booleanSearchConfig);
             $scope.options = defaultOptions;
             $scope.treeviewOpen = true;
@@ -268,38 +268,19 @@ var setSourceForFilter;
                 vm.booleanSearchModel.rows.forEach(function (row) {
                     sources.push(row.source.name);
                 });
-                var invalid = {
-                    source: [],
-                    multipleSource: ""
-                };
+                var invalidSource = [];
                 filterOptions.getSourceOptions(sources).then(function (data) {
                     vm.booleanSearchModel.rows.forEach(function (row, index) {
                         var match = data.filter(source => (source.Name === row.source.name));
                         if (match.length == 0) {
-                            invalid.source.push(row.source.name);
+                            invalidSource.push(row.source.name);
                             row.sourceInvalid = true;
-                        } else if (match.length > 1) {
-                            var ids = [];
-                            for (var i = 0; i < match.length; i++) {
-                                ids.push(match[i].ID);
-                            }
-                            if (ids.filter(id => (id === row.source.id)).length == 0) {
-                                invalid.multipleSource += ("<li>\"Multiple Anatomical Sources\" exist with the name: \"" + row.source.name + "\". ");
-                                invalid.multipleSource += ("Replace \"<b>" + row.source.name + "</b>\" with \"<b>" + match[0].Name + " (" + match[0].ID + ")</b>\"");
-                                for (var i = 1; i < match.length; i++) {
-                                    invalid.multipleSource += (" or \"<b>" + match[i].Name + " (" + match[i].ID + ")</b>\"");
-                                }
-                                invalid.multipleSource += "</li>";
-                                row.sourceInvalid = true;
-                            } else {
-                                row.sourceInvalid = false;
-                            }
                         } else {
                             row.source.id = match[0].ID;
                             row.sourceInvalid = false;
                         }
                         if (index == vm.booleanSearchModel.rows.length - 1) {
-                            validateOtherParams(invalid, submitQuery);
+                            validateOtherParams(invalidSource, submitQuery);
                         }
                     });
                 });
@@ -307,17 +288,16 @@ var setSourceForFilter;
             }
             function validateOtherParams(invalidSource, submitQuery) {
                 var valid = true;
-                if (invalidSource.source.length > 0 || invalidSource.multipleSource !== "") {
+                if (invalidSource.length > 0) {
                     valid = false;
                 }
                 var invalid = {
                     strength: [],
-                    source: invalidSource.source,
+                    source: invalidSource,
                     fromStage: [],
                     toStage: [],
                     pattern: [],
-                    location: [],
-                    multipleSource: invalidSource.multipleSource
+                    location: []
                 };
                 vm.booleanSearchModel.rows.forEach(function (row, index) {
                     if (!defaultOptions.strengthOptions.includes(row.strength)) {
@@ -401,9 +381,6 @@ var setSourceForFilter;
                 if (invalid.location.length > 0) {
                     message += errorMessageHelper(invalid.location, "Location");
                 }
-                if (invalid.multipleSource !== "") {
-                    message += invalid.multipleSource;
-                }
                 return message;
             }
             function errorMessageHelper(param, name) {
@@ -423,7 +400,7 @@ var setSourceForFilter;
                 vm.booleanSearchModel.rows.forEach(function (row, index) {
                     var pattern = row.pattern == "" || row.pattern == null ? "" : "&Pattern=" + row.pattern;
                     var location = row.location == "" || row.location == null ? "" : "&Pattern_Location=" + row.location;
-                    query = query + "/(Stage_ID)=(Vocabulary:Developmental_Stage:ID)/Ordinal::geq::" + row.stageFrom.Ordinal + "&Ordinal::leq::" + row.stageTo.Ordinal + "/$M/(RID)=(Specimen_Expression:Specimen)/Strength=" + encodeURIComponent(row.strength) + "&Region=" + encodeURIComponent(row.source.id) + pattern + location + "/$M";
+                    query = query + "/(Stage_ID)=(Vocabulary:Developmental_Stage:ID)/Ordinal::geq::" + row.stageFrom.Ordinal + "&Ordinal::leq::" + row.stageTo.Ordinal + "/$M/(RID)=(Specimen_Expression:Specimen)/Strength=" + encodeURIComponent(row.strength) + pattern + location + "/(Region)=(Vocabulary:Anatomy:ID)/Name=" + UriUtils.fixedEncodeURIComponent(row.source.name) + "/$M";
                 });
                 var customFacet = {
                     "displayname": vm.filters,
@@ -436,6 +413,7 @@ var setSourceForFilter;
             function parseQueryText(submitQuery) {
                 var inputQuery = vm.filters;
                 var filters = inputQuery.split("AND");
+                vm.booleanSearchModel.rows.length = filters.length;
                 filters.forEach(function (filter, index) {
                     filter = filter.trim();
                     var strength;
@@ -452,9 +430,9 @@ var setSourceForFilter;
                         default:
                             strength = filter.substring(0, filter.indexOf("{"));
                     }
-                    if(index == vm.booleanSearchModel.rows.length){
+                    if(vm.booleanSearchModel.rows[index] == undefined){
                         let row = new filterModel(defaultOptions);
-                        vm.booleanSearchModel.rows.push(row);
+                        vm.booleanSearchModel.rows[index] = row;
                     }
                     vm.booleanSearchModel.rows[index].strength = strength;
                     

@@ -14,7 +14,7 @@
                     <li>Select an <b>Anatomical Source by clicking on a node in the Treeview</b> displayed in the left
                         pane. Clicking a node in the Treeview would change the Anatomical Source of the current
                         (highlighted) row. </li>
-                    <li>Select the appropriate values for <b>Strength, To and From Developmental Stage, Pattern</b>(Optional)
+                    <li>Select the appropriate values for <b>Strength, From and To Developmental Stage, Pattern</b>(Optional)
                         and <b>Pattern Location</b>(Optional) from the respective dropdowns.</li>
                     <li>You could add multiple filter rows by clicking the plus symbol on the top right corner.</li>
                 </ol>
@@ -41,16 +41,7 @@
     The following errors could occur when using the app:
     <ol>
         <li><b>Incorrect formatting</b> of the query in the textbox. Please refer to the examples above.</li>
-        <li>Invalid Anatomical source can occur in 2 cases:
-            <ul>
-                <li>The Anatomical Source entered in the textbox does not exist</li>
-                <li><b>Multiple Anatomical Sources</b> exist with the name you entered in the textbox. In this case, you'll
-                    have to enter the ID along with the name.
-                    For Example: There are 2 Sources with the name "genitourinary system" so write either
-                    "genitourinary system (EMAPA:16367)" or "genitourinary system (UBERON:0004122)" in the text box. So
-                    the entire query will look like: <b>p{in "genitourinary system (EMAPA:16367)" TS17..TS28}</b>
-                </li>
-            </ul>
-        </li>
+        <li>The <b>Anatomical Source</b> entered in the textbox <b>does not exist</b>. This can be resolved by searching for the term in the treeview in the left pane.</li>
+        <li>Invalid values of Strength, Developmental Stages, Pattern or Pattern location. These can be resolved by selecting the proper values from the respective dropdowns for each row.</li>           
     </ol>
 </div>
