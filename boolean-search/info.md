@@ -4,7 +4,7 @@ Following are the steps to perform custom filtering on the Gene_Expression:Speci
     *   Using the Treeview:
 
     1.  Select an **Anatomical Source by clicking on a node in the Treeview** displayed in the left pane. Clicking a node in the Treeview would change the Anatomical Source of the current (highlighted) row.
-    2.  Select the appropriate values for **Strength, To and From Developmental Stage, Pattern**(Optional) and **Pattern Location**(Optional) from the respective dropdowns.
+    2.  Select the appropriate values for **Strength, From and To Developmental Stage, Pattern**(Optional) and **Pattern Location**(Optional) from the respective dropdowns.
     3.  You could add multiple filter rows by clicking the plus symbol on the top right corner.
 
     *   Entering the formatted query in the textbox:
@@ -22,6 +22,5 @@ Following are the steps to perform custom filtering on the Gene_Expression:Speci
 The following errors could occur when using the app:
 
 1.  **Incorrect formatting** of the query in the textbox. Please refer to the examples above.
-2.  Invalid Anatomical source can occur in 2 cases:
-    *   The Anatomical Source entered in the textbox does not exist
-    *   **Multiple Anatomical Sources** exist with the name you entered in the textbox. In this case, you'll have to enter the ID along with the name. For Example: There are 2 Sources with the name "genitourinary system" so write either "genitourinary system (EMAPA:16367)" or "genitourinary system (UBERON:0004122)" in the text box. So the entire query will look like: **p{in "genitourinary system (EMAPA:16367)" TS17..TS28}**
+2.  The **Anatomical Source** entered in the textbox **does not exist**. This can be resolved by searching for the term in the treeview in the left pane.
+3.  Invalid values of Strength, Developmental Stages, Pattern or Pattern location. These can be resolved by selecting the proper values from the respective dropdowns for each row.
