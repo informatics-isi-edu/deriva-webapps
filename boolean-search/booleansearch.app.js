@@ -554,16 +554,11 @@ var setSourceForFilter;
             }
 
         }])
-        .controller('InfoModalController', ['$uibModalInstance', 'ERMrest', function InfoModalController($uibModalInstance, ERMrest) {
+        .controller('InfoModalController', ['$uibModalInstance', function InfoModalController($uibModalInstance) {
             var vm = this;
-            var config = Object.assign({}, booleanSearchConfig);
             vm.cancel = function () {
                 $uibModalInstance.dismiss('cancel');
             };
-            var infoText = config.info;
-            ERMrest.onload().then(function() {
-                vm.infoText = ERMrest.renderMarkdown(infoText);
-            });
         }])
         .directive('treeView', ['$window', function ($window) {
             return {
