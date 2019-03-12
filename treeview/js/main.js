@@ -6,6 +6,28 @@
         // console.log(ERMrest);
         // console.log(Q);
 
+        function uuid() {
+            // gets a string of a deterministic length of 4
+            function s4() {
+                return Math.floor((1 + Math.random()) * 0x10000).toString(36);
+            }
+            return s4() + s4() + s4() + s4() + s4() + s4();
+        }
+
+        function getHeader(action, schemaTable) {
+            return ERMrest._certifyContextHeader({
+                wid: window.name,
+                pid: uuid(),
+                cid: "treeview",
+                action: action,
+                schema_table: schemaTable
+            });
+        }
+
+        if (!window.name) {
+            window.name = uuid();
+        }
+
         ERMrest.configure(null, Q);
 
         ERMrest.onload().then(function () {
@@ -65,92 +87,108 @@
                     filterUrl = 'https://' + window.location.hostname + ERMrest._renderHandlebarsTemplate(queryPattern, templateParams);
                     var $el = $("#number");
                     $el.empty();
-                    $.getJSON(filterUrl, function(filterData) {
-                        // TODO: remove if statement when we want to support multiple filters
-                        if (idx == treeviewConfig.filters.length-1) {
-                            // TODO: error handling because only Mouse is supported
-                            if (filterData[0] && filterData[0]['Species'] !== "Mus musculus") {
-                                document.getElementsByClassName('loader')[0].style.display = "none";
-                                document.getElementsByClassName('error')[0].style.visibility = "visible";
-                                document.getElementsByTagName("p")[0].innerHTML="Error: Only specimens of species, 'Mus musculus', are supported.<br />Specimen RID: "+id_parameter+", Species: "+(filterData[0] ? filterData[0]['Species'] : "null");
-                            } else {
-                                var selected_option = ERMrest._renderHandlebarsTemplate(filter.display_text, filterData[0]);
-                                // only add selected option to the list
-                                $el.append($("<option></option>")
-                                .attr("value", selected_option).text(selected_option));
-                                $('#number').val(selected_option);
-                                $("#number").selectmenu("refresh");
-                                $("#number").prop("disabled", true);
-                                $("#number").selectmenu("refresh");
 
-                                // filter_column_name should be the column name you want for filtering data
-                                columnName = filter.filter_column_name;
-                                // We have a mouse, but there is no filter data for this specimen (stage data)
-                                if (filterData === undefined || filterData.length == 0 || !filterData[0].Ordinal) {
-                                    $("#warning-message").css("display", "");
-                                    $("#alert-warning-text")[0].innerHTML="Developmental Stage does not exist for Specimen RID : "+id_parameter+". Terms for all stages will be shown instead.";
-                                    if (filter.selected_filter.if_empty_id) {
-                                        $el.append($("<option></option>")
-                                        .attr("value", filter.extra_filter_options[0].values.id)
-                                        .text(ERMrest._renderHandlebarsTemplate(filter.display_text, filter.extra_filter_options[0].values)));
-                                        $('#number').val(filter.extra_filter_options[0].values.id);
-                                        $("#number").selectmenu("refresh");
-                                        $("#number").prop("disabled", true);
-                                        $("#number").selectmenu("refresh");
-                                        filterValue = filter.extra_filter_options[0].values.id;
-                                    }
+                    var headers = {};
+                    headers[ERMrest.contextHeaderName] = getHeader("treeview/filter", filter.schema_table);
+                    $.ajax({
+                        headers: headers,
+                        dataType: "json",
+                        url: filterUrl,
+                        success: function(filterData) {
+                            // TODO: remove if statement when we want to support multiple filters
+                            if (idx == treeviewConfig.filters.length-1) {
+                                // TODO: error handling because only Mouse is supported
+                                if (filterData[0] && filterData[0]['Species'] !== "Mus musculus") {
+                                    document.getElementsByClassName('loader')[0].style.display = "none";
+                                    document.getElementsByClassName('error')[0].style.visibility = "visible";
+                                    document.getElementsByTagName("p")[0].innerHTML="Error: Only specimens of species, 'Mus musculus', are supported.<br />Specimen RID: "+id_parameter+", Species: "+(filterData[0] ? filterData[0]['Species'] : "null");
                                 } else {
-                                    filterValue = filterData[0][columnName];
-                                }
+                                    var selected_option = ERMrest._renderHandlebarsTemplate(filter.display_text, filterData[0]);
+                                    // only add selected option to the list
+                                    $el.append($("<option></option>")
+                                    .attr("value", selected_option).text(selected_option));
+                                    $('#number').val(selected_option);
+                                    $("#number").selectmenu("refresh");
+                                    $("#number").prop("disabled", true);
+                                    $("#number").selectmenu("refresh");
 
-                                getValAndBuildData(columnName, filterValue);
+                                    // filter_column_name should be the column name you want for filtering data
+                                    columnName = filter.filter_column_name;
+                                    // We have a mouse, but there is no filter data for this specimen (stage data)
+                                    if (filterData === undefined || filterData.length == 0 || !filterData[0].Ordinal) {
+                                        $("#warning-message").css("display", "");
+                                        $("#alert-warning-text")[0].innerHTML="Developmental Stage does not exist for Specimen RID : "+id_parameter+". Terms for all stages will be shown instead.";
+                                        if (filter.selected_filter.if_empty_id) {
+                                            $el.append($("<option></option>")
+                                            .attr("value", filter.extra_filter_options[0].values.id)
+                                            .text(ERMrest._renderHandlebarsTemplate(filter.display_text, filter.extra_filter_options[0].values)));
+                                            $('#number').val(filter.extra_filter_options[0].values.id);
+                                            $("#number").selectmenu("refresh");
+                                            $("#number").prop("disabled", true);
+                                            $("#number").selectmenu("refresh");
+                                            filterValue = filter.extra_filter_options[0].values.id;
+                                        }
+                                    } else {
+                                        filterValue = filterData[0][columnName];
+                                    }
+
+                                    getValAndBuildData(columnName, filterValue);
+                                }
                             }
-                        }
-                    }); // end getJSON
+                        } // end success
+                    }); // end ajax
                 }); // end forEach
             } else {
                 treeviewConfig.filters.forEach(function (filter, idx) {
                     filterUrl = 'https://' + window.location.hostname + ERMrest._renderHandlebarsTemplate(filter.query_pattern, templateParams);
                     var $el = $("#number");
                     $el.empty(); // remove old options
-                    $.getJSON(filterUrl, function(filterData) {
-                        // TODO: remove if statement when we want to support multiple filters
-                        if (idx == treeviewConfig.filters.length-1) {
-                            // add all options from filter data to list
-                            filterData.forEach(function(data, index) {
-                                $el.append($("<option></option>")
-                                .attr("value", data['Ordinal'])
-                                .text(ERMrest._renderHandlebarsTemplate(filter.display_text, data)));
-                            });
-                            // append extra filter options
-                            if (filter.extra_filter_options) {
-                                filter.extra_filter_options.forEach(function (option) {
+
+                    var headers = {};
+                    headers[ERMrest.contextHeaderName] = getHeader("treeview/filter", filter.schema_table);
+                    $.ajax({
+                        headers: headers,
+                        dataType: "json",
+                        url: filterUrl,
+                        success: function(filterData) {
+                            // TODO: remove if statement when we want to support multiple filters
+                            if (idx == treeviewConfig.filters.length-1) {
+                                // add all options from filter data to list
+                                filterData.forEach(function(data, index) {
                                     $el.append($("<option></option>")
-                                    .attr("value", option.values.id)
-                                    .text(ERMrest._renderHandlebarsTemplate(filter.display_text, option.values)));
+                                    .attr("value", data['Ordinal'])
+                                    .text(ERMrest._renderHandlebarsTemplate(filter.display_text, data)));
                                 });
-                            }
-                            // select default
-                            $('#number').val(filter.selected_filter.default);
-                            $("#number").selectmenu("refresh");
-                            $("#number").on('selectmenuchange', function() {
-                                document.getElementsByClassName('loader')[0].style.display = "block";
-                                document.getElementById('jstree').style.visibility = "hidden";
-                                $("#number").prop("disabled", true);
-                                $('#plugins4_q').prop("disabled", true);
-                                $("#search_btn").prop("disabled", true);
-                                $("#expand_all_btn").prop("disabled", true);
-                                $("#collapse_all_btn").prop("disabled", true);
-                                $("#reset_text").prop("disabled", true);
+                                // append extra filter options
+                                if (filter.extra_filter_options) {
+                                    filter.extra_filter_options.forEach(function (option) {
+                                        $el.append($("<option></option>")
+                                        .attr("value", option.values.id)
+                                        .text(ERMrest._renderHandlebarsTemplate(filter.display_text, option.values)));
+                                    });
+                                }
+                                // select default
+                                $('#number').val(filter.selected_filter.default);
+                                $("#number").selectmenu("refresh");
+                                $("#number").on('selectmenuchange', function() {
+                                    document.getElementsByClassName('loader')[0].style.display = "block";
+                                    document.getElementById('jstree').style.visibility = "hidden";
+                                    $("#number").prop("disabled", true);
+                                    $('#plugins4_q').prop("disabled", true);
+                                    $("#search_btn").prop("disabled", true);
+                                    $("#expand_all_btn").prop("disabled", true);
+                                    $("#collapse_all_btn").prop("disabled", true);
+                                    $("#reset_text").prop("disabled", true);
+
+                                    filterValue = $("#number").val();
+                                    columnName = filter.filter_column_name;
+                                    getValAndBuildData(columnName, filterValue);
+                                });
 
                                 filterValue = $("#number").val();
                                 columnName = filter.filter_column_name;
                                 getValAndBuildData(columnName, filterValue);
-                            });
-
-                            filterValue = $("#number").val();
-                            columnName = filter.filter_column_name;
-                            getValAndBuildData(columnName, filterValue);
+                            }
                         }
                     });
                 });
@@ -507,26 +545,46 @@
                     presentationData = [];
 
                 // defined inline because of scoped variables
-                function getTreeData(treeDataURL, isolatedNodesURL) {
-                    $.getJSON(treeDataURL, function(data) {
-                        json = data
+                function getTreeData(queryConfig) {
+                    var treeHeaders = {};
+                    treeHeaders[ERMrest.contextHeaderName] = getHeader("treeview/tree", queryConfig.tree_schema_table);
+                    $.ajax({
+                        headers: treeHeaders,
+                        dataType: "json",
+                        url: ERMrest._renderHandlebarsTemplate(queryConfig.tree_query, templateParams),
+                        success: function(data) {
+                            json = data
+                        }
                     }).done(function() {
-                        $.getJSON(isolatedNodesURL, function(data) {
-                            isolatedNodes = data
+                        var isolatedHeaders = {};
+                        isolatedHeaders[ERMrest.contextHeaderName] = getHeader("treeview/isolated", queryConfig.isolated_schema_table);
+                        $.ajax({
+                            headers: isolatedHeaders,
+                            dataType: "json",
+                            url: ERMrest._renderHandlebarsTemplate(queryConfig.isolated_nodes_query, templateParams),
+                            success: function(data) {
+                                isolatedNodes = data
+                            }
                         }).done(function() {
                             if(id_parameter != '') {
                                 extraAttributesURL = 'https://' + window.location.hostname + ERMrest._renderHandlebarsTemplate(treeviewConfig.annotation.annotation_query_pattern, templateParams);
-                                $.getJSON(extraAttributesURL, function(data) {
-                                    extraAttributes = data
+                                var annotationHeaders = {};
+                                annotationHeaders[ERMrest.contextHeaderName] = getHeader("treeview/annotation", treeviewConfig.annotation.schema_table);
+                                $.ajax({
+                                    headers: annotationHeaders,
+                                    dataType: "json",
+                                    url: extraAttributesURL,
+                                    success: function(data) {
+                                        extraAttributes = data
+                                    }
                                 }).done(function() {
                                     refreshOrBuildTree(json, extraAttributes, showAnnotation, isolatedNodes, filterOrderVal)
-                                })
-                            }
-                            else {
+                                });
+                            } else {
                                 refreshOrBuildTree(json, [], showAnnotation, isolatedNodes, filterOrderVal)
                             }
-                        })
-                    });
+                        }); // end isolated nodes query done
+                    }); // end tree query done
                 }
 
                 // used to compare the current selected filter values to the filter sets defined in the config to determine which queries to use (also defined in the config with each filter set)
@@ -546,9 +604,7 @@
                 for (var j=0; j<treeviewConfig.tree.queries.length; j++){
                     var queryConfig = treeviewConfig.tree.queries[j];
                     if (compareFilters(queryConfig.filter_set)) {
-                        treeURL = ERMrest._renderHandlebarsTemplate(queryConfig.tree_query, templateParams);
-                        isolatedURL = ERMrest._renderHandlebarsTemplate(queryConfig.isolated_nodes_query, templateParams);
-                        getTreeData(treeURL, isolatedURL);
+                        getTreeData(queryConfig);
                         break; // can't break out of forEach loop, hence use of for loop instead
                     }
                 }

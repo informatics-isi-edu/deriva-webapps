@@ -14,6 +14,7 @@ var treeviewConfig = {
             display_mode: "drop-down", // or false (not show)
             display_text: "{{{Name}}}",
             query_pattern: "/ermrest/catalog/2/attributegroup/M:=Vocabulary:Species/id:=M:Name,M:ID,M:Name@sort(Name)",
+            schema_table: "Vocabulary:Species", // for logging purposes
             default_id: 'Mus musculus', // note: might not be required?
             selected_filter: {
                 required_url_parameters: ["Species"], // if url param is present, false or null if not
@@ -28,6 +29,7 @@ var treeviewConfig = {
             display_mode: "drop-down",
             display_text: "{{{Name}}}{{#if Approximate_Equivalent_Age}}: {{Approximate_Equivalent_Age}}{{/if}}",
             query_pattern: "/ermrest/catalog/2/attributegroup/M:=Vocabulary:Developmental_Stage/species:=(Species)=(Vocabulary:Species:ID)/Name={{{$url_parameters.Species}}}/$M/id:=M:Name,Ordinal,Name,Approximate_Equivalent_Age@sort(Ordinal)",
+            schema_table: "Vocabulary:Developmental_Stage", // for logging purposes
             default_id: null,
             // pre-selected through url parameter: either run the query to get the same row or choose existing value
             selected_filter: {
@@ -59,12 +61,16 @@ var treeviewConfig = {
             {
                 filter_set: ["*", "All_Stages"],
                 tree_query: "/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=left(Subject)=(Vocabulary:Anatomy:ID)/F1I:=left(Schematic)=(Schematics:Schematic:RID)/$M/F2:=left(Object)=(Vocabulary:Anatomy:ID)/F2I:=left(Schematic)=(Schematics:Schematic:RID)/$M/child_id:=M:Subject,parent_id:=M:Object,child:=F1:Name,parent:=F2:Name,child_image:=F1I:Search_Thumbnail,parent_image:=F2I:Search_Thumbnail",
-                isolated_nodes_query: "/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy/s:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Subject)/Subject::null::/$t/o:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Object)/Object::null::/$t/I:=left(Schematic)=(Schematics:Schematic:RID)/$t/id:=t:ID,dbxref:=t:ID,name:=t:Name,image:=I:Search_Thumbnail"
+                tree_schema_table: "Vocabulary:Anatomy_Part_Of_Relationship", // for logging purposes
+                isolated_nodes_query: "/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy/s:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Subject)/Subject::null::/$t/o:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Object)/Object::null::/$t/I:=left(Schematic)=(Schematics:Schematic:RID)/$t/id:=t:ID,dbxref:=t:ID,name:=t:Name,image:=I:Search_Thumbnail",
+                isolated_schema_table: "Vocabulary:Anatomy", // for logging purposes
             },
             {
                 filter_set: ["*", "*"],
                 tree_query: "/ermrest/catalog/2/attribute/M:=Vocabulary:Anatomy_Part_Of_Relationship/F1:=(Subject)=(Vocabulary:Anatomy:ID)/Subject_Starts_at_Ordinal:=(Starts_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::leq::{{{$filters.Ordinal}}}/$F1/Subject_Ends_At_Ordinal:=(Ends_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::geq::{{{$filters.Ordinal}}}/$M/F2:=(Object)=(Vocabulary:Anatomy:ID)/Object_Starts_at_Ordinal:=(Starts_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::leq::{{{$filters.Ordinal}}}/$F2/Object_Ends_At_Ordinal:=(Ends_At)=(Vocabulary:Developmental_Stage:Name)/Ordinal::geq::{{{$filters.Ordinal}}}/$F1/F1I:=left(Schematic)=(Schematics:Schematic:RID)/$F2/F2I:=left(Schematic)=(Schematics:Schematic:RID)/$M/child_id:=M:Subject,parent_id:=M:Object,child:=F1:Name,parent:=F2:Name,child_image:=F1I:Search_Thumbnail,parent_image:=F2I:Search_Thumbnail",
-                isolated_nodes_query: "/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy/start:=(Starts_At)=(Vocabulary:Developmental_Stage:Name)/start:Ordinal::leq::{{{$filters.Ordinal}}}/$t/end:=(Ends_At)=(Vocabulary:Developmental_Stage:Name)/end:Ordinal::geq::{{{$filters.Ordinal}}}/$t/s:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Subject)/Subject::null::/$t/o:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Object)/Object::null::/$t/I:=left(Schematic)=(Schematics:Schematic:RID)/$t/id:=t:ID,dbxref:=t:ID,name:=t:Name,t:Starts_At,t:Ends_At,image:=I:Search_Thumbnail"
+                tree_schema_table: "Vocabulary:Anatomy_Part_Of_Relationship", // for logging purposes
+                isolated_nodes_query: "/ermrest/catalog/2/attribute/t:=Vocabulary:Anatomy/start:=(Starts_At)=(Vocabulary:Developmental_Stage:Name)/start:Ordinal::leq::{{{$filters.Ordinal}}}/$t/end:=(Ends_At)=(Vocabulary:Developmental_Stage:Name)/end:Ordinal::geq::{{{$filters.Ordinal}}}/$t/s:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Subject)/Subject::null::/$t/o:=left(ID)=(Vocabulary:Anatomy_Part_Of_Relationship:Object)/Object::null::/$t/I:=left(Schematic)=(Schematics:Schematic:RID)/$t/id:=t:ID,dbxref:=t:ID,name:=t:Name,t:Starts_At,t:Ends_At,image:=I:Search_Thumbnail",
+                isolated_schema_table: "Vocabulary:Anatomy", // for logging purposes
             }
         ],
 
@@ -90,6 +96,7 @@ var treeviewConfig = {
     // extra attributes to annotate nodes with icons
     annotation: {
         annotation_query_pattern: "/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID={{{$url_parameters.Specimen_RID}}}/N:=left(RID)=(Gene_Expression:Specimen_Expression:Specimen)/$M/id:=N:Region,M:RID,Region:=N:Region,strength:=N:Strength,strengthModifier:=N:Strength_Modifier,pattern:=N:Pattern,density:=N:Density,densityChange:=N:Density_Direction,densityMagnitude:=N:Density_Magnitude,densityNote:=N:Density_Note,note:=N:Notes",
+        schema_table: "Gene_Expression:Specimen", // for logging purposes
         // keys should map to the columns listed in extra_attributes_columns
         // inner keys should be the value of that column with icon location as the value
         extra_attributes_icons: {
