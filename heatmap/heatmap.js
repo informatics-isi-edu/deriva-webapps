@@ -20,14 +20,22 @@ var heatmapApp =
 			ConfigUtilsProvider.$get().setConfigJSON();
 		}])
 
-		.run(['ERMrest', 'UriUtils', '$rootScope', '$window',
-			function runApp(ERMrest, UriUtils, $rootScope, $window) {
+		.run(['ERMrest', 'UriUtils', '$rootScope', '$window', 'MathUtils', 'headInjector',
+			function runApp(ERMrest, UriUtils, $rootScope, $window, MathUtils, headInjector) {
 				$rootScope.heatmapsLoadedCount = 0;
 				$rootScope.configErrorsPresent = false;
 				ERMrest.appLinkFn(UriUtils.appTagToURL);
 				var ermrestURI = UriUtils.chaiseURItoErmrestURI($window.location);
 				var heatmaps = [];
-				ERMrest.resolve(ermrestURI).then(function getReference(reference) {
+				headInjector.setWindowName();
+				var pid = MathUtils.uuid();
+				var header = {
+                    wid: $window.name,
+                    cid: "heatmap",
+                    pid: pid,
+                    action: "main"
+                };
+				ERMrest.resolve(ermrestURI, header).then(function getReference(reference) {
 					verifyConfiguration(reference);
 					if (!$rootScope.configErrorsPresent) {
 						var sortBy = typeof heatmapConfig.data.sortBy !== "undefined" ? heatmapConfig.data.sortBy : [];
