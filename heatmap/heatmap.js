@@ -33,8 +33,10 @@ var heatmapApp =
                     wid: $window.name,
                     cid: "heatmap",
                     pid: pid,
-                    action: "main"
-                };
+					action: "main",
+					schema_table: "Gene_Expression:Array_Data_view",
+					source: "NCBI_GeneID"
+				};
 				ERMrest.resolve(ermrestURI, header).then(function getReference(reference) {
 					verifyConfiguration(reference);
 					if (!$rootScope.configErrorsPresent) {
