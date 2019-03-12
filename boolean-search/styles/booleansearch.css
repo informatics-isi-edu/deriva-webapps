@@ -162,3 +162,10 @@ img.spinner {
 span[uib-tooltip] {
     border-bottom: 1px dotted black;
 }
+
+.infoModal ul li{
+    list-style-type: initial;
+}
+.infoModal ul ol li{
+    list-style-type: inherit;
+}  

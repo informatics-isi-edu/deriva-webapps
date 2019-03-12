@@ -1,0 +1,47 @@
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
+    <h2 class="modal-title text-center" id="myModalLabel"><strong>Instructions for Use</strong>
+        <button class="btn btn-default pull-right modal-close" type="button" ng-click="ctrl.cancel()">X</button>
+    </h2>
+</div>
+<div class="modal-body infoModal">
+    Following are the steps to perform custom filtering on the Gene_Expression:Specimen table.
+    <ol>
+        <li>Enter the parameters for the search. This can be done in 2 ways:
+            <ul>
+                <li>Using the Treeview:</li>
+                <ol>
+                    <li>Select an <b>Anatomical Source by clicking on a node in the Treeview</b> displayed in the left
+                        pane. Clicking a node in the Treeview would change the Anatomical Source of the current
+                        (highlighted) row. </li>
+                    <li>Select the appropriate values for <b>Strength, From and To Developmental Stage, Pattern</b>(Optional)
+                        and <b>Pattern Location</b>(Optional) from the respective dropdowns.</li>
+                    <li>You could add multiple filter rows by clicking the plus symbol on the top right corner.</li>
+                </ol>
+                <li>Entering the formatted query in the textbox:</li>
+                <ol>
+                    <li>Write each filter in the following format: <b>strength{in "anatomical source"
+                            FromStage..ToStage pt=pattern lc=location}</b> For Example: p{in "bladder" TS17..TS28
+                        pt=regional lc=dorsal}</li>
+                    <li>Separate multiple filters with the keyword "AND". For Example: p{in "artery" TS17..TS28} AND
+                        nd{in "arteriole" TS17..TS28}</li>
+                </ol>
+            </ul>
+        </li>
+        <li><i>Optional</i> Click the <b>Validate</b> button to check the validity of all values before submitting the
+            query. This would also populate the table with any filters that were added directly in the textbox.</li>
+        <li>Click on <b>Search Specimen</b> button to submit the query. If the query contains any invalid values then
+            they will be highlighted in the table.</li>
+        <li>If all the values are valid, the resulting Specimen recordset page will open in a new tab.</li>
+        <li>Use the <b>Save</b> button to store the query in a text file. This could later be pasted in the textbox to
+            get the same results again.</li>
+    </ol>
+
+    <p><b>Error Handling:</b></p>
+    The following errors could occur when using the app:
+    <ol>
+        <li><b>Incorrect formatting</b> of the query in the textbox. Please refer to the examples above.</li>
+        <li>The <b>Anatomical Source</b> entered in the textbox <b>does not exist</b>. This can be resolved by searching for the term in the treeview in the left pane.</li>
+        <li>Invalid values of Strength, Developmental Stages, Pattern or Pattern location. These can be resolved by selecting the proper values from the respective dropdowns for each row.</li>           
+    </ol>
+</div>
