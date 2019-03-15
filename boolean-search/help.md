@@ -1,8 +1,8 @@
 ## How to perform boolean search ##
 
-There are 2 ways to perform boolean search of scored pecimen expression:
+There are 2 ways to perform boolean search of scored specimen expression:
 
-### 1. Graphic User Interface (GUI) ###
+### 1. Graphical User Interface (GUI) ###
   * Fill in the search form on the right pane by selecting appropriate values for **Strength**, **From and To Developmental Stage**, 
   **Pattern**(Optional), and **Pattern Location**(Optional) from the respective dropdown options.
   * For the <b>Anatomical Source</b>, select a term displayed in the Treeview (left pane). 
