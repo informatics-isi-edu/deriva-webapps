@@ -1,6 +1,4 @@
-## Boolean Search ##
-
-### How to perform the search
+### How to perform boolean search
 
 There are 2 ways to perform boolean search of scored pecimen expression:
 
