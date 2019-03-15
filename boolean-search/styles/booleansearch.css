@@ -166,6 +166,16 @@ span[uib-tooltip] {
 .infoModal ul li{
     list-style-type: initial;
 }
+
 .infoModal ul ol li{
     list-style-type: inherit;
-}  
+}
+
+.modal-content {
+    overflow-y: scroll;
+}
+
+code {
+    color: black;
+    background-color: rgba(27,31,35,.05);
+}

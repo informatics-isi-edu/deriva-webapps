@@ -1,47 +1,71 @@
 <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
-    <h2 class="modal-title text-center" id="myModalLabel"><strong>Instructions for Use</strong>
+    <h3 class="modal-title text-center" id="myModalLabel"><strong>How to perform boolean search</strong>
         <button class="btn btn-default pull-right modal-close" type="button" ng-click="ctrl.cancel()">X</button>
-    </h2>
+    </h3>
 </div>
 <div class="modal-body infoModal">
-    Following are the steps to perform custom filtering on the Gene_Expression:Specimen table.
-    <ol>
-        <li>Enter the parameters for the search. This can be done in 2 ways:
-            <ul>
-                <li>Using the Treeview:</li>
-                <ol>
-                    <li>Select an <b>Anatomical Source by clicking on a node in the Treeview</b> displayed in the left
-                        pane. Clicking a node in the Treeview would change the Anatomical Source of the current
-                        (highlighted) row. </li>
-                    <li>Select the appropriate values for <b>Strength, From and To Developmental Stage, Pattern</b>(Optional)
-                        and <b>Pattern Location</b>(Optional) from the respective dropdowns.</li>
-                    <li>You could add multiple filter rows by clicking the plus symbol on the top right corner.</li>
-                </ol>
-                <li>Entering the formatted query in the textbox:</li>
-                <ol>
-                    <li>Write each filter in the following format: <b>strength{in "anatomical source"
-                            FromStage..ToStage pt=pattern lc=location}</b> For Example: p{in "bladder" TS17..TS28
-                        pt=regional lc=dorsal}</li>
-                    <li>Separate multiple filters with the keyword "AND". For Example: p{in "artery" TS17..TS28} AND
-                        nd{in "arteriole" TS17..TS28}</li>
-                </ol>
-            </ul>
-        </li>
-        <li><i>Optional</i> Click the <b>Validate</b> button to check the validity of all values before submitting the
-            query. This would also populate the table with any filters that were added directly in the textbox.</li>
-        <li>Click on <b>Search Specimen</b> button to submit the query. If the query contains any invalid values then
-            they will be highlighted in the table.</li>
-        <li>If all the values are valid, the resulting Specimen recordset page will open in a new tab.</li>
-        <li>Use the <b>Save</b> button to store the query in a text file. This could later be pasted in the textbox to
+    <p>There are 2 ways to perform boolean search of scored specimen expression:</p>
+    <h4>1. Graphical User Interface (GUI)</h4>
+    <ul>
+        <li>Fill in the search form on the right pane by selecting appropriate values for <strong>Strength</strong>,
+            <strong>From and To Developmental Stage</strong>,
+            <strong>Pattern</strong>(Optional), and <strong>Pattern Location</strong>(Optional) from the respective
+            dropdown options.</li>
+        <li>For the <b>Anatomical Source</b>, select a term displayed in the Treeview (left pane).
+            Clicking a term in the Treeview will change the Anatomical Source of the current (highlighted) row.</li>
+        <li>You can add multiple filter rows by clicking the plus symbol on the top right corner.</li>
+        <li>When ready, click on <strong>Search Specimen</strong> button to submit the query. If the query contains any
+            invalid values then
+            they will be highlighted in the table. If all the values are valid, the resulting Specimen recordset page
+            will open in a new tab.</li>
+        <li>Use the <b>Save</b> button to store the query in a text file. This could later be pasted in the
+            textbox to
             get the same results again.</li>
-    </ol>
-
-    <p><b>Error Handling:</b></p>
-    The following errors could occur when using the app:
-    <ol>
-        <li><b>Incorrect formatting</b> of the query in the textbox. Please refer to the examples above.</li>
-        <li>The <b>Anatomical Source</b> entered in the textbox <b>does not exist</b>. This can be resolved by searching for the term in the treeview in the left pane.</li>
-        <li>Invalid values of Strength, Developmental Stages, Pattern or Pattern location. These can be resolved by selecting the proper values from the respective dropdowns for each row.</li>           
-    </ol>
+    </ul>
+    <h4>2. Search String</h4>
+    <ul>
+        <li>Provide query string consisting of one or more filters.</li>
+        <li>Click the <b>Validate</b> button to check the validity of all values before submitting the
+            query.
+            This would also populate the table with any filters that were added directly in the textbox.</li>
+        <li>When ready, click on <strong>Search Specimen</strong> button to submit the query. If the query contains any
+            invalid values then
+            they will be highlighted in the table. If all the values are valid, the resulting Specimen recordset page
+            will open in a new tab.</li>
+        <li>Use the <b>Save</b> button to store the query in a text file. This could later be pasted in the
+            textbox to
+            get the same results again.</li>
+    </ul>
+    <h4>Format</h4>
+    <p>Each filter should conform to the following format:</p>
+    <p><code>&lt;strength&gt;{in &lt;anatomical source&gt; &lt;from stage&gt;..&lt;to stage&gt; pt=&lt;pattern&gt; lc=&lt;location&gt;}</code></p>
+    <p>Multiple filters are combined using the keyword <code>AND</code></p>
+    <ul>
+        <li><code>&lt;strength&gt;</code> is one of the following symbols: <code>p</code> for present, <code>nd</code>
+            for not detected, and <code>u</code> for uncertain.</li>
+        <li><code>&lt;anatomical source&gt;</code> is the anatomical name (e.g. gonad) shown in the Tree</li>
+        <li><code>&lt;from stage&gt;</code> and <code>&lt;to stage&gt;</code> identify the search range of specimens.
+            Specimens without stage information will not be included.</li>
+        <li><code>&lt;pattern&gt;</code> should be one of the symbols shown in the drop-down menu under <strong>Pattern</strong>
+            in the GUI</li>
+        <li><code>&lt;location&gt;</code> should be one of the symbols shown in the drop-down menu under <strong>Location</strong>
+            in the GUI</li>
+    </ul>
+    <h4>Examples</h4>
+    <ul>
+        <li>One filter: <code>p{in &quot;bladder&quot; TS17..TS28 pt=regional lc=dorsal}</code> or</li>
+        <li>More than one filter: <code>p{in &quot;artery&quot; TS17..TS28} AND nd{in &quot;arteriole&quot; TS17..TS28}</code></li>
+    </ul>
+    <h4>Error Handling</h4>
+    <p>The following errors could occur when using the app:</p>
+    <ul>
+        <li>Incorrect formatting of the query in the textbox. Please refer to the examples above.</li>
+        <li>The <b>Anatomical Source</b> entered in the textbox <strong>does not exist</strong>. This can be
+            resolved by searching for the term in
+            the Treeview in the left pane, and use the exact term in the textbox.</li>
+        <li>Invalid values of Strength, Developmental Stages, Pattern or Pattern location. These can be resolved by
+            selecting the
+            proper values from the respective dropdowns for each row.</li>
+    </ul>
 </div>
