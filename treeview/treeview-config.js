@@ -95,8 +95,8 @@ var treeviewConfig = {
 
     // extra attributes to annotate nodes with icons
     annotation: {
-        annotation_query_pattern: "/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/RID={{{$url_parameters.Specimen_RID}}}/N:=left(RID)=(Gene_Expression:Specimen_Expression:Specimen)/$M/id:=N:Region,M:RID,Region:=N:Region,strength:=N:Strength,strengthModifier:=N:Strength_Modifier,pattern:=N:Pattern,density:=N:Density,densityChange:=N:Density_Direction,densityMagnitude:=N:Density_Magnitude,densityNote:=N:Density_Note,note:=N:Notes",
-        schema_table: "Gene_Expression:Specimen", // for logging purposes
+        annotation_query_pattern: "/ermrest/catalog/2/attributegroup/Gene_Expression:Specimen_Expression/Specimen={{{$url_parameters.Specimen_RID}}}/id:=Region,Region:=Region,strength:=Strength,strengthModifier:=Strength_Modifier,pattern:=Pattern,density:=Density,densityChange:=Density_Direction,densityMagnitude:=Density_Magnitude,densityNote:=Density_Note,note:=Notes",
+        schema_table: "Gene_Expression:Specimen_Expression", // for logging purposes
         // keys should map to the columns listed in extra_attributes_columns
         // inner keys should be the value of that column with icon location as the value
         extra_attributes_icons: {

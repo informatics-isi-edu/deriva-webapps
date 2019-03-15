@@ -198,7 +198,10 @@
                         </div>
                     </div>
                 </div>
-                <p class="error" id="error-message" style="visibility:hidden;margin-left:5px;"></p>
+                <p id="error-message" class="alert alert-dismissible alert-danger" style="display:none;margin-left:5px;">
+                    <button type="button" class="close"><span aria-hidden="true">&times;</span></button>
+                    <strong>Error</strong> <span id="alert-error-text"></span>
+                </p>
                 <p id="warning-message" class="alert alert-dismissible alert-warning" style="display:none;margin-left:5px;">
                     <button type="button" class="close"><span aria-hidden="true">&times;</span></button>
                     <strong>Warning</strong> <span id="alert-warning-text"></span>

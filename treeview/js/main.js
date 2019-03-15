@@ -14,13 +14,14 @@
             return s4() + s4() + s4() + s4() + s4() + s4();
         }
 
-        function getHeader(action, schemaTable) {
+        function getHeader(action, schemaTable, params) {
             return ERMrest._certifyContextHeader({
                 wid: window.name,
                 pid: uuid(),
                 cid: "treeview",
                 action: action,
-                schema_table: schemaTable
+                schema_table: schemaTable,
+                params: params
             });
         }
 
@@ -89,7 +90,9 @@
                     $el.empty();
 
                     var headers = {};
-                    headers[ERMrest.contextHeaderName] = getHeader("treeview/filter", filter.schema_table);
+                    var params = {};
+                    params[requiredParams[idx]] = queryParams[requiredParams[idx]];
+                    headers[ERMrest.contextHeaderName] = getHeader("facet/selected", filter.schema_table, params);
                     $.ajax({
                         headers: headers,
                         dataType: "json",
@@ -97,11 +100,16 @@
                         success: function(filterData) {
                             // TODO: remove if statement when we want to support multiple filters
                             if (idx == treeviewConfig.filters.length-1) {
-                                // TODO: error handling because only Mouse is supported
-                                if (filterData[0] && filterData[0]['Species'] !== "Mus musculus") {
+                                if (filterData === undefined || filterData.length == 0) {
+                                    // TODO: error handling for no specimen
                                     document.getElementsByClassName('loader')[0].style.display = "none";
-                                    document.getElementsByClassName('error')[0].style.visibility = "visible";
-                                    document.getElementsByTagName("p")[0].innerHTML="Error: Only specimens of species, 'Mus musculus', are supported.<br />Specimen RID: "+id_parameter+", Species: "+(filterData[0] ? filterData[0]['Species'] : "null");
+                                    $("#error-message").css("display", "");
+                                    $("#alert-error-text")[0].innerHTML="There is no specimen with Specimen RID: " + id_parameter;
+                                } else if (filterData[0]['Species'] !== "Mus musculus") {
+                                    // TODO: error handling because only Mouse is supported
+                                    document.getElementsByClassName('loader')[0].style.display = "none";
+                                    $("#error-message").css("display", "");
+                                    $("#alert-error-text")[0].innerHTML="Only specimens of species 'Mus musculus' are supported.<br />Specimen RID: "+id_parameter+", Species: "+(filterData[0] ? filterData[0]['Species'] : "null");
                                 } else {
                                     var selected_option = ERMrest._renderHandlebarsTemplate(filter.display_text, filterData[0]);
                                     // only add selected option to the list
@@ -115,7 +123,7 @@
                                     // filter_column_name should be the column name you want for filtering data
                                     columnName = filter.filter_column_name;
                                     // We have a mouse, but there is no filter data for this specimen (stage data)
-                                    if (filterData === undefined || filterData.length == 0 || !filterData[0].Ordinal) {
+                                    if (!filterData[0].Ordinal) {
                                         $("#warning-message").css("display", "");
                                         $("#alert-warning-text")[0].innerHTML="Developmental Stage does not exist for Specimen RID : "+id_parameter+". Terms for all stages will be shown instead.";
                                         if (filter.selected_filter.if_empty_id) {
@@ -145,7 +153,7 @@
                     $el.empty(); // remove old options
 
                     var headers = {};
-                    headers[ERMrest.contextHeaderName] = getHeader("treeview/filter", filter.schema_table);
+                    headers[ERMrest.contextHeaderName] = getHeader("facet", filter.schema_table);
                     $.ajax({
                         headers: headers,
                         dataType: "json",
@@ -516,11 +524,6 @@
                             // .tree-panel is the scrollable parent content area
                             $(".tree-panel")[0].scrollTop = tree.get_node(firstTermId, true).children('.jstree-anchor').get(0).offsetTop + searchAreaHeight;
                         }, 0)
-                    } else if (id_parameter) {
-                        // no annotated terms and a specimen ID, show warning
-                        $(".loader")[0].style.display = "none";
-                        $("#warning-message").css("display", "");
-                        $("#alert-warning-text")[0].innerHTML="No annotated terms for the given specimen.";
                     }
                 }); // end registering event listeners for jstree
 
@@ -547,7 +550,7 @@
                 // defined inline because of scoped variables
                 function getTreeData(queryConfig) {
                     var treeHeaders = {};
-                    treeHeaders[ERMrest.contextHeaderName] = getHeader("treeview/tree", queryConfig.tree_schema_table);
+                    treeHeaders[ERMrest.contextHeaderName] = getHeader("main", queryConfig.tree_schema_table);
                     $.ajax({
                         headers: treeHeaders,
                         dataType: "json",
@@ -557,7 +560,7 @@
                         }
                     }).done(function() {
                         var isolatedHeaders = {};
-                        isolatedHeaders[ERMrest.contextHeaderName] = getHeader("treeview/isolated", queryConfig.isolated_schema_table);
+                        isolatedHeaders[ERMrest.contextHeaderName] = getHeader("isolated", queryConfig.isolated_schema_table);
                         $.ajax({
                             headers: isolatedHeaders,
                             dataType: "json",
@@ -569,7 +572,10 @@
                             if(id_parameter != '') {
                                 extraAttributesURL = 'https://' + window.location.hostname + ERMrest._renderHandlebarsTemplate(treeviewConfig.annotation.annotation_query_pattern, templateParams);
                                 var annotationHeaders = {};
-                                annotationHeaders[ERMrest.contextHeaderName] = getHeader("treeview/annotation", treeviewConfig.annotation.schema_table);
+                                var params = {}
+                                var idx = requiredParams.length-1;
+                                params[requiredParams[idx]] = queryParams[requiredParams[idx]];
+                                annotationHeaders[ERMrest.contextHeaderName] = getHeader("annotation", treeviewConfig.annotation.schema_table, params);
                                 $.ajax({
                                     headers: annotationHeaders,
                                     dataType: "json",
@@ -803,7 +809,15 @@
                     }
                 });
 
-                return (forest);
+                // there are no annotated terms but there is a specimen
+                if (annotated_term == "" && id_parameter) {
+                   // no annotated terms and a specimen ID, show warning
+                   $(".loader")[0].style.display = "none";
+                   $("#warning-message").css("display", "");
+                   $("#alert-warning-text")[0].innerHTML="No annotated terms for the given specimen.";
+               } else {
+                   return (forest);
+               }
 
             }
 
