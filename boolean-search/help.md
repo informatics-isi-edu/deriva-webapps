@@ -1,4 +1,4 @@
-### How to perform boolean search
+## How to perform boolean search ##
 
 There are 2 ways to perform boolean search of scored pecimen expression:
 
@@ -41,7 +41,7 @@ Multiple filters are combined using the keyword `AND`
 * One filter: `p{in "bladder" TS17..TS28 pt=regional lc=dorsal}` or 
 * More than one filter: `p{in "artery" TS17..TS28} AND nd{in "arteriole" TS17..TS28}`
 
-### Error Handling ###
+## Error Handling ##
 The following errors could occur when using the app:
 * Incorrect formatting of the query in the textbox. Please refer to the examples above.
 * The `Anatomical Source` entered in the textbox **does not exist**. This can be resolved by searching for the term in 
