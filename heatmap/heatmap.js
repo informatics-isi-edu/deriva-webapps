@@ -19,20 +19,34 @@ var heatmapApp =
 		.config(['ConfigUtilsProvider', function (ConfigUtilsProvider) {
 			ConfigUtilsProvider.$get().setConfigJSON();
 		}])
-
-		.run(['ERMrest', 'UriUtils', '$rootScope', '$window',
-			function runApp(ERMrest, UriUtils, $rootScope, $window) {
+		.value('headerInfo', {
+			pid: "",
+			cid: ""
+        })
+		.run(['ERMrest', 'UriUtils', '$rootScope', '$window', 'MathUtils', 'headInjector', 'headerInfo',
+			function runApp(ERMrest, UriUtils, $rootScope, $window, MathUtils, headInjector, headerInfo) {
 				$rootScope.heatmapsLoadedCount = 0;
 				$rootScope.configErrorsPresent = false;
 				ERMrest.appLinkFn(UriUtils.appTagToURL);
 				var ermrestURI = UriUtils.chaiseURItoErmrestURI($window.location);
 				var heatmaps = [];
-				ERMrest.resolve(ermrestURI).then(function getReference(reference) {
+				headInjector.setWindowName();
+				headerInfo.pid = MathUtils.uuid();
+				headerInfo.cid = "heatmap";
+				$rootScope.pid
+				var header = {
+                    wid: $window.name,
+                    cid: headerInfo.cid,
+                    pid: headerInfo.pid,
+					action: "main",
+					schema_table: "Gene_Expression:Array_Data_view"
+				};
+				ERMrest.resolve(ermrestURI, {cid: headerInfo.cid, pid: headerInfo.pid, wid: $window.name, action: "model/read"}).then(function getReference(reference) {
 					verifyConfiguration(reference);
 					if (!$rootScope.configErrorsPresent) {
 						var sortBy = typeof heatmapConfig.data.sortBy !== "undefined" ? heatmapConfig.data.sortBy : [];
 						var ref = reference.sort(sortBy);
-						ref.read(1000).then(function getPage(page) {
+						ref.read(1000, header).then(function getPage(page) {
 							readAll(page);
 						}).catch(function (error) {
 							$rootScope.invalidConfigs = ["Error while reading data from Ermrestjs"];
@@ -73,7 +87,8 @@ var heatmapApp =
 						addData(page.tuples[i]);
 					}
 					if (page.hasNext) {
-						ary = page.next.read(1000).then(readAll).catch(function (error) {
+						header.action = "page";
+						ary = page.next.read(1000, header).then(readAll).catch(function (error) {
 							$rootScope.invalidConfigs = ["Error while reading data from Ermrestjs"];
 							$rootScope.configErrorsPresent = true;
 						});
@@ -114,7 +129,7 @@ var heatmapApp =
 			}
 		]);
 
-heatmapApp.controller('HeatmapController', function HeatmapController($scope, $http, $q, $rootScope, $window) {
+heatmapApp.controller('HeatmapController', function HeatmapController($scope, $http, $q, $rootScope, $window, headerInfo) {
 
 	$scope.allHeatmapsLoaded = false;
 	$scope.showHeatmaps = function () {
@@ -134,7 +149,8 @@ heatmapApp.controller('HeatmapController', function HeatmapController($scope, $h
             	"hide_null_choice": true
 			}]
 		};
-		window.location = window.origin + "/chaise/recordset/" + ERMrest.createPath("2", "Gene_Expression", "Array_Data", facet);
+		var url = window.origin + "/chaise/recordset/" + ERMrest.createPath("2", "Gene_Expression", "Array_Data", facet);
+		window.location = url + "?pcid=" + headerInfo.cid + "&ppid=" + headerInfo.pid;
 	}
 });
 

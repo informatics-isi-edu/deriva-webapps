@@ -50,7 +50,11 @@ var setSourceForFilter;
             patternOptions: [],
             locationOptions: []
         })
-        .factory('filterOptions', ['$http', '$window', 'ERMrest', 'headInjector', 'MathUtils', 'UriUtils', function ($http, $window, ERMrest, headInjector, MathUtils, UriUtils) {
+        .value('headerInfo', {
+			pid: "",
+			cid: ""
+        })
+        .factory('filterOptions', ['$http', '$window', 'ERMrest', 'headInjector', 'MathUtils', 'UriUtils', 'headerInfo', function ($http, $window, ERMrest, headInjector, MathUtils, UriUtils, headerInfo) {
             var baseUrl = $window.location.origin;
             var specExprUrl = baseUrl + "/ermrest/catalog/2/attributegroup/Gene_Expression:Specimen_Expression";
             var devStageUrl = baseUrl + "/ermrest/catalog/2/attribute/Vocabulary:Developmental_Stage";
@@ -59,14 +63,14 @@ var setSourceForFilter;
             // Configuring ERMrestjs service object and http module
             var contextHeaderParams = { "cid": "boolean-search" };
             var server = ERMrest.ermrestFactory.getServer(baseUrl + "/ermrest", contextHeaderParams);
-            var pid = MathUtils.uuid();
+            headerInfo.pid = MathUtils.uuid();
+            headerInfo.cid = "boolean-search";
             headInjector.setWindowName();
             var getHeader = function(){
                 return {
                     wid: $window.name,
-                    cid: "boolean-search",
-                    referrer: { "app": "boolean-search" },
-                    pid: pid,
+                    cid: headerInfo.cid,
+                    pid: headerInfo.pid,
                     action: "facet"
                 };
             }
@@ -75,7 +79,9 @@ var setSourceForFilter;
                 var headers = {};
                 headers[ERMrest.contextHeaderName] = getHeader();
                 headers[ERMrest.contextHeaderName].schema_table = "Gene_Expression:Specimen_Expression";
-                headers[ERMrest.contextHeaderName].source = "Strength";
+                headers[ERMrest.contextHeaderName].column = "Strength";
+                headers[ERMrest.contextHeaderName].referrer = {schema_table: "Gene_Expression:Specimen"};
+                headers[ERMrest.contextHeaderName].source = [{"inbound":["Gene_Expression","Specimen_Expression_Specimen_fkey"]},"Strength"];
                 return server.http.get(specExprUrl + "/Strength", { headers: headers }).then(function success(response) {
                     return response.data;
                 }).catch(function (err) {
@@ -87,7 +93,8 @@ var setSourceForFilter;
                 var headers = {};
                 headers[ERMrest.contextHeaderName] = getHeader();
                 headers[ERMrest.contextHeaderName].schema_table = "Gene_Expression:Specimen_Expression";
-                headers[ERMrest.contextHeaderName].source = "Pattern";
+                headers[ERMrest.contextHeaderName].column = "Pattern";
+                headers[ERMrest.contextHeaderName].referrer = {schema_table: "Gene_Expression:Specimen"};
                 return server.http.get(specExprUrl + "/Pattern", { headers: headers }).then(function (response) {
                     return response.data;
                 }).catch(function (err) {
@@ -98,7 +105,8 @@ var setSourceForFilter;
                 var headers = {};
                 headers[ERMrest.contextHeaderName] = getHeader();
                 headers[ERMrest.contextHeaderName].schema_table = "Gene_Expression:Specimen_Expression";
-                headers[ERMrest.contextHeaderName].source = "Pattern_Location";
+                headers[ERMrest.contextHeaderName].column = "Pattern_Location";
+                headers[ERMrest.contextHeaderName].referrer = {schema_table: "Gene_Expression:Specimen"};
                 return server.http.get(specExprUrl + "/Pattern_Location", { headers: headers }).then(function (response) {
                     return response.data;
                 }).catch(function (err) {
@@ -109,8 +117,8 @@ var setSourceForFilter;
                 var headers = {};
                 headers[ERMrest.contextHeaderName] = getHeader();
                 headers[ERMrest.contextHeaderName].schema_table = "Vocabulary:Developmental_Stage";
-                headers[ERMrest.contextHeaderName].source = "RID";
-                headers[ERMrest.contextHeaderName].entity = true;
+                headers[ERMrest.contextHeaderName].referrer = {"schema_table":"Gene_Expression:Specimen"};
+                headers[ERMrest.contextHeaderName].source = [{"outbound":["Gene_Expression","Specimen_Developmental_Stage_fkey"]},"RID"];
                 return server.http.get(devStageUrl + "/Species=" + encodeURIComponent(species) + "/Name,Ordinal@Sort(Ordinal)", { headers: headers }).then(function (response) {
                     return response.data;
                 }).catch(function (err) {
@@ -121,7 +129,8 @@ var setSourceForFilter;
                 var headers = {};
                 headers[ERMrest.contextHeaderName] = getHeader();
                 headers[ERMrest.contextHeaderName].schema_table = "Vocabulary:Anatomy";
-                headers[ERMrest.contextHeaderName].source = "Name";
+                headers[ERMrest.contextHeaderName].referrer = {schema_table: "Gene_Expression:Specimen"};
+                headers[ERMrest.contextHeaderName].source = [{"inbound":["Gene_Expression","Specimen_Expression_Specimen_fkey"]},{"inbound":["Gene_Expression","Specimen_Expression_Rollup_Specimen_Expression_RID1"]},{"outbound":["Gene_Expression","Specimen_Expression_Rollup_Rollup_Region1"]},"RID"];
                 var columnName = "Name=";
                 var queryParam = "/" + columnName + UriUtils.fixedEncodeURIComponent(sources[0]);
                 for (var i = 1; i < sources.length; i++) {
@@ -141,7 +150,7 @@ var setSourceForFilter;
                 getSourceOptions: getSourceOptions
             }
         }])
-        .controller('BooleanSearchController', ['$scope', 'booleanSearchModel', 'defaultOptions', '$rootScope', 'ERMrest', '$window', 'filterOptions', 'Errors', 'ErrorService', 'modalUtils', 'UriUtils', function BooleanSearchController($scope, booleanSearchModel, defaultOptions, $rootScope, ERMrest, $window, filterOptions, Errors, ErrorService, modalUtils, UriUtils) {
+        .controller('BooleanSearchController', ['$scope', 'booleanSearchModel', 'defaultOptions', '$rootScope', 'ERMrest', '$window', 'filterOptions', 'Errors', 'ErrorService', 'modalUtils', 'UriUtils', 'headerInfo', function BooleanSearchController($scope, booleanSearchModel, defaultOptions, $rootScope, ERMrest, $window, filterOptions, Errors, ErrorService, modalUtils, UriUtils, headerInfo) {
             var config = Object.assign({}, booleanSearchConfig);
             $scope.options = defaultOptions;
             $scope.treeviewOpen = true;
@@ -406,7 +415,7 @@ var setSourceForFilter;
                     "displayname": vm.filters,
                     "ermrest_path": query
                 }
-                var location = window.origin + "/chaise/recordset/" + ERMrest.createPath("2", "Gene_Expression", "Specimen", null, customFacet);
+                var location = window.origin + "/chaise/recordset/" + ERMrest.createPath("2", "Gene_Expression", "Specimen", null, customFacet) + "?pcid=" + headerInfo.cid + "&ppid=" + headerInfo.pid;
                 window.open(location, "_blank");
             }
 
@@ -554,16 +563,11 @@ var setSourceForFilter;
             }
 
         }])
-        .controller('InfoModalController', ['$uibModalInstance', 'ERMrest', function InfoModalController($uibModalInstance, ERMrest) {
+        .controller('InfoModalController', ['$uibModalInstance', function InfoModalController($uibModalInstance) {
             var vm = this;
-            var config = Object.assign({}, booleanSearchConfig);
             vm.cancel = function () {
                 $uibModalInstance.dismiss('cancel');
             };
-            var infoText = config.info;
-            ERMrest.onload().then(function() {
-                vm.infoText = ERMrest.renderMarkdown(infoText);
-            });
         }])
         .directive('treeView', ['$window', function ($window) {
             return {
