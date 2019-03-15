@@ -15,7 +15,7 @@ There are 2 ways to perform boolean search of scored pecimen expression:
    
 
 ### 2. Search String ### 
-* Provide query string consisting of one or more filter. 
+* Provide query string consisting of one or more filters. 
 * Click the <b>Validate</b> button to check the validity of all values before submitting the query. 
 This would also populate the table with any filters that were added directly in the textbox.
 * When ready, click on **Search Specimen** button to submit the query. If the query contains any invalid values then
