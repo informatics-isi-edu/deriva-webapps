@@ -179,6 +179,7 @@
                                 $('#number').val(filter.selected_filter.default);
                                 $("#number").selectmenu("refresh");
                                 $("#number").on('selectmenuchange', function() {
+                                    $("#warning-message").css("display", "none");
                                     document.getElementsByClassName('loader')[0].style.display = "block";
                                     document.getElementById('jstree').style.visibility = "hidden";
                                     $("#number").prop("disabled", true);
