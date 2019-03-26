@@ -32,7 +32,7 @@
         ERMrest.configure(null, Q);
 
         ERMrest.onload().then(function () {
-            var showAnnotation, id_parameter, filterUrl, filterValue, columnName, parentAppExists;
+            var showAnnotation, id_parameter, filterUrl, filterValue, columnName, parentAppExists, selected_option;
             var annotated_term  = "";
             var annotated_terms = [],
                 urlParams       = {}, // key/values from uri
@@ -111,7 +111,7 @@
                                     $("#error-message").css("display", "");
                                     $("#alert-error-text")[0].innerHTML="Only specimens of species 'Mus musculus' are supported.<br />Specimen RID: "+id_parameter+", Species: "+(filterData[0] ? filterData[0]['Species'] : "null");
                                 } else {
-                                    var selected_option = ERMrest._renderHandlebarsTemplate(filter.display_text, filterData[0]);
+                                    selected_option = ERMrest._renderHandlebarsTemplate(filter.display_text, filterData[0]);
                                     // only add selected option to the list
                                     $el.append($("<option></option>")
                                     .attr("value", selected_option).text(selected_option));
@@ -188,11 +188,13 @@
                                     $("#collapse_all_btn").prop("disabled", true);
                                     $("#reset_text").prop("disabled", true);
 
+                                    selected_option = $(".ui-selectmenu-text").text();
                                     filterValue = $("#number").val();
                                     columnName = filter.filter_column_name;
                                     getValAndBuildData(columnName, filterValue);
                                 });
 
+                                selected_option = $(".ui-selectmenu-text").text();
                                 filterValue = $("#number").val();
                                 columnName = filter.filter_column_name;
                                 getValAndBuildData(columnName, filterValue);
@@ -617,6 +619,14 @@
             }
 
             function refreshOrBuildTree(json, extraAttributes, showAnnotation, isolatedNodes, filterOrderVal) {
+                // there's no tree data
+                if (!json || json.length == 0) {
+                    $(".loader")[0].style.display = "none";
+                    $("#warning-message").css("display", "");
+                    $("#alert-warning-text")[0].innerHTML="No tree data for the current Developmental Stage : "+selected_option+".";
+                    return;
+                }
+
                 if (showAnnotation == false) {
                     forest = processData(json, [], showAnnotation, isolatedNodes);
                 } else {
