@@ -13,9 +13,12 @@
 #addButtonDiv{
     margin-bottom: 10px;
 }
-.row{
-    height: 3%;
+
+.mainContainer {
+    height: 100%;
+    overflow: hidden;
 }
+
 .filterTable{
     border: 1px solid #ddd;
     width:100%;
@@ -47,7 +50,7 @@
     height:96%;
 }
 .resizable-panel.open-panel{
-    flex:0 0 40vw;
+    flex:0 0 38vw;
     padding-left:5px;
     min-width: 580px;
 }
@@ -57,7 +60,8 @@
     position: relative;
     max-width: 710px;
     z-index: 2;
-    height: 98%;
+    height: 100%;
+    padding-bottom: 70px;
 }
 .treeview-panel {
     transition: all 1s;
