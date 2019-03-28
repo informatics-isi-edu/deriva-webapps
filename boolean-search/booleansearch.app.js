@@ -6,7 +6,7 @@ var setSourceForFilter;
             this.toStageOptions = defaultOptions.fromStageOptions;
             this.strength = "present";
             this.source = {
-                "name":""
+                "name": ""
             };
             this.stageFrom = defaultOptions.fromStageOptions[16];
             this.stageTo = defaultOptions.fromStageOptions[defaultOptions.fromStageOptions.length - 1];
@@ -51,8 +51,8 @@ var setSourceForFilter;
             locationOptions: []
         })
         .value('headerInfo', {
-			pid: "",
-			cid: ""
+            pid: "",
+            cid: ""
         })
         .factory('filterOptions', ['$http', '$window', 'ERMrest', 'headInjector', 'MathUtils', 'UriUtils', 'headerInfo', function ($http, $window, ERMrest, headInjector, MathUtils, UriUtils, headerInfo) {
             var baseUrl = $window.location.origin;
@@ -66,7 +66,7 @@ var setSourceForFilter;
             headerInfo.pid = MathUtils.uuid();
             headerInfo.cid = "boolean-search";
             headInjector.setWindowName();
-            var getHeader = function(){
+            var getHeader = function () {
                 return {
                     wid: $window.name,
                     cid: headerInfo.cid,
@@ -80,8 +80,8 @@ var setSourceForFilter;
                 headers[ERMrest.contextHeaderName] = getHeader();
                 headers[ERMrest.contextHeaderName].schema_table = "Gene_Expression:Specimen_Expression";
                 headers[ERMrest.contextHeaderName].column = "Strength";
-                headers[ERMrest.contextHeaderName].referrer = {schema_table: "Gene_Expression:Specimen"};
-                headers[ERMrest.contextHeaderName].source = [{"inbound":["Gene_Expression","Specimen_Expression_Specimen_fkey"]},"Strength"];
+                headers[ERMrest.contextHeaderName].referrer = { schema_table: "Gene_Expression:Specimen" };
+                headers[ERMrest.contextHeaderName].source = [{ "inbound": ["Gene_Expression", "Specimen_Expression_Specimen_fkey"] }, "Strength"];
                 return server.http.get(specExprUrl + "/Strength", { headers: headers }).then(function success(response) {
                     return response.data;
                 }).catch(function (err) {
@@ -94,7 +94,7 @@ var setSourceForFilter;
                 headers[ERMrest.contextHeaderName] = getHeader();
                 headers[ERMrest.contextHeaderName].schema_table = "Gene_Expression:Specimen_Expression";
                 headers[ERMrest.contextHeaderName].column = "Pattern";
-                headers[ERMrest.contextHeaderName].referrer = {schema_table: "Gene_Expression:Specimen"};
+                headers[ERMrest.contextHeaderName].referrer = { schema_table: "Gene_Expression:Specimen" };
                 return server.http.get(specExprUrl + "/Pattern", { headers: headers }).then(function (response) {
                     return response.data;
                 }).catch(function (err) {
@@ -106,7 +106,7 @@ var setSourceForFilter;
                 headers[ERMrest.contextHeaderName] = getHeader();
                 headers[ERMrest.contextHeaderName].schema_table = "Gene_Expression:Specimen_Expression";
                 headers[ERMrest.contextHeaderName].column = "Pattern_Location";
-                headers[ERMrest.contextHeaderName].referrer = {schema_table: "Gene_Expression:Specimen"};
+                headers[ERMrest.contextHeaderName].referrer = { schema_table: "Gene_Expression:Specimen" };
                 return server.http.get(specExprUrl + "/Pattern_Location", { headers: headers }).then(function (response) {
                     return response.data;
                 }).catch(function (err) {
@@ -117,8 +117,8 @@ var setSourceForFilter;
                 var headers = {};
                 headers[ERMrest.contextHeaderName] = getHeader();
                 headers[ERMrest.contextHeaderName].schema_table = "Vocabulary:Developmental_Stage";
-                headers[ERMrest.contextHeaderName].referrer = {"schema_table":"Gene_Expression:Specimen"};
-                headers[ERMrest.contextHeaderName].source = [{"outbound":["Gene_Expression","Specimen_Developmental_Stage_fkey"]},"RID"];
+                headers[ERMrest.contextHeaderName].referrer = { "schema_table": "Gene_Expression:Specimen" };
+                headers[ERMrest.contextHeaderName].source = [{ "outbound": ["Gene_Expression", "Specimen_Developmental_Stage_fkey"] }, "RID"];
                 return server.http.get(devStageUrl + "/Species=" + encodeURIComponent(species) + "/Name,Ordinal@Sort(Ordinal)", { headers: headers }).then(function (response) {
                     return response.data;
                 }).catch(function (err) {
@@ -129,8 +129,8 @@ var setSourceForFilter;
                 var headers = {};
                 headers[ERMrest.contextHeaderName] = getHeader();
                 headers[ERMrest.contextHeaderName].schema_table = "Vocabulary:Anatomy";
-                headers[ERMrest.contextHeaderName].referrer = {schema_table: "Gene_Expression:Specimen"};
-                headers[ERMrest.contextHeaderName].source = [{"inbound":["Gene_Expression","Specimen_Expression_Specimen_fkey"]},{"inbound":["Gene_Expression","Specimen_Expression_Rollup_Specimen_Expression_RID1"]},{"outbound":["Gene_Expression","Specimen_Expression_Rollup_Rollup_Region1"]},"RID"];
+                headers[ERMrest.contextHeaderName].referrer = { schema_table: "Gene_Expression:Specimen" };
+                headers[ERMrest.contextHeaderName].source = [{ "inbound": ["Gene_Expression", "Specimen_Expression_Specimen_fkey"] }, { "inbound": ["Gene_Expression", "Specimen_Expression_Rollup_Specimen_Expression_RID1"] }, { "outbound": ["Gene_Expression", "Specimen_Expression_Rollup_Rollup_Region1"] }, "RID"];
                 var columnName = "Name=";
                 var queryParam = "/" + columnName + UriUtils.fixedEncodeURIComponent(sources[0]);
                 for (var i = 1; i < sources.length; i++) {
@@ -237,7 +237,7 @@ var setSourceForFilter;
 
             function changeSelection(index, field) {
                 if (vm.booleanSearchModel.rows[index].source != null) {
-                    var param = field+"Invalid";
+                    var param = field + "Invalid";
                     vm.booleanSearchModel.rows[index][param] = false;
                     changeFiltersDisplayText();
                 }
@@ -415,8 +415,17 @@ var setSourceForFilter;
                     "displayname": vm.filters,
                     "ermrest_path": query
                 }
-                var location = window.origin + "/chaise/recordset/" + ERMrest.createPath("2", "Gene_Expression", "Specimen", null, customFacet) + "?pcid=" + headerInfo.cid + "&ppid=" + headerInfo.pid;
-                window.open(location, "_blank");
+                var checkLocation = ERMrest.createLocation(window.origin + "/ermrest", "2", "Gene_Expression", "Specimen", null, customFacet);
+                var offset = 1200;
+                if (checkLocation.ermrestCompactPath.length + offset > ERMrest.URL_PATH_LENGTH_LIMIT) {
+                    var okActionMessage = "Click OK to <b>go back</b> to the page.";
+                    var errorMessage = "Filter Query is too long. Reduce the number of filters and try again."
+                    var error = new Errors.CustomError("URL length exceeded", errorMessage, $window.location.href, okActionMessage, true);
+                    ErrorService.handleException(error, true);
+                } else {
+                    var url = window.origin + "/chaise/recordset/" + ERMrest.createPath("2", "Gene_Expression", "Specimen", null, customFacet) + "?pcid=" + headerInfo.cid + "&ppid=" + headerInfo.pid;
+                    window.open(url, "_blank");
+                }
             }
 
             function parseQueryText(submitQuery) {
@@ -439,12 +448,12 @@ var setSourceForFilter;
                         default:
                             strength = filter.substring(0, filter.indexOf("{"));
                     }
-                    if(vm.booleanSearchModel.rows[index] == undefined){
+                    if (vm.booleanSearchModel.rows[index] == undefined) {
                         let row = new filterModel(defaultOptions);
                         vm.booleanSearchModel.rows[index] = row;
                     }
                     vm.booleanSearchModel.rows[index].strength = strength;
-                    
+
                     if (vm.booleanSearchModel.rows[index].source == null) {
                         vm.booleanSearchModel.rows[index].source = {};
                     }

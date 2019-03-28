@@ -4,6 +4,7 @@
 <head>
     <title>Boolean Search App</title>
     <script src='/chaise/chaise-config.js'></script>
+    <!-- <script src='/chaise/scripts/vendor/jquery-3.3.1.min.js'></script> -->
     <script src='/chaise/scripts/vendor/angular.js'></script>
     <script src="/chaise/lib/navbar/navbar.app.js"></script>
     <script src='/chaise/scripts/vendor/angular-sanitize.js'></script>
@@ -89,8 +90,7 @@
                         </div>
                         <div id="addButtonDiv" class="btn-group pull-right">
                             <button id="create-filter-btn" class="btn btn-primary btn-inverted center-block btn-height"
-                                ng-click="::form.copyFilterRow();" type="button" tooltip-placement="auto top" uib-tooltip="Add more search filters"
-                                ng-disabled="form.booleanSearchModel.rows.length == filterRowLimit">
+                                ng-click="::form.copyFilterRow();" type="button" tooltip-placement="auto top" uib-tooltip="Add more search filters">
                                 <span class="glyphicon glyphicon-plus"></span>
                             </button>
                         </div>
