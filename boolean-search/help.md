@@ -1,6 +1,4 @@
-## Boolean Search ##
-
-### How to perform the search
+## How to perform boolean search ##
 
 There are 2 ways to perform boolean search of scored specimen expression:
 
@@ -17,7 +15,7 @@ There are 2 ways to perform boolean search of scored specimen expression:
    
 
 ### 2. Search String ### 
-* Provide query string consisting of one or more filter. 
+* Provide query string consisting of one or more filters. 
 * Click the <b>Validate</b> button to check the validity of all values before submitting the query. 
 This would also populate the table with any filters that were added directly in the textbox.
 * When ready, click on **Search Specimen** button to submit the query. If the query contains any invalid values then
@@ -43,7 +41,7 @@ Multiple filters are combined using the keyword `AND`
 * One filter: `p{in "bladder" TS17..TS28 pt=regional lc=dorsal}` or 
 * More than one filter: `p{in "artery" TS17..TS28} AND nd{in "arteriole" TS17..TS28}`
 
-### Error Handling ###
+## Error Handling ##
 The following errors could occur when using the app:
 * Incorrect formatting of the query in the textbox. Please refer to the examples above.
 * The `Anatomical Source` entered in the textbox **does not exist**. This can be resolved by searching for the term in 
