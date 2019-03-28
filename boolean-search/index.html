@@ -1,16 +1,17 @@
 <!DOCTYPE html>
-<html lang="en" id="booleansearch">
-
+<html lang="en" id="booleansearch" ng-app="booleansearchApp">    
 <head>
     <title>Boolean Search App</title>
     <script src='/chaise/chaise-config.js'></script>
+    <script src='/chaise/scripts/vendor/jquery-1.11.1.min.js'></script>
     <script src='/chaise/scripts/vendor/angular.js'></script>
-    <script src="/chaise/lib/navbar/navbar.app.js"></script>
     <script src='/chaise/scripts/vendor/angular-sanitize.js'></script>
     <script src='/chaise/scripts/vendor/angular-messages.min.js'></script>
     <script src='/chaise/common/vendor/angular-cookies.min.js'></script>
+    <script src='/chaise/common/vendor/angular-animate.min.js'></script>
     <link rel="stylesheet" type="text/css" href="/chaise/styles/vendor/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="/chaise/common/styles/app.css">
+    <link rel="stylesheet" type="text/css" href="/chaise/common/styles/appheader.css">
     <script src='/chaise/scripts/vendor/bootstrap-3.3.7.min.js'></script>
     <script src='/chaise/scripts/vendor/ui-bootstrap-tpls-2.5.0.min.js'></script>
     <script src='/chaise/common/alerts.js'></script>
@@ -20,6 +21,8 @@
     <script src='/chaise/common/filters.js'></script>
     <script src='/chaise/common/modal.js'></script>
     <script src='/chaise/common/utils.js'></script>
+    <script src='/chaise/common/login.js'></script>
+    <script src='/chaise/common/navbar.js'></script>
     <script src='/chaise/common/resizable.js'></script>
     <script src='/ermrestjs/ermrest.js'></script>
     <link rel="stylesheet" type="text/css" href="styles/booleansearch.css">
@@ -33,7 +36,7 @@
 <body>
     <div class="mainContainer">
         <navbar></navbar>    
-        <div ng-app="booleansearchApp" ng-controller="BooleanSearchController as form" id="appDiv">
+        <div ng-controller="BooleanSearchController as form" id="appDiv">
             <div class="row">
                 <div id="titleBar" class="col-xs-12 meta-icons">
                     <div id="title" class="pull-left">
@@ -89,8 +92,7 @@
                         </div>
                         <div id="addButtonDiv" class="btn-group pull-right">
                             <button id="create-filter-btn" class="btn btn-primary btn-inverted center-block btn-height"
-                                ng-click="::form.copyFilterRow();" type="button" tooltip-placement="auto top" uib-tooltip="Add more search filters"
-                                ng-disabled="form.booleanSearchModel.rows.length == filterRowLimit">
+                                ng-click="::form.copyFilterRow();" type="button" tooltip-placement="auto top" uib-tooltip="Add more search filters">
                                 <span class="glyphicon glyphicon-plus"></span>
                             </button>
                         </div>
