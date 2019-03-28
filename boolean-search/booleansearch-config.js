@@ -2,7 +2,6 @@ var booleanSearchConfig = {
     data: {
     },
     presentation: {
-        rowLimit: 10
     }
 };
 

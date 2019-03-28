@@ -156,7 +156,6 @@ var setSourceForFilter;
             $scope.treeviewOpen = true;
             $scope.togglePanel = togglePanel;
             $scope.setClass = setClass;
-            $scope.filterRowLimit = config.presentation.rowLimit;
             var vm = this;
 
             vm.initialized = false;
