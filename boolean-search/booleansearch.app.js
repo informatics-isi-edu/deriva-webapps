@@ -30,7 +30,8 @@ var setSourceForFilter;
         'chaise.errors',
         'chaise.resizable',
         'ermrestjs',
-        'ui.bootstrap'
+        'ui.bootstrap',
+        'chaise.navbar'
     ])
         .config(['$cookiesProvider', function ($cookiesProvider) {
             $cookiesProvider.defaults.path = '/';
