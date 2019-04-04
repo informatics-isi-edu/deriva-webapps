@@ -166,7 +166,10 @@ img.spinner {
 span[uib-tooltip] {
     border-bottom: 1px dotted black;
 }
-
+.infoModal {
+    overflow-y: auto;
+    max-height: 85vh !important;
+}
 .infoModal ul li{
     list-style-type: initial;
 }
@@ -176,7 +179,7 @@ span[uib-tooltip] {
 }
 
 .modal-content {
-    overflow-y: scroll;
+    background-clip: border-box;
 }
 
 code {
