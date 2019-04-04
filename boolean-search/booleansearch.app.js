@@ -1,27 +1,34 @@
+"use strict";
+
+function _instanceof(left, right) { if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) { return right[Symbol.hasInstance](left); } else { return left instanceof right; } }
+
+function _classCallCheck(instance, Constructor) { if (!_instanceof(instance, Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 var setSourceForFilter;
 (function () {
     'use strict';
-    class filterModel {
-        constructor(defaultOptions) {
-            this.toStageOptions = defaultOptions.fromStageOptions;
-            this.strength = "present";
-            this.source = {
-                "name": ""
-            };
-            this.stageFrom = defaultOptions.fromStageOptions[16];
-            this.stageTo = defaultOptions.fromStageOptions[defaultOptions.fromStageOptions.length - 1];
-            this.pattern = "";
-            this.location = "";
 
-            //Setting validity for all fields
-            this.strengthInvalid = false;
-            this.sourceInvalid = false;
-            this.stageFromInvalid = false;
-            this.stageToInvalid = false;
-            this.patternInvalid = false;
-            this.locationInvalid = false;
-        }
-    }
+    var filterModel = function filterModel(defaultOptions) {
+        _classCallCheck(this, filterModel);
+
+        this.toStageOptions = defaultOptions.fromStageOptions;
+        this.strength = "present";
+        this.source = {
+            "name": ""
+        };
+        this.stageFrom = defaultOptions.fromStageOptions[16];
+        this.stageTo = defaultOptions.fromStageOptions[defaultOptions.fromStageOptions.length - 1];
+        this.pattern = "";
+        this.location = "";
+
+        //Setting validity for all fields
+        this.strengthInvalid = false;
+        this.sourceInvalid = false;
+        this.stageFromInvalid = false;
+        this.stageToInvalid = false;
+        this.patternInvalid = false;
+        this.locationInvalid = false;
+    };
     angular.module('booleansearchApp', [
         'ngSanitize',
         'ngCookies',
@@ -74,7 +81,7 @@ var setSourceForFilter;
                     pid: headerInfo.pid,
                     action: "facet"
                 };
-            }
+            };
 
             var getStrengthOptions = function () {
                 var headers = {};
@@ -142,14 +149,14 @@ var setSourceForFilter;
                 }).catch(function (err) {
                     throw ERMrest.responseToError(err);
                 });
-            }
+            };
             return {
                 getStrengthOptions: getStrengthOptions,
                 getPatternOptions: getPatternOptions,
                 getLocationOptions: getLocationOptions,
                 getStageOptions: getStageOptions,
                 getSourceOptions: getSourceOptions
-            }
+            };
         }])
         .controller('BooleanSearchController', ['$scope', 'booleanSearchModel', 'defaultOptions', '$rootScope', 'ERMrest', '$window', 'filterOptions', 'Errors', 'ErrorService', 'modalUtils', 'UriUtils', 'headerInfo', function BooleanSearchController($scope, booleanSearchModel, defaultOptions, $rootScope, ERMrest, $window, filterOptions, Errors, ErrorService, modalUtils, UriUtils, headerInfo) {
             var config = Object.assign({}, booleanSearchConfig);
@@ -182,13 +189,13 @@ var setSourceForFilter;
 
             function initialize() {
                 vm.initialized = true;
-                let firstRow = new filterModel(defaultOptions);
+                var firstRow = new filterModel(defaultOptions);
                 vm.booleanSearchModel.rows[0] = firstRow;
             }
 
             function copyFilterRow() {
                 var rowset = vm.booleanSearchModel.rows;
-                let row = new filterModel(defaultOptions);
+                var row = new filterModel(defaultOptions);
                 rowset.push(row);
                 vm.currentRow = rowset.length - 1;
                 changeFiltersDisplayText();
@@ -280,7 +287,10 @@ var setSourceForFilter;
                 var invalidSource = [];
                 filterOptions.getSourceOptions(sources).then(function (data) {
                     vm.booleanSearchModel.rows.forEach(function (row, index) {
-                        var match = data.filter(source => (source.Name === row.source.name));
+                        var match = data.filter(function (source) {
+                            return source.Name === row.source.name;
+                        });
+
                         if (match.length == 0) {
                             invalidSource.push(row.source.name);
                             row.sourceInvalid = true;
@@ -309,21 +319,27 @@ var setSourceForFilter;
                     location: []
                 };
                 vm.booleanSearchModel.rows.forEach(function (row, index) {
-                    if (!defaultOptions.strengthOptions.includes(row.strength)) {
+                    if (defaultOptions.strengthOptions.indexOf(row.strength) < 0) {
                         valid = false;
                         invalid.strength.push(row.strength);
                         row.strengthInvalid = true;
                     } else {
                         row.strengthInvalid = false;
                     }
-                    if (defaultOptions.fromStageOptions.filter(fromStage => (fromStage.Name === row.stageFrom.Name && fromStage.Ordinal === row.stageFrom.Ordinal)).length == 0) {
+
+                    if (defaultOptions.fromStageOptions.filter(function (fromStage) {
+                        return fromStage.Name === row.stageFrom.Name && fromStage.Ordinal === row.stageFrom.Ordinal;
+                    }).length == 0) {
                         valid = false;
                         invalid.fromStage.push(row.stageFrom.Name);
                         row.stageFromInvalid = true;
                     } else {
                         row.stageFromInvalid = false;
                     }
-                    if (defaultOptions.fromStageOptions.filter(toStage => (toStage.Name === row.stageTo.Name && toStage.Ordinal === row.stageTo.Ordinal)).length == 0) {
+
+                    if (defaultOptions.fromStageOptions.filter(function (toStage) {
+                        return toStage.Name === row.stageTo.Name && toStage.Ordinal === row.stageTo.Ordinal;
+                    }).length == 0) {
                         valid = false;
                         invalid.toStage.push(row.stageTo.Name);
                         row.stageToInvalid = true;
@@ -363,7 +379,7 @@ var setSourceForFilter;
                             var err = formErrorMessage(invalid);
                             message += err;
                             message += "</ul>";
-                            var okActionMessage = "Click OK to <b>go back</b> to the page."
+                            var okActionMessage = "Click OK to <b>go back</b> to the page.";
                             var error = new Errors.CustomError("Invalid Query", message, $window.location.href, okActionMessage, true);
                             ErrorService.handleException(error, true);
                         }
@@ -399,7 +415,8 @@ var setSourceForFilter;
                 } else {
                     message += "\" value : ";
                 }
-                message += "<b>"
+
+                message += "<b>";
                 message += (param.join(", "));
                 message += "</b></li>";
                 return message;
@@ -414,16 +431,16 @@ var setSourceForFilter;
                 var customFacet = {
                     "displayname": vm.filters,
                     "ermrest_path": query
-                }
+                };
                 var checkLocation = ERMrest.createLocation(window.origin + "/ermrest", "2", "Gene_Expression", "Specimen", null, customFacet);
                 var offset = 1200;
                 if (checkLocation.ermrestCompactPath.length + offset > ERMrest.URL_PATH_LENGTH_LIMIT) {
                     var okActionMessage = "Click OK to <b>go back</b> to the page.";
-                    var errorMessage = "Filter Query is too long. Reduce the number of filters and try again."
+                    var errorMessage = "Filter Query is too long. Reduce the number of filters and try again.";
                     var error = new Errors.CustomError("URL length exceeded", errorMessage, $window.location.href, okActionMessage, true);
                     ErrorService.handleException(error, true);
                 } else {
-                    var url = window.origin + "/chaise/recordset/" + ERMrest.createPath("2", "Gene_Expression", "Specimen", null, customFacet) + "?pcid=" + headerInfo.cid + "&ppid=" + headerInfo.pid;
+                    var url = window.location.origin + "/chaise/recordset/" + ERMrest.createPath("2", "Gene_Expression", "Specimen", null, customFacet) + "?pcid=" + headerInfo.cid + "&ppid=" + headerInfo.pid;
                     window.open(url, "_blank");
                 }
             }
@@ -449,7 +466,7 @@ var setSourceForFilter;
                             strength = filter.substring(0, filter.indexOf("{"));
                     }
                     if (vm.booleanSearchModel.rows[index] == undefined) {
-                        let row = new filterModel(defaultOptions);
+                        var row = new filterModel(defaultOptions);
                         vm.booleanSearchModel.rows[index] = row;
                     }
                     vm.booleanSearchModel.rows[index].strength = strength;
@@ -460,7 +477,7 @@ var setSourceForFilter;
                     var sourceStart = filter.indexOf("\"");
                     var sourceEnd = filter.lastIndexOf("\"");
                     var sourceName = filter.substring(sourceStart + 1, sourceEnd);
-                    if (sourceName.includes(":")) {
+                    if (sourceName.indexOf(":") >= 0) {
                         var idStart = sourceName.lastIndexOf("(");
                         var idEnd = sourceName.lastIndexOf(")");
                         var id = sourceName.substring(idStart + 1, idEnd);
@@ -471,7 +488,7 @@ var setSourceForFilter;
                     var components = filter.split(" ");
                     var stages = [];
                     for (var i = 0; i < components.length; i++) {
-                        if (components[i].includes("..")) {
+                        if (components[i].indexOf("..") >= 0) {
                             var stages = components[i].split("..");
                         }
                     }
@@ -543,8 +560,7 @@ var setSourceForFilter;
                 var fileName = "booleanQuery.txt";
                 if ($window.navigator.msSaveOrOpenBlob) {
                     $window.navigator.msSaveBlob(filterBlob, fileName);
-                }
-                else {
+                } else {
                     var element = $window.document.createElement('a');
                     element.href = $window.URL.createObjectURL(filterBlob);
                     element.download = fileName;
