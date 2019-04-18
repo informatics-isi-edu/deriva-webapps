@@ -412,7 +412,8 @@
                     if (data.nodes.length) {
                         e.preventDefault()
                         setTimeout(function() {
-                            $('#jstree').jstree(true).get_node(data.nodes[0].id, true).children('.jstree-anchor').get(0).scrollIntoView();
+                            var nodeToScrollTo = $('#jstree').jstree(true).get_node(data.nodes[0].id, true).children('.jstree-anchor').get(0);
+                            $(".tree-panel")[0].scrollTop = nodeToScrollTo.offsetTop;
                         }, 100);
                     }
                 })
