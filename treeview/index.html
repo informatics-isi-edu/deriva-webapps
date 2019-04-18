@@ -5,8 +5,12 @@
     <link rel="stylesheet" href="../../chaise/styles/vendor/bootstrap.css">
     <!-- issue with using out own jquery-ui css is that it will be missing icons/images that have a relative path on jquery website -->
     <!-- <link rel="stylesheet" href="resources/styles/jquery-ui.css"> -->
+    <script src="../../chaise/scripts/vendor/angular.js"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <script src="../../chaise/scripts/vendor/jquery-3.3.1.min.js"></script>
+    <script src="../../chaise/chaise-config.js"></script>
+
+    <script src="../../chaise/lib/navbar/navbar.app.js"></script>
     <script src="util/jquery-ui.js"></script>
     <script src="util/jstree.js"></script>
     <script src="util/jstreegrid.js"></script>
@@ -19,6 +23,7 @@
 </head>
 
 <body>
+    <navbar></navbar>
     <div id="schematic-modal" class="modal fade" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
