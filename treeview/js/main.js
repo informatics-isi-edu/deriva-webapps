@@ -214,17 +214,15 @@
             function setupDomElements() {
                 // NOTE: should this always be the last param in treeviewConfig.filters[last].selected_filter.required_url_parameters?
                 var idParamName = requiredParams[requiredParams.length-1];
-                if (urlParams[idParamName]) {
+                if (showAnnotation == true) {
                     // we have an id param, so make sure the left panel is visible and title is hidden
                     id_parameter = queryParams[idParamName];
-                    showAnnotation = true;
                     document.getElementById('left').style.visibility = "visible";
                     document.getElementById('look-up').style.height = "100%";
                     document.getElementById('anatomyHeading').style.display = "none";
                 } else {
                     // no id so change the UX to hide the left panel
-                    id_parameter = ''
-                    showAnnotation = false;
+                    id_parameter = '';
                     document.getElementById('look-up').style.height = "0";
                     $("#right").css('margin-left', '10px');
                     $(".tree-panel").css('width', '99.5%');
@@ -245,6 +243,14 @@
                 // determine if a parent app exists and change state of treeview to accomodate for it
                 var appName = urlParams["Parent_App"] || null;
                 parentAppExists = appName !== null;
+
+
+                // Show the navbar if static and not embedded in boolean search
+                if ((!showAnnotation && !parentAppExists) || urlParams.showNavbar == "true") {
+                    // property has to be "unset" (which stores a value) rather than trying to apply .css("display, "")
+                    // applying .css("display", "") actually removes the property definition and then the property defined in the CSS document is applied
+                    $("navbar")[0].style.display = "unset";
+                }
 
                 // make sure search div, expand/collapse, and load icon are visible
                 // hide load icon later when data comes back
