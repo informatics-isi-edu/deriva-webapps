@@ -246,7 +246,8 @@
 
 
                 // Show the navbar if static and not embedded in boolean search
-                if ((!showAnnotation && !parentAppExists) || urlParams.showNavbar == "true") {
+                // urlParams.Navbar will be used only if it is set to a boolean value (`true` or `false`)
+                if ((!showAnnotation && !parentAppExists && urlParams.Navbar != "false") || urlParams.Navbar == "true") {
                     // property has to be "unset" (which stores a value) rather than trying to apply .css("display, "")
                     // applying .css("display", "") actually removes the property definition and then the property defined in the CSS document is applied
                     $("navbar")[0].style.display = "unset";
