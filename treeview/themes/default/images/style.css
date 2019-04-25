@@ -1,5 +1,10 @@
 /* jsTree default theme */
 
+/* hide navbar by default on page load */
+navbar {
+    display: none;
+}
+
 #left {
   visibility: hidden;
   padding-right: 0px;
