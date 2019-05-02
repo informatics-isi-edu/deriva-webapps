@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" id="booleansearch" ng-app="booleansearchApp">    
+<html lang="en" id="booleansearch">    
 <head>
     <title>Boolean Search App</title>
     <script src='/chaise/chaise-config.js'></script>
@@ -24,6 +24,7 @@
     <script src='/chaise/common/login.js'></script>
     <script src='/chaise/common/navbar.js'></script>
     <script src='/chaise/common/resizable.js'></script>
+    <script src='/chaise/common/config.js'></script>
     <script src='/ermrestjs/ermrest.js'></script>
     <link rel="stylesheet" type="text/css" href="styles/booleansearch.css">
     <script src="booleansearch-config.js"></script>
@@ -34,6 +35,7 @@
 </head>
 
 <body>
+    <div ng-app="chaise.configure-booleansearchApp"></div>
     <div class="mainContainer">
         <navbar></navbar>    
         <div ng-controller="BooleanSearchController as form" id="appDiv">
@@ -138,10 +140,10 @@
                                     </td>
                                     <td>
                                         <span>From: </span>
-                                        <select ng-model="form.booleanSearchModel.rows[rowIndex].stageFrom" ng-options="s.Name for s in options.fromStageOptions"
+                                        <select class="stageDropdown" ng-model="form.booleanSearchModel.rows[rowIndex].stageFrom" ng-options="s.Name for s in options.fromStageOptions"
                                             ng-change="form.setToStageOptions(rowIndex); form.changeSelection(rowIndex, 'stageFrom')"></select>
                                         <span>To: </span>
-                                        <select ng-model="form.booleanSearchModel.rows[rowIndex].stageTo" ng-options="s.Name for s in form.booleanSearchModel.rows[rowIndex].toStageOptions"
+                                        <select class="stageDropdown" ng-model="form.booleanSearchModel.rows[rowIndex].stageTo" ng-options="s.Name for s in form.booleanSearchModel.rows[rowIndex].toStageOptions"
                                             ng-change="::form.changeSelection(rowIndex, 'stageTo')"></select>
                                         <div ng-show="form.booleanSearchModel.rows[rowIndex].stageFromInvalid" class="text-danger"
                                             role="alert">

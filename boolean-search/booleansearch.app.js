@@ -8,15 +8,36 @@ var setSourceForFilter;
 (function () {
     'use strict';
 
+    angular.module('chaise.configure-booleansearchApp', [
+        'chaise.config',
+        'chaise.utils',
+        'ermrestjs',
+        'ngCookies',
+        'ngAnimate',
+        'ui.bootstrap'
+    ])
+
+        .constant('appName', 'booleansearchApp')
+
+        .run(['$rootScope', function ($rootScope) {
+            // When the configuration module's run block emits the `configuration-done` event, attach the app to the DOM
+            $rootScope.$on("configuration-done", function () {
+
+                angular.element(document).ready(function () {
+                    angular.bootstrap(document.getElementById("booleansearch"), ["booleansearchApp"]);
+                });
+            });
+        }]);
+
     var filterModel = function filterModel(defaultOptions) {
         _classCallCheck(this, filterModel);
 
-        this.toStageOptions = defaultOptions.fromStageOptions;
+        this.toStageOptions = defaultOptions.fromStageOptions.slice(17);;
         this.strength = "present";
         this.source = {
             "name": ""
         };
-        this.stageFrom = defaultOptions.fromStageOptions[16];
+        this.stageFrom = defaultOptions.fromStageOptions[17];
         this.stageTo = defaultOptions.fromStageOptions[defaultOptions.fromStageOptions.length - 1];
         this.pattern = "";
         this.location = "";
@@ -40,14 +61,14 @@ var setSourceForFilter;
         'ui.bootstrap',
         'chaise.navbar'
     ])
-        .config(['$cookiesProvider', function ($cookiesProvider) {
+        .config(['$compileProvider', '$cookiesProvider', '$logProvider', '$uibTooltipProvider', 'ConfigUtilsProvider', function ($compileProvider, $cookiesProvider, $logProvider, $uibTooltipProvider, ConfigUtilsProvider) {
+            // angular configurations
+            // allows unsafe prefixes to be downloaded
+            // full regex: "/^\s*(https?|ftp|mailto|tel|file|blob):/"
+            $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|blob):/);
             $cookiesProvider.defaults.path = '/';
-        }])
-        .config(['$uibTooltipProvider', function ($uibTooltipProvider) {
             $uibTooltipProvider.options({ appendToBody: true });
-        }])
-        .config(['ConfigUtilsProvider', function (ConfigUtilsProvider) {
-            ConfigUtilsProvider.$get().setConfigJSON();
+            $logProvider.debugEnabled(ConfigUtilsProvider.$get().getConfigJSON().debug === true);
         }])
         .value('booleanSearchModel', {
             rows: [{}]
@@ -485,13 +506,17 @@ var setSourceForFilter;
                         vm.booleanSearchModel.rows[index].source.id = id;
                     }
                     vm.booleanSearchModel.rows[index].source.name = sourceName;
-                    var components = filter.split(" ");
-                    var stages = [];
-                    for (var i = 0; i < components.length; i++) {
-                        if (components[i].indexOf("..") >= 0) {
-                            var stages = components[i].split("..");
-                        }
+                    var stageCompStart = sourceEnd + 2;
+                    var stageCompEnd;
+                    if (filter.indexOf("pt=") != -1) {
+                        stageCompEnd = filter.indexOf("pt=") - 1;
+                    } else if (filter.indexOf("lc=") != -1) {
+                        stageCompEnd = filter.indexOf("lc=") - 1;
+                    } else {
+                        stageCompEnd = filter.indexOf("}");
                     }
+                    var stageComp = filter.substring(stageCompStart, stageCompEnd);
+                    var stages = stageComp.split("..");
                     var stageFromName = stages.length == 2 ? stages[0] : "unknown";
                     var stageFrom;
                     for (var i = 0; i < defaultOptions.fromStageOptions.length; i++) {
