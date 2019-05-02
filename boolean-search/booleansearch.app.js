@@ -8,6 +8,27 @@ var setSourceForFilter;
 (function () {
     'use strict';
 
+    angular.module('chaise.configure-booleansearchApp', [
+        'chaise.config',
+        'chaise.utils',
+        'ermrestjs',
+        'ngCookies',
+        'ngAnimate',
+        'ui.bootstrap'
+    ])
+
+    .constant('appName', 'booleansearchApp')
+
+    .run(['$rootScope', function ($rootScope) {
+        // When the configuration module's run block emits the `configuration-done` event, attach the app to the DOM
+        $rootScope.$on("configuration-done", function () {
+
+            angular.element(document).ready(function(){
+                angular.bootstrap(document.getElementById("booleansearch"), ["booleansearchApp"]);
+            });
+        });
+    }]);
+
     var filterModel = function filterModel(defaultOptions) {
         _classCallCheck(this, filterModel);
 
@@ -40,15 +61,15 @@ var setSourceForFilter;
         'ui.bootstrap',
         'chaise.navbar'
     ])
-        .config(['$cookiesProvider', function ($cookiesProvider) {
-            $cookiesProvider.defaults.path = '/';
-        }])
-        .config(['$uibTooltipProvider', function ($uibTooltipProvider) {
-            $uibTooltipProvider.options({ appendToBody: true });
-        }])
-        .config(['ConfigUtilsProvider', function (ConfigUtilsProvider) {
-            ConfigUtilsProvider.$get().setConfigJSON();
-        }])
+    .config(['$compileProvider', '$cookiesProvider', '$logProvider', '$uibTooltipProvider', 'ConfigUtilsProvider', function($compileProvider, $cookiesProvider, $logProvider, $uibTooltipProvider, ConfigUtilsProvider) {
+        // angular configurations
+        // allows unsafe prefixes to be downloaded
+        // full regex: "/^\s*(https?|ftp|mailto|tel|file|blob):/"
+        $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|blob):/);
+        $cookiesProvider.defaults.path = '/';        
+        $uibTooltipProvider.options({appendToBody: true});
+        $logProvider.debugEnabled(ConfigUtilsProvider.$get().getConfigJSON().debug === true);
+    }])
         .value('booleanSearchModel', {
             rows: [{}]
         })
