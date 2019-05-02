@@ -17,17 +17,17 @@ var setSourceForFilter;
         'ui.bootstrap'
     ])
 
-    .constant('appName', 'booleansearchApp')
+        .constant('appName', 'booleansearchApp')
 
-    .run(['$rootScope', function ($rootScope) {
-        // When the configuration module's run block emits the `configuration-done` event, attach the app to the DOM
-        $rootScope.$on("configuration-done", function () {
+        .run(['$rootScope', function ($rootScope) {
+            // When the configuration module's run block emits the `configuration-done` event, attach the app to the DOM
+            $rootScope.$on("configuration-done", function () {
 
-            angular.element(document).ready(function(){
-                angular.bootstrap(document.getElementById("booleansearch"), ["booleansearchApp"]);
+                angular.element(document).ready(function () {
+                    angular.bootstrap(document.getElementById("booleansearch"), ["booleansearchApp"]);
+                });
             });
-        });
-    }]);
+        }]);
 
     var filterModel = function filterModel(defaultOptions) {
         _classCallCheck(this, filterModel);
@@ -61,15 +61,15 @@ var setSourceForFilter;
         'ui.bootstrap',
         'chaise.navbar'
     ])
-    .config(['$compileProvider', '$cookiesProvider', '$logProvider', '$uibTooltipProvider', 'ConfigUtilsProvider', function($compileProvider, $cookiesProvider, $logProvider, $uibTooltipProvider, ConfigUtilsProvider) {
-        // angular configurations
-        // allows unsafe prefixes to be downloaded
-        // full regex: "/^\s*(https?|ftp|mailto|tel|file|blob):/"
-        $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|blob):/);
-        $cookiesProvider.defaults.path = '/';        
-        $uibTooltipProvider.options({appendToBody: true});
-        $logProvider.debugEnabled(ConfigUtilsProvider.$get().getConfigJSON().debug === true);
-    }])
+        .config(['$compileProvider', '$cookiesProvider', '$logProvider', '$uibTooltipProvider', 'ConfigUtilsProvider', function ($compileProvider, $cookiesProvider, $logProvider, $uibTooltipProvider, ConfigUtilsProvider) {
+            // angular configurations
+            // allows unsafe prefixes to be downloaded
+            // full regex: "/^\s*(https?|ftp|mailto|tel|file|blob):/"
+            $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|blob):/);
+            $cookiesProvider.defaults.path = '/';
+            $uibTooltipProvider.options({ appendToBody: true });
+            $logProvider.debugEnabled(ConfigUtilsProvider.$get().getConfigJSON().debug === true);
+        }])
         .value('booleanSearchModel', {
             rows: [{}]
         })
@@ -516,7 +516,7 @@ var setSourceForFilter;
                         stageCompEnd = filter.indexOf("}");
                     }
                     var stageComp = filter.substring(stageCompStart, stageCompEnd);
-                    var stages = stageComp.split("..");                    
+                    var stages = stageComp.split("..");
                     var stageFromName = stages.length == 2 ? stages[0] : "unknown";
                     var stageFrom;
                     for (var i = 0; i < defaultOptions.fromStageOptions.length; i++) {
