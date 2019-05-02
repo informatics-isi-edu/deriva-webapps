@@ -186,3 +186,7 @@ code {
     color: black;
     background-color: rgba(27,31,35,.05);
 }
+
+.stageDropdown {
+    width: 30%;
+}

@@ -11,12 +11,12 @@ var setSourceForFilter;
     var filterModel = function filterModel(defaultOptions) {
         _classCallCheck(this, filterModel);
 
-        this.toStageOptions = defaultOptions.fromStageOptions;
+        this.toStageOptions = defaultOptions.fromStageOptions.slice(17);;
         this.strength = "present";
         this.source = {
             "name": ""
         };
-        this.stageFrom = defaultOptions.fromStageOptions[16];
+        this.stageFrom = defaultOptions.fromStageOptions[17];
         this.stageTo = defaultOptions.fromStageOptions[defaultOptions.fromStageOptions.length - 1];
         this.pattern = "";
         this.location = "";
@@ -485,13 +485,17 @@ var setSourceForFilter;
                         vm.booleanSearchModel.rows[index].source.id = id;
                     }
                     vm.booleanSearchModel.rows[index].source.name = sourceName;
-                    var components = filter.split(" ");
-                    var stages = [];
-                    for (var i = 0; i < components.length; i++) {
-                        if (components[i].indexOf("..") >= 0) {
-                            var stages = components[i].split("..");
-                        }
+                    var stageCompStart = sourceEnd + 2;
+                    var stageCompEnd;
+                    if (filter.indexOf("pt=") != -1) {
+                        stageCompEnd = filter.indexOf("pt=") - 1;
+                    } else if (filter.indexOf("lc=") != -1) {
+                        stageCompEnd = filter.indexOf("lc=") - 1;
+                    } else {
+                        stageCompEnd = filter.indexOf("}");
                     }
+                    var stageComp = filter.substring(stageCompStart, stageCompEnd);
+                    var stages = stageComp.split("..");                    
                     var stageFromName = stages.length == 2 ? stages[0] : "unknown";
                     var stageFrom;
                     for (var i = 0; i < defaultOptions.fromStageOptions.length; i++) {
