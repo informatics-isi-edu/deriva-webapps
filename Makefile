@@ -3,7 +3,11 @@ WEBAPPSDIR?=/var/www/html/deriva-webapps
 
 .PHONY : install
 install:
-	# rsync -avz --exclude='.*' --exclude='Makefile' . $(WEBAPPSDIR)
+	rsync -avz --exclude='.*' --exclude='Makefile' . $(WEBAPPSDIR)
+
+#This make target for getting the test dependencies only needs to be run once
+.PHONY : testsetup
+install:	
 	@echo "Installing protractor and webdriver-manager"
 	npm install -g protractor
 	webdriver-manager update
