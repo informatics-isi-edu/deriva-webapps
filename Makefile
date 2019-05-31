@@ -7,7 +7,7 @@ install:
 
 #This make target for getting the test dependencies only needs to be run once
 .PHONY : testsetup
-install:	
+testsetup:	
 	@echo "Installing protractor and webdriver-manager"
 	npm install -g protractor
 	webdriver-manager update
