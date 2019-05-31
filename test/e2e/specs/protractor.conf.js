@@ -1,31 +1,27 @@
-exports.config = {
-  framework: 'jasmine2',
-  capabilities: {
+let SpecReporter = require('jasmine-spec-reporter').SpecReporter;
 
-    browserName: 'chrome',
-    'chromeOptions': {
-      args: ['--lang=en',
-        '--window-size=2480,1920'
-      ]
+exports.config = {
+    framework : 'jasmine',
+    seleniumAddress : 'http://localhost:4444/wd/hub',
+    specs : ['*.spec.js'],
+    capabilities : {
+        browserName : 'chrome'
+    },
+    jasmineNodeOpts : {
+        showColor : true,
+        defaultTimeoutInterval: 120000
+    },
+    params : {
+        defaultTimeout : 75000,
+        exeEnv : ' ',
+        app : ' '
+    },
+    onPrepare: function(){
+        jasmine.getEnv().addReporter(new SpecReporter({
+            displayFailuresSummary: true,
+            displayFailuredSpec: true,
+            displaySuiteNumber: true,
+            displaySpecDuration: true
+        }));
     }
-  },
-  specs: [
-    '*/*.spec.js'
-  ],
-  jasmineNodeOpts: {
-    showColors: true,
-    defaultTimeoutInterval: 120000,
-    print: function() {}
-  },
-  params: {
-    defaultTimeout: 75000,
-    exeEnv: ' ',
-    derivaWebappUtilUrl: "../../utils/derivaWebapps.js",   //modify config.js to change default Location
-  },
-  onPrepare: function() {
-    let SpecReporter = require('jasmine-spec-reporter').SpecReporter;
-    jasmine.getEnv().addReporter(new SpecReporter({
-      displayStacktrace: 'all'
-    }));
-  }
 }
