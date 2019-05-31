@@ -25,22 +25,17 @@ function testConfig() {
         switch(env){
             case 'dev':
                 return baseUrlArrDev;
-                break;
             case 'staging':
                 return baseUrlArrStaging;
-                break;
             default:
                 return baseUrlArr;
-                break;
         }
-    }
+    }    
 
     // individual pages
     this.geneExpression = {
         'heatmapNCBIGeneID17740' : '/heatmap/#2/Gene_Expression:Array_Data_view/NCBI_GeneID=17740'
     }
-    
-    
 }
 
 module.exports = new testConfig();

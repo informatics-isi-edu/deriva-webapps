@@ -20,7 +20,7 @@ $ cd deriva-webapps
 ```
 Install protractor and jasmine-spec-reporter packages by running following command
 ```
-$ make install
+$ make testsetup
 ```
 
 To execute all test cases in non-production environments run the following command
@@ -36,4 +36,3 @@ To execute all test cases in production environment run **one** of the following
 ```sh
 $ make test
 ```
-

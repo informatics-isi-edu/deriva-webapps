@@ -1,8 +1,6 @@
 let SpecReporter = require('jasmine-spec-reporter').SpecReporter;
 
 exports.config = {
-    sauceUser: process.env.SAUCE_USERNAME,
-    sauceKey: process.env.SAUCE_ACCESS_KEY,
     framework : 'jasmine',
     seleniumAddress : 'http://localhost:4444/wd/hub',
     specs : ['*.spec.js'],
@@ -16,7 +14,7 @@ exports.config = {
     params : {
         defaultTimeout : 75000,
         exeEnv : ' ',
-        writeAccess : false
+        app : ' '
     },
     onPrepare: function(){
         jasmine.getEnv().addReporter(new SpecReporter({
