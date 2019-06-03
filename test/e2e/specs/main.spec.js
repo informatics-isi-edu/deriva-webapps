@@ -1,4 +1,10 @@
+//********************* boolean search *************************//
+var navbar = require('./boolean-search/00-navbar.spec.js');
+var treeview = require('./boolean-search/00-treeview.spec.js');
+var booleansearch = require('./boolean-search/00-boolean-search.spec.js');
+//********************* boolean search *************************//
 var heatmapSpec = require('./heatmap/00-heatmap.spec');
+
 var testConfig = require('../config');
 var urlList = testConfig.getEnvUrl(browser.params.exeEnv);
 var appName = browser.params.app;
@@ -24,9 +30,12 @@ function heatmap(urlList, appName){
     });
 }
 
-function booleanSearch(){
-    console.log("run boolean-search test cases");
+function booleanSearch(urlList, appName){
+    console.log("Running boolean-search test cases");
     urlList.forEach(function(ele){
-        // write actual test cases for boolean-search
+        var url = ele.url+'/'+appName;
+        navbar.tests(appName, url);
+        treeview.tests(appName, url);
+        booleansearch.tests(appName, url);
     });
 }

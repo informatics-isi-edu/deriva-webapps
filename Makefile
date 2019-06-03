@@ -1,5 +1,6 @@
 E2Espec = test/e2e/specs/protractor.conf.js
 WEBAPPSDIR?=/var/www/html/deriva-webapps
+E2Espec = test/e2e/specs/protractor.conf.js
 
 .PHONY : install
 install:
