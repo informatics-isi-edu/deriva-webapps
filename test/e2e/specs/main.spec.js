@@ -1,3 +1,4 @@
+var heatmapSpec = require('./heatmap/00-heatmap.spec');
 var testConfig = require('../config');
 var urlList = testConfig.getEnvUrl(browser.params.exeEnv);
 var appName = browser.params.app;
@@ -19,6 +20,7 @@ function heatmap(urlList, appName){
     console.log("run heatmap test cases");
     urlList.forEach(function(ele){
         // write actual test cases for heatmap
+        heatmapSpec.heatmap(ele.app, ele.url);
     });
 }
 
