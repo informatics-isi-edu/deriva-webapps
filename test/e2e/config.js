@@ -31,6 +31,11 @@ function testConfig() {
                 return baseUrlArr;
         }
     }    
+
+    // individual pages
+    this.geneExpression = {
+        'heatmapNCBIGeneID17740' : '/heatmap/#2/Gene_Expression:Array_Data_view/NCBI_GeneID=17740'
+    }
 }
 
 module.exports = new testConfig();

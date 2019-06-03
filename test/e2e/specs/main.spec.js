@@ -3,7 +3,7 @@ var navbar = require('./boolean-search/00-navbar.spec.js');
 var treeview = require('./boolean-search/00-treeview.spec.js');
 var booleansearch = require('./boolean-search/00-boolean-search.spec.js');
 //********************* boolean search *************************//
-
+var heatmapSpec = require('./heatmap/00-heatmap.spec');
 
 var testConfig = require('../config');
 var urlList = testConfig.getEnvUrl(browser.params.exeEnv);
@@ -26,6 +26,7 @@ function heatmap(urlList, appName){
     console.log("run heatmap test cases");
     urlList.forEach(function(ele){
         // write actual test cases for heatmap
+        heatmapSpec.heatmap(ele.app, ele.url);
     });
 }
 
@@ -37,5 +38,4 @@ function booleanSearch(urlList, appName){
         treeview.tests(appName, url);
         booleansearch.tests(appName, url);
     });
-
 }
