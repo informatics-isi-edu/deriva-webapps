@@ -18,10 +18,11 @@ Test suite can be run for dev, staging and production environments separately. B
 $ git clone https://github.com/informatics-isi-edu/deriva-webapps.git
 $ cd deriva-webapps
 ```
-Install protractor and jasmine-spec-reporter packages by running following command
+Install protractor and jasmine-spec-reporter packages by running following command:
 ```
 $ make testsetup
 ```
+Note: This is installing protractor globally so you might have to run the command as admin.
 
 To execute all test cases in non-production environments run the following command
 ```sh

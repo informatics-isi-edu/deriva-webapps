@@ -7,13 +7,13 @@ install:
 
 #This make target for getting the test dependencies only needs to be run once
 .PHONY : testsetup
-testsetup:	
+testsetup:
 	@echo "Installing protractor and webdriver-manager"
 	npm install -g protractor
 	webdriver-manager update
 	@echo "Installing Jasmine-spec-reporter"
-	npm install jasmine-spec-reporter --save-dev
-	
+	npm install
+
 .PHONY : test
 test:
 	@echo "E2E Test Started"
