@@ -13,7 +13,7 @@ testsetup:
 	npm install -g protractor
 	webdriver-manager update
 	@echo "Installing Jasmine-spec-reporter"
-	npm install jasmine-spec-reporter --save-dev
+	npm install
 
 .PHONY : test
 test:

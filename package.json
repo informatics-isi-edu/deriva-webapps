@@ -1,0 +1,14 @@
+{
+  "name": "deriva-wwebapps",
+  "version": "0.0.0",
+  "description": "e2e tests for deriva webapps",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/informatics-isi-edu/deriva-webapps.git"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "jasmine-spec-reporter": "^4.2.1"
+  }
+}
