@@ -1,5 +1,5 @@
-var httpFun = require('../../../../utils/common/httpFun.js');
-var deriva = require('../../../../utils/common/deriva-webapps');
+var httpFun = require('../../utils/common/httpFun.js');
+var deriva = require('../../utils/common/deriva-webapps');
 
 exports.tests = function (appName, baseUrl) {
   describe(appName + ' TreeView', function () {

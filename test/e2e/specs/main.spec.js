@@ -1,7 +1,7 @@
 //********************* boolean search *************************//
-var navbar = require('./boolean-search/all-features/navbar/00-navbar.spec.js');
-var treeview = require('./boolean-search/all-features/treeview/00-treeview.spec.js');
-var booleansearch = require('./boolean-search/all-features/boolean-search/00-boolean-search.spec.js');
+var navbar = require('./boolean-search/00-navbar.spec.js');
+var treeview = require('./boolean-search/00-treeview.spec.js');
+var booleansearch = require('./boolean-search/00-boolean-search.spec.js');
 //********************* boolean search *************************//
 
 

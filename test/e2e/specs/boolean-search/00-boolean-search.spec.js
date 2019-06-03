@@ -1,4 +1,4 @@
-var deriva = require('../../../../utils/common/deriva-webapps');
+var deriva = require('../../utils/common/deriva-webapps');
 var expectedValue = require('./boolean-search-expected-value.js');
 
 exports.tests = function (appName, baseUrl) {
