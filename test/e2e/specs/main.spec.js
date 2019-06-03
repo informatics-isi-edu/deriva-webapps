@@ -1,4 +1,4 @@
-var heatmapSpec = require('./heatmaps/00-heatmap.spec');
+var heatmapSpec = require('./heatmap/00-heatmap.spec');
 var testConfig = require('../config');
 var urlList = testConfig.getEnvUrl(browser.params.exeEnv);
 var appName = browser.params.app;
