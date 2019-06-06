@@ -8,14 +8,7 @@ var setSourceForFilter;
 (function () {
     'use strict';
 
-    angular.module('chaise.configure-booleansearchApp', [
-        'chaise.config',
-        'chaise.utils',
-        'ermrestjs',
-        'ngCookies',
-        'ngAnimate',
-        'ui.bootstrap'
-    ])
+    angular.module('chaise.configure-booleansearchApp', ['chaise.config'])
 
         .constant('appName', 'booleansearchApp')
 
