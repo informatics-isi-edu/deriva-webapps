@@ -190,3 +190,15 @@ code {
 .stageDropdown {
     width: 30%;
 }
+
+html .app-container {
+    display: none;
+}
+
+html.ng-scope .app-container {
+    display: block;
+}
+
+html.ng-scope .configure-container {
+    display: none;
+}
