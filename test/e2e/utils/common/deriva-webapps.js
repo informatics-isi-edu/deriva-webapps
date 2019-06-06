@@ -39,8 +39,24 @@ var booleanSearchPage = function() {
 
 };
 
+
+var treeviewPage = function() {
+    var that = this;
+
+    this.getElementById = function(id) {
+        return element(by.id(id));
+    }
+
+    this.getListElements = function(id) {
+        return this.getElementById(id).all(by.tagName('li'));
+    }
+
+};
+
+
 function derivaWebapps() {
     this.booleanSearchPage = new booleanSearchPage();
+    this.treeviewPage = new treeviewPage();
 
     this.waitForElement = function (locator, timeout) {
         return browser.wait(protractor.ExpectedConditions.visibilityOf(locator), timeout || browser.params.defaultTimeout);
@@ -49,6 +65,24 @@ function derivaWebapps() {
     this.waitForElementInverse = function (locator, timeout) {
         return browser.wait(protractor.ExpectedConditions.invisibilityOf(locator), timeout || browser.params.defaultTimeout);
     };
+
+    this.scrollIntoView =  function (ele) {
+        browser.executeScript("arguments[0].scrollIntoViewIfNeeded();", ele.getWebElement());
+    }
+
+    this.elementInViewport = async function(ele) {
+      var start = await ele.getLocation().then(function (location) {
+          return location.y;
+      });
+      await this.scrollIntoView(ele);
+      var view =  await ele.getLocation().then(function (location) {
+          if(start - location.y === 0) {
+            return true
+          }
+          return false
+      });
+      return view
+    }
 };
 
 module.exports = new derivaWebapps();

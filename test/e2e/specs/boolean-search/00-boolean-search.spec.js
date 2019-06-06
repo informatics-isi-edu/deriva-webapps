@@ -97,18 +97,15 @@ exports.tests = function (appName, baseUrl) {
           });
 
           it('default value of "Strength" should present', function() {
-            column =  deriva.booleanSearchPage.getFirstRowColumnValues(3);
             expect(element(by.model('form.booleanSearchModel.rows[rowIndex].strength')).$('option:checked').getText()).toEqual('present');
           });
 
           it('default value of "From" should be TS17', function() {
-            column =  deriva.booleanSearchPage.getFirstRowColumnValues(5);
             expect(element(by.model('form.booleanSearchModel.rows[rowIndex].stageFrom')).$('option:checked').getText()).toEqual('TS17');
 
           });
 
           it('default value of "To" should be TS28', function() {
-            column =  deriva.booleanSearchPage.getFirstRowColumnValues(5);
             expect(element(by.model('form.booleanSearchModel.rows[rowIndex].stageTo')).$('option:checked').getText()).toEqual('TS28');
           });
 

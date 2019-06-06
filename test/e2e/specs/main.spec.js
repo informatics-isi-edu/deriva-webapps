@@ -5,7 +5,7 @@ var booleansearch = require('./boolean-search/00-boolean-search.spec.js');
 //********************* boolean search *************************//
 
 //********************* treeview *************************//
-var statictreeview = require('./treeview/00-static-treeview/spec.js');
+var statictreeview = require('./treeview/00-static-treeview.spec.js');
 var dynamictreeview = require('./treeview/00-dynamic-treeview.spec.js');
 var recordpage = require('./treeview/00-record-page.spec.js');
 //********************* treeview *************************//
@@ -24,11 +24,12 @@ switch(appName){
         booleanSearch(urlList, appName);
         break;
     case "treeview":
-        treeview(urlList, appName);
+        treeView(urlList, appName);
+        break;
     default:
         heatmap(urlList, "heatmap");
         booleanSearch(urlList, "boolean-search");
-        treeview(urlList, "treeview");
+        treeView(urlList, "treeview");
         break;
 }
 
@@ -50,12 +51,12 @@ function booleanSearch(urlList, appName){
     });
 }
 
-function treeview(urlList, appName){
+function treeView(urlList, appName){
     console.log("Running treeview test cases");
     urlList.forEach(function(ele){
         var url = ele.url+'/'+appName;
         statictreeview.tests(appName, url);
         dynamictreeview.tests(appName, url);
-        recordpage.tests(appName, url);
+        recordpage.tests(appName, 'https://dev.rebuildingakidney.org'); // TODO: Need to fetch from config
     });
 }
