@@ -16,12 +16,12 @@ exports.tests = function (appName, baseUrl) {
     it('verify that treeview are displayed', function () {
       if (iframe.isElementPresent(by.tagName('object'))) {
         leftPanelIframe = iframe.element(by.tagName('object'));
-        leftPanelIframe.getAttribute('data').then(function (leftPanelIframeUrl) {
-          httpFun.fireHttpRequest(leftPanelIframeUrl).then(function (res) {
-            expect(res.statusCode).toEqual(200);
-          }).catch(function (err) {
-            console.log("Error in promise chain: ", err);
-          });
+        leftPanelIframe.getAttribute('data').then(function (iframeUrl) {
+          return httpFun.fireHttpRequest(iframeUrl)
+        }).then(function (res) {
+          expect(res.statusCode).toEqual(200);
+        }).catch(function (err) {
+          console.log("Error in promise chain: ", err);
         });
       }
     });
