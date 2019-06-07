@@ -20,11 +20,11 @@ exports.tests = function (appName, baseUrl) {
       if (ele.isElementPresent(by.tagName('iframe'))) {
         iframe = ele.element(by.tagName('iframe'));
         iframe.getAttribute('src').then(function (iframeUrl) {
-          httpFun.fireHttpRequest(iframeUrl).then(function (res) {
-            expect(res.statusCode).toEqual(200);
-          }).catch(function (err) {
-            console.log("Error in promise chain: ", err);
-          });
+          return httpFun.fireHttpRequest(iframeUrl)
+        }).then(function (res) {
+          expect(res.statusCode).toEqual(200);
+        }).catch(function (err) {
+          console.log("Error in promise chain: ", err);
         });
       }
     });

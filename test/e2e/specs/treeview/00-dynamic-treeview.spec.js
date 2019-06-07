@@ -13,6 +13,7 @@ exports.tests = function (appName, baseUrl) {
       ele = element(by.id('rt-heading-Specimen&nbsp;Expression'));
 
       deriva.waitForElementInverse(element.all(by.id("loadIcon")).get(0));
+
     });
 
     describe('legend panel', function () {
@@ -54,10 +55,12 @@ exports.tests = function (appName, baseUrl) {
             linkArr.forEach(function (url) {
                expect(imgFullLinks).toContain(url);
                httpFun.httpGet(url).then(function (res) {
-                     expect(
-                       res.statusCode).toEqual(200, url + " is not a valid image source.");
-                     done();
-                   });
+                 expect(res.statusCode).toEqual(200, url + " is not a valid image source.");
+                 done();
+               }).catch(function (err) {
+                 console.log(err);
+                 done.fail();
+               });
              });
           });
         });
@@ -92,9 +95,12 @@ exports.tests = function (appName, baseUrl) {
             linkArr.forEach(function (url) {
                expect(imgFullLinks).toContain(url);
                httpFun.httpGet(url).then(function (res) {
-                     expect(res.statusCode).toEqual(200, url + " is not a valid image source.");
-                     done();
-                   });
+                 expect(res.statusCode).toEqual(200, url + " is not a valid image source.");
+                 done();
+               }).catch(function (err) {
+                 console.log(err);
+                 done.fail();
+               });
              });
           });
         });
@@ -129,9 +135,12 @@ exports.tests = function (appName, baseUrl) {
             linkArr.forEach(function (url) {
                expect(imgFullLinks).toContain(url);
                httpFun.httpGet(url).then(function (res) {
-                     expect(res.statusCode).toEqual(200, url + " is not a valid image source.");
-                     done();
-                   });
+                 expect(res.statusCode).toEqual(200, url + " is not a valid image source.");
+                 done();
+               }).catch(function (err) {
+                 console.log(err);
+                 done.fail();
+               });
              });
           });
         });
@@ -166,9 +175,12 @@ exports.tests = function (appName, baseUrl) {
             linkArr.forEach(function (url) {
                expect(imgFullLinks).toContain(url);
                httpFun.httpGet(url).then(function (res) {
-                     expect(res.statusCode).toEqual(200, url + " is not a valid image source.");
-                     done();
-                   });
+                 expect(res.statusCode).toEqual(200, url + " is not a valid image source.");
+                 done();
+               }).catch(function (err) {
+                 console.log(err);
+                 done.fail();
+               });
              });
           });
         });
@@ -196,9 +208,12 @@ exports.tests = function (appName, baseUrl) {
             linkArr.forEach(function (url) {
                expect(imgFullLinks).toContain(url);
                httpFun.httpGet(url).then(function (res) {
-                     expect(res.statusCode).toEqual(200, url + " is not a valid image source.");
-                     done();
-                   });
+                 expect(res.statusCode).toEqual(200, url + " is not a valid image source.");
+                 done();
+               }).catch(function (err) {
+                 console.log(err);
+                 done.fail();
+               });
              });
           });
         });
