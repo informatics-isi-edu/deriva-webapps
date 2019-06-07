@@ -71,17 +71,21 @@ function derivaWebapps() {
     }
 
     this.elementInViewport = async function(ele) {
-      var start = await ele.getLocation().then(function (location) {
-          return location.y;
-      });
-      await this.scrollIntoView(ele);
-      var view =  await ele.getLocation().then(function (location) {
-          if(start - location.y === 0) {
-            return true
-          }
-          return false
-      });
-      return view
+      try {
+        var start = await ele.getLocation().then(function (location) {
+            return location.y;
+        });
+        await this.scrollIntoView(ele);
+        var view =  await ele.getLocation().then(function (location) {
+            if(start - location.y === 0) {
+              return true
+            }
+            return false
+        });
+        return view
+      } catch(err) {
+        console.log(err);
+      }
     }
 };
 

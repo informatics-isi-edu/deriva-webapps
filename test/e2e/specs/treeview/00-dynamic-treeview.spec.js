@@ -42,6 +42,8 @@ exports.tests = function (appName, baseUrl) {
                  expect(facet1LinkNames).toContain(text);
                });
              });
+          }).catch(function(err) {
+            console.log(err);
           });
         });
 
@@ -82,6 +84,8 @@ exports.tests = function (appName, baseUrl) {
                  expect(facet2LinkNames).toContain(text);
                });
              });
+          }).catch(function(err) {
+            console.log(err);
           });
         });
 
@@ -122,6 +126,8 @@ exports.tests = function (appName, baseUrl) {
                  expect(facet3LinkNames).toContain(text);
                });
              });
+          }).catch(function(err) {
+            console.log(err);
           });
         });
 
@@ -162,6 +168,8 @@ exports.tests = function (appName, baseUrl) {
                  expect(facet4LinkNames).toContain(text);
                });
              });
+          }).catch(function(err) {
+            console.log(err);
           });
         });
 
@@ -195,6 +203,8 @@ exports.tests = function (appName, baseUrl) {
                  expect(text).toEqual('Contains note', 'Contains Note text is not correct');
                });
              });
+          }).catch(function(err) {
+            console.log(err);
           });
         });
 
@@ -248,6 +258,8 @@ exports.tests = function (appName, baseUrl) {
               expect(buttons.length).toEqual(2, '2 buttons are not visible.');
               expect((buttons[0]).getText()).toEqual('Expand All', 'Expand All button is not correct.');
               expect((buttons[1]).getText()).toEqual('Collapse All', 'Collapse All button is not correct.');;
+            }).catch(function(err) {
+              console.log(err);
             });
           });
         });
