@@ -58,6 +58,10 @@ function derivaWebapps() {
     this.booleanSearchPage = new booleanSearchPage();
     this.treeviewPage = new treeviewPage();
 
+    this.clickButton = function(button) {
+        return browser.executeScript("$(arguments[0]).click();", button);
+    };
+
     this.waitForElement = function (locator, timeout) {
         return browser.wait(protractor.ExpectedConditions.visibilityOf(locator), timeout || browser.params.defaultTimeout);
     };
@@ -69,6 +73,7 @@ function derivaWebapps() {
     this.scrollIntoView =  function (ele) {
         browser.executeScript("arguments[0].scrollIntoViewIfNeeded();", ele.getWebElement());
     }
+
 
     this.elementInViewport = async function(ele) {
       try {

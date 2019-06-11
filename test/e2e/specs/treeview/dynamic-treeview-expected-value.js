@@ -56,6 +56,16 @@ function expectedValue() {
     "/resources/images/NerveDensity/note.gif"
     ]
   }
+
+  this.annotations = {
+    imgs:[
+      "/resources/images/ExpressionMapping/ExpressionStrengthsKey/Present(strong).gif",
+      "/resources/images/NerveDensity/RelativeToTotal/low.png",
+      "/resources/images/ExpressionMapping/ExpressionPatternKey/Regional.png",
+      "/resources/images/NerveDensity/RelativeToP0/dec_small.png",
+      "/resources/images/NerveDensity/note.gif"
+    ]
+  }
   return this;
 }
 module.exports = new expectedValue();
