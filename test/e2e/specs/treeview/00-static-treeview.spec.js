@@ -38,41 +38,52 @@ exports.tests = function (appName, baseUrl) {
         });
 
       });
-
+      
       describe('actions for the page', function() {
-        beforeAll(function() {
-          browser.wait(EC.elementToBeClickable(filterDropDown), browser.params.defaultTimeout);
-          filterDropDown.click();
-          browser.wait(EC.visibilityOf(element(by.id('number-menu'))), browser.params.defaultTimeout)
-          element(by.id('ui-id-2')).click();
+        beforeAll(function(done) {
+          browser.wait(EC.elementToBeClickable(filterDropDown), browser.params.defaultTimeout).then(function() {
+            return filterDropDown.click();
+          }).then(function () {
+            browser.wait(EC.visibilityOf(element(by.id('number-menu'))), browser.params.defaultTimeout)
+            return element(by.id('ui-id-2')).click();
+          }).then(function () {
+            deriva.waitForElementInverse(element.all(by.id("loadIcon")).get(0));
+            done();
+          }).catch(function(err) {
+            done.fail();
+            console.log(err);
+          });
+        });
 
-          deriva.waitForElementInverse(element.all(by.id("loadIcon")).get(0));
-
+        it('all node list expand on `Expand All` click', function(done) {
+          ele = element(by.id('jstree')).all(by.css('.jstree-open'));
+          actionBtn.all(by.css('button')).then(function(buttons) {
+            return buttons[0].click();
+          }).then(function() {
+            return browser.wait(EC.presenceOf(ele), browser.params.defaultTimeout);
+          }).then(function() {
+            expect(ele.count()).toBe(4);
+            done();
+          }).catch(function(err) {
+            done.fail();
+            console.log(err);
+          });
         });
 
         it('all node list collapse on `Collapse All` click', function(done) {
+          ele = element(by.id('jstree')).all(by.css('.jstree-open'));
           actionBtn.all(by.css('button')).then(function(buttons) {
-            buttons[1].click().then(function() {
-              expect(element(by.id('jstree')).all(by.css('.jstree-open')).count()).toBe(0);
-              done();
-            });
+            return buttons[1].click();
+          }).then(function() {
+            return browser.wait(EC.invisibilityOf(ele), browser.params.defaultTimeout)
+          }).then(function() {
+            expect(ele.count()).toBe(0);
+            done();
           }).catch(function(err) {
+            done.fail();
             console.log(err);
           });
         });
-
-
-        it('all node list expand on `Expand All` click', function(done) {
-          actionBtn.all(by.css('button')).then(function(buttons) {
-            buttons[0].click().then(function() {
-              expect(element(by.id('jstree')).all(by.css('.jstree-open')).count()).toBe(4);
-              done();
-            });
-          }).catch(function(err) {
-            console.log(err);
-          });
-        });
-
       });
 
       it('expand all and collapse all button are visible', function(){
@@ -85,44 +96,65 @@ exports.tests = function (appName, baseUrl) {
         });
       });
 
-      it('collapsing the parent should retain the highlighted searched item', function() {
-        searchInput.sendKeys('second');
+      it('collapsing the parent should retain the highlighted searched item', function(done) {
         var ele = element.all(by.css('.jstree-open .jstree-search')).get(0);
-        browser.wait(EC.presenceOf(ele), browser.params.defaultTimeout);
-        element.all(by.css('.jstree-open > i')).get(0).click();
-        element.all(by.css('.jstree-closed > i')).get(0).click();
-        browser.wait(EC.presenceOf(ele), browser.params.defaultTimeout);
-        // expect(deriva.elementInViewport(ele)).toBeTruthy('searched node of the tree is not visible.');
-        expect(element.all(by.css('.jstree-node .jstree-search')).get(0).getCssValue('background-color')).toBe('rgba(239, 239, 166, 1)');
-        expect(element.all(by.css('.jstree-node .jstree-search')).get(0).getCssValue('font-style')).toBe('italic');
+        searchInput.sendKeys('second').then(function() {
+          return browser.wait(EC.presenceOf(ele), browser.params.defaultTimeout);
+        }).then(function() {
+          return element.all(by.css('.jstree-open > i')).get(0).click();
+        }).then(function() {
+          return browser.wait(EC.invisibilityOf(ele), browser.params.defaultTimeout);
+        }).then(function() {
+          return element.all(by.css('.jstree-closed > i')).get(0).click();
+        }).then(function() {
+          return browser.wait(EC.presenceOf(ele), browser.params.defaultTimeout);
+        }).then(function() {
+          expect(ele.getCssValue('background-color')).toBe('rgba(239, 239, 166, 1)');
+          expect(ele.getCssValue('font-style')).toBe('italic');
+          done();
+        }).catch(function(err) {
+          done.fail();
+          console.log(err);
+        });
       });
 
-
-      it('search `mouse (EMAPA:25765)` takes the scroll to it and is in italics and highlighted', function() {
-        searchInput.clear();
-        searchInput.sendKeys('mouse (EMAPA:25765)');
+      it('search `mouse (EMAPA:25765)` takes the scroll to it and is in italics and highlighted', function(done) {
         var ele = element.all(by.css('.jstree-node .jstree-search')).get(0);
-        browser.wait(EC.presenceOf(ele), browser.params.defaultTimeout);
+        searchInput.clear().then(function() {
+          searchInput.sendKeys('mouse (EMAPA:25765)');
+        }).then(function() {
+          return browser.wait(EC.presenceOf(ele), browser.params.defaultTimeout);
+        }).then(function() {
+          expect(ele.getCssValue('background-color')).toBe('rgba(239, 239, 166, 1)');
+          expect(ele.getCssValue('font-style')).toBe('italic');
+          done();
+        }).catch(function(err) {
+          done.fail();
+          console.log(err);
+        });
+      });
 
-        // expect(deriva.elementInViewport(ele)).toBeTruthy('searched node of the tree is not visible.');
-        expect(ele.getCssValue('background-color')).toBe('rgba(239, 239, 166, 1)');
-        expect(ele.getCssValue('font-style')).toBe('italic');
+      it('filter terms for a specific Theiler Stage: links are clickable', function(done) {
+        browser.wait(EC.elementToBeClickable(filterDropDown), browser.params.defaultTimeout).then(function() {
+          return filterDropDown.click();
+        }).then(function() {
+          return browser.wait(EC.elementToBeClickable(element(by.id('number-menu'))), browser.params.defaultTimeout);
+        }).then(function(){
+          return element(by.id('number-menu')).all(by.tagName('li')).map(function(elm) {
+            return elm.getText();
+          });
+        }).then(function(texts) {
+            texts.forEach(function(text) {
+              expect(expectedValue.dropdown).toContain(text);
+            });
+            done();
+        }).catch(function (err) {
+          done.fail();
+          console.log(err);
+        });
       });
 
       it('filter terms for a specific Theiler Stage: Refereshes on stage change', function(done) {
-        browser.wait(EC.elementToBeClickable(filterDropDown), browser.params.defaultTimeout);
-        filterDropDown.click();
-        element(by.id('number-menu')).all(by.tagName('li')).each(function(ele) {
-          browser.wait(EC.elementToBeClickable(ele), browser.params.defaultTimeout);
-          ele.getText().then(function(text) {
-             expect(expectedValue.dropdown).toContain(text, 'dropdown does not contain text.');
-           });
-           done();
-        }).catch(function (err) {
-            done.fail();
-            console.log(err);
-        });
-
         element(by.id('ui-id-30')).click().then(function() {
           return deriva.waitForElementInverse(element.all(by.id("loadIcon")).get(0));
         }).then(function() {
@@ -135,6 +167,7 @@ exports.tests = function (appName, baseUrl) {
         });
       });
 
+
       describe('treeview', function() {
 
         it('it is displayed with no errors', function() {
@@ -144,23 +177,36 @@ exports.tests = function (appName, baseUrl) {
 
         describe('hierarchy', function() {
           beforeAll(function() {
-            btn = element(by.css('#nid_9112 > i'));
-            deriva.waitForElement(btn);
+            openBtn = element.all(by.css('.jstree-node.jstree-closed > i')).get(0);
+            closeBtn = element.all(by.css('.jstree-node.jstree-open > i')).get(0);
+            list = element.all(by.css('.jstree-node.jstree-open > ul')).get(0);
+            deriva.waitForElement(openBtn);
           });
 
-          it('node list expanded on + click', function() {
-            btn.click();
-            browser.wait(EC.visibilityOf(element(by.css('#nid_9112 > ul'))), browser.params.defaultTimeout);
-            element(by.css('#nid_9112')).all(by.tagName('li')).each(function (elm) {
-              expect((elm).isDisplayed()).toBeTruthy('Expanded List list is not visible.');
+          it('node list expanded on + click', function(done) {
+            openBtn.click().then(function() {
+              return browser.wait(EC.visibilityOf(list), browser.params.defaultTimeout);
+            }).then(function() {
+              list.all(by.tagName('li')).each(function (elm) {
+                expect((elm).isDisplayed()).toBeTruthy('Expanded List list is not visible.');
+              });
+              done();
+            }).catch(function(err) {
+              done.fail();
+              console.log(err);
             });
           });
 
-          it('node list collapse on - click', function() {
-            btn.click();
-            expandedList = element(by.css('#nid_9112 > ul'));
-            browser.wait(EC.invisibilityOf(expandedList), browser.params.defaultTimeout);
-            expect((expandedList).isPresent()).toBeFalsy();
+          it('node list collapse on - click', function(done) {
+            closeBtn.click().then(function() {
+              return browser.wait(EC.invisibilityOf(list), browser.params.defaultTimeout);
+            }).then(function() {
+              expect((list).isPresent()).toBeFalsy();
+              done();
+            }).catch(function(err) {
+              done.fail();
+              console.log(err);
+            });
           });
         });
       });

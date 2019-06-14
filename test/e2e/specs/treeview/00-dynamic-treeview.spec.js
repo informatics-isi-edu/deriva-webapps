@@ -250,7 +250,11 @@ exports.tests = function (appName, baseUrl) {
 
         it('it should auto scroll to the first annoted term of the tree  (nerve of detrusor muscle of bladder)', function() {
           var ele = element(by.id('nid_1431'));
-          expect(deriva.elementInViewport(ele)).toBeTruthy('first annoted term of the tree is not visible.');
+          browser.wait(EC.presenceOf(ele), browser.params.defaultTimeout).then(function() {
+            expect(deriva.elementInViewport(ele)).toBeTruthy('first annoted term of the tree is not visible.');
+          }).catch(function(err) {
+            console.log(err);
+          });
         });
 
 
@@ -277,30 +281,49 @@ exports.tests = function (appName, baseUrl) {
             });
           });
 
-          it('search `nerve of detrusor muscle of bladder` takes the scroll to it and is in italics and highlighted', function() {
-            searchInput.clear();
-            searchInput.sendKeys('nerve of detrusor muscle of bladder');
+          it('search `nerve of detrusor muscle of bladder` takes the scroll to it and is in italics and highlighted', function(done) {
             var ele = element.all(by.css('.jstree-node .jstree-search')).get(0);
-            browser.wait(EC.presenceOf(ele), browser.params.defaultTimeout);
-
-            expect(ele.getCssValue('background-color')).toBe('rgba(239, 239, 166, 1)');
-            expect(ele.getCssValue('font-style')).toBe('italic');
-            expect(element.all(by.css('.jstree-node .jstree-search span.annotated.display-text')).get(0).getCssValue('font-weight')).toBe('700');
+            searchInput.clear().then(function() {
+              return searchInput.sendKeys('nerve of detrusor muscle of bladder');
+            }).then(function() {
+              return browser.wait(EC.presenceOf(ele), browser.params.defaultTimeout);
+            }).then(function() {
+              expect(ele.getCssValue('background-color')).toBe('rgba(239, 239, 166, 1)');
+              expect(ele.getCssValue('font-style')).toBe('italic');
+              expect(element.all(by.css('.jstree-node .jstree-search span.annotated.display-text')).get(0).getCssValue('font-weight')).toBe('700');
+              done();
+            }).catch(function(err) {
+              done.fail();
+              console.log(err);
+            });
           });
 
-          it('collapsing the parent should retain the highlighted searched item', function() {
+          it('collapsing the parent should retain the highlighted searched item', function(done) {
             var ele = element.all(by.css('.jstree-node .jstree-search')).get(0);
-
-            element(by.css('#nid_3476 > i')).click();
-            browser.wait(EC.invisibilityOf(ele), browser.params.defaultTimeout);
-
-            element(by.css('#nid_3476 > i')).click();
-
-            browser.wait(EC.presenceOf(ele), browser.params.defaultTimeout);
-            expect(deriva.elementInViewport(ele)).toBeTruthy('searched node of the tree is not visible.');
-            expect(element.all(by.css('.jstree-node .jstree-search')).get(0).getCssValue('background-color')).toBe('rgba(239, 239, 166, 1)');
-            expect(element.all(by.css('.jstree-node .jstree-search')).get(0).getCssValue('font-style')).toBe('italic');
-            expect(element.all(by.css('.jstree-node .jstree-search span.annotated.display-text')).get(0).getCssValue('font-weight')).toBe('700');
+            searchInput.clear().then(function() {
+              return searchInput.sendKeys('nerve of detrusor muscle of bladder');
+            }).then(function() {
+              browser.wait(EC.presenceOf(ele), browser.params.defaultTimeout);
+            }).then(function() {
+              return browser.wait(EC.elementToBeClickable(element(by.css('#nid_1410 > i'))), browser.params.defaultTimeout);
+            }).then(function() {
+              return element(by.css('#nid_1410 > i')).click();
+            }).then(function() {
+              return browser.wait(EC.invisibilityOf(element(by.css('#nid_1410 > ul'))), browser.params.defaultTimeout);
+            }).then(function() {
+              return element(by.css('#nid_1410 > i')).click();
+            }).then(function() {
+              return browser.wait(EC.presenceOf(element(by.css('#nid_1410 > ul'))), browser.params.defaultTimeout);
+            }).then(function() {
+              expect(deriva.elementInViewport(ele)).toBeTruthy('searched node of the tree is not visible.');
+              expect(element.all(by.css('.jstree-node .jstree-search')).get(0).getCssValue('background-color')).toBe('rgba(239, 239, 166, 1)');
+              expect(element.all(by.css('.jstree-node .jstree-search')).get(0).getCssValue('font-style')).toBe('italic');
+              expect(element.all(by.css('.jstree-node .jstree-search span.annotated.display-text')).get(0).getCssValue('font-weight')).toBe('700');
+              done();
+            }).catch(function(err) {
+              done.fail();
+              console.log(err);
+            });
           });
 
           xit('all node list collapse on `Collapse All` click - no small dataset available', function(done) {
@@ -335,17 +358,24 @@ exports.tests = function (appName, baseUrl) {
               imgLink = element(by.css('#nid_2424_anchor > span > span.schematic-popup-icon > img'));
             });
 
-            it('node list expanded on + click', function() {
-              btn.click();
-              browser.wait(EC.visibilityOf(element(by.css('#nid_1434 > ul'))), browser.params.defaultTimeout);
-              element(by.css('#nid_1434')).all(by.tagName('li')).each(function (elm) {
-                expect((elm).isDisplayed()).toBeTruthy('Expanded List list is not visible.');
+            it('node list expanded on + click', function(done) {
+              btn.click().then(function() {
+                return browser.wait(EC.visibilityOf(element(by.css('#nid_1434 > ul'))), browser.params.defaultTimeout);
+              }).then(function() {
+                element(by.css('#nid_1434')).all(by.tagName('li')).each(function (elm) {
+                  expect((elm).isDisplayed()).toBeTruthy('Expanded List list is not visible.');
+                });
+                done();
+              }).catch(function(err) {
+                done.fail();
+                console.log(err);
               });
             });
 
             it('should open the image popup modal on click of image icon', function(done) {
-                browser.wait(EC.elementToBeClickable(imgLink), browser.params.defaultTimeout);
-                imgLink.click().then(function() {
+                browser.wait(EC.elementToBeClickable(imgLink), browser.params.defaultTimeout).then(function() {
+                  return imgLink.click();
+                }).then(function() {
                     var modalContent = element(by.css('.modal-content'));
                     deriva.waitForElement(modalContent);
                     expect(modalContent.isDisplayed()).toBeTruthy();
@@ -359,8 +389,9 @@ exports.tests = function (appName, baseUrl) {
             it('should close the image popup modal on click of X on the modal window', function(done) {
                  var closeBtn = element(by.css('#schematic-modal > div > div > div.modal-header > button'));
                  var modalContent = element(by.id('schematic-modal'));
-                 browser.wait(EC.elementToBeClickable(closeBtn), browser.params.defaultTimeout);
-                 closeBtn.click().then(function(){
+                 browser.wait(EC.elementToBeClickable(closeBtn), browser.params.defaultTimeout).then(function() {
+                   return closeBtn.click();
+                 }).then(function(){
                     deriva.waitForElementInverse(modalContent);
                     expect(modalContent.isDisplayed()).toEqual(false);
                     done();
@@ -389,49 +420,82 @@ exports.tests = function (appName, baseUrl) {
                     });
                  });
             });
-            it('density Note should have correct tooltip', function() {
+
+            it('density Note should have correct tooltip', function(done) {
                 var densityNote = element(by.css('#nid_1431_anchor > span > span:nth-child(3) > img:nth-child(4)'));
-                densityNote.click();
                 var tooltip = element(by.css('.tooltip-inner'));
-                browser.wait(EC.presenceOf(tooltip), browser.params.defaultTimeout);
 
-                expect(tooltip.isDisplayed()).toBeTruthy();
-                densityNote.click();
-                browser.wait(EC.invisibilityOf(tooltip), browser.params.defaultTimeout);
-
+                browser.wait(EC.elementToBeClickable(densityNote), browser.params.defaultTimeout).then(function(){
+                  return  densityNote.click();
+                }).then(function(){
+                  return  browser.wait(EC.presenceOf(tooltip), browser.params.defaultTimeout);
+                }).then(function(){
+                  expect(tooltip.isDisplayed()).toBeTruthy();
+                }).then(function(){
+                  return  densityNote.click();
+                }).then(function(){
+                  browser.wait(EC.invisibilityOf(tooltip), browser.params.defaultTimeout);
+                  done();
+                }).catch(function (err) {
+                  console.log(err);
+                  done.fail();
+                });
               });
 
-            it('note should have correct tooltip', function() {
+            it('note should have correct tooltip', function(done) {
                 var note = element(by.css('#nid_1431_anchor > span > span:nth-child(3) > img:nth-child(5)'));
-                note.click();
                 var tooltip = element(by.css('.tooltip-inner'));
-                browser.wait(EC.presenceOf(tooltip), browser.params.defaultTimeout);
 
-                expect(tooltip.isDisplayed()).toBeTruthy();
-                note.click();
-                browser.wait(EC.invisibilityOf(tooltip), browser.params.defaultTimeout);
-
+                browser.wait(EC.elementToBeClickable(note), browser.params.defaultTimeout).then(function(){
+                  return  note.click();
+                }).then(function(){
+                  return  browser.wait(EC.presenceOf(tooltip), browser.params.defaultTimeout);
+                }).then(function(){
+                  expect(tooltip.isDisplayed()).toBeTruthy();
+                }).then(function(){
+                  return  note.click();
+                }).then(function(){
+                  browser.wait(EC.invisibilityOf(tooltip), browser.params.defaultTimeout);
+                  done();
+                }).catch(function (err) {
+                  console.log(err);
+                  done.fail();
+                });
               });
 
-            it('node list collapse on - click', function() {
-              btn.click();
-              expandedList = element(by.css('#nid_1434 > ul'));
-              browser.wait(EC.invisibilityOf(expandedList), browser.params.defaultTimeout);
-              expect((expandedList).isPresent()).toBeFalsy();
+            it('node list collapse on - click', function(done) {
+              var expandedList = element(by.css('#nid_1434 > ul'));
+
+              btn.click().then(function(){
+                browser.wait(EC.invisibilityOf(expandedList), browser.params.defaultTimeout);
+              }).then(function() {
+                expect((expandedList).isPresent()).toBeFalsy();
+                done();
+              }).catch(function (err) {
+                console.log(err);
+                done.fail();
+              });
             });
 
             describe('on reopeing of node list', function() {
-              it('should expanded on + click', function() {
-                btn.click();
-                browser.wait(EC.visibilityOf(element(by.css('#nid_1434 > ul'))), browser.params.defaultTimeout);
-                element(by.css('#nid_1434')).all(by.tagName('li')).each(function (elm) {
-                  expect((elm).isDisplayed()).toBeTruthy('Expanded List list is not visible.');
+              it('node list expanded on + click', function(done) {
+                btn.click().then(function() {
+                  return browser.wait(EC.visibilityOf(element(by.css('#nid_1434 > ul'))), browser.params.defaultTimeout);
+                }).then(function() {
+                  element(by.css('#nid_1434')).all(by.tagName('li')).each(function (elm) {
+                    expect((elm).isDisplayed()).toBeTruthy('Expanded List list is not visible.');
+                  });
+                  done();
+                }).catch(function(err) {
+                  done.fail();
+                  console.log(err);
                 });
               });
 
               it('should open the image popup modal on click of image icon', function(done) {
-                  browser.wait(EC.elementToBeClickable(imgLink), browser.params.defaultTimeout);
-                  imgLink.click().then(function() {
+                  browser.wait(EC.elementToBeClickable(imgLink), browser.params.defaultTimeout).then(function() {
+                    return imgLink.click();
+                  }).then(function() {
                       var modalContent = element(by.css('.modal-content'));
                       deriva.waitForElement(modalContent);
                       expect(modalContent.isDisplayed()).toBeTruthy();
@@ -445,8 +509,9 @@ exports.tests = function (appName, baseUrl) {
               it('should close the image popup modal on click of X on the modal window', function(done) {
                    var closeBtn = element(by.css('#schematic-modal > div > div > div.modal-header > button'));
                    var modalContent = element(by.id('schematic-modal'));
-                   browser.wait(EC.elementToBeClickable(closeBtn), browser.params.defaultTimeout);
-                   closeBtn.click().then(function(){
+                   browser.wait(EC.elementToBeClickable(closeBtn), browser.params.defaultTimeout).then(function() {
+                     return closeBtn.click();
+                   }).then(function(){
                       deriva.waitForElementInverse(modalContent);
                       expect(modalContent.isDisplayed()).toEqual(false);
                       done();
@@ -475,38 +540,63 @@ exports.tests = function (appName, baseUrl) {
                       });
                    });
               });
-              it('density Note should have correct tooltip', function() {
+
+              it('density Note should have correct tooltip', function(done) {
                   var densityNote = element(by.css('#nid_1431_anchor > span > span:nth-child(3) > img:nth-child(4)'));
-                  densityNote.click();
                   var tooltip = element(by.css('.tooltip-inner'));
-                  browser.wait(EC.presenceOf(tooltip), browser.params.defaultTimeout);
-                  expect(tooltip.isDisplayed()).toBeTruthy();
-                  densityNote.click();
 
-                  browser.wait(EC.invisibilityOf(tooltip), browser.params.defaultTimeout);
-
+                  browser.wait(EC.elementToBeClickable(densityNote), browser.params.defaultTimeout).then(function(){
+                    return  densityNote.click();
+                  }).then(function(){
+                    return  browser.wait(EC.presenceOf(tooltip), browser.params.defaultTimeout);
+                  }).then(function(){
+                    expect(tooltip.isDisplayed()).toBeTruthy();
+                  }).then(function(){
+                    return  densityNote.click();
+                  }).then(function(){
+                    browser.wait(EC.invisibilityOf(tooltip), browser.params.defaultTimeout);
+                    done();
+                  }).catch(function (err) {
+                    console.log(err);
+                    done.fail();
+                  });
                 });
 
-              it('note should have correct tooltip', function() {
+              it('note should have correct tooltip', function(done) {
                   var note = element(by.css('#nid_1431_anchor > span > span:nth-child(3) > img:nth-child(5)'));
-                  note.click();
                   var tooltip = element(by.css('.tooltip-inner'));
-                  browser.wait(EC.presenceOf(tooltip), browser.params.defaultTimeout);
 
-                  expect(tooltip.isDisplayed()).toBeTruthy();
-                  note.click();
-                  browser.wait(EC.invisibilityOf(tooltip), browser.params.defaultTimeout);
-
+                  browser.wait(EC.elementToBeClickable(note), browser.params.defaultTimeout).then(function(){
+                    return  note.click();
+                  }).then(function(){
+                    return  browser.wait(EC.presenceOf(tooltip), browser.params.defaultTimeout);
+                  }).then(function(){
+                    expect(tooltip.isDisplayed()).toBeTruthy();
+                  }).then(function(){
+                    return  note.click();
+                  }).then(function(){
+                    browser.wait(EC.invisibilityOf(tooltip), browser.params.defaultTimeout);
+                    done();
+                  }).catch(function (err) {
+                    console.log(err);
+                    done.fail();
+                  });
                 });
 
-              it('node list collapse on - click', function() {
-                btn.click();
-                expandedList = element(by.css('#nid_1434 > ul'));
-                browser.wait(EC.invisibilityOf(expandedList), browser.params.defaultTimeout);
-                expect((expandedList).isPresent()).toBeFalsy();
-              });
+              it('node list collapse on - click', function(done) {
+                var expandedList = element(by.css('#nid_1434 > ul'));
 
-            })
+                btn.click().then(function(){
+                  browser.wait(EC.invisibilityOf(expandedList), browser.params.defaultTimeout);
+                }).then(function() {
+                  expect((expandedList).isPresent()).toBeFalsy();
+                  done();
+                }).catch(function (err) {
+                  console.log(err);
+                  done.fail();
+                });
+              });
+            });
           });
         });
       });
