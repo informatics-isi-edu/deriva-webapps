@@ -394,6 +394,7 @@ exports.tests = function (appName, baseUrl) {
                  }).then(function(){
                     deriva.waitForElementInverse(modalContent);
                     expect(modalContent.isDisplayed()).toEqual(false);
+                    deriva.waitForElementInverse(element(by.css(".modal-backdrop.fade")));
                     done();
                 }).catch(function (err) {
                     console.log(err);
@@ -418,6 +419,9 @@ exports.tests = function (appName, baseUrl) {
                         done.fail();
                       });
                     });
+                    }).catch(function (err) {
+                      console.log(err);
+                      done.fail();;
                  });
             });
 
@@ -514,6 +518,7 @@ exports.tests = function (appName, baseUrl) {
                    }).then(function(){
                       deriva.waitForElementInverse(modalContent);
                       expect(modalContent.isDisplayed()).toEqual(false);
+                      deriva.waitForElementInverse(element(by.css(".modal-backdrop.fade")));
                       done();
                   }).catch(function (err) {
                       console.log(err);
@@ -538,7 +543,10 @@ exports.tests = function (appName, baseUrl) {
                           done.fail();
                         });
                       });
-                   });
+                      }).catch(function (err) {
+                        console.log(err);
+                        done.fail();
+                      });
               });
 
               it('density Note should have correct tooltip', function(done) {

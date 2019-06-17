@@ -38,7 +38,7 @@ exports.tests = function (appName, baseUrl) {
         });
 
       });
-      
+
       describe('actions for the page', function() {
         beforeAll(function(done) {
           browser.wait(EC.elementToBeClickable(filterDropDown), browser.params.defaultTimeout).then(function() {
@@ -58,6 +58,7 @@ exports.tests = function (appName, baseUrl) {
         it('all node list expand on `Expand All` click', function(done) {
           ele = element(by.id('jstree')).all(by.css('.jstree-open'));
           actionBtn.all(by.css('button')).then(function(buttons) {
+            browser.wait(EC.elementToBeClickable(buttons[0]), browser.params.defaultTimeout);
             return buttons[0].click();
           }).then(function() {
             return browser.wait(EC.presenceOf(ele), browser.params.defaultTimeout);
@@ -73,6 +74,7 @@ exports.tests = function (appName, baseUrl) {
         it('all node list collapse on `Collapse All` click', function(done) {
           ele = element(by.id('jstree')).all(by.css('.jstree-open'));
           actionBtn.all(by.css('button')).then(function(buttons) {
+            browser.wait(EC.elementToBeClickable(buttons[1]), browser.params.defaultTimeout);
             return buttons[1].click();
           }).then(function() {
             return browser.wait(EC.invisibilityOf(ele), browser.params.defaultTimeout)
