@@ -39,6 +39,9 @@ function testConfig() {
 
     this.treeviewPage = {
         'dynamic'   : '/?Specimen_RID=N-GXNY',
+        'dynamicError1': '?Specimen_RID=Q-2964',
+        'dynamicError2': '?Specimen_RID=N-GX',
+        'dynamicError3': '?Specimen_RID=1G-4DY4',
         'recordpage': '/chaise/record/#2/Gene_Expression:Specimen/RID=N-GXNY'
     }
 }
