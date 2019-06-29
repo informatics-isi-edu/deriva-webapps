@@ -617,7 +617,7 @@ var setSourceForFilter;
                 restrict: 'E',
                 link: function (scope, element, attrs) {
                     var baseUrl = $window.location.href.substring(0, $window.location.href.indexOf("boolean-search"));
-                    var treeviewUrl = baseUrl + "treeview/index.html?Parent_App=booleanSearch";
+                    var treeviewUrl = baseUrl + "treeview/index.html?Parent_App=booleanSearch&hideNavbar=true";
                     element.replaceWith('<object type="text/html" data="' + treeviewUrl + '" style="height:100%; width:100%"></object>');
                 }
             };
