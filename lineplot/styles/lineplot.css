@@ -20,3 +20,21 @@
 #mainnav {
 	margin-bottom: 0px;
 }
+
+.custom-time {
+  border-left: 1px solid #c3c3c3;
+  border-right: 1px solid #c3c3c3;
+}
+
+.graph-container {
+  display: flex;
+  margin: 10px;
+}
+
+.padding-vertical {
+  padding: 10px 0;
+}
+
+.sub-header {
+  font-size: 16px;
+}
