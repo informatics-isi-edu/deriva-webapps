@@ -38,7 +38,6 @@ var lineplotApp = angular.module('lineplotApp', [
         }).catch(function(err) {
         	$rootScope.user = '';
         	//console.log(JSON.stringify(err, null, 4));
-
             var url = serviceURL + '/authn/preauth?referrer='+UriUtils.fixedEncodeURIComponent($window.location.href);
             var config = {
                 headers: {
@@ -77,11 +76,14 @@ lineplotApp.factory('LineplotUtils', ['AlertsService', 'dataFormats', 'Session',
                 }
                 var uri = uriWithFilters + "/" + trace.x_col + "," + trace.y_col + "@sort(recorded_time)?limit=" + $rootScope.limit;
                 $http.get(uri).then(function(response) {
+                    console.log(response, response.headers('content-type'));
                     var lineplot = {
                         x: [],
                         y: [],
                         type: "scatter",
-                        name: trace.label
+                        // type: "bar",
+                        name: trace.label,
+                        mode: 'lines+markers'
                     }
 
                     var data = response.data;
@@ -95,6 +97,7 @@ lineplotApp.factory('LineplotUtils', ['AlertsService', 'dataFormats', 'Session',
 
                     tracesComplete++;
                     if (tracesComplete == lineplotConfig.traces.length) {
+                        console.log(lineplots);
                         $rootScope.lineplots = lineplots;
                         Plotly.relayout();
                     }
@@ -131,8 +134,16 @@ lineplotApp.controller('LineplotController', ['AlertsService', 'dataFormats', 'L
         duration: $rootScope.duration,
         date: moment($rootScope.start_time).format(dataFormats.date),
         time: moment($rootScope.start_time).format(dataFormats.time24),
-        meridiem: 'AM'
+        meridiem: 'AM',
+        type: {
+          name: 'scatter',
+          feature: [
+            {name: "markers", value: "markers", checked: true},
+            {name: "lines", value: "lines", checked: true}
+          ]
+         }
     }
+    vm.types = ['scatter', 'bar'];
 
     vm.applyDatetime = function () {
         var timestamp = moment(vm.model.date + vm.model.time, dataFormats.date + dataFormats.time12).format(dataFormats.datetime.submission);
@@ -158,6 +169,86 @@ lineplotApp.controller('LineplotController', ['AlertsService', 'dataFormats', 'L
     vm.removeValue = function () {
         vm.model.date = null;
         vm.model.time = null;
+    }
+
+    vm.updateTrace = function (value) {
+        // if value in
+        console.log(vm.model.type.feature, value);
+        vm.model.type.feature = vm.model.type.feature.map(function(item) {
+            if (item.value === value) {
+              item.checked = !item.checked;
+            }
+            return item;
+        })
+
+        console.log(vm.model.type.feature, value);
+        var lineplots = [];
+        var lineplot = $rootScope.lineplots;
+        var feature = (vm.model.type.feature.reduce(function(feature, item) {
+          if (item.checked) {
+            feature.push(item.value);
+          }
+          return feature;
+        }, [])).join('+');
+        if (feature == '') {
+          feature = "none"
+        }
+        lineplot.forEach(function (row) {
+            row.mode = feature
+            lineplots.push(row);
+        });
+
+        // lineplots.push(lineplot);
+        $rootScope.lineplots = lineplots;
+        // var plotEl = angular.element(document.getElementsByClassName('js-plotly-plot')[0])[0];
+
+        // var plotEl = element[0].getElementsByClassName("js-plotly-plot")[0];
+        // if (plotEl) {
+        //     Plotly.relayout(plotEl, {'xaxis.fixedrange': scope.disableZoomIn()});
+        // }
+
+        // Plotly.relayout(plotEl).then(function () {
+        //                         $scope.showLineplot();
+        //                     }).catch(function(err) {console.log(err);});
+    }
+    vm.changeSelection = function() {
+      switch (vm.model.type.name) {
+        case 'bar':
+          var lineplots = [];
+          var lineplot = $rootScope.lineplots;
+          var feature = [];
+          lineplot.forEach(function (row) {
+              row.mode = feature;
+              row.type="bar";
+              row.barmode= 'group';
+              lineplots.push(row);
+          });
+
+          // lineplots.push(lineplot);
+          $rootScope.lineplots = lineplots;
+          vm.model.type.feature = [];
+          break;
+        case 'scatter':
+        var lineplots = [];
+        var lineplot = $rootScope.lineplots;
+        var feature = [
+          {name: "markers", value: "markers", checked: true},
+          {name: "lines", value: "lines", checked: true}
+        ];
+        lineplot.forEach(function (row) {
+            row.mode = feature
+            row.type="scatter"
+
+            lineplots.push(row);
+        });
+
+        // lineplots.push(lineplot);
+        $rootScope.lineplots = lineplots;
+        vm.model.type.feature = feature;
+
+          break;
+      }
+      console.log(vm.model.type);
     }
 
     vm.lineplotsLoaded = false;
@@ -201,6 +292,33 @@ lineplotApp.directive('lineplot', ['$rootScope', function ($rootScope) {
 
             scope.$watch('lineplots', function (plots) {
                 if (plots) {
+                  console.log(plots);
+                    Plotly.newPlot(element[0], plots, layout).then(function () {
+                        scope.showLineplot();
+                    }.bind(1));
+                }
+            });
+        }
+    };
+}]);
+
+lineplotApp.directive('barplot', ['$rootScope', function ($rootScope) {
+    return {
+        link: function (scope, element) {
+            var layout = {
+                title: lineplotConfig.plot_title,
+                xaxis: {
+                    title: lineplotConfig.x_axis_label
+                },
+                yaxis: {
+                    title: lineplotConfig.y_axis_label
+                },
+
+            }
+
+            scope.$watch('lineplots', function (plots) {
+                if (plots) {
+                    console.log(plots);
                     Plotly.newPlot(element[0], plots, layout).then(function () {
                         scope.showLineplot();
                     }.bind(1));

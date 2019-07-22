@@ -17,6 +17,7 @@
   <script src='/chaise/common/filters.js'></script>
   <script src='/chaise/common/inputs.js'></script>
   <script src='/chaise/common/modal.js'></script>
+  <script src='/chaise/common/navbar.js'></script>
   <script src='/chaise/common/utils.js'></script>
   <script src='/chaise/common/validators.js'></script>
   <script src='/chaise/scripts/vendor/ui-bootstrap-tpls-2.5.0.min.js'></script>
@@ -74,7 +75,6 @@
         </div>
     </nav>
 </header>
-
 <div class="row">
 	<div id="bookmark-container" class="col-xs-12 meta-icons">
 		<div class="pull-left">
@@ -86,29 +86,62 @@
     <div class="alerts-container">
         <alerts alerts="ctrl.alerts"></alerts>
     </div>
-    <div ng-show="ctrl.lineplotsLoaded" class="row" style="width: 500px; margin-top: 15px;">
-        <span class="col-sm-5">Select a different duration (hours) and starting {{ctrl.x_label}} to be displayed:</span>
-        <div class="col-sm-6">
-            <div class="input-group">
-                <span class="input-group-addon" style="width:80px;">Duration</span>
-                <input class="form-control" type="text" ng-model="ctrl.model.duration" placeholder="hours" model-view-value="true"></input>
+    <div ng-show="ctrl.lineplotsLoaded" class="row" style="margin-top: 15px;">
+        <div class="col-sm-12">
+          <div class="col-sm-2">
+            <span class="col-sm-12">Select a different duration (hours) and starting {{ctrl.x_label}} to be displayed:</span>
+          </div>
+          <div class="col-sm-3 custom-time">
+            <div class="col-sm-12">
+                <div class="input-group padding-vertical">
+                    <span class="input-group-addon" style="width:80px;">Duration</span>
+                    <input class="form-control" type="text" ng-model="ctrl.model.duration" placeholder="hours" model-view-value="true"></input>
+                </div>
+                <div class="input-group padding-vertical">
+                    <span class="input-group-addon" style="width:80px;">Date</span>
+                    <input class="form-control input-timestamptz" type="text" ng-model="ctrl.model.date" placeholder="{{ctrl.dataFormats.date}}" model-view-value="true"></input>
+                </div>
+                <div class="input-group padding-vertical">
+                    <span class="input-group-addon" style="width:80px;">Time</span>
+                    <input class="form-control" type="text" ng-model="ctrl.model.time" placeholder="{{ctrl.dataFormats.time24}}" model-view-value="true"></input>
+                    <!-- <span class="input-group-btn">
+                        <button class="btn btn-primary btn-inverted" type="button" ng-click="::ctrl.toggleMeridiem();" ng-bind="ctrl.model.meridiem || 'AM'">AM</button>
+                    </span> -->
+                </div>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-primary btn-inverted" ng-click="::ctrl.applyCurrentDatetime();">Now</button>
+                    <button type="button" class="btn btn-danger btn-inverted" ng-click="::ctrl.removeValue();">Clear</button>
+                </div>
+                <button type="button" class="btn btn-primary btn-inverted pull-right" ng-click="::ctrl.applyDatetime();">Apply</button>
             </div>
-            <div class="input-group">
-                <span class="input-group-addon" style="width:80px;">Date</span>
-                <input class="form-control input-timestamptz" type="text" ng-model="ctrl.model.date" placeholder="{{ctrl.dataFormats.date}}" model-view-value="true"></input>
+          </div>
+          <div class="col-sm-3">
+            <div class="col-sm-12 padding-vertical">
+              <div class="sub-header">
+                Plot type
+              </div>
+              <div class="padding-vertical">
+                  <select ng-model="ctrl.model.type.name" ng-options="s for s in ctrl.types"
+                      ng-change="::ctrl.changeSelection()"></select>
+              </div>
             </div>
-            <div class="input-group">
-                <span class="input-group-addon" style="width:80px;">Time</span>
-                <input class="form-control" type="text" ng-model="ctrl.model.time" placeholder="{{ctrl.dataFormats.time24}}" model-view-value="true"></input>
-                <!-- <span class="input-group-btn">
-                    <button class="btn btn-primary btn-inverted" type="button" ng-click="::ctrl.toggleMeridiem();" ng-bind="ctrl.model.meridiem || 'AM'">AM</button>
-                </span> -->
+            <div class="col-sm-12 padding-vertical" ng-if="ctrl.model.type.feature.length > 0">
+              <div class="sub-header">
+                Features
+              </div>
+              <div ng-repeat="item in ctrl.model.type.feature">
+                <label for="{{item.value}}">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="{{item.value}}"
+                    ng-click="::ctrl.updateTrace(item.value)"
+                    checked="item.checked">
+                  {{item.name}}
+                </label>
+              </div>
             </div>
-            <div class="btn-group" role="group">
-                <button type="button" class="btn btn-primary btn-inverted" ng-click="::ctrl.applyCurrentDatetime();">Now</button>
-                <button type="button" class="btn btn-danger btn-inverted" ng-click="::ctrl.removeValue();">Clear</button>
-            </div>
-            <button type="button" class="btn btn-primary btn-inverted pull-right" ng-click="::ctrl.applyDatetime();">Apply</button>
+          </div>
         </div>
     </div>
     <!-- <div id="heatmapSpinner" ng-show="!allHeatmapsLoaded">
@@ -119,7 +152,12 @@
         <heatmap heatmap-id="{{heatmap.id}}"></heatmap>
     </div> -->
     <!-- <plotly plotly-data="ctrl.plot.data" plotly-layout="ctrl.plot.layout" plotly-options="ctrl.plot.options" plotly-events="ctrl.plotlyEvents"></plotly> -->
-    <lineplot></lineplot>
+      <div class="graph-container" ng-if="ctrl.model.type.name == 'scatter'">
+        <lineplot></lineplot>
+      </div>
+      <div class="graph-container" ng-if="ctrl.model.type.name == 'bar'">
+        <barplot></barplot>
+      </div>
     </div>
 </body>
 
