@@ -50,7 +50,9 @@ var lineplotConfig = {
             x_col: "recorded_time",
             y_col: "value"
         }
-    ]
+    ],
+    types: ["Line Plot", "Bar Plot", "Pie Chart", "Dot Plot", "Area Plot", "Histogram"],
+    modeBarButtonsToRemove: ["scrollZoom", "zoom2d"]
 };
 
 if (typeof module === 'object' && module.exports && typeof require === 'function') {
