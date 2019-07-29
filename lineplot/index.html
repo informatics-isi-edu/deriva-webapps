@@ -48,12 +48,12 @@
       <div class="alerts-container">
           <alerts alerts="ctrl.alerts"></alerts>
       </div>
-      <div ng-show="ctrl.plotsLoaded" class="row" style="margin-top: 15px;">
+      <div ng-show="ctrl.plotsLoaded" class="row" style="margin-top: 15px; width: 500px;">
           <div class="col-sm-12">
-            <div class="col-sm-2">
+            <div class="col-sm-5">
               <span class="col-sm-12">Select a different duration (hours) and starting {{ctrl.x_label}} to be displayed:</span>
             </div>
-            <div class="col-sm-3 custom-time">
+            <div class="col-sm-7">
               <div class="col-sm-12">
                   <div class="input-group padding-vertical">
                       <span class="input-group-addon" style="width:80px;">Duration</span>
@@ -72,17 +72,6 @@
                       <button type="button" class="btn btn-danger btn-inverted" ng-click="::ctrl.removeValue();">Clear</button>
                   </div>
                   <button type="button" class="btn btn-primary btn-inverted pull-right" ng-click="::ctrl.applyDatetime();">Apply</button>
-              </div>
-            </div>
-            <div class="col-sm-3">
-              <div class="col-sm-12 padding-vertical">
-                <div class="sub-header">
-                  Plot type
-                </div>
-                <div class="padding-vertical">
-                    <select ng-model="ctrl.model.type" ng-options="s for s in ctrl.types"
-                        ng-change="::ctrl.changeSelection(s)"></select>
-                </div>
               </div>
             </div>
           </div>

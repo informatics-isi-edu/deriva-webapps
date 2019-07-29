@@ -61,7 +61,6 @@
 
                                 var config = {
                                   displaylogo: false,
-                                  modeBarButtonsToRemove: lineplotConfig.modeBarButtonsToRemove
                                 }
 
                                 var lineplot = {
@@ -152,46 +151,6 @@
                     vm.model.time = null;
                 }
 
-                // vm.updateTrace = function (value) {
-                //     // if value in
-                //     console.log(vm.model.type.feature, value);
-                //     vm.model.type.feature = vm.model.type.feature.map(function(item) {
-                //         if (item.value === value) {
-                //           item.checked = !item.checked;
-                //         }
-                //         return item;
-                //     })
-                //
-                //     console.log(vm.model.type.feature, value);
-                //     var lineplots = [];
-                //     var lineplot = $rootScope.lineplots;
-                //     var feature = (vm.model.type.feature.reduce(function(feature, item) {
-                //       if (item.checked) {
-                //         feature.push(item.value);
-                //       }
-                //       return feature;
-                //     }, [])).join('+');
-                //     if (feature == '') {
-                //       feature = "none"
-                //     }
-                //     lineplot.forEach(function (row) {
-                //         row.mode = feature
-                //         lineplots.push(row);
-                //     });
-                //
-                //     // lineplots.push(lineplot);
-                //     $rootScope.lineplots = lineplots;
-                //     // var plotEl = angular.element(document.getElementsByClassName('js-plotly-plot')[0])[0];
-                //
-                //     // var plotEl = element[0].getElementsByClassName("js-plotly-plot")[0];
-                //     // if (plotEl) {
-                //     //     Plotly.relayout(plotEl, {'xaxis.fixedrange': scope.disableZoomIn()});
-                //     // }
-                //
-                //     // Plotly.relayout(plotEl).then(function () {
-                //     //                         $scope.showLineplot();
-                //     //                     }).catch(function(err) {console.log(err);});
-                // }
                 vm.changeSelection = function(value) {
                   switch (vm.model.type) {
                     case 'Bar Plot':
@@ -205,31 +164,6 @@
                       });
                       $rootScope.plots = {
                         data: newPlotData,
-                        layout: layout,
-                        config: config
-                      };
-                      // $rootScope.plots.layout = layout; // TODO: Layout for bar chart
-                      break;
-                    case 'Pie Chart':
-                      var newPlotData = {
-                        values: [],
-                        labels: [],
-                        type: 'pie'
-                      };
-                      var plotsData = $rootScope.plots.data;
-                      var config = $rootScope.plots.config;
-
-                      var layout = {
-                        height: 400,
-                        width: 500
-                      };
-                      plotsData.forEach(function (row) {
-                          newPlotData.values = newPlotData.values.concat(row.y);
-                          newPlotData.labels = newPlotData.labels.concat(row.x);
-                          row.labels="pie";
-                      });
-                      $rootScope.plots = {
-                        data: [newPlotData],
                         layout: layout,
                         config: config
                       };
@@ -289,25 +223,6 @@
                       };
                       break;
 
-                    case "Histogram":
-                      var plots = [];
-                      var lineplot = $rootScope.plots;
-                      var config = $rootScope.plots.config;
-
-                      lineplot.forEach(function (row) {
-                          row.mode = feature
-                          row.type="scatter"
-                          row.mode="markers"
-                          plots.push(row);
-                      });
-                      $rootScope.plots = {
-                        data: newPlotData,
-                        layout: layout,
-                        config: config,
-                      };
-                      break
-                    default:
-                      break;
                   }
                   console.log(vm.model.type);
                 }

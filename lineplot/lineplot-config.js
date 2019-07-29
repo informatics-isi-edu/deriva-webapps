@@ -51,8 +51,7 @@ var lineplotConfig = {
             y_col: "value"
         }
     ],
-    types: ["Line Plot", "Bar Plot", "Pie Chart", "Dot Plot", "Area Plot", "Histogram"],
-    modeBarButtonsToRemove: ["scrollZoom", "zoom2d"]
+    types: ["Line Plot", "Bar Plot", "Dot Plot", "Area Plot"],
 };
 
 if (typeof module === 'object' && module.exports && typeof require === 'function') {
