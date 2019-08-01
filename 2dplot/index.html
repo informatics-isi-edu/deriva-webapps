@@ -1,8 +1,8 @@
-<html id="lineplot">
+<html id="2dplot">
 
 <head>
   <script src='/chaise/chaise-config.js'></script>
-  <script src='../../chaise/scripts/vendor/jquery-3.4.1.min.js'></script>
+  <script src='../../chaise/scripts/vendor/jquery-1.11.1.min.js'></script>
   <script src='../../chaise/scripts/vendor/bootstrap-3.3.7.min.js'></script>
   <script src='vendor/plotly-latest.min.js'></script>
   <script src='vendor/moment.min.js'></script>
@@ -27,17 +27,17 @@
 
   <script src='../../chaise/scripts/vendor/ui-bootstrap-tpls-2.5.0.min.js'></script>
   <script src='../../ermrestjs/ermrest.js'></script>
-  <script src="lineplot-config.js"></script>
-  <script src="lineplot.app.js"></script>
-  <link rel="stylesheet" type="text/css" href="styles/lineplot.css">
+  <script src="2dplot-config.js"></script>
+  <script src="2dplot.app.js"></script>
+  <link rel="stylesheet" type="text/css" href="styles/2dplot.css">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 
-<body>
-  <div class="configure-container" ng-app="chaise.configure-lineplotApp"></div>
+<body class="chaise-body">
+  <div class="configure-container" ng-app="chaise.configure-2dplotApp"></div>
   <div class="mainContainer">
     <navbar></navbar>
-    <div class="app-container" ng-controller="LineplotController as ctrl" id="appDiv" style="margin-top: 0px; margin-left: 10px;">
+    <div class="app-container" ng-controller="PlotController as ctrl" id="appDiv" style="margin-top: 0px; margin-left: 10px;">
       <div class="row">
       	<div id="bookmark-container" class="col-xs-12 meta-icons">
       		<div id="title" class="pull-left">
@@ -74,7 +74,7 @@
                   <button type="button" class="btn btn-primary btn-inverted pull-right" ng-click="::ctrl.applyDatetime();">Apply</button>
               </div>
             </div>
-            <div class="col-sm-3">
+            <!-- <div class="col-sm-3">
               <div class="col-sm-12 padding-vertical">
                 <div class="sub-header">
                   Plot type
@@ -84,11 +84,11 @@
                         ng-change="::ctrl.changeSelection(s)"></select>
                 </div>
               </div>
-            </div>
+            </div> -->
           </div>
       </div>
       <div class="plot-container">
-        <lineplot></lineplot>
+        <2dplot></2dplot>
       </div>
     </div>
   </div>

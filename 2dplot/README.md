@@ -22,7 +22,7 @@ If any of the above (Presentation or data) values is not mentioned, the app will
 
 ### Sample lineplot-config.js (also included in the repo)
 ```javascript
-var lineplotConfig = {
+var plotConfig = {
     plot_title: null,                                               // plot title
     x_axis_label: "recorded_time",                                  // plot x axis label
     y_axis_label: null,                                             // plot y axis label
@@ -61,7 +61,7 @@ var lineplotConfig = {
 };
 
 if (typeof module === 'object' && module.exports && typeof require === 'function') {
-    exports.config = lineplotConfig;
+    exports.config = plotConfig;
 }
 ```
 
