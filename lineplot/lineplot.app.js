@@ -82,9 +82,9 @@
                                 plots.layout = layout;
                                 plots.config = config;
 
+
                                 tracesComplete++;
                                 if (tracesComplete == lineplotConfig.traces.length) {
-                                  console.log(plots);
                                     $rootScope.plots = plots;
                                     Plotly.relayout();
                                 }
@@ -123,7 +123,6 @@
                     meridiem: 'AM',
                     type: 'Line Plot',
                 };
-                vm.types = lineplotConfig.types;
 
                 vm.applyDatetime = function () {
                     var timestamp = moment(vm.model.date + vm.model.time, dataFormats.date + dataFormats.time12).format(dataFormats.datetime.submission);
@@ -151,81 +150,6 @@
                     vm.model.time = null;
                 }
 
-                vm.changeSelection = function(value) {
-                  switch (vm.model.type) {
-                    case 'Bar Plot':
-                      var newPlotData = [];
-                      var plotsData = $rootScope.plots.data;
-                      var layout = $rootScope.plots.layout;
-                      var config = $rootScope.plots.config;
-                      plotsData.forEach(function (row) {
-                          row.type="bar";
-                          newPlotData.push(row);
-                      });
-                      $rootScope.plots = {
-                        data: newPlotData,
-                        layout: layout,
-                        config: config
-                      };
-                      // $rootScope.plots.layout = layout; // TODO: Layout for bar chart
-                      break;
-                    case 'Line Plot':
-                      var newPlotData = [];
-                      var plotsData = $rootScope.plots.data;
-                      var layout = $rootScope.plots.layout;
-                      var config = $rootScope.plots.config;
-
-                      plotsData.forEach(function (row) {
-                          row.type="scatter";
-                          row.mode="lines"
-                          newPlotData.push(row);
-                      });
-                      $rootScope.plots = {
-                        data: newPlotData,
-                        layout: layout,
-                        config: config
-                      };
-                      // vm.model.type.feature = feature;
-                      break;
-                    case "Dot Plot":
-                      var newPlotData = [];
-                      var plotsData = $rootScope.plots.data;
-                      var layout = $rootScope.plots.layout;
-                      var config = $rootScope.plots.config;
-
-                      plotsData.forEach(function (row) {
-                          row.type="scatter";
-                          row.mode="markers"
-                          newPlotData.push(row);
-                      });
-                      $rootScope.plots = {
-                        data: newPlotData,
-                        layout: layout,
-                        config: config
-                      };
-                      // vm.model.type.feature = feature;
-                      break;
-                    case "Area Plot":
-                      var newPlotData = [];
-                      var plotsData = $rootScope.plots.data;
-                      var layout = $rootScope.plots.layout;
-                      var config = $rootScope.plots.config;
-
-                      plotsData.forEach(function (row) {
-                          row.type="scatter";
-                          row.fill = "tozeroy";
-                          newPlotData.push(row);
-                      });
-                      $rootScope.plots = {
-                        data: newPlotData,
-                        layout: layout,
-                        config: config,
-                      };
-                      break;
-
-                  }
-                  console.log(vm.model.type);
-                }
 
                 vm.plotsLoaded = false;
                 $scope.showLineplot = function () {
@@ -266,52 +190,41 @@
                     }
                 };
             }])
-            .run(['LineplotUtils', 'UriUtils', '$http', '$rootScope', '$window', function runApp(LineplotUtils, UriUtils, $http, $rootScope, $window) {
-                $rootScope.loginShown = false;
-                $rootScope.params = {};
-                var query = $window.location.search;
-                query = query.slice(query.indexOf("?")+1, query.length);
-                var queryParams = query.split('&');
-                for (var i=0; i<queryParams.length; i++){
-                    queryParams[i] = queryParams[i].split('=');
-                    var key = queryParams[i][0],
-                        value = queryParams[i][1];
+            .run(['AlertsService', 'ERMrest', 'LineplotUtils', 'messageMap', 'Session', 'UriUtils', '$http', '$rootScope', '$window',
+            function runApp(AlertsService, ERMrest, LineplotUtils, messageMap, Session, UriUtils, $http, $rootScope, $window) {
+              try {
+                  var subId = Session.subscribeOnChange(function () {
+                      Session.unsubscribeOnChange(subId);
+                      var session = Session.getSessionValue();
 
-                    $rootScope.params[key] = value;
-                }
+                      if (!session) {
+                          var notAuthorizedError = new ERMrest.UnauthorizedError(messageMap.unauthorizedErrorCode, (messageMap.unauthorizedMessage + messageMap.reportErrorToAdmin));
+                          throw notAuthorizedError;
+                      }
 
-                $rootScope.subject_id = $rootScope.params.subject_id ? $rootScope.params.subject_id : lineplotConfig.subject_id;
-                $rootScope.start_time = $rootScope.params.start_time ? $rootScope.params.start_time : lineplotConfig.start_time;
-                $rootScope.limit = $rootScope.params.limit ? $rootScope.params.limit : lineplotConfig.limit;
-                $rootScope.duration = $rootScope.params.duration ? $rootScope.params.duration : lineplotConfig.duration;
+                  $rootScope.loginShown = false;
+                  $rootScope.params = {};
+                  var query = $window.location.search;
+                  query = query.slice(query.indexOf("?")+1, query.length);
+                  var queryParams = query.split('&');
+                  for (var i=0; i<queryParams.length; i++){
+                      queryParams[i] = queryParams[i].split('=');
+                      var key = queryParams[i][0],
+                          value = queryParams[i][1];
 
-                var serviceURL = $window.location.origin;
-                $http.get(serviceURL + "/authn/session").then(function(response) {
-                	$rootScope.user = response.data.client.display_name;
-                    LineplotUtils.getData($rootScope.start_time);
-                }).catch(function(err) {
-                	$rootScope.user = '';
-                	//console.log(JSON.stringify(err, null, 4));
-                    var url = serviceURL + '/authn/preauth?referrer='+UriUtils.fixedEncodeURIComponent($window.location.href);
-                    var config = {
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                            'Accept': 'application/json'
-                        }
-                    };
-                    $http.get(url, config).then(function(response) {
-                        var data = response.data;
-                        login_url = data['redirect_url'];
-                        $window.location=login_url;
+                      $rootScope.params[key] = value;
+                  }
 
-                    }, function(error) {
-                    	alert(err.data);
-                    });
-
-
+                  $rootScope.subject_id = $rootScope.params.subject_id ? $rootScope.params.subject_id : lineplotConfig.subject_id;
+                  $rootScope.start_time = $rootScope.params.start_time ? $rootScope.params.start_time : lineplotConfig.start_time;
+                  $rootScope.limit = $rootScope.params.limit ? $rootScope.params.limit : lineplotConfig.limit;
+                  $rootScope.duration = $rootScope.params.duration ? $rootScope.params.duration : lineplotConfig.duration;
+                  LineplotUtils.getData($rootScope.start_time);
                 });
-
-                // var ermrestURI1 = "https://prisms.isrd.isi.edu/ermrest/catalog/1/attribute/prisms:breathe_platform_airbeam_view_dev_ft/subject_id=159&recorded_time::geq::2018-10-15T12%3A00%3A00/recorded_time,pm_value,rh_value,f_value@sort(recorded_time)?limit=7200",
+              } catch (exception) {
+                  throw exception;
+              }
+              // var ermrestURI1 = "https://prisms.isrd.isi.edu/ermrest/catalog/1/attribute/prisms:breathe_platform_airbeam_view_dev_ft/subject_id=159&recorded_time::geq::2018-10-15T12%3A00%3A00/recorded_time,pm_value,rh_value,f_value@sort(recorded_time)?limit=7200",
             }
         ]);
 })();

@@ -51,7 +51,6 @@ var lineplotConfig = {
             y_col: "value"
         }
     ],
-    types: ["Line Plot", "Bar Plot", "Dot Plot", "Area Plot"],
 };
 
 if (typeof module === 'object' && module.exports && typeof require === 'function') {
