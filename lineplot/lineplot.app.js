@@ -48,7 +48,7 @@
                             }
                             var uri = uriWithFilters + "/" + trace.x_col + "," + trace.y_col + "@sort(recorded_time)?limit=" + $rootScope.limit;
                             $http.get(uri).then(function(response) {
-                                console.log(response, response.headers('content-type'));
+                                // console.log(response, response.headers('content-type'));
                                 var layout = {
                                     title: lineplotConfig.plot_title,
                                     xaxis: {
@@ -114,7 +114,6 @@
                 vm.alerts = AlertsService.alerts;
                 vm.dataFormats = dataFormats;
                 vm.x_label = lineplotConfig.x_axis_label;
-                console.log('hereh');
                 vm.model = {
                     user: $rootScope.user,
                     subject: $rootScope.subject_id,
