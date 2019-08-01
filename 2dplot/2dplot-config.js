@@ -19,18 +19,7 @@ var lineplotConfig = {
     plot_title: "Subject Plot",                                               // plot title
     x_axis_label: "recorded_time",                                  // plot x axis label
     y_axis_label: "value",                                             // plot y axis label
-    subject_id: "159",                                              // identifier for the subject to get data from
-    start_time: lineplot_start_time,                              // the value to begin querying data from
-    limit: 10000,                                                   // how many data rows do you want
-    duration: 5,                                                    // value to use to express the range of data, assumed as hours
-    var uriWithFilters = baseUri + trace.path + "/subject_id=" + $rootScope.subject_id + "&recorded_time::geq::" + UriUtils.fixedEncodeURIComponent(timestamp);
-    catalogId: 1
-    baseUri: 'https://prisms.isrd.isi.edu/ermrest/catalog/{{catalogId}}/attribute/'
-    ca
-    trace: {
-      x: [],
-      y: []
-    },
+    plot_type: "line", // Values can be from : "Line Plot", "Bar Plot", "Pie Chart", "Dot Plot", "Area Plot"
     traces: [
         {
             path: "prisms:breathe_platform_airbeam_view_dev_ft",    // schema:table and then anything else
@@ -59,8 +48,7 @@ var lineplotConfig = {
             y_col: "value"
         }
     ],
-    types: ["Line Plot", "Bar Plot", "Pie Chart", "Dot Plot", "Area Plot", "Histogram"],
-    modeBarButtonsToRemove: ["scrollZoom", "zoom2d"]
+    modeBarButtonsToRemove: ["scrollZoom", "zoom2d"] // Remove all the buttons
 };
 
 if (typeof module === 'object' && module.exports && typeof require === 'function') {
