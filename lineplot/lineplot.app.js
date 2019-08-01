@@ -114,6 +114,7 @@
                 vm.alerts = AlertsService.alerts;
                 vm.dataFormats = dataFormats;
                 vm.x_label = lineplotConfig.x_axis_label;
+                console.log('hereh');
                 vm.model = {
                     user: $rootScope.user,
                     subject: $rootScope.subject_id,
@@ -193,32 +194,33 @@
             .run(['AlertsService', 'ERMrest', 'LineplotUtils', 'messageMap', 'Session', 'UriUtils', '$http', '$rootScope', '$window',
             function runApp(AlertsService, ERMrest, LineplotUtils, messageMap, Session, UriUtils, $http, $rootScope, $window) {
               try {
-                  var subId = Session.subscribeOnChange(function () {
-                      Session.unsubscribeOnChange(subId);
-                      var session = Session.getSessionValue();
+                $rootScope.loginShown = false;
+                $rootScope.params = {};
+                var query = $window.location.search;
+                query = query.slice(query.indexOf("?")+1, query.length);
+                var queryParams = query.split('&');
+                for (var i=0; i<queryParams.length; i++){
+                    queryParams[i] = queryParams[i].split('=');
+                    var key = queryParams[i][0],
+                        value = queryParams[i][1];
 
-                      if (!session) {
-                          var notAuthorizedError = new ERMrest.UnauthorizedError(messageMap.unauthorizedErrorCode, (messageMap.unauthorizedMessage + messageMap.reportErrorToAdmin));
-                          throw notAuthorizedError;
-                      }
+                    $rootScope.params[key] = value;
+                }
 
-                  $rootScope.loginShown = false;
-                  $rootScope.params = {};
-                  var query = $window.location.search;
-                  query = query.slice(query.indexOf("?")+1, query.length);
-                  var queryParams = query.split('&');
-                  for (var i=0; i<queryParams.length; i++){
-                      queryParams[i] = queryParams[i].split('=');
-                      var key = queryParams[i][0],
-                          value = queryParams[i][1];
+                $rootScope.subject_id = $rootScope.params.subject_id ? $rootScope.params.subject_id : lineplotConfig.subject_id;
+                $rootScope.start_time = $rootScope.params.start_time ? $rootScope.params.start_time : lineplotConfig.start_time;
+                $rootScope.limit = $rootScope.params.limit ? $rootScope.params.limit : lineplotConfig.limit;
+                $rootScope.duration = $rootScope.params.duration ? $rootScope.params.duration : lineplotConfig.duration;
 
-                      $rootScope.params[key] = value;
+                var subId = Session.subscribeOnChange(function () {
+                  Session.unsubscribeOnChange(subId);
+                  var session = Session.getSessionValue();
+
+                  if (!session) {
+                      var notAuthorizedError = new ERMrest.UnauthorizedError(messageMap.unauthorizedErrorCode, (messageMap.unauthorizedMessage + messageMap.reportErrorToAdmin));
+                      throw notAuthorizedError;
                   }
 
-                  $rootScope.subject_id = $rootScope.params.subject_id ? $rootScope.params.subject_id : lineplotConfig.subject_id;
-                  $rootScope.start_time = $rootScope.params.start_time ? $rootScope.params.start_time : lineplotConfig.start_time;
-                  $rootScope.limit = $rootScope.params.limit ? $rootScope.params.limit : lineplotConfig.limit;
-                  $rootScope.duration = $rootScope.params.duration ? $rootScope.params.duration : lineplotConfig.duration;
                   LineplotUtils.getData($rootScope.start_time);
                 });
               } catch (exception) {
