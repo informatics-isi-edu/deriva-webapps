@@ -31,7 +31,11 @@
             .config(['$cookiesProvider', function ($cookiesProvider) {
                 $cookiesProvider.defaults.path = '/';
             }])
-            .factory('LineplotUtils', ['AlertsService', 'dataFormats', 'Session', 'UriUtils', '$http', '$rootScope', function (AlertsService, dataFormats, Session, UriUtils, $http, $rootScope) {
+            .factory('LineplotUtils', ['AlertsService', 'ConfigUtils', 'dataFormats', 'Session', 'UriUtils', '$rootScope', function (AlertsService, ConfigUtils, dataFormats, Session, UriUtils, $rootScope) {
+              var ermrestServiceUrl = ConfigUtils.getConfigJSON().ermrestLocation;
+              var contextHeaderParams = {"cid": "line-plot"};
+              var server = ERMrest.ermrestFactory.getServer(ermrestServiceUrl, contextHeaderParams);
+
                 return {
                     getData: function (timestamp) {
                         var baseUri = "https://prisms.isrd.isi.edu/ermrest/catalog/1/attribute/";
@@ -47,7 +51,7 @@
                                 uriWithFilters += "&recorded_time::leq::" + UriUtils.fixedEncodeURIComponent(end_x);
                             }
                             var uri = uriWithFilters + "/" + trace.x_col + "," + trace.y_col + "@sort(recorded_time)?limit=" + $rootScope.limit;
-                            $http.get(uri).then(function(response) {
+                            server.http.get(uri).then(function(response) {
                                 // console.log(response, response.headers('content-type'));
                                 var layout = {
                                     title: lineplotConfig.plot_title,
@@ -109,7 +113,7 @@
                     }
                 }
             }])
-            .controller('LineplotController', ['AlertsService', 'dataFormats', 'LineplotUtils', 'UriUtils', '$http', '$window', '$rootScope', '$scope', '$timeout', function LineplotController(AlertsService, dataFormats, LineplotUtils, UriUtils, $http, $window, $rootScope, $scope, $timeout) {
+            .controller('LineplotController', ['AlertsService', 'dataFormats', 'LineplotUtils', 'UriUtils', '$window', '$rootScope', '$scope', '$timeout', function LineplotController(AlertsService, dataFormats, LineplotUtils, UriUtils, $window, $rootScope, $scope, $timeout) {
                 var vm = this;
                 vm.alerts = AlertsService.alerts;
                 vm.dataFormats = dataFormats;
@@ -160,21 +164,6 @@
                         vm.plotsLoaded = true;
                     });
                 }
-
-                vm.logout = function () {
-                    var logoutURL = '/';
-                    var serviceURL = $window.location.origin;
-                    var url = serviceURL + "/authn/session";
-
-                    url += '?logout_url=' + UriUtils.fixedEncodeURIComponent(logoutURL);
-
-                    $http.delete(url).then(function(response) {
-                        $window.location = response.data.logout_url;
-                    }, function(error) {
-                        // if the logout fails for some reason, send the user to the logout url as defined above
-                        $window.location = logoutURL;
-                    });
-                }
             }])
             .directive('lineplot', ['$rootScope', function ($rootScope) {
                 return {
@@ -190,8 +179,8 @@
                     }
                 };
             }])
-            .run(['AlertsService', 'ERMrest', 'LineplotUtils', 'messageMap', 'Session', 'UriUtils', '$http', '$rootScope', '$window',
-            function runApp(AlertsService, ERMrest, LineplotUtils, messageMap, Session, UriUtils, $http, $rootScope, $window) {
+            .run(['AlertsService', 'ERMrest', 'LineplotUtils', 'messageMap', 'Session', 'UriUtils', '$rootScope', '$window',
+            function runApp(AlertsService, ERMrest, LineplotUtils, messageMap, Session, UriUtils, $rootScope, $window) {
               try {
                 $rootScope.loginShown = false;
                 $rootScope.params = {};

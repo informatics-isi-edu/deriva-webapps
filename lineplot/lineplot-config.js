@@ -28,7 +28,7 @@ var lineplotConfig = {
             path: "prisms:breathe_platform_airbeam_view_dev_ft",    // schema:table and then anything else
             label: "pm_value",                                      // name of trace in legend
             x_col: "recorded_time",                                 // column name to use for x values
-            y_col: "pm_value",                                     // column name to use for y values
+            y_col: "pm_value"                                      // column name to use for y values
         }, {
             path: "prisms:breathe_platform_airbeam_view_dev_ft",
             label: "rh_value",
@@ -50,7 +50,7 @@ var lineplotConfig = {
             x_col: "recorded_time",
             y_col: "value"
         }
-    ],
+    ]
 };
 
 if (typeof module === 'object' && module.exports && typeof require === 'function') {
