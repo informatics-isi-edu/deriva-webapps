@@ -1,0 +1,11 @@
+.custom-time {
+  border-left: 1px solid #c3c3c3;
+  border-right: 1px solid #c3c3c3;
+}
+
+.plot-container {
+  display: flex;
+  margin: 10px;
+  align-items: center;
+  justify-content: center;
+}
