@@ -31,91 +31,143 @@
             .config(['$cookiesProvider', function ($cookiesProvider) {
                 $cookiesProvider.defaults.path = '/';
             }])
-            .factory('LineplotUtils', ['AlertsService', 'dataFormats', 'Session', 'UriUtils', '$http', '$rootScope', function (AlertsService, dataFormats, Session, UriUtils, $http, $rootScope) {
+            .factory('LineplotUtils', ['AlertsService', 'ConfigUtils', 'dataFormats', 'Session', 'UriUtils', '$rootScope', function (AlertsService, ConfigUtils, dataFormats, Session, UriUtils, $rootScope) {
+                var ermrestServiceUrl = ConfigUtils.getConfigJSON().ermrestLocation;
+                var contextHeaderParams = {"cid": "2d-plot"};
+                var server = ERMrest.ermrestFactory.getServer(ermrestServiceUrl, contextHeaderParams);
+                $rootScope.plots  = []
+                function getType(type) {
+                  switch (type) {
+                    case "line":
+                      return "scatter"
+                    case "bar":
+                      return "bar"
+                    case "dot":
+                      return "scatter"
+                    case "dot-lines":
+                      return "scatter"
+                    case "area":
+                      return "area"
+                    default:
+                      return "scatter";
+                  }
+                }
+                function getMode(type) {
+                  switch (type) {
+                    case "line":
+                      return "lines"
+                    case "bar":
+                      return ""
+                    case "dot":
+                      return "markers"
+                    case "dot-lines":
+                      return "lines+markers"
+                    case "area":
+                      return ""
+                    default:
+                      return "line+markers";
+                  }
+                }
+
                 return {
                     getData: function () {
-                        var plots = {
-                          data: []
-                        };
-                        var tracesComplete = 0;
-                        lineplotConfig.traces.forEach(function (trace) {
-                            $http.get(trace.uri).then(function(response) {
-                                var layout = {
-                                    title: lineplotConfig.plot_title,
-                                    xaxis: {
-                                        title: lineplotConfig.x_axis_label
-                                    },
-                                    yaxis: {
-                                        title: lineplotConfig.y_axis_label
-                                    },
-                                    responsive: true,
-                                    autosize: true,
-                                    width: 1200,
-                                    height: 500,
-                                    showlegend: true,
-                                    legend: {
-                                      x: 1,
-                                      y: 0.5
-                                    }
-                                }
-
-                                var config = {
-                                  displaylogo: false,
-                                  modeBarButtonsToRemove: lineplotConfig.modeBarButtonsToRemove
-                                }
-                                var data = response.data;
-
-                                for(var i = 0; i < trace.y_col.length;i++) {
-                                  var lineplot = {
-                                      x: [],
-                                      y: [],
-                                      type: lineplotConfig.plot_type,
-                                      name: trace.label[i] || '',
-                                      // mode: 'lines'
+                        var plots = [];
+                        var plotComplete = 0;
+                        lineplotConfig.plots.forEach(function (plot) {
+                          plot.traces.forEach(function (trace) {
+                              var plot_data = {
+                                data:[]
+                              };
+                              var tracesComplete = 0;
+                              server.http.get(trace.uri).then(function(response) {
+                                  var layout = {
+                                      title: plot.plot_title,
+                                      xaxis: {
+                                          title: plot.x_axis_label
+                                      },
+                                      yaxis: {
+                                          title: plot.y_axis_label
+                                      },
+                                      responsive: true,
+                                      autosize: true,
+                                      width: 1200,
+                                      height: 500,
+                                      showlegend: true,
+                                      legend: {
+                                        x: 1,
+                                        y: 0.5
+                                      }
                                   }
-                                  data.forEach(function (row) {
-                                      lineplot.x.push(row[trace.x_col]);
-                                      lineplot.y.push(row[trace.y_col[i]]);
-                                  });
 
-                                  plots.data.push(lineplot);
-                                  plots.layout = layout;
-                                  plots.config = config;
-                                }
-                                tracesComplete++;
-                                if (tracesComplete == lineplotConfig.traces.length) {
-                                  console.log(plots);
-                                    $rootScope.plots = plots;
-                                    Plotly.relayout();
-                                }
-                            }).catch(function (err) {
-                                if (err.data) {
-                                    if (err.status == 401) {
-                                        if (!$rootScope.loginShown) {
-                                            $rootScope.loginShown = true;
-                                            Session.loginInAModal(function () {
-                                                // set to false in case a request fails after with 401
-                                                $rootScope.loginShown = false;
-                                                window.location.reload();
-                                            });
-                                        }
-                                    } else {
-                                        // else add warning alert
-                                        AlertsService.addAlert(err.data, 'warning');
+                                  var config = {
+                                    displaylogo: false,
+                                    modeBarButtonsToRemove: plot.modeBarButtonsToRemove
+                                  }
+                                  var data = response.data;
+
+                                  for(var i = 0; i < trace.y_col.length;i++) {
+
+                                    var lineplot = {
+                                        x: [],
+                                        y: [],
+                                        type: getType(plot.plot_type),
+                                        name: trace.legend[i] || '',
+                                        fill: plot.plot_type == 'area' ? 'tozeroy':'',
+                                        mode: getMode(plot.plot_type)
                                     }
-                                }
-                            });
+                                    data.forEach(function (row) {
+                                        lineplot.x.push(row[trace.x_col]);
+                                        lineplot.y.push(row[trace.y_col[i]]);
+                                    });
+
+                                    plot_data.data.push(lineplot);
+                                    plot_data.layout = layout;
+                                    plot_data.config = config;
+                                  }
+                                  tracesComplete++;
+                                  if (tracesComplete == plot.traces.length) {
+                                    console.log($rootScope.plots);
+                                    plotComplete ++;
+                                      plots.push(plot_data);
+                                      console.log($rootScope.plots);
+                                      if (plotComplete == lineplotConfig.plots){
+                                        Plotly.relayout();
+                                      }
+                                  }
+                              }).catch(function (err) {
+                                  if (err.data) {
+                                      if (err.status == 401) {
+                                          if (!$rootScope.loginShown) {
+                                              $rootScope.loginShown = true;
+                                              Session.loginInAModal(function () {
+                                                  // set to false in case a request fails after with 401
+                                                  $rootScope.loginShown = false;
+                                                  window.location.reload();
+                                              });
+                                          }
+                                      } else {
+                                          // else add warning alert
+                                          AlertsService.addAlert(err.data, 'warning');
+                                          throw ERMrest.responseToError(err);
+                                      }
+                                  }
+                              });
+                          });
+                          $rootScope.plots = plots;
+                          console.log($rootScope.plots);
                         });
+
                     }
                 }
             }])
-            .controller('LineplotController', ['AlertsService', 'dataFormats', 'LineplotUtils', 'UriUtils', '$http', '$window', '$rootScope', '$scope', '$timeout', function LineplotController(AlertsService, dataFormats, LineplotUtils, UriUtils, $http, $window, $rootScope, $scope, $timeout) {
+            .controller('LineplotController', ['AlertsService', 'dataFormats', 'LineplotUtils', 'UriUtils', '$window', '$rootScope', '$scope', '$timeout', function LineplotController(AlertsService, dataFormats, LineplotUtils, UriUtils, $window, $rootScope, $scope, $timeout) {
                 var vm = this;
                 vm.alerts = AlertsService.alerts;
                 vm.dataFormats = dataFormats;
                 vm.x_label = lineplotConfig.x_axis_label;
                 vm.types = ["line", "bar", "dot", "area"];
                 vm.model = {
+                  title: lineplotConfig.title,
                   type : {
                     name: lineplotConfig.plot_type,
                   }
@@ -210,19 +262,19 @@
             .directive('lineplot', ['$rootScope', function ($rootScope) {
                 return {
                     link: function (scope, element) {
-
+                        // console.log(scope.$index,element);
                         scope.$watch('plots', function (plots) {
                             if (plots) {
-                                Plotly.newPlot(element[0], plots.data, plots.layout, plots.config).then(function () {
+                                Plotly.newPlot(element[0], plots[scope.$index].data, plots[scope.$index].layout, plots[scope.$index].config).then(function () {
                                     scope.showLineplot();
                                 }.bind(1));
                             }
-                        });
+                        }, true);
                     }
                 };
             }])
-            .run(['AlertsService', 'ERMrest', 'LineplotUtils', 'messageMap', 'Session', 'UriUtils', '$http', '$rootScope', '$window',
-             function runApp(AlertsService, ERMrest, LineplotUtils, messageMap, Session, UriUtils, $http, $rootScope, $window) {
+            .run(['ERMrest', 'LineplotUtils', 'messageMap', 'Session', '$rootScope',
+             function runApp(ERMrest, LineplotUtils, messageMap, Session, $rootScope) {
                try {
                  $rootScope.loginShown = false;
                  var subId = Session.subscribeOnChange(function () {
