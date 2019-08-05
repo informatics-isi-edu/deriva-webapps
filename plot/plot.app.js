@@ -171,7 +171,7 @@
                     name: plotConfig.plot_type,
                   }
                 }
-                vm.changeSelection = function(value) {
+                // vm.changeSelection = function(value) { // Not yet used for the selection of plot type 
                   var plotsData = $rootScope.plots.data;
                   var layout = $rootScope.plots.layout;
                   var config = $rootScope.plots.config;

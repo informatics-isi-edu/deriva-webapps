@@ -48,20 +48,18 @@
       		</div>
       	</div>
       </div>
-      <!-- <div class="col-sm-3">  TODO: UI : selection for different types of plot types.
-        <div class="sub-header">
-          Plot type
-        </div>
-        <div>
-          <select ng-model="ctrl.model.type.name" ng-options="s for s in ctrl.types"
-              ng-change="::ctrl.changeSelection()"></select>
-        </div>
-      </div> -->
-      <!-- <div class="plot-container">
-        <plot></plot>
-      </div> -->
       <div class="plot-container">
-        <div ng-repeat="plot in plots">
+        <!-- <div class="col-sm-3">  TODO: UI : selection for different types of plot types.
+          <div class="sub-header">
+            Plot type
+          </div>
+          <div>
+            <select ng-model="ctrl.model.type.name" ng-options="s for s in ctrl.types"
+                ng-change="::ctrl.changeSelection()"></select>
+          </div>
+        </div> -->
+
+        <div class="plot" ng-repeat="plot in plots">
           <plot plot-id="{{plot.id}}"></plot>
         </div>
       </div>
