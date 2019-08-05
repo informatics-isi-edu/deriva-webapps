@@ -71,77 +71,91 @@
 
                 return {
                     getData: function () {
-                        var plots = {
-                          data: []
-                        };
+                        var plots = []
                         var tracesComplete = 0;
                         var first_plot = plotConfig.plots[0]; // TODO: Currently picking  only the first plot config, make it more multiple plots
-                        first_plot.traces.forEach(function (trace) {
-                            server.http.get(trace.uri).then(function(response) {
+                        var plotComplete = 0;
+                        plotConfig.plots.forEach(function(plot) {
+                          var plot_values = {
+                            data: [],
+                          };
+                          var tracesComplete = 0;
+                          plot.traces.forEach(function (trace) {
+                              server.http.get(trace.uri).then(function(response) {
 
-                                var layout = {
-                                    title: first_plot.plot_title,
-                                    xaxis: {
-                                        title: first_plot.x_axis_label
-                                    },
-                                    yaxis: {
-                                        title: first_plot.y_axis_label
-                                    },
-                                    responsive: true,
-                                    autosize: true,
-                                    width: 1000,
-                                    height: 500,
-                                    showlegend: true,
-                                };
-                                var config = {
-                                  displaylogo: false,
-                                  modeBarButtonsToRemove: first_plot.plotlyDefaultButtonsToRemove
-                                };
-                                var data = response.data;
+                                  var layout = {
+                                      title: plot.plot_title,
+                                      xaxis: {
+                                          title: plot.x_axis_label
+                                      },
+                                      yaxis: {
+                                          title: plot.y_axis_label
+                                      },
+                                      responsive: true,
+                                      autosize: true,
+                                      width: 1000,
+                                      height: 500,
+                                      showlegend: true,
+                                  };
+                                  var config = {
+                                    displaylogo: false,
+                                    modeBarButtonsToRemove: plot.plotlyDefaultButtonsToRemove
+                                  };
+                                  var data = response.data;
 
-                                for(var i = 0; i < trace.y_col.length;i++) {
-                                  var values = {
-                                      x: [],
-                                      y: [],
-                                      type: getType(first_plot.plot_type),
-                                      name: trace.legend[i] || '',
-                                      fill: first_plot.plot_type == 'area' ? 'tozeroy':'',
-                                      mode: getMode(first_plot.plot_type)
-                                  }
-                                  data.forEach(function (row) {
-                                      values.x.push(row[trace.x_col]);
-                                      values.y.push(row[trace.y_col[i]]);
-                                  });
-
-                                  plots.data.push(values);
-                                  plots.layout = layout;
-                                  plots.config = config;
-                                }
-
-                                tracesComplete++;
-                                if (tracesComplete == first_plot.traces.length) {
-                                  $rootScope.plots = plots;
-                                  Plotly.relayout();
-                                }
-                            }).catch(function (err) {
-                                if (err.data) {
-                                    if (err.status == 401) {
-                                        if (!$rootScope.loginShown) {
-                                            $rootScope.loginShown = true;
-                                            Session.loginInAModal(function () {
-                                                // set to false in case a request fails after with 401
-                                                $rootScope.loginShown = false;
-                                                window.location.reload();
-                                            });
-                                        }
-                                    } else {
-                                        // else add warning alert
-                                        AlertsService.addAlert(err.data, 'warning');
-                                        throw ERMrest.responseToError(err);
+                                  for(var i = 0; i < trace.y_col.length;i++) {
+                                    var values = {
+                                        x: [],
+                                        y: [],
+                                        type: getType(plot.plot_type),
+                                        name: trace.legend[i] || '',
+                                        fill: plot.plot_type == 'area' ? 'tozeroy':'',
+                                        mode: getMode(plot.plot_type)
                                     }
-                                }
-                            });
+                                    data.forEach(function (row) {
+                                        values.x.push(row[trace.x_col]);
+                                        values.y.push(row[trace.y_col[i]]);
+                                    });
+
+                                    plot_values.data.push(values);
+                                    plot_values.layout = layout;
+                                    plot_values.config = config;
+                                  }
+
+                                  tracesComplete++;
+                                  if (tracesComplete == plot.traces.length) {
+                                    var id = plots.length;
+                                    plots.push({id:id, plot_values: plot_values});
+                                    if (plots.length == plotConfig.plots.length) {
+                                      // $rootScope.plots = plots;
+                                      // Plotly.relayout();
+                                      console.log("plots: ", plots);
+                                      $rootScope.plots = plots;
+
+                                    }
+
+                                  }
+                              }).catch(function (err) {
+                                  if (err.data) {
+                                      if (err.status == 401) {
+                                          if (!$rootScope.loginShown) {
+                                              $rootScope.loginShown = true;
+                                              Session.loginInAModal(function () {
+                                                  // set to false in case a request fails after with 401
+                                                  $rootScope.loginShown = false;
+                                                  window.location.reload();
+                                              });
+                                          }
+                                      } else {
+                                          // else add warning alert
+                                          AlertsService.addAlert(err.data, 'warning');
+                                          throw ERMrest.responseToError(err);
+                                      }
+                                  }
+                              });
+                          });
                         });
+
                     }
                 }
             }])
@@ -230,13 +244,19 @@
                 }
             }])
             .directive('plot', ['$rootScope', function ($rootScope) {
+
                 return {
                     link: function (scope, element) {
                         scope.$watch('plots', function (plots) {
+                            console.log(plots);
                             if (plots) {
-                                Plotly.newPlot(element[0], plots.data, plots.layout, plots.config).then(function () {
-                                    scope.showPlot();
-                                }.bind(1));
+                            		for (var i = 0; i < plots.length; i++) {
+                            			if (plots[i].id == element[0].attributes['plot-id'].nodeValue) {
+                                    Plotly.newPlot(element[0], plots[i].plot_values.data, plots[i].plot_values.layout, plots[i].plot_values.config).then(function () {
+                        								scope.showPlot();
+                        						}.bind(plots.length));
+                                  }
+                                }
                             }
                         }, true);
                     }

@@ -57,8 +57,13 @@
               ng-change="::ctrl.changeSelection()"></select>
         </div>
       </div> -->
-      <div class="plot-container">
+      <!-- <div class="plot-container">
         <plot></plot>
+      </div> -->
+      <div class="plot-container">
+        <div ng-repeat="plot in plots">
+          <plot plot-id="{{plot.id}}"></plot>
+        </div>
       </div>
     </div>
   </div>
