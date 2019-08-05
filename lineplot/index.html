@@ -1,17 +1,18 @@
 <html id="lineplot">
 
 <head>
-  <script src='/chaise/chaise-config.js'></script>
-  <script src='../../chaise/scripts/vendor/jquery-1.11.1.min.js'></script>
+  <title>Lineplot App</title>
+  <script src='../../chaise/chaise-config.js'></script>
+  <script src='../../chaise/scripts/vendor/jquery-3.4.1.min.js'></script>
   <script src='../../chaise/scripts/vendor/bootstrap-3.3.7.min.js'></script>
   <script src='vendor/plotly-latest.min.js'></script>
   <script src='vendor/moment.min.js'></script>
   <script src='../../chaise/scripts/vendor/angular.js'></script>
   <script src='../../chaise/scripts/vendor/angular-sanitize.js'></script>
   <script src='../../chaise/common/vendor/angular-cookies.min.js'></script>
-  <link rel="stylesheet" type="text/css" href="/chaise/styles/vendor/bootstrap.min.css">
-  <link rel="stylesheet" type="text/css" href="/chaise/common/styles/app.css">
-  <link rel="stylesheet" type="text/css" href="/chaise/common/styles/appheader.css">
+  <link rel="stylesheet" type="text/css" href="../../chaise/styles/vendor/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="../../chaise/common/styles/app.css">
+  <link rel="stylesheet" type="text/css" href="../../chaise/common/styles/appheader.css">
   <script src='../../chaise/common/alerts.js'></script>
   <script src='../../chaise/common/authen.js'></script>
   <script src='../../chaise/common/storage.js'></script>
@@ -33,7 +34,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 
-<body>
+<body class="chaise-body">
   <div class="configure-container" ng-app="chaise.configure-lineplotApp"></div>
   <div class="mainContainer">
     <navbar></navbar>
@@ -41,7 +42,7 @@
       <div class="row">
       	<div id="bookmark-container" class="col-xs-12 meta-icons">
       		<div id="title" class="pull-left">
-      			<h3 id="page-title"><span>Subject {{ctrl.model.subject}}</span></h3>
+      			<h1 id="page-title"><span>Subject {{ctrl.model.subject}}</span></h1>
       		</div>
       	</div>
       </div>
@@ -55,15 +56,15 @@
             </div>
             <div class="col-sm-7">
               <div class="col-sm-12">
-                  <div class="input-group padding-vertical">
+                  <div class="input-group">
                       <span class="input-group-addon" style="width:80px;">Duration</span>
                       <input class="form-control" type="text" ng-model="ctrl.model.duration" placeholder="hours" model-view-value="true"></input>
                   </div>
-                  <div class="input-group padding-vertical">
+                  <div class="input-group">
                       <span class="input-group-addon" style="width:80px;">Date</span>
                       <input class="form-control input-timestamptz" type="text" ng-model="ctrl.model.date" placeholder="{{ctrl.dataFormats.date}}" model-view-value="true"></input>
                   </div>
-                  <div class="input-group padding-vertical">
+                  <div class="input-group">
                       <span class="input-group-addon" style="width:80px;">Time</span>
                       <input class="form-control" type="text" ng-model="ctrl.model.time" placeholder="{{ctrl.dataFormats.time24}}" model-view-value="true"></input>
                   </div>
