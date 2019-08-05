@@ -6,7 +6,7 @@ This app uses Chaise assuming Chaise is at the same level as deriva-webapps fold
 The plot-config.js file has the following parameters which can be modified when using this app.
 
 ### Data parameters
-1. page_title(optional): Title of the plot app. 
+1. page_title(optional): Title of the plot app.
 2. plots: An array of the plots to be shown.
 
 Each plot will have the following parameters:
@@ -62,4 +62,4 @@ if (typeof module === 'object' && module.exports && typeof require === 'function
 ## Installation
 
 ### Installation Path
-Change the installation path by changing the value of INSDIR in Makefile and then execute the "make install" command.
+Change the installation path by changing the value of INSDIR in Makefile and then execute the `make install` command.
