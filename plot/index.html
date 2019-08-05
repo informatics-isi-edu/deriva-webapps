@@ -1,7 +1,7 @@
-<html id="lineplot">
+<html id="plot">
 
 <head>
-  <script src='/chaise/chaise-config.js'></script>
+  <script src='../../chaise/chaise-config.js'></script>
   <script src='../../chaise/scripts/vendor/jquery-1.11.1.min.js'></script>
   <script src='../../chaise/scripts/vendor/bootstrap-3.3.7.min.js'></script>
   <script src='vendor/plotly-latest.min.js'></script>
@@ -9,9 +9,9 @@
   <script src='../../chaise/scripts/vendor/angular.js'></script>
   <script src='../../chaise/scripts/vendor/angular-sanitize.js'></script>
   <script src='../../chaise/common/vendor/angular-cookies.min.js'></script>
-  <link rel="stylesheet" type="text/css" href="/chaise/styles/vendor/bootstrap.min.css">
-  <link rel="stylesheet" type="text/css" href="/chaise/common/styles/app.css">
-  <link rel="stylesheet" type="text/css" href="/chaise/common/styles/appheader.css">
+  <link rel="stylesheet" type="text/css" href="../../chaise/styles/vendor/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="../../chaise/common/styles/app.css">
+  <link rel="stylesheet" type="text/css" href="../../chaise/common/styles/appheader.css">
   <script src='../../chaise/common/alerts.js'></script>
   <script src='../../chaise/common/authen.js'></script>
   <script src='../../chaise/common/storage.js'></script>
@@ -27,17 +27,17 @@
 
   <script src='../../chaise/scripts/vendor/ui-bootstrap-tpls-2.5.0.min.js'></script>
   <script src='../../ermrestjs/ermrest.js'></script>
-  <script src="lineplot-config.js"></script>
-  <script src="lineplot.app.js"></script>
+  <script src="plot-config.js"></script>
+  <script src="plot.app.js"></script>
   <link rel="stylesheet" type="text/css" href="styles/plot.css">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 
 <body class="chaise-body">
-  <div class="configure-container" ng-app="chaise.configure-lineplotApp"></div>
+  <div class="configure-container" ng-app="chaise.configure-plotApp"></div>
   <div class="mainContainer">
     <navbar></navbar>
-    <div class="app-container" ng-controller="LineplotController as ctrl" id="appDiv" style="margin-top: 0px; margin-left: 10px;">
+    <div class="app-container" ng-controller="plotController as ctrl" id="appDiv">
       <div class="alerts-container">
           <alerts alerts="ctrl.alerts"></alerts>
       </div>
@@ -48,7 +48,7 @@
       		</div>
       	</div>
       </div>
-      <!-- <div class="col-sm-3">
+      <!-- <div class="col-sm-3">  TODO: UI : selection for different types of plot types.
         <div class="sub-header">
           Plot type
         </div>
@@ -57,11 +57,10 @@
               ng-change="::ctrl.changeSelection()"></select>
         </div>
       </div> -->
-      <div class="plot-container" ng-repeat="plots in ctrl.plots">
-        <lineplot ng-model="plot"></lineplot>
+      <div class="plot-container">
+        <plot></plot>
       </div>
     </div>
   </div>
 </body>
-
 </html>

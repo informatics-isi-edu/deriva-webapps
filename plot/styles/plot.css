@@ -1,6 +1,6 @@
-.custom-time {
-  border-left: 1px solid #c3c3c3;
-  border-right: 1px solid #c3c3c3;
+#appDiv {
+  margin-top: 0px;
+  margin-left: 10px;
 }
 
 .plot-container {
