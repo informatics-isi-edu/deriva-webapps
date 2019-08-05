@@ -166,12 +166,12 @@
                 vm.x_label = plotConfig.x_axis_label;
                 vm.types = ["line", "bar", "dot", "area"];
                 vm.model = {
-                  title: plotConfig.title,
+                  title: plotConfig.page_title,
                   type : {
                     name: plotConfig.plot_type,
                   }
                 }
-                // vm.changeSelection = function(value) { // Not yet used for the selection of plot type 
+                vm.changeSelection = function(value) { // Not yet used for the selection of plot type
                   var plotsData = $rootScope.plots.data;
                   var layout = $rootScope.plots.layout;
                   var config = $rootScope.plots.config;
