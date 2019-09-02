@@ -4,8 +4,8 @@
   <script src='../../chaise/chaise-config.js'></script>
   <script src='../../chaise/scripts/vendor/jquery-1.11.1.min.js'></script>
   <script src='../../chaise/scripts/vendor/bootstrap-3.3.7.min.js'></script>
-  <script src='vendor/plotly-latest.min.js'></script>
-  <script src='vendor/moment.min.js'></script>
+  <script src='../../chaise/scripts/vendor/plotly-latest.min.js'></script>
+  <script src='../../chaise/scripts/vendor/moment.min.js'></script>
   <script src='../../chaise/scripts/vendor/angular.js'></script>
   <script src='../../chaise/scripts/vendor/angular-sanitize.js'></script>
   <script src='../../chaise/common/vendor/angular-cookies.min.js'></script>
@@ -35,12 +35,9 @@
 
 <body class="chaise-body">
   <div class="configure-container" ng-app="chaise.configure-plotApp"></div>
-  <div class="mainContainer">
+  <div class="app-container">
     <navbar></navbar>
-    <div class="app-container" ng-controller="plotController as ctrl" id="appDiv">
-      <div class="alerts-container">
-          <alerts alerts="ctrl.alerts"></alerts>
-      </div>
+    <div ng-controller="plotController as ctrl" id="appDiv">
       <div ng-if= "ctrl.model.title" class="row">
       	<div id="bookmark-container" class="col-xs-12 meta-icons">
       		<div id="title" class="pull-left">
@@ -48,19 +45,26 @@
       		</div>
       	</div>
       </div>
-      <div class="plot-container">
-        <!-- <div class="col-sm-3">  TODO: UI : selection for different types of plot types.
-          <div class="sub-header">
-            Plot type
-          </div>
-          <div>
-            <select ng-model="ctrl.model.type.name" ng-options="s for s in ctrl.types"
-                ng-change="::ctrl.changeSelection()"></select>
-          </div>
-        </div> -->
+      <div id="main-content" class="plot-container">
+        <div class="main-container">
+          <div class="main-body">
+            <div class="alerts-container">
+                <alerts alerts="ctrl.alerts"></alerts>
+            </div>
+            <!-- <div class="col-sm-3">  TODO: UI : selection for different types of plot types.
+              <div class="sub-header">
+                Plot type
+              </div>
+              <div>
+                <select ng-model="ctrl.model.type.name" ng-options="s for s in ctrl.types"
+                    ng-change="::ctrl.changeSelection()"></select>
+              </div>
+            </div> -->
 
-        <div class="plot" ng-repeat="plot in plots">
-          <plot plot-id="{{plot.id}}"></plot>
+            <div class="plot" ng-repeat="plot in plots">
+              <plot plot-id="{{plot.id}}"></plot>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -7,13 +7,13 @@ var plotConfig = {
       plot_type: "line",                                                        // Values can be from : "line", "bar", "dot", "area", "dot+lines"
       traces: [
           {
-              uri: "/ermrest/catalog/65361/entity/product:lineplot",            // The request url that has to be used to fetch the data.
+              uri: "/ermrest/catalog/65452/entity/product:lineplot",            // The request url that has to be used to fetch the data.
               legend: ["Browser All Events", "Browser Read Events"],            // name of traces in legend
               x_col: "requests",                                                // column name to use for x values
               y_col: ["viewer", "browser_readevents"],                          // array of column names to use for y values
           },
           {
-              uri: "/ermrest/catalog/65361/entity/product:lineplot",
+              uri: "/ermrest/catalog/65452/entity/product:lineplot",
               legend: ["#Pseudo_id"],
               x_col: "requests",
               y_col: ["pseudo_id"],
@@ -30,7 +30,7 @@ var plotConfig = {
       plot_type: "bar",                                                        // Values can be from : "line", "bar", "dot", "area", "dot+lines"
       traces: [
           {
-              uri: "/ermrest/catalog/65361/entity/product:lineplot",            // The request url that has to be used to fetch the data.
+              uri: "/ermrest/catalog/65452/entity/product:lineplot",            // The request url that has to be used to fetch the data.
               legend: ["Browser All Events"],            // name of traces in legend
               x_col: "requests",                                                // column name to use for x values
               y_col: ["viewer"],                          // array of column names to use for y values
@@ -46,13 +46,13 @@ var plotConfig = {
       plot_type: "dot",                                                        // Values can be from : "line", "bar", "dot", "area", "dot+lines"
       traces: [
           {
-              uri: "/ermrest/catalog/65361/entity/product:lineplot",            // The request url that has to be used to fetch the data.
+              uri: "/ermrest/catalog/65452/entity/product:lineplot",            // The request url that has to be used to fetch the data.
               legend: ["Browser All Events", "Browser Read Events"],            // name of traces in legend
               x_col: "requests",                                                // column name to use for x values
               y_col: ["viewer", "browser_readevents"],                          // array of column names to use for y values
           },
           {
-              uri: "/ermrest/catalog/65361/entity/product:lineplot",
+              uri: "/ermrest/catalog/65452/entity/product:lineplot",
               legend: ["#Pseudo_id"],
               x_col: "requests",
               y_col: ["pseudo_id"],
@@ -69,13 +69,13 @@ var plotConfig = {
       plot_type: "dot-lines",                                                        // Values can be from : "line", "bar", "dot", "area", "dot-lines"
       traces: [
           {
-              uri: "/ermrest/catalog/65361/entity/product:lineplot",            // The request url that has to be used to fetch the data.
+              uri: "/ermrest/catalog/65452/entity/product:lineplot",            // The request url that has to be used to fetch the data.
               legend: ["Browser All Events", "Browser Read Events"],            // name of traces in legend
               x_col: "requests",                                                // column name to use for x values
               y_col: ["viewer", "browser_readevents"],                          // array of column names to use for y values
           },
           {
-              uri: "/ermrest/catalog/65361/entity/product:lineplot",
+              uri: "/ermrest/catalog/65452/entity/product:lineplot",
               legend: ["#Pseudo_id"],
               x_col: "requests",
               y_col: ["pseudo_id"],
