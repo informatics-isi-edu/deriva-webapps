@@ -12,7 +12,7 @@ var plotConfig = {
 
             },
         ],
-        plotlyDefaultButtonsToRemove: ["scrollZoom", "zoom2d","sendDataToCloud","autoScale2d", "lasso2d", "select2d", "hoverClosestCartesian", "hoverCompareCartesian", "toggleSpikelines"]
+        plotlyDefaultButtonsToRemove: ["scrollZoom", "zoom2d","sendDataToCloud","autoScale2d", "lasso2d", "select2d", "hoverClosestCartesian", "hoverCompareCartesian", "toggleSpikelines", "hoverClosestPie"]
         // Plotly defualt buttons/actions to be removed
       },
       {                                                                   // Array of object plots to be shown on the page
