@@ -47,6 +47,8 @@
                       return "scatter";
                     case "area":
                       return "area";
+                    case "pie":
+                      return "pie";
                     default:
                       return "scatter";
                   }
@@ -64,10 +66,71 @@
                       return "lines+markers";
                     case "area":
                       return "";
+                    case "pie":
+                      return "";
                     default:
                       return "line+markers";
                   }
                 }
+
+                function getValues(type, legend, orientation) {
+                  var values = {};
+                  switch (type) {
+                    case "pie":
+                      values = {
+                        type: "pie",
+                        labels: [],
+                        values: []
+                      };
+                      return values;
+                    case "bar":
+                      values = {
+                          x: [],
+                          y: [],
+                          type: getType(type),
+                          name: legend,
+                          fill: type == 'area' ? 'tozeroy':'',
+                          mode: getMode(type),
+                          orientation: orientation
+                      }
+                      return values;
+                    default:
+                      values = {
+                          x: [],
+                          y: [],
+                          type: getType(type),
+                          name: legend,
+                          fill: type == 'area' ? 'tozeroy':'',
+                          mode: getMode(type)
+                      }
+                      return values;
+                  }
+                }
+
+                function getLayout(plot) {
+                  var layout = {
+                      title: plot.plot_title,
+                      responsive: true,
+                      autosize: true,
+                      width: 1000,
+                      height: 500,
+                      showlegend: true,
+                  };
+                  switch (plot.plot_type) {
+                    case "pie":
+                      return layout;
+                    default:
+                      layout.xaxis = {
+                          title: plot.x_axis_label ? plot.x_axis_label : ''
+                      };
+                      layout.yaxis = {
+                          title: plot.y_axis_label ? plot.y_axis_label : ''
+                      };
+                      return layout;
+                  }
+                }
+
+
 
                 return {
                     getData: function () {
@@ -82,21 +145,7 @@
                           var tracesComplete = 0;
                           plot.traces.forEach(function (trace) {
                               server.http.get(trace.uri).then(function(response) {
-
-                                  var layout = {
-                                      title: plot.plot_title,
-                                      xaxis: {
-                                          title: plot.x_axis_label
-                                      },
-                                      yaxis: {
-                                          title: plot.y_axis_label
-                                      },
-                                      responsive: true,
-                                      autosize: true,
-                                      width: 1000,
-                                      height: 500,
-                                      showlegend: true,
-                                  };
+                                  var layout = getLayout(plot);
                                   var config = {
                                     displaylogo: false,
                                     modeBarButtonsToRemove: plot.plotlyDefaultButtonsToRemove
@@ -104,18 +153,36 @@
                                   var data = response.data;
 
                                   for(var i = 0; i < trace.y_col.length;i++) {
-                                    var values = {
-                                        x: [],
-                                        y: [],
-                                        type: getType(plot.plot_type),
-                                        name: trace.legend[i] || '',
-                                        fill: plot.plot_type == 'area' ? 'tozeroy':'',
-                                        mode: getMode(plot.plot_type)
+                                    var values = getValues(plot.plot_type, trace.legend ? trace.legend[i]: '',  trace.orientation);
+                                    console.log(values);
+                                    switch (plot.plot_type) {
+                                      case "pie":
+                                        values.labels = trace.legend;
+                                        data.forEach(function (row) {
+                                          values.values.push(row[trace.y_col[i]]);
+                                        });
+                                        break;
+                                      case "bar":
+                                        if(trace.orientation == 'h') {
+                                          data.forEach(function (row) {
+                                              values.y.push(row[trace.x_col]);
+                                              values.x.push(row[trace.y_col[i]]);
+                                          });
+                                        } else {
+                                          data.forEach(function (row) {
+                                              values.x.push(row[trace.x_col]);
+                                              values.y.push(row[trace.y_col[i]]);
+                                          });
+                                        }
+                                        break;
+
+                                      default:
+                                        data.forEach(function (row) {
+                                            values.x.push(row[trace.x_col]);
+                                            values.y.push(row[trace.y_col[i]]);
+                                        });
+                                        break;
                                     }
-                                    data.forEach(function (row) {
-                                        values.x.push(row[trace.x_col]);
-                                        values.y.push(row[trace.y_col[i]]);
-                                    });
 
                                     plot_values.data.push(values);
                                     plot_values.layout = layout;
@@ -213,6 +280,19 @@
                         data: newPlotData,
                         layout: layout,
                         config: config
+                      };
+                      break;
+                    case "area":
+                      var newPlotData = [];
+                      plotsData.forEach(function (row) {
+                          row.type="scatter";
+                          row.fill = "tozeroy";
+                          newPlotData.push(row);
+                      });
+                      $rootScope.plots = {
+                        data: newPlotData,
+                        layout: layout,
+                        config: config,
                       };
                       break;
                     case "area":
