@@ -91,6 +91,8 @@
                       values = {
                           x: [],
                           y: [],
+                          text:[],
+                          textposition: 'outside',
                           type: getType(type),
                           name: legend,
                           fill: type == 'area' ? 'tozeroy':'',
@@ -129,14 +131,19 @@
                 }
 
                 function getLayout(plot) {
-                  var config = plot.config ? plot.config : { showlegend: true, legend: { x:1, y:1 } };
+                  var config = plot.config ? plot.config :
+                  { width: 1200,
+                    height: 500,
+                    showlegend: true,
+                    legend: { x:1, y:1 }
+                  };
 
                   var margin = {}
 
                   var layout = {
                       title: plot.plot_title,
-                      width: 1200,
-                      height: 500,
+                      width: config.width || 1200,
+                      height: config.height || 500,
                       showlegend: config.showlegend != undefined ? config.showlegend : true,
                       legend: config.legend,
                       margin: margin
@@ -199,7 +206,12 @@
                                   switch (plot.plot_type) {
                                     case "pie":
                                       var values = getValues(plot.plot_type, '',  '');
-                                      values.textinfo = !trace.show_percentage ? "none": 'none';
+                                      if (plot.config) {
+                                        values.textinfo = plot.config.slice_label ? plot.config.slice_label : "none";
+                                      } else {
+                                        values.textinfo = "none";
+                                      }
+
                                       var label = true;
                                       if(trace.legend != undefined) {
                                         values.labels = trace.legend;
@@ -242,6 +254,7 @@
                                           data.forEach(function (row) {
                                               values.x.push(formatData(row[trace.x_col[i]]));
                                               values.y.push(formatData(row[trace.y_col]));
+                                              values.text.push(row[trace.x_col[i]])
                                           });
                                           plot_values.data.push(values);
                                           plot_values.layout = layout;
@@ -253,6 +266,7 @@
                                           data.forEach(function (row) {
                                               values.x.push(formatData(row[trace.x_col]));
                                               values.y.push(formatData(row[trace.y_col[i]]));
+                                              values.text.push(row[trace.y_col[i]])
                                           });
                                           plot_values.data.push(values);
                                           plot_values.layout = layout;

@@ -18,7 +18,9 @@ Each plot will have the following parameters:
 5. config:  the config for the plot
       1. bargap: Distance between the bins in the histogram - Only valid for plot type as histogram
       2. showlegend: To show the legend or not
-
+      3. height: Height of the plot // Default: 500
+      4. width: width of the plot // Deault: 1000
+      5. slice_label: label to be shown on slcie of a pie - oly for pie chart // Default: "none", Available: "percent" or "value"
 Traces can be based on 1d and 2d plot.
 For 2d plot,
 6. traces: Contains the information about each each trace.
