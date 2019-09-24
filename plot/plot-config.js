@@ -22,7 +22,7 @@ var plotConfig = {
         plot_type: "pie",                                                 // ValuesValues can be from : "line", "bar", "dot", "area", "dot-lines", "pie", "histogram-horizontal", "histogram-verical"
         config: {
           showlegend: true,                                                 // to show the legend or not
-          slice_label: "value"                                              // what to show on the slice of pie chart - "value" or percent"
+          slice_label: "value"                                              // what to show on the slice of pie chart - value or "percent
         },
         traces: [
 
@@ -96,6 +96,36 @@ var plotConfig = {
           {
               uri: "/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23%20Released=0)/$M@sort(Resource,ID)?limit=26",            // The request url that has to be used to fetch the data.
               legend: ["# Released", "# Records"],            // name of traces in legend
+              y_col: ["# Released", "# Records"],                                                // column name to use for x values
+              x_col: ["Resource"],                          // array of column names to use for y values
+              orientation: "v"                            // Optional parameter for displaying the bar chart horizontally
+
+          },
+          // {
+          //     uri: "/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/$M@sort(%23%20Records,ID)?limit=26",            // The request url that has to be used to fetch the data.
+          //     legend: ["# Records"],            // name of traces in legend
+          //     x_col: ["# Records"],                                                // column name to use for x values
+          //     y_col: ["Resource"],                          // array of column names to use for y values
+          //     orientation: "h"                            // Optional parameter for displaying the bar chart horizontally
+          //
+          // },
+      ],
+      plotlyDefaultButtonsToRemove: ["scrollZoom", "zoom2d","sendDataToCloud","autoScale2d", "lasso2d", "select2d", "hoverClosestCartesian", "hoverCompareCartesian", "toggleSpikelines"]
+      // Plotly defualt buttons/actions to be removed
+    },
+    {                                                                   // Array of object plots to be shown on the page
+      plot_title: "Plot",                                               // plot title
+      x_axis_label: "value",                                                    // plot x axis label
+      y_axis_label: "Resource",                                                    // plot y axis label
+      plot_type: "bar",                                                        // Values can be from : "line", "bar", "dot", "area", "dot+lines", "pie"
+      config: {
+        height: 1000,
+        width: 1200,
+      },
+      traces: [
+          {
+              uri: "/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23%20Released=0)/$M@sort(Resource,ID)?limit=26",            // The request url that has to be used to fetch the data.
+              legend: ["# Released", "# Records"],            // name of traces in legend
               x_col: ["# Released", "# Records"],                                                // column name to use for x values
               y_col: ["Resource"],                          // array of column names to use for y values
               orientation: "h"                            // Optional parameter for displaying the bar chart horizontally
@@ -113,6 +143,7 @@ var plotConfig = {
       plotlyDefaultButtonsToRemove: ["scrollZoom", "zoom2d","sendDataToCloud","autoScale2d", "lasso2d", "select2d", "hoverClosestCartesian", "hoverCompareCartesian", "toggleSpikelines"]
       // Plotly defualt buttons/actions to be removed
     },
+
     // {                                                                   // Array of object plots to be shown on the page
     //   plot_title: "Subject Plot",                                               // plot title
     //   x_axis_label: "month",                                                    // plot x axis label

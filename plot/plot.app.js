@@ -207,7 +207,7 @@
                                     case "pie":
                                       var values = getValues(plot.plot_type, '',  '');
                                       if (plot.config) {
-                                        values.textinfo = plot.config.slice_label ? plot.config.slice_label : "none";
+                                        values.textinfo = plot.config.slice_label ? config.slice_label : "none";
                                       } else {
                                         values.textinfo = "none";
                                       }
