@@ -47,6 +47,10 @@
                       return "scatter";
                     case "area":
                       return "area";
+                    case "pie":
+                      return "pie";
+                    case "histogram":
+                      return "histogram";
                     default:
                       return "scatter";
                   }
@@ -64,10 +68,119 @@
                       return "lines+markers";
                     case "area":
                       return "";
+                    case "pie":
+                      return "";
+                    case "histogram":
+                      return "";
                     default:
                       return "line+markers";
                   }
                 }
+
+                function getValues(type, legend, orientation) {
+                  var values = {};
+                  switch (type) {
+                    case "pie":
+                      values = {
+                        type: "pie",
+                        labels: [],
+                        values: []
+                      };
+                      return values;
+                    case "bar":
+                      values = {
+                          x: [],
+                          y: [],
+                          text:[],
+                          textposition: 'outside',
+                          type: getType(type),
+                          name: legend,
+                          fill: type == 'area' ? 'tozeroy':'',
+                          mode: getMode(type),
+                          orientation: orientation
+                      }
+                      return values;
+                    case "histogram-horizontal":
+                      values = {
+                          x: [],
+                          name: legend || '',
+                          type: "histogram",
+                          orientation: orientation
+                      }
+                      return values;
+                    case "histogram-vertical":
+                        values = {
+                            y: [],
+                            name: legend || '',
+                            type: "histogram",
+                            orientation: orientation
+                        }
+                        return values;
+
+                    default:
+                      values = {
+                          x: [],
+                          y: [],
+                          type: getType(type),
+                          name: legend,
+                          fill: type == 'area' ? 'tozeroy':'',
+                          mode: getMode(type)
+                      }
+                      return values;
+                  }
+                }
+
+                function getLayout(plot) {
+                  var config = plot.config ? plot.config :
+                  { width: 1200,
+                    height: 500,
+                    showlegend: true,
+                    legend: { x:1, y:1 }
+                  };
+
+                  var margin = {}
+
+                  var layout = {
+                      title: plot.plot_title,
+                      width: config.width || 1200,
+                      height: config.height || 500,
+                      showlegend: config.showlegend != undefined ? config.showlegend : true,
+                      legend: config.legend,
+                      margin: margin
+
+                  };
+                  switch (plot.plot_type) {
+                    case "pie":
+                      return layout;
+                    case "histogram-horizontal":
+                      layout.bargap = plot.config.bargap;
+                    case "histogram-vertical":
+                      layout.bargap = plot.config.bargap;
+                      return layout;
+                    default:
+                      layout.margin = {
+                        l:400,
+                      };
+                      layout.xaxis = {
+                          title: plot.x_axis_label ? plot.x_axis_label : '',
+                          automargin: true,
+                      };
+                      layout.yaxis = {
+                          title: plot.y_axis_label ? plot.y_axis_label : '',
+                          automargin: true,
+                      };
+                      return layout;
+                  }
+                }
+
+                function formatData(data) {
+                  var formated_data = parseInt(data.split(' ')[0], 10);
+                  if (isNaN(formated_data)) {
+                    return data
+                  }
+                  return formated_data;
+                }
+
 
                 return {
                     getData: function () {
@@ -82,59 +195,115 @@
                           var tracesComplete = 0;
                           plot.traces.forEach(function (trace) {
                               server.http.get(trace.uri).then(function(response) {
-
-                                  var layout = {
-                                      title: plot.plot_title,
-                                      xaxis: {
-                                          title: plot.x_axis_label
-                                      },
-                                      yaxis: {
-                                          title: plot.y_axis_label
-                                      },
-                                      responsive: true,
-                                      autosize: true,
-                                      width: 1000,
-                                      height: 500,
-                                      showlegend: true,
-                                  };
+                                try {
+                                  var layout = getLayout(plot);
                                   var config = {
                                     displaylogo: false,
-                                    modeBarButtonsToRemove: plot.plotlyDefaultButtonsToRemove
+                                    modeBarButtonsToRemove: plot.plotlyDefaultButtonsToRemove,
+                                    responsive: true
                                   };
                                   var data = response.data;
+                                  switch (plot.plot_type) {
+                                    case "pie":
+                                      var values = getValues(plot.plot_type, '',  '');
+                                      if (plot.config) {
+                                        values.textinfo = plot.config.slice_label ? config.slice_label : "none";
+                                      } else {
+                                        values.textinfo = "none";
+                                      }
 
-                                  for(var i = 0; i < trace.y_col.length;i++) {
-                                    var values = {
-                                        x: [],
-                                        y: [],
-                                        type: getType(plot.plot_type),
-                                        name: trace.legend[i] || '',
-                                        fill: plot.plot_type == 'area' ? 'tozeroy':'',
-                                        mode: getMode(plot.plot_type)
-                                    }
-                                    data.forEach(function (row) {
-                                        values.x.push(row[trace.x_col]);
-                                        values.y.push(row[trace.y_col[i]]);
-                                    });
+                                      var label = true;
+                                      if(trace.legend != undefined) {
+                                        values.labels = trace.legend;
+                                        label = false;
+                                      }
 
-                                    plot_values.data.push(values);
-                                    plot_values.layout = layout;
-                                    plot_values.config = config;
+                                      data.forEach(function (row) {
+                                        if(label) {
+                                          values.labels.push(row[trace.legend_col]);
+                                        }
+                                        values.values.push(formatData(row[trace.data_col]));
+                                      });
+                                      plot_values.data.push(values);
+                                      plot_values.layout = layout;
+                                      plot_values.config = config;
+                                      break;
+                                    case "histogram-horizontal":
+                                      var values = getValues(plot.plot_type, trace.legend);
+                                      data.forEach(function (row) {
+                                        values.x.push(formatData(row[trace.data_col]));
+                                      });
+                                      plot_values.data.push(values);
+                                      plot_values.layout = layout;
+                                      plot_values.config = config;
+                                      break;
+                                    case "histogram-vertical":
+                                      var values = getValues(plot.plot_type, trace.legend);
+                                      data.forEach(function (row) {
+                                        values.y.push(formatData(row[trace.data_col]));
+                                      });
+                                      plot_values.data.push(values);
+                                      plot_values.layout = layout;
+                                      plot_values.config = config;
+                                      break;
+
+                                    case "bar":
+                                      if(trace.orientation == "h") {
+                                        for(var i = 0; i < trace.x_col.length;i++) {
+                                          var values = getValues(plot.plot_type, trace.legend ? trace.legend[i]: '',  trace.orientation);
+                                          data.forEach(function (row) {
+                                              values.x.push(formatData(row[trace.x_col[i]]));
+                                              values.y.push(formatData(row[trace.y_col]));
+                                              values.text.push(row[trace.x_col[i]])
+                                          });
+                                          plot_values.data.push(values);
+                                          plot_values.layout = layout;
+                                          plot_values.config = config;
+                                        }
+                                      } else {
+                                        for(var i = 0; i < trace.y_col.length;i++) {
+                                          var values = getValues(plot.plot_type, trace.legend ? trace.legend[i]: '',  trace.orientation);
+                                          data.forEach(function (row) {
+                                              values.x.push(formatData(row[trace.x_col]));
+                                              values.y.push(formatData(row[trace.y_col[i]]));
+                                              values.text.push(row[trace.y_col[i]])
+                                          });
+                                          plot_values.data.push(values);
+                                          plot_values.layout = layout;
+                                          plot_values.config = config;
+                                        }
+                                      }
+                                      break;
+                                    default:
+                                        for(var i = 0; i < trace.y_col.length;i++) {
+                                          var values = getValues(plot.plot_type, trace.legend ? trace.legend[i]: '',  trace.orientation);
+
+                                          data.forEach(function (row) {
+                                            values.x.push(formatData(row[trace.x_col]));
+                                            values.y.push(formatData(row[trace.y_col[i]]));
+                                          });
+                                          plot_values.data.push(values);
+                                          plot_values.layout = layout;
+                                          plot_values.config = config;
+                                        }
+                                        break;
                                   }
+
+
 
                                   tracesComplete++;
                                   if (tracesComplete == plot.traces.length) {
                                     var id = plots.length;
                                     plots.push({id:id, plot_values: plot_values});
                                     if (plots.length == plotConfig.plots.length) {
-                                      // $rootScope.plots = plots;
-                                      // Plotly.relayout();
                                       console.log("plots: ", plots);
                                       $rootScope.plots = plots;
-
                                     }
-
                                   }
+                                } catch (error) {
+                                  console.log(error);
+                              }
+
                               }).catch(function (err) {
                                   if (err.data) {
                                       if (err.status == 401) {
@@ -213,6 +382,19 @@
                         data: newPlotData,
                         layout: layout,
                         config: config
+                      };
+                      break;
+                    case "area":
+                      var newPlotData = [];
+                      plotsData.forEach(function (row) {
+                          row.type="scatter";
+                          row.fill = "tozeroy";
+                          newPlotData.push(row);
+                      });
+                      $rootScope.plots = {
+                        data: newPlotData,
+                        layout: layout,
+                        config: config,
                       };
                       break;
                     case "area":

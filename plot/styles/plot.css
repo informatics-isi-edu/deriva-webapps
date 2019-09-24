@@ -5,12 +5,15 @@
 
 .plot-container {
   display: block;
-  height: 85vh; /* TODO:  Make height dynamic*/
-  overflow: auto;
 }
 
 .plot {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+#main-content {
+  height: 88vh;
+  overflow: auto;
 }
