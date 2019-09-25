@@ -95,7 +95,8 @@ var plotConfig = {
         y_axis_type: 'log',                                                 // optional value
         margin: {
           l: 400                                                        // 'l' means left margin for lengthy data labels.
-        }
+        },
+        y_axis_thousands_separator: true,
       },
       traces: [
           {
@@ -129,7 +130,8 @@ var plotConfig = {
         x_axis_type: 'log',                                                 // optional value
         margin: {                                                          // optional value
           l: 400                                                        // left margin for lengthy data labels.
-        }
+        },
+        x_axis_thousands_separator: true,               // to separte number by , after 4 digits
       },
       traces: [
           {

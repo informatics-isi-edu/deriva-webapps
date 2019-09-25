@@ -24,6 +24,8 @@ Each plot will have the following parameters:
       6. x_axis_type: type to be used for x_axis // Values: "log"
       7. y_axis_type: type to be used for y_axis // Values: "log"
       8. margin: have l as an attribute which specifies left margin, similarly "r","t" and "b" for right, top and bottom
+      9. x_axis_thousands_separator: to separate number by , after 4 digits // bool : true or false
+      10. y_axis_thousands_separator: to separate number by , after 4 digits // bool : true or false
 Traces can be based on 1d and 2d plot.
 For 2d plot,
 6. traces: Contains the information about each each trace.

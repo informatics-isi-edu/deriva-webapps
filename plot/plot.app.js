@@ -146,7 +146,7 @@
                       height: config.height || 500,
                       showlegend: config.showlegend != undefined ? config.showlegend : true,
                       legend: config.legend,
-                      margin: margin
+                      margin: margin,
 
                   };
                   switch (plot.plot_type) {
@@ -163,11 +163,14 @@
                           title: plot.x_axis_label ? plot.x_axis_label : '',
                           automargin: true,
                           type: config.x_axis_type ? config.x_axis_type : 'auto',
+                          tickformat: config.x_axis_thousands_separator ? ',d' : '',
+
                       };
                       layout.yaxis = {
                           title: plot.y_axis_label ? plot.y_axis_label : '',
                           automargin: true,
                           type: config.y_axis_type ? config.y_axis_type : 'auto',
+                          tickformat: config.y_axis_thousands_separator ? ',d' : '',
                       };
                       return layout;
                   }
@@ -264,7 +267,7 @@
                                           data.forEach(function (row) {
                                               values.x.push(formatData(row[trace.x_col[i]]));
                                               values.y.push(formatData(row[trace.y_col]));
-                                              values.text.push(row[trace.x_col[i]])
+                                              values.text.push(formatData(row[trace.x_col[i]]))
                                           });
                                           plot_values.data.push(values);
                                           plot_values.layout = layout;
@@ -276,7 +279,7 @@
                                           data.forEach(function (row) {
                                               values.x.push(formatData(row[trace.x_col]));
                                               values.y.push(formatData(row[trace.y_col[i]]));
-                                              values.text.push(row[trace.y_col[i]])
+                                              values.text.push(formatData(row[trace.y_col[i]]))
                                           });
                                           plot_values.data.push(values);
                                           plot_values.layout = layout;
