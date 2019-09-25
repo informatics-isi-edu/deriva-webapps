@@ -21,8 +21,9 @@ Each plot will have the following parameters:
       3. height: Height of the plot // Default: 500
       4. width: width of the plot // Default: 1000
       5. slice_label: label to be shown on slice of a pie - only for pie chart // Default: "none", Available: "percent" or "value"
-      5. x_axis_type: type to be used for x_axis // Values: "log"
-      5. y_axis_type: type to be used for y_axis // Values: "log"
+      6. x_axis_type: type to be used for x_axis // Values: "log"
+      7. y_axis_type: type to be used for y_axis // Values: "log"
+      8. margin: have l as an attribute which specifies left margin, similarly "r","t" and "b" for right, top and bottom
 Traces can be based on 1d and 2d plot.
 For 2d plot,
 6. traces: Contains the information about each each trace.

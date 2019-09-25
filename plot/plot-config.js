@@ -93,6 +93,9 @@ var plotConfig = {
         width: 1200,
         // x_axis_type: 'log',                                                 // Optional value
         y_axis_type: 'log',                                                 // optional value
+        margin: {
+          l: 400                                                        // 'l' means left margin for lengthy data labels.
+        }
       },
       traces: [
           {
@@ -124,6 +127,9 @@ var plotConfig = {
         height: 1000,
         width: 1200,
         x_axis_type: 'log',                                                 // optional value
+        margin: {                                                          // optional value
+          l: 400                                                        // left margin for lengthy data labels.
+        }
       },
       traces: [
           {

@@ -158,9 +158,7 @@
                       layout.bargap = plot.config.bargap;
                       return layout;
                     default:
-                      layout.margin = {
-                        l:400,
-                      };
+                      layout.margin = config.margin ? config.margin : '';
                       layout.xaxis = {
                           title: plot.x_axis_label ? plot.x_axis_label : '',
                           automargin: true,
@@ -174,15 +172,17 @@
                       return layout;
                   }
                 }
-
-                function formatData(data) { // HACK: for the demo data
-                  var formated_data = parseInt(data.split(' ')[0], 10);
-                  if (isNaN(formated_data)) {
-                    return data
+                function formatData(data) {
+                  try {
+                    var formated_data = parseInt(data.split(' ')[0], 10);
+                    if (isNaN(formated_data)) {
+                      return data;
+                    }
+                    return formated_data;
+                  } catch (e) {
+                    return data;
                   }
-                  return formated_data;
                 }
-
 
                 return {
                     getData: function () {
