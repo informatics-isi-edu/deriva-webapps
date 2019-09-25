@@ -164,16 +164,18 @@
                       layout.xaxis = {
                           title: plot.x_axis_label ? plot.x_axis_label : '',
                           automargin: true,
+                          type: config.x_axis_type ? config.x_axis_type : 'auto',
                       };
                       layout.yaxis = {
                           title: plot.y_axis_label ? plot.y_axis_label : '',
                           automargin: true,
+                          type: config.y_axis_type ? config.y_axis_type : 'auto',
                       };
                       return layout;
                   }
                 }
 
-                function formatData(data) {
+                function formatData(data) { // HACK: for the demo data
                   var formated_data = parseInt(data.split(' ')[0], 10);
                   if (isNaN(formated_data)) {
                     return data
@@ -184,14 +186,22 @@
 
                 return {
                     getData: function () {
-                        var plots = []
+                        var plots = [];
+                        var count = 0;
+                        plotConfig.plots.forEach(function () {
+                            plots.push({id: count, loaded: false});
+                            count+=1
+                        });
                         var tracesComplete = 0;
                         var first_plot = plotConfig.plots[0]; // TODO: Currently picking  only the first plot config, make it more multiple plots
                         var plotComplete = 0;
+                        var i = 0
                         plotConfig.plots.forEach(function(plot) {
                           var plot_values = {
+                            id: i,
                             data: [],
                           };
+                          i += 1;
                           var tracesComplete = 0;
                           plot.traces.forEach(function (trace) {
                               server.http.get(trace.uri).then(function(response) {
@@ -207,7 +217,7 @@
                                     case "pie":
                                       var values = getValues(plot.plot_type, '',  '');
                                       if (plot.config) {
-                                        values.textinfo = plot.config.slice_label ? config.slice_label : "none";
+                                        values.textinfo = plot.config.slice_label ? plot.config.slice_label : "none";
                                       } else {
                                         values.textinfo = "none";
                                       }
@@ -293,9 +303,16 @@
 
                                   tracesComplete++;
                                   if (tracesComplete == plot.traces.length) {
-                                    var id = plots.length;
-                                    plots.push({id:id, plot_values: plot_values});
-                                    if (plots.length == plotConfig.plots.length) {
+                                    plots[plot_values.id].plot_values = plot_values;
+                                    plots[plot_values.id].loaded = true;
+                                    var allLoaded = true;
+                                    for (var j=0; j<plots.length; j++) {
+                                      if (plots[j].loaded == false) {
+                                        allLoaded = false;
+                                        break;
+                                      }
+                                    }
+                                    if (allLoaded) {
                                       console.log("plots: ", plots);
                                       $rootScope.plots = plots;
                                     }
@@ -415,32 +432,39 @@
                   }
                 }
 
-                vm.plotsLoaded = false;
+                $scope.plotsLoaded = false;
                 $scope.showPlot = function () {
                 	if (vm.model.user == null) {
                 		vm.model.user = $rootScope.user;
                 	}
+                  try {
                     $scope.$apply(function () {
-                        vm.plotsLoaded = true;
+                        $scope.plotsLoaded = true;
                     });
+                  } catch (e) {
+                    throw e;
+                  }
+
                 }
             }])
-            .directive('plot', ['$rootScope', function ($rootScope) {
+            .directive('plot', ['$rootScope', '$timeout', function ($rootScope, $timeout) {
 
                 return {
                     link: function (scope, element) {
-                        scope.$watch('plots', function (plots) {
-                            console.log(plots);
-                            if (plots) {
-                            		for (var i = 0; i < plots.length; i++) {
-                            			if (plots[i].id == element[0].attributes['plot-id'].nodeValue) {
-                                    Plotly.newPlot(element[0], plots[i].plot_values.data, plots[i].plot_values.layout, plots[i].plot_values.config).then(function () {
-                        								scope.showPlot();
-                        						}.bind(plots.length));
+                          scope.$watch('plots', function (plots) {
+                              console.log(plots);
+                              if (plots) {
+                                $timeout(function() {
+                                  for (var i = 0; i < plots.length; i++) {
+                                    if (plots[i].id == element[0].attributes['plot-id'].nodeValue) {
+                                      Plotly.newPlot(element[0], plots[i].plot_values.data, plots[i].plot_values.layout, plots[i].plot_values.config).then(function () {
+                                        scope.showPlot();
+                                      }.bind(plots.length));
+                                    }
                                   }
-                                }
-                            }
-                        }, true);
+                                }, 0, false);
+                              }
+                            }, true);
                     }
                 };
             }])

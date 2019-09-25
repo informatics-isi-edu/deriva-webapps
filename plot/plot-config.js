@@ -1,5 +1,5 @@
 var plotConfig = {
-    page_title: "Plot",                                                     // Title of the page
+    page_title: "GUDMAP Release Status Dashboard",                                                     // Title of the page
     plots: [
       // {                                                                   // Array of object plots to be shown on the page
       //   plot_title: "Subject Plot",                                               // plot title
@@ -91,6 +91,8 @@ var plotConfig = {
       config: {
         height: 1000,
         width: 1200,
+        // x_axis_type: 'log',                                                 // Optional value
+        y_axis_type: 'log',                                                 // optional value
       },
       traces: [
           {
@@ -121,6 +123,7 @@ var plotConfig = {
       config: {
         height: 1000,
         width: 1200,
+        x_axis_type: 'log',                                                 // optional value
       },
       traces: [
           {

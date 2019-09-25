@@ -19,8 +19,10 @@ Each plot will have the following parameters:
       1. bargap: Distance between the bins in the histogram - Only valid for plot type as histogram
       2. showlegend: To show the legend or not
       3. height: Height of the plot // Default: 500
-      4. width: width of the plot // Deault: 1000
-      5. slice_label: label to be shown on slcie of a pie - oly for pie chart // Default: "none", Available: "percent" or "value"
+      4. width: width of the plot // Default: 1000
+      5. slice_label: label to be shown on slice of a pie - only for pie chart // Default: "none", Available: "percent" or "value"
+      5. x_axis_type: type to be used for x_axis // Values: "log"
+      5. y_axis_type: type to be used for y_axis // Values: "log"
 Traces can be based on 1d and 2d plot.
 For 2d plot,
 6. traces: Contains the information about each each trace.
@@ -33,8 +35,8 @@ For 1d plot,
 6. traces: Contains the information about each each trace.
       1. uri : The url from which the data has to be fetched.
       2. legend: The value of legend to be shown for this trace.
-      3. data_col: The column name for the x values
-      4. legend_col: An array of column name for the y values
+      3. data_col: The column name for the values
+      4. legend_col: An array of column name for the legend to be shown for the respective values
 
 
 
