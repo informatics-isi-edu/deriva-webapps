@@ -478,10 +478,10 @@
                  var subId = Session.subscribeOnChange(function () {
                    Session.unsubscribeOnChange(subId);
                    var session = Session.getSessionValue();
-                   if (!session) {
-                       var notAuthorizedError = new ERMrest.UnauthorizedError(messageMap.unauthorizedErrorCode, (messageMap.unauthorizedMessage + messageMap.reportErrorToAdmin));
-                       throw notAuthorizedError;
-                   }
+                   // if (!session) {
+                   //     var notAuthorizedError = new ERMrest.UnauthorizedError(messageMap.unauthorizedErrorCode, (messageMap.unauthorizedMessage + messageMap.reportErrorToAdmin));
+                   //     throw notAuthorizedError;
+                   // }
                    PlotUtils.getData();
                  });
                } catch (exception) {
