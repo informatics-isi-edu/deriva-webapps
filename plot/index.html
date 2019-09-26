@@ -61,8 +61,11 @@
                     ng-change="::ctrl.changeSelection()"></select>
               </div>
             </div> -->
-
-            <div class="plot" ng-repeat="plot in plots">
+            <div id="plotSpinner" ng-show="!plotsLoaded">
+              <img src="styles/images/loader.gif" class="spinner" />
+              <div style="margin-top: 15px;">Loading...</div>
+            </div>
+            <div class="plot" ng-show="plotsLoaded" ng-repeat="plot in plots">
               <plot plot-id="{{plot.id}}"></plot>
             </div>
           </div>

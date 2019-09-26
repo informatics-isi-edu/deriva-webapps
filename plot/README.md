@@ -19,10 +19,16 @@ Each plot will have the following parameters:
       1. bargap: Distance between the bins in the histogram - Only valid for plot type as histogram
       2. showlegend: To show the legend or not
       3. height: Height of the plot // Default: 500
-      4. width: width of the plot // Deault: 1000
-      5. slice_label: label to be shown on slcie of a pie - oly for pie chart // Default: "none", Available: "percent" or "value"
-Traces can be based on 1d and 2d plot.
-For 2d plot,
+      4. width: width of the plot // Default: 1000
+      5. slice_label: label to be shown on slice of a pie - only for pie chart // Default: "none", Available: "percent" or "value"
+      6. x_axis_type: type to be used for x_axis // Values: "log"
+      7. y_axis_type: type to be used for y_axis // Values: "log"
+      8. margin: have l as an attribute which specifies left margin, similarly "r","t" and "b" for right, top and bottom
+      9. x_axis_thousands_separator: to separate number by , after 4 digits // bool : true or false
+      10. y_axis_thousands_separator: to separate number by , after 4 digits // bool : true or false
+      10. format_data_x: false // defualt : false: to use the formatting of string for data or not. (Currently on valid for a particular case)
+      10. format_data_y: false // defualt : false: to use the hack for data or not (Currently on valid for a particular case)
+      10. format_data: false // defualt : false: to use the hack for data or not for 1d plot (Currently on valid for a particular case)
 6. traces: Contains the information about each each trace.
       1. uri : The url from which the data has to be fetched.
       2. legend: The value of legend to be shown for this trace.
@@ -33,8 +39,8 @@ For 1d plot,
 6. traces: Contains the information about each each trace.
       1. uri : The url from which the data has to be fetched.
       2. legend: The value of legend to be shown for this trace.
-      3. data_col: The column name for the x values
-      4. legend_col: An array of column name for the y values
+      3. data_col: The column name for the values
+      4. legend_col: An array of column name for the legend to be shown for the respective values
 
 
 

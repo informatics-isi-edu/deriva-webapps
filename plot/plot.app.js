@@ -146,7 +146,7 @@
                       height: config.height || 500,
                       showlegend: config.showlegend != undefined ? config.showlegend : true,
                       legend: config.legend,
-                      margin: margin
+                      margin: margin,
 
                   };
                   switch (plot.plot_type) {
@@ -158,40 +158,58 @@
                       layout.bargap = plot.config.bargap;
                       return layout;
                     default:
-                      layout.margin = {
-                        l:400,
-                      };
+                      layout.margin = config.margin ? config.margin : '';
                       layout.xaxis = {
                           title: plot.x_axis_label ? plot.x_axis_label : '',
                           automargin: true,
+                          type: config.x_axis_type ? config.x_axis_type : 'auto',
+                          tickformat: config.x_axis_thousands_separator ? ',d' : '',
+
                       };
                       layout.yaxis = {
                           title: plot.y_axis_label ? plot.y_axis_label : '',
                           automargin: true,
+                          type: config.y_axis_type ? config.y_axis_type : 'auto',
+                          tickformat: config.y_axis_thousands_separator ? ',d' : '',
                       };
                       return layout;
                   }
                 }
-
-                function formatData(data) {
-                  var formated_data = parseInt(data.split(' ')[0], 10);
-                  if (isNaN(formated_data)) {
+                function formatData(data, format) {
+                  if(format) {
+                    try {
+                      var formated_data = parseInt(data.split(' ')[0], 10);
+                      if (isNaN(formated_data)) {
+                        return data;
+                      }
+                      return formated_data;
+                    } catch (e) {
+                      return data;
+                    }
+                  }
+                  else {
                     return data
                   }
-                  return formated_data;
                 }
-
 
                 return {
                     getData: function () {
-                        var plots = []
+                        var plots = [];
+                        var count = 0;
+                        plotConfig.plots.forEach(function () {
+                            plots.push({id: count, loaded: false});
+                            count+=1
+                        });
                         var tracesComplete = 0;
                         var first_plot = plotConfig.plots[0]; // TODO: Currently picking  only the first plot config, make it more multiple plots
                         var plotComplete = 0;
+                        var i = 0
                         plotConfig.plots.forEach(function(plot) {
                           var plot_values = {
+                            id: i,
                             data: [],
                           };
+                          i += 1;
                           var tracesComplete = 0;
                           plot.traces.forEach(function (trace) {
                               server.http.get(trace.uri).then(function(response) {
@@ -207,7 +225,7 @@
                                     case "pie":
                                       var values = getValues(plot.plot_type, '',  '');
                                       if (plot.config) {
-                                        values.textinfo = plot.config.slice_label ? config.slice_label : "none";
+                                        values.textinfo = plot.config.slice_label ? plot.config.slice_label : "none";
                                       } else {
                                         values.textinfo = "none";
                                       }
@@ -222,7 +240,7 @@
                                         if(label) {
                                           values.labels.push(row[trace.legend_col]);
                                         }
-                                        values.values.push(formatData(row[trace.data_col]));
+                                        values.values.push(formatData(row[trace.data_col], plot.config ? plot.config.format_data : false));
                                       });
                                       plot_values.data.push(values);
                                       plot_values.layout = layout;
@@ -231,7 +249,7 @@
                                     case "histogram-horizontal":
                                       var values = getValues(plot.plot_type, trace.legend);
                                       data.forEach(function (row) {
-                                        values.x.push(formatData(row[trace.data_col]));
+                                        values.x.push(formatData(row[trace.data_col], plot.config ? plot.config.format_data : false));
                                       });
                                       plot_values.data.push(values);
                                       plot_values.layout = layout;
@@ -240,7 +258,7 @@
                                     case "histogram-vertical":
                                       var values = getValues(plot.plot_type, trace.legend);
                                       data.forEach(function (row) {
-                                        values.y.push(formatData(row[trace.data_col]));
+                                        values.y.push(formatData(row[trace.data_col], plot.config ? plot.config.format_data : false));
                                       });
                                       plot_values.data.push(values);
                                       plot_values.layout = layout;
@@ -252,9 +270,9 @@
                                         for(var i = 0; i < trace.x_col.length;i++) {
                                           var values = getValues(plot.plot_type, trace.legend ? trace.legend[i]: '',  trace.orientation);
                                           data.forEach(function (row) {
-                                              values.x.push(formatData(row[trace.x_col[i]]));
-                                              values.y.push(formatData(row[trace.y_col]));
-                                              values.text.push(row[trace.x_col[i]])
+                                              values.x.push(formatData(row[trace.x_col[i]], plot.config ? plot.config.format_data_x : false));
+                                              values.y.push(formatData(row[trace.y_col], plot.config ? plot.config.format_data_y : false));
+                                              values.text.push(formatData(row[trace.x_col[i]], plot.config ? plot.config.format_data_x : false))
                                           });
                                           plot_values.data.push(values);
                                           plot_values.layout = layout;
@@ -264,9 +282,9 @@
                                         for(var i = 0; i < trace.y_col.length;i++) {
                                           var values = getValues(plot.plot_type, trace.legend ? trace.legend[i]: '',  trace.orientation);
                                           data.forEach(function (row) {
-                                              values.x.push(formatData(row[trace.x_col]));
-                                              values.y.push(formatData(row[trace.y_col[i]]));
-                                              values.text.push(row[trace.y_col[i]])
+                                              values.x.push(formatData(row[trace.x_col], plot.config ? plot.config.format_data_x : false));
+                                              values.y.push(formatData(row[trace.y_col[i]], plot.config ? plot.config.format_data_y : false));
+                                              values.text.push(formatData(row[trace.y_col[i]], plot.config ? plot.config.format_data_y : false));
                                           });
                                           plot_values.data.push(values);
                                           plot_values.layout = layout;
@@ -279,8 +297,8 @@
                                           var values = getValues(plot.plot_type, trace.legend ? trace.legend[i]: '',  trace.orientation);
 
                                           data.forEach(function (row) {
-                                            values.x.push(formatData(row[trace.x_col]));
-                                            values.y.push(formatData(row[trace.y_col[i]]));
+                                            values.x.push(formatData(row[trace.x_col], plot.config ? plot.config.format_data_x : false));
+                                            values.y.push(formatData(row[trace.y_col[i]], plot.config ? plot.config.format_data_y : false));
                                           });
                                           plot_values.data.push(values);
                                           plot_values.layout = layout;
@@ -293,9 +311,16 @@
 
                                   tracesComplete++;
                                   if (tracesComplete == plot.traces.length) {
-                                    var id = plots.length;
-                                    plots.push({id:id, plot_values: plot_values});
-                                    if (plots.length == plotConfig.plots.length) {
+                                    plots[plot_values.id].plot_values = plot_values;
+                                    plots[plot_values.id].loaded = true;
+                                    var allLoaded = true;
+                                    for (var j=0; j<plots.length; j++) {
+                                      if (plots[j].loaded == false) {
+                                        allLoaded = false;
+                                        break;
+                                      }
+                                    }
+                                    if (allLoaded) {
                                       console.log("plots: ", plots);
                                       $rootScope.plots = plots;
                                     }
@@ -415,32 +440,39 @@
                   }
                 }
 
-                vm.plotsLoaded = false;
+                $scope.plotsLoaded = false;
                 $scope.showPlot = function () {
                 	if (vm.model.user == null) {
                 		vm.model.user = $rootScope.user;
                 	}
+                  try {
                     $scope.$apply(function () {
-                        vm.plotsLoaded = true;
+                        $scope.plotsLoaded = true;
                     });
+                  } catch (e) {
+                    throw e;
+                  }
+
                 }
             }])
-            .directive('plot', ['$rootScope', function ($rootScope) {
+            .directive('plot', ['$rootScope', '$timeout', function ($rootScope, $timeout) {
 
                 return {
                     link: function (scope, element) {
-                        scope.$watch('plots', function (plots) {
-                            console.log(plots);
-                            if (plots) {
-                            		for (var i = 0; i < plots.length; i++) {
-                            			if (plots[i].id == element[0].attributes['plot-id'].nodeValue) {
-                                    Plotly.newPlot(element[0], plots[i].plot_values.data, plots[i].plot_values.layout, plots[i].plot_values.config).then(function () {
-                        								scope.showPlot();
-                        						}.bind(plots.length));
+                          scope.$watch('plots', function (plots) {
+                              console.log(plots);
+                              if (plots) {
+                                $timeout(function() {
+                                  for (var i = 0; i < plots.length; i++) {
+                                    if (plots[i].id == element[0].attributes['plot-id'].nodeValue) {
+                                      Plotly.newPlot(element[0], plots[i].plot_values.data, plots[i].plot_values.layout, plots[i].plot_values.config).then(function () {
+                                        scope.showPlot();
+                                      }.bind(plots.length));
+                                    }
                                   }
-                                }
-                            }
-                        }, true);
+                                }, 0, false);
+                              }
+                            }, true);
                     }
                 };
             }])
@@ -451,10 +483,10 @@
                  var subId = Session.subscribeOnChange(function () {
                    Session.unsubscribeOnChange(subId);
                    var session = Session.getSessionValue();
-                   if (!session) {
-                       var notAuthorizedError = new ERMrest.UnauthorizedError(messageMap.unauthorizedErrorCode, (messageMap.unauthorizedMessage + messageMap.reportErrorToAdmin));
-                       throw notAuthorizedError;
-                   }
+                   // if (!session) {
+                   //     var notAuthorizedError = new ERMrest.UnauthorizedError(messageMap.unauthorizedErrorCode, (messageMap.unauthorizedMessage + messageMap.reportErrorToAdmin));
+                   //     throw notAuthorizedError;
+                   // }
                    PlotUtils.getData();
                  });
                } catch (exception) {

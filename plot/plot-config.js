@@ -1,5 +1,5 @@
 var plotConfig = {
-    page_title: "Plot",                                                     // Title of the page
+    page_title: "GUDMAP Release Status Dashboard",                                                     // Title of the page
     plots: [
       // {                                                                   // Array of object plots to be shown on the page
       //   plot_title: "Subject Plot",                                               // plot title
@@ -22,7 +22,8 @@ var plotConfig = {
         plot_type: "pie",                                                 // ValuesValues can be from : "line", "bar", "dot", "area", "dot-lines", "pie", "histogram-horizontal", "histogram-verical"
         config: {
           showlegend: true,                                                 // to show the legend or not
-          slice_label: "value"                                              // what to show on the slice of pie chart - value or "percent
+          slice_label: "value",                                              // what to show on the slice of pie chart - value or "percent
+          format_data: true,
         },
         traces: [
 
@@ -91,6 +92,13 @@ var plotConfig = {
       config: {
         height: 1000,
         width: 1200,
+        // x_axis_type: 'log',                                                 // Optional value
+        y_axis_type: 'log',                                                 // optional value
+        margin: {
+          l: 400                                                        // 'l' means left margin for lengthy data labels.
+        },
+        y_axis_thousands_separator: true,
+        format_data_y: true                                                // defualt : false
       },
       traces: [
           {
@@ -121,6 +129,12 @@ var plotConfig = {
       config: {
         height: 1000,
         width: 1200,
+        x_axis_type: 'log',                                                 // optional value
+        margin: {                                                          // optional value
+          l: 400                                                        // left margin for lengthy data labels.
+        },
+        x_axis_thousands_separator: true,               // to separte number by , after 4 digits
+        format_data_x: false                                            // defualt : false
       },
       traces: [
           {
