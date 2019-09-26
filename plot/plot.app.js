@@ -175,15 +175,20 @@
                       return layout;
                   }
                 }
-                function formatData(data) {
-                  try {
-                    var formated_data = parseInt(data.split(' ')[0], 10);
-                    if (isNaN(formated_data)) {
+                function formatData(data, format) {
+                  if(format) {
+                    try {
+                      var formated_data = parseInt(data.split(' ')[0], 10);
+                      if (isNaN(formated_data)) {
+                        return data;
+                      }
+                      return formated_data;
+                    } catch (e) {
                       return data;
                     }
-                    return formated_data;
-                  } catch (e) {
-                    return data;
+                  }
+                  else {
+                    return data
                   }
                 }
 
@@ -235,7 +240,7 @@
                                         if(label) {
                                           values.labels.push(row[trace.legend_col]);
                                         }
-                                        values.values.push(formatData(row[trace.data_col]));
+                                        values.values.push(formatData(row[trace.data_col], plot.config ? plot.config.format_data : false));
                                       });
                                       plot_values.data.push(values);
                                       plot_values.layout = layout;
@@ -244,7 +249,7 @@
                                     case "histogram-horizontal":
                                       var values = getValues(plot.plot_type, trace.legend);
                                       data.forEach(function (row) {
-                                        values.x.push(formatData(row[trace.data_col]));
+                                        values.x.push(formatData(row[trace.data_col], plot.config ? plot.config.format_data : false));
                                       });
                                       plot_values.data.push(values);
                                       plot_values.layout = layout;
@@ -253,7 +258,7 @@
                                     case "histogram-vertical":
                                       var values = getValues(plot.plot_type, trace.legend);
                                       data.forEach(function (row) {
-                                        values.y.push(formatData(row[trace.data_col]));
+                                        values.y.push(formatData(row[trace.data_col], plot.config ? plot.config.format_data : false));
                                       });
                                       plot_values.data.push(values);
                                       plot_values.layout = layout;
@@ -265,9 +270,9 @@
                                         for(var i = 0; i < trace.x_col.length;i++) {
                                           var values = getValues(plot.plot_type, trace.legend ? trace.legend[i]: '',  trace.orientation);
                                           data.forEach(function (row) {
-                                              values.x.push(formatData(row[trace.x_col[i]]));
-                                              values.y.push(formatData(row[trace.y_col]));
-                                              values.text.push(formatData(row[trace.x_col[i]]))
+                                              values.x.push(formatData(row[trace.x_col[i]], plot.config ? plot.config.format_data_x : false));
+                                              values.y.push(formatData(row[trace.y_col], plot.config ? plot.config.format_data_y : false));
+                                              values.text.push(formatData(row[trace.x_col[i]], plot.config ? plot.config.format_data_x : false))
                                           });
                                           plot_values.data.push(values);
                                           plot_values.layout = layout;
@@ -277,9 +282,9 @@
                                         for(var i = 0; i < trace.y_col.length;i++) {
                                           var values = getValues(plot.plot_type, trace.legend ? trace.legend[i]: '',  trace.orientation);
                                           data.forEach(function (row) {
-                                              values.x.push(formatData(row[trace.x_col]));
-                                              values.y.push(formatData(row[trace.y_col[i]]));
-                                              values.text.push(formatData(row[trace.y_col[i]]))
+                                              values.x.push(formatData(row[trace.x_col], plot.config ? plot.config.format_data_x : false));
+                                              values.y.push(formatData(row[trace.y_col[i]], plot.config ? plot.config.format_data_y : false));
+                                              values.text.push(formatData(row[trace.y_col[i]], plot.config ? plot.config.format_data_y : false));
                                           });
                                           plot_values.data.push(values);
                                           plot_values.layout = layout;
@@ -292,8 +297,8 @@
                                           var values = getValues(plot.plot_type, trace.legend ? trace.legend[i]: '',  trace.orientation);
 
                                           data.forEach(function (row) {
-                                            values.x.push(formatData(row[trace.x_col]));
-                                            values.y.push(formatData(row[trace.y_col[i]]));
+                                            values.x.push(formatData(row[trace.x_col], plot.config ? plot.config.format_data_x : false));
+                                            values.y.push(formatData(row[trace.y_col[i]], plot.config ? plot.config.format_data_y : false));
                                           });
                                           plot_values.data.push(values);
                                           plot_values.layout = layout;
