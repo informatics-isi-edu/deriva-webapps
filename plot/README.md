@@ -26,8 +26,9 @@ Each plot will have the following parameters:
       8. margin: have l as an attribute which specifies left margin, similarly "r","t" and "b" for right, top and bottom
       9. x_axis_thousands_separator: to separate number by , after 4 digits // bool : true or false
       10. y_axis_thousands_separator: to separate number by , after 4 digits // bool : true or false
-Traces can be based on 1d and 2d plot.
-For 2d plot,
+      10. format_data_x: false // defualt : false: to use the formatting of string for data or not. (Currently on valid for a particular case)
+      10. format_data_y: false // defualt : false: to use the hack for data or not (Currently on valid for a particular case)
+      10. format_data: false // defualt : false: to use the hack for data or not for 1d plot (Currently on valid for a particular case)
 6. traces: Contains the information about each each trace.
       1. uri : The url from which the data has to be fetched.
       2. legend: The value of legend to be shown for this trace.
