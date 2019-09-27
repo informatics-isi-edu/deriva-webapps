@@ -31,6 +31,7 @@ var treeviewConfig = {
             query_pattern: "/ermrest/catalog/2/attributegroup/M:=Vocabulary:Developmental_Stage/species:=(Species)=(Vocabulary:Species:ID)/Name={{{$url_parameters.Species}}}/$M/id:=M:Name,Ordinal,Name,Approximate_Equivalent_Age@sort(Ordinal)",
             schema_table: "Vocabulary:Developmental_Stage", // for logging purposes
             default_id: null,
+            // id_filter_regexp: "TS*", // regular expression for filtering the set of data that is returned from query_pattern
             // pre-selected through url parameter: either run the query to get the same row or choose existing value
             selected_filter: {
                 required_url_parameters: ["Specimen_RID"],

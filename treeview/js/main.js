@@ -161,11 +161,14 @@
                         success: function(filterData) {
                             // TODO: remove if statement when we want to support multiple filters
                             if (idx == treeviewConfig.filters.length-1) {
-                                // add all options from filter data to list
+                                // add all options from filter data to list if they match reg_exp defined
                                 filterData.forEach(function(data, index) {
-                                    $el.append($("<option></option>")
-                                    .attr("value", data['Ordinal'])
-                                    .text(ERMrest._renderHandlebarsTemplate(filter.display_text, data)));
+                                    var regexp = RegExp(filter.id_filter_regexp);
+                                    if (!filter.id_filter_regexp || regexp.test(data['id'])) {
+                                        $el.append($("<option></option>")
+                                        .attr("value", data['Ordinal'])
+                                        .text(ERMrest._renderHandlebarsTemplate(filter.display_text, data)));
+                                    }
                                 });
                                 // append extra filter options
                                 if (filter.extra_filter_options) {
