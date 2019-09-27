@@ -23,7 +23,7 @@ var plotConfig = {
         config: {
           showlegend: true,                                                 // to show the legend or not
           slice_label: "value",                                              // what to show on the slice of pie chart - value or "percent
-          format_data: true,
+          format_data: true,                                                  // - to use hack or not for formatting
         },
         traces: [
 
@@ -98,7 +98,7 @@ var plotConfig = {
           l: 400                                                        // 'l' means left margin for lengthy data labels.
         },
         y_axis_thousands_separator: true,
-        format_data_y: true                                                // defualt : false
+        format_data_y: true                                                // defualt : false - to use hack or not
       },
       traces: [
           {
@@ -131,10 +131,25 @@ var plotConfig = {
         width: 1200,
         x_axis_type: 'log',                                                 // optional value
         margin: {                                                          // optional value
-          l: 400                                                        // left margin for lengthy data labels.
+          l: 400,
+          b:300                                                        // left margin for lengthy data labels.
         },
         x_axis_thousands_separator: true,               // to separte number by , after 4 digits
-        format_data_x: false                                            // defualt : false
+        format_data_x: false                                            // defualt : false - to use hack or not
+      },
+      plotly_config:{                                                 // config is ignored if plotly_config is provided
+        title: "Plot",                                               // plot title
+        height: 1000,
+        width: 1200,
+        xaxis: {
+          title: "value",                                            // plot x_axis label
+          tickformat: ',d',
+          type: 'log'
+        },
+        yaxis: {
+          title: "Resource",                                            // plot y_axis label
+          tickformat: ',d',
+        }
       },
       traces: [
           {

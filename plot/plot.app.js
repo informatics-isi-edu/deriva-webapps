@@ -131,6 +131,9 @@
                 }
 
                 function getLayout(plot) {
+                  if (plot.plotly_config) {
+
+                  }
                   var config = plot.config ? plot.config :
                   { width: 1200,
                     height: 500,
@@ -149,6 +152,10 @@
                       margin: margin,
 
                   };
+                  if (plot.plotly_config) {
+                    return plot.plotly_config 
+                  }
+
                   switch (plot.plot_type) {
                     case "pie":
                       return layout;
