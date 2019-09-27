@@ -95,7 +95,8 @@ var plotConfig = {
         // x_axis_type: 'log',                                                 // Optional value
         y_axis_type: 'log',                                                 // optional value
         margin: {
-          l: 400                                                        // 'l' means left margin for lengthy data labels.
+          l: 400,                                                               // 'l' means left margin for lengthy data labels.
+          b: 300                                                                // 'b' to spicify the bottom margin
         },
         y_axis_thousands_separator: true,
         format_data_y: true                                                // defualt : false - to use hack or not
@@ -132,7 +133,7 @@ var plotConfig = {
         x_axis_type: 'log',                                                 // optional value
         margin: {                                                          // optional value
           l: 400,
-          b:300                                                        // left margin for lengthy data labels.
+          b :400                                                        // left margin for lengthy data labels.
         },
         x_axis_thousands_separator: true,               // to separte number by , after 4 digits
         format_data_x: false                                            // defualt : false - to use hack or not
@@ -141,14 +142,16 @@ var plotConfig = {
         title: "Plot",                                               // plot title
         height: 1000,
         width: 1200,
+        legend:{
+          traceorder: "reversed"                                      // order of the legend is reversed
+        },
         xaxis: {
           title: "value",                                            // plot x_axis label
-          tickformat: ',d',
-          type: 'log'
+          tickformat: ',d',                                         // format for the ticks. For more formatting types, see: https://github.com/d3/d3-format/blob/master/README.md#locale_format
+          type: 'log',
         },
         yaxis: {
           title: "Resource",                                            // plot y_axis label
-          tickformat: ',d',
         }
       },
       traces: [
@@ -157,7 +160,9 @@ var plotConfig = {
               legend: ["# Released", "# Records"],            // name of traces in legend
               x_col: ["# Released", "# Records"],                                                // column name to use for x values
               y_col: ["Resource"],                          // array of column names to use for y values
-              orientation: "h"                            // Optional parameter for displaying the bar chart horizontally
+              orientation: "h",                            // Optional parameter for displaying the bar chart horizontally
+              hovertemplate: ',d'
+
 
           },
           // {

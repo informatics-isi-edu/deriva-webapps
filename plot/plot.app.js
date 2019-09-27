@@ -97,7 +97,7 @@
                           name: legend,
                           fill: type == 'area' ? 'tozeroy':'',
                           mode: getMode(type),
-                          orientation: orientation
+                          orientation: orientation,
                       }
                       return values;
                     case "histogram-horizontal":
@@ -153,7 +153,7 @@
 
                   };
                   if (plot.plotly_config) {
-                    return plot.plotly_config 
+                    return plot.plotly_config
                   }
 
                   switch (plot.plot_type) {
@@ -189,7 +189,7 @@
                       if (isNaN(formated_data)) {
                         return data;
                       }
-                      return formated_data;
+                      return formated_data.toLocaleString('en-US');
                     } catch (e) {
                       return data;
                     }
