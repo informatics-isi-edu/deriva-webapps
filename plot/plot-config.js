@@ -96,7 +96,8 @@ var plotConfig = {
         y_axis_type: 'log',                                                 // optional value
         margin: {
           l: 400,                                                               // 'l' means left margin for lengthy data labels.
-          b: 300                                                                // 'b' to spicify the bottom margin
+          b: 300,
+          t: 100                                                                // 'b' to spicify the bottom margin
         },
         y_axis_thousands_separator: true,
         format_data_y: true                                                // defualt : false - to use hack or not

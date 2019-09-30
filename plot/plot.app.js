@@ -98,6 +98,7 @@
                           fill: type == 'area' ? 'tozeroy':'',
                           mode: getMode(type),
                           orientation: orientation,
+                          hoverinfo: 'text'
                       }
                       return values;
                     case "histogram-horizontal":
@@ -189,7 +190,7 @@
                       if (isNaN(formated_data)) {
                         return data;
                       }
-                      return formated_data.toLocaleString('en-US');
+                      return parseInt(formated_data.toLocaleString('en-US'));
                     } catch (e) {
                       return data;
                     }
@@ -281,6 +282,7 @@
                                               values.y.push(formatData(row[trace.y_col], plot.config ? plot.config.format_data_y : false));
                                               values.text.push(formatData(row[trace.x_col[i]], plot.config ? plot.config.format_data_x : false))
                                           });
+                                          values.hoverinfo = 'text'
                                           plot_values.data.push(values);
                                           plot_values.layout = layout;
                                           plot_values.config = config;
@@ -293,6 +295,7 @@
                                               values.y.push(formatData(row[trace.y_col[i]], plot.config ? plot.config.format_data_y : false));
                                               values.text.push(formatData(row[trace.y_col[i]], plot.config ? plot.config.format_data_y : false));
                                           });
+                                          values.hoverinfo = 'text'
                                           plot_values.data.push(values);
                                           plot_values.layout = layout;
                                           plot_values.config = config;
