@@ -10,6 +10,7 @@ function expectedValue() {
     'TS07: 5 dpc (range 4.5-6.0)',
     'TS08: 6 dpc (range 5.0-6.5)',
     'TS09: 6.5 dpc (range 6.25-7.25)',
+    'p9',
     'TS10: 7 dpc (range 6.5-7.75)',
     'TS11: 7.5 dpc (range 7.25-8.0)',
     'TS12: 8 dpc (range 7.5-8.75)',
@@ -29,6 +30,9 @@ function expectedValue() {
     'TS26: 18 dpc',
     'TS27: Newborn (range P0-P3)',
     'TS28: Range P4-Adult',
+    'P50',
+    'Adult',
+    'P110',
     'All Stages'
   ];
   return this;
