@@ -56,7 +56,7 @@ function treeView(urlList, appName){
     urlList.forEach(function(ele){
         var url = ele.url+'/'+appName;
         statictreeview.tests(appName, url);
-        // dynamictreeview.tests(appName, url);
-        // recordpage.tests(appName, 'https://dev.rebuildingakidney.org'); // TODO: Need to fetch from config
+        dynamictreeview.tests(appName, url);
+        recordpage.tests(appName, 'https://dev.rebuildingakidney.org'); // TODO: Need to fetch from config
     });
 }
