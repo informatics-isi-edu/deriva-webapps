@@ -1,3 +1,4 @@
+function loadModule() {
 (function () {
     'use strict';
 
@@ -505,3 +506,80 @@
              }
          ]);
 })();
+}
+
+var chaisePath = "/chaise/";
+if (typeof chaiseConfig != 'undefined' && typeof chaiseConfig === "object" && chaiseConfig['chaiseBasePath'] !== undefined) {
+    chaisePath = chaiseConfig['chaiseBasePath'];
+}
+
+/**
+ * Here we load the JavaScript and CSS dependencies dynamically in the head of the containing html page
+ * This is done to reduce the number of Chaise dependencies that need to be otherwise added in the html page manually
+ * Also, if the names or the location of any of these files change, we could just change it here and the individual deployments do not have to know about that
+ */
+
+const JS_DEPS = [
+    'chaise-config.js',
+    'scripts/vendor/angular.js',
+    'scripts/vendor/jquery-1.11.1.min.js',
+    'scripts/vendor/bootstrap-3.3.7.min.js',
+    'scripts/vendor/plotly-latest.min.js',
+    'common/vendor/angular-cookies.min.js',
+    'scripts/vendor/angular-sanitize.js',
+    'scripts/vendor/ui-bootstrap-tpls-2.5.0.min.js',
+    'common/config.js',
+    'common/errors.js',
+    '../ermrestjs/ermrest.js',
+    'common/utils.js',
+    'common/validators.js',
+    'common/inputs.js',
+    'common/authen.js',
+    'common/filters.js',
+    'common/modal.js',
+    'common/navbar.js',
+    'common/storage.js',
+    'common/alerts.js',
+    'common/login.js',
+];
+
+const CSS_DEPS = [
+    'styles/vendor/bootstrap.min.css',
+    'common/styles/app.css',
+    'common/styles/appheader.css'
+];
+
+var head = document.getElementsByTagName('head')[0];
+function loadStylesheets(url) {
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.type = 'text/css';
+    link.href = chaisePath + url;
+    head.appendChild(link);
+}
+function loadJSDeps(url, callback) {
+    var script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = chaisePath + url;
+    script.onload = callback;
+    head.appendChild(script);
+}
+var jsIndex = 0;
+
+/**
+ * Function to load all JavaScript dependencies needed for the navbar app
+ * The loadModule() function is invoked only after all the dependencies have been added to the HTML page
+ * The loadModule() function has an IIFE with the module definition for 'chaise.navbarapp' which then adds the navbar app to the html page
+ */
+function fileLoaded() {
+    jsIndex = jsIndex + 1;
+    if (jsIndex == JS_DEPS.length) {
+        loadModule();
+    } else {
+        loadJSDeps(JS_DEPS[jsIndex], fileLoaded);
+    }
+}
+CSS_DEPS.forEach(function (url) {
+    loadStylesheets(url);
+});
+loadJSDeps(JS_DEPS[0], fileLoaded);
