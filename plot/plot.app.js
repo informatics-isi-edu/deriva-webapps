@@ -31,7 +31,7 @@ function loadModule() {
             .config(['$cookiesProvider', function ($cookiesProvider) {
                 $cookiesProvider.defaults.path = '/';
             }])
-            .factory('PlotUtils', ['AlertsService', 'ConfigUtils', 'dataFormats', 'Session', 'UriUtils', '$rootScope', function (AlertsService, ConfigUtils, dataFormats, Session, UriUtils, $rootScope) {
+            .factory('PlotUtils', ['AlertsService', 'ConfigUtils', 'dataFormats', 'Errors', 'ErrorService', 'Session', 'UriUtils', '$rootScope', function (AlertsService, ConfigUtils, dataFormats, Errors, ErrorService,  Session, UriUtils, $rootScope) {
                 var ermrestServiceUrl = ConfigUtils.getConfigJSON().ermrestLocation;
                 var contextHeaderParams = {"cid": "2d-plot"};
                 var server = ERMrest.ermrestFactory.getServer(ermrestServiceUrl, contextHeaderParams);
@@ -133,9 +133,6 @@ function loadModule() {
                 }
 
                 function getLayout(plot) {
-                  if (plot.plotly_config) {
-
-                  }
                   var config = plot.config ? plot.config :
                   { width: 1200,
                     height: 500,
@@ -191,26 +188,44 @@ function loadModule() {
                       if (isNaN(formated_data)) {
                         return data;
                       }
-                      return parseInt(formated_data.toLocaleString('en-US'));
+                      return  formated_data.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
                     } catch (e) {
                       return data;
                     }
                   }
                   else {
-                    return data
+                    return data.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
                   }
                 }
 
                 return {
-                    getData: function () {
+                    getData: function (config) {
                         var plots = [];
                         var count = 0;
-                        plotConfig.plots.forEach(function () {
-                            plots.push({id: count, loaded: false});
-                            count+=1
-                        });
+                        var plotConfig = plotConfigs[config];
+                        var message = "";
+                        var error;
+
+                        if (plotConfig == undefined) {
+                          if (config) {
+                            message = "Invalid config parameter in the url";
+                            error = new Errors.CustomError("Invalid config", message);
+                          } else {
+                            plotConfig = plotConfigs["*"];
+                          }
+                        }
+
+                        try {
+                          plotConfig.plots.forEach(function () {
+                              plots.push({id: count, loaded: false});
+                              count+=1
+                          });
+                        } catch (err) {
+                          var message = message || "Invalid config parameter in the url";
+                          var error = error || new Errors.CustomError("Invalid config", message);
+                          ErrorService.handleException(error);
+                        }
                         var tracesComplete = 0;
-                        var first_plot = plotConfig.plots[0]; // TODO: Currently picking  only the first plot config, make it more multiple plots
                         var plotComplete = 0;
                         var i = 0
                         plotConfig.plots.forEach(function(plot) {
@@ -278,6 +293,12 @@ function loadModule() {
                                       if(trace.orientation == "h") {
                                         for(var i = 0; i < trace.x_col.length;i++) {
                                           var values = getValues(plot.plot_type, trace.legend ? trace.legend[i]: '',  trace.orientation);
+                                          if (trace.textangle) {
+                                            values.textangle = trace.textangle;
+                                          }
+                                          if (trace.textfont) {
+                                            values.textfont = trace.textfont;
+                                          }
                                           data.forEach(function (row) {
                                               values.x.push(formatData(row[trace.x_col[i]], plot.config ? plot.config.format_data_x : false));
                                               values.y.push(formatData(row[trace.y_col], plot.config ? plot.config.format_data_y : false));
@@ -322,6 +343,9 @@ function loadModule() {
 
                                   tracesComplete++;
                                   if (tracesComplete == plot.traces.length) {
+                                    console.log(
+                                      plots
+                                    );
                                     plots[plot_values.id].plot_values = plot_values;
                                     plots[plot_values.id].loaded = true;
                                     var allLoaded = true;
@@ -332,7 +356,6 @@ function loadModule() {
                                       }
                                     }
                                     if (allLoaded) {
-                                      console.log("plots: ", plots);
                                       $rootScope.plots = plots;
                                     }
                                   }
@@ -368,14 +391,9 @@ function loadModule() {
                 var vm = this;
                 vm.alerts = AlertsService.alerts;
                 vm.dataFormats = dataFormats;
-                vm.x_label = plotConfig.x_axis_label;
+                // vm.x_label = plotConfig.x_axis_label;
                 vm.types = ["line", "bar", "dot", "area"];
-                vm.model = {
-                  title: plotConfig.page_title,
-                  type : {
-                    name: plotConfig.plot_type,
-                  }
-                }
+                vm.model = {};
                 vm.changeSelection = function(value) { // Not yet used for the selection of plot type
                   var plotsData = $rootScope.plots.data;
                   var layout = $rootScope.plots.layout;
@@ -471,7 +489,6 @@ function loadModule() {
                 return {
                     link: function (scope, element) {
                           scope.$watch('plots', function (plots) {
-                              console.log(plots);
                               if (plots) {
                                 $timeout(function() {
                                   for (var i = 0; i < plots.length; i++) {
@@ -487,10 +504,11 @@ function loadModule() {
                     }
                 };
             }])
-            .run(['ERMrest', 'PlotUtils', 'messageMap', 'Session', '$rootScope',
-             function runApp(ERMrest, PlotUtils, messageMap, Session, $rootScope) {
+            .run(['ERMrest', 'PlotUtils', 'messageMap', 'Session', 'UriUtils', '$rootScope', '$window',
+             function runApp(ERMrest, PlotUtils, messageMap, Session, UriUtils, $rootScope, $window) {
                try {
                  $rootScope.loginShown = false;
+                 var config = UriUtils.getQueryParam($window.location.href, "config");
                  var subId = Session.subscribeOnChange(function () {
                    Session.unsubscribeOnChange(subId);
                    var session = Session.getSessionValue();
@@ -498,7 +516,7 @@ function loadModule() {
                    //     var notAuthorizedError = new ERMrest.UnauthorizedError(messageMap.unauthorizedErrorCode, (messageMap.unauthorizedMessage + messageMap.reportErrorToAdmin));
                    //     throw notAuthorizedError;
                    // }
-                   PlotUtils.getData();
+                   PlotUtils.getData(config);
                  });
                } catch (exception) {
                    throw exception;
