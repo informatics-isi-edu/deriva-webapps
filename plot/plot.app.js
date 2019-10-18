@@ -96,8 +96,8 @@ function loadModule() {
                           textposition: 'outside',
                           type: getType(type),
                           name: legend,
-                          fill: type == 'area' ? 'tozeroy':'',
-                          mode: getMode(type),
+                          // fill: type == 'area' ? 'tozeroy':'',
+                          // mode: getMode(type),
                           orientation: orientation,
                           hoverinfo: 'text'
                       }
@@ -205,7 +205,11 @@ function loadModule() {
                         var plotConfig = plotConfigs[config];
                         var message = "";
                         var error;
-
+                        console.log(config, plotConfig);
+                        if (typeof plotConfig == "string") {
+                            plotConfig = plotConfigs[plotConfig];
+                        }
+                        console.log(plotConfig);
                         if (plotConfig == undefined) {
                           if (config) {
                             message = "Invalid config parameter in the url";
@@ -216,6 +220,7 @@ function loadModule() {
                         }
 
                         try {
+
                           plotConfig.plots.forEach(function () {
                               plots.push({id: count, loaded: false});
                               count+=1

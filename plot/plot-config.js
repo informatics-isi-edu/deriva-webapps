@@ -55,19 +55,11 @@ var plotConfigs = {
             xaxis: {
               title: "value",                                            // plot x_axis label
               // tickformat: ',d',                                         // format for the ticks. For more formatting types, see: https://github.com/d3/d3-format/blob/master/README.md#locale_format
-              tickfont: {
-                size: 12
-              },
               type: 'log',                                                 // optional value: tickformat should compatible with type
 
             },
             yaxis: {
-              title: "Resource",
-              tickfont: {
-                family: 'Courier New, monospace',
-                // size: 18,
-              }
-                                          // plot y_axis label
+              title: "Resource",                                          // plot y_axis label
             }
           },
           traces: [
@@ -77,28 +69,19 @@ var plotConfigs = {
                   x_col: ["# Released", "# Records"],                                                // column name to use for x values
                   y_col: ["Resource"],                          // array of column names to use for y values
                   orientation: "h",                            // Optional parameter for displaying the bar chart horizontally
-                  hovertemplate: ',d',
+                  // hovertemplate: ',d',
                   textfont: {
-                    size: 24
+                    size: 10                                    // It will work till the bar size can accomodate the font size
                   },
 
 
               },
-              // {
-              //     uri: "/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/$M@sort(%23%20Records,ID)?limit=26",            // The request url that has to be used to fetch the data.
-              //     legend: ["# Records"],            // name of traces in legend
-              //     x_col: ["# Records"],                                                // column name to use for x values
-              //     y_col: ["Resource"],                          // array of column names to use for y values
-              //     orientation: "h"                            // Optional parameter for displaying the bar chart horizontally
-              //
-              // },
           ],
           plotlyDefaultButtonsToRemove: ["scrollZoom", "zoom2d","sendDataToCloud","autoScale2d", "lasso2d", "select2d", "hoverClosestCartesian", "hoverCompareCartesian", "toggleSpikelines"]
           // Plotly defualt buttons/actions to be removed
         }]
   },
 };
-
 
 // var plotConfig = {
 //     page_title: "GUDMAP Release Status Dashboard",                                                     // Title of the page
