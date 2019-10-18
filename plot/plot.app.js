@@ -205,11 +205,9 @@ function loadModule() {
                         var plotConfig = plotConfigs[config];
                         var message = "";
                         var error;
-                        console.log(config, plotConfig);
                         if (typeof plotConfig == "string") {
                             plotConfig = plotConfigs[plotConfig];
                         }
-                        console.log(plotConfig);
                         if (plotConfig == undefined) {
                           if (config) {
                             message = "Invalid config parameter in the url";
@@ -348,9 +346,6 @@ function loadModule() {
 
                                   tracesComplete++;
                                   if (tracesComplete == plot.traces.length) {
-                                    console.log(
-                                      plots
-                                    );
                                     plots[plot_values.id].plot_values = plot_values;
                                     plots[plot_values.id].loaded = true;
                                     var allLoaded = true;
