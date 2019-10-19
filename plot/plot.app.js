@@ -188,12 +188,14 @@ function loadModule() {
                       if (isNaN(formated_data)) {
                         return data;
                       }
+                      // this regex is used to add a thousand separator in the number if possible
                       return  formated_data.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
                     } catch (e) {
                       return data;
                     }
                   }
                   else {
+                    // this regex is used to add a thousand separator in the number if possible
                     return data.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
                   }
                 }
