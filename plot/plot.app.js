@@ -1,3 +1,4 @@
+function loadModule() {
 (function () {
     'use strict';
 
@@ -30,7 +31,7 @@
             .config(['$cookiesProvider', function ($cookiesProvider) {
                 $cookiesProvider.defaults.path = '/';
             }])
-            .factory('PlotUtils', ['AlertsService', 'ConfigUtils', 'dataFormats', 'Session', 'UriUtils', '$rootScope', function (AlertsService, ConfigUtils, dataFormats, Session, UriUtils, $rootScope) {
+            .factory('PlotUtils', ['AlertsService', 'ConfigUtils', 'dataFormats', 'Errors', 'ErrorService', 'Session', 'UriUtils', '$rootScope', function (AlertsService, ConfigUtils, dataFormats, Errors, ErrorService,  Session, UriUtils, $rootScope) {
                 var ermrestServiceUrl = ConfigUtils.getConfigJSON().ermrestLocation;
                 var contextHeaderParams = {"cid": "2d-plot"};
                 var server = ERMrest.ermrestFactory.getServer(ermrestServiceUrl, contextHeaderParams);
@@ -95,9 +96,10 @@
                           textposition: 'outside',
                           type: getType(type),
                           name: legend,
-                          fill: type == 'area' ? 'tozeroy':'',
-                          mode: getMode(type),
-                          orientation: orientation
+                          // fill: type == 'area' ? 'tozeroy':'',
+                          // mode: getMode(type),
+                          orientation: orientation,
+                          hoverinfo: 'text'
                       }
                       return values;
                     case "histogram-horizontal":
@@ -149,6 +151,10 @@
                       margin: margin,
 
                   };
+                  if (plot.plotly_config) {
+                    return plot.plotly_config
+                  }
+
                   switch (plot.plot_type) {
                     case "pie":
                       return layout;
@@ -182,26 +188,49 @@
                       if (isNaN(formated_data)) {
                         return data;
                       }
-                      return formated_data;
+                      // this regex is used to add a thousand separator in the number if possible
+                      return  formated_data.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
                     } catch (e) {
                       return data;
                     }
                   }
                   else {
-                    return data
+                    // this regex is used to add a thousand separator in the number if possible
+                    return data.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
                   }
                 }
 
                 return {
-                    getData: function () {
+                    getData: function (config) {
                         var plots = [];
                         var count = 0;
-                        plotConfig.plots.forEach(function () {
-                            plots.push({id: count, loaded: false});
-                            count+=1
-                        });
+                        var plotConfig = plotConfigs[config];
+                        var message = "";
+                        var error;
+                        if (typeof plotConfig == "string") {
+                            plotConfig = plotConfigs[plotConfig];
+                        }
+                        if (plotConfig == undefined) {
+                          if (config) {
+                            message = "Invalid config parameter in the url";
+                            error = new Errors.CustomError("Invalid config", message);
+                          } else {
+                            plotConfig = plotConfigs["*"];
+                          }
+                        }
+
+                        try {
+
+                          plotConfig.plots.forEach(function () {
+                              plots.push({id: count, loaded: false});
+                              count+=1
+                          });
+                        } catch (err) {
+                          var message = message || "Invalid config parameter in the url";
+                          var error = error || new Errors.CustomError("Invalid config", message);
+                          ErrorService.handleException(error);
+                        }
                         var tracesComplete = 0;
-                        var first_plot = plotConfig.plots[0]; // TODO: Currently picking  only the first plot config, make it more multiple plots
                         var plotComplete = 0;
                         var i = 0
                         plotConfig.plots.forEach(function(plot) {
@@ -269,11 +298,18 @@
                                       if(trace.orientation == "h") {
                                         for(var i = 0; i < trace.x_col.length;i++) {
                                           var values = getValues(plot.plot_type, trace.legend ? trace.legend[i]: '',  trace.orientation);
+                                          if (trace.textangle) {
+                                            values.textangle = trace.textangle;
+                                          }
+                                          if (trace.textfont) {
+                                            values.textfont = trace.textfont;
+                                          }
                                           data.forEach(function (row) {
                                               values.x.push(formatData(row[trace.x_col[i]], plot.config ? plot.config.format_data_x : false));
                                               values.y.push(formatData(row[trace.y_col], plot.config ? plot.config.format_data_y : false));
                                               values.text.push(formatData(row[trace.x_col[i]], plot.config ? plot.config.format_data_x : false))
                                           });
+                                          values.hoverinfo = 'text'
                                           plot_values.data.push(values);
                                           plot_values.layout = layout;
                                           plot_values.config = config;
@@ -286,6 +322,7 @@
                                               values.y.push(formatData(row[trace.y_col[i]], plot.config ? plot.config.format_data_y : false));
                                               values.text.push(formatData(row[trace.y_col[i]], plot.config ? plot.config.format_data_y : false));
                                           });
+                                          values.hoverinfo = 'text'
                                           plot_values.data.push(values);
                                           plot_values.layout = layout;
                                           plot_values.config = config;
@@ -321,7 +358,6 @@
                                       }
                                     }
                                     if (allLoaded) {
-                                      console.log("plots: ", plots);
                                       $rootScope.plots = plots;
                                     }
                                   }
@@ -357,14 +393,9 @@
                 var vm = this;
                 vm.alerts = AlertsService.alerts;
                 vm.dataFormats = dataFormats;
-                vm.x_label = plotConfig.x_axis_label;
+                // vm.x_label = plotConfig.x_axis_label;
                 vm.types = ["line", "bar", "dot", "area"];
-                vm.model = {
-                  title: plotConfig.page_title,
-                  type : {
-                    name: plotConfig.plot_type,
-                  }
-                }
+                vm.model = {};
                 vm.changeSelection = function(value) { // Not yet used for the selection of plot type
                   var plotsData = $rootScope.plots.data;
                   var layout = $rootScope.plots.layout;
@@ -460,7 +491,6 @@
                 return {
                     link: function (scope, element) {
                           scope.$watch('plots', function (plots) {
-                              console.log(plots);
                               if (plots) {
                                 $timeout(function() {
                                   for (var i = 0; i < plots.length; i++) {
@@ -476,10 +506,11 @@
                     }
                 };
             }])
-            .run(['ERMrest', 'PlotUtils', 'messageMap', 'Session', '$rootScope',
-             function runApp(ERMrest, PlotUtils, messageMap, Session, $rootScope) {
+            .run(['ERMrest', 'PlotUtils', 'messageMap', 'Session', 'UriUtils', '$rootScope', '$window',
+             function runApp(ERMrest, PlotUtils, messageMap, Session, UriUtils, $rootScope, $window) {
                try {
                  $rootScope.loginShown = false;
+                 var config = UriUtils.getQueryParam($window.location.href, "config");
                  var subId = Session.subscribeOnChange(function () {
                    Session.unsubscribeOnChange(subId);
                    var session = Session.getSessionValue();
@@ -487,7 +518,7 @@
                    //     var notAuthorizedError = new ERMrest.UnauthorizedError(messageMap.unauthorizedErrorCode, (messageMap.unauthorizedMessage + messageMap.reportErrorToAdmin));
                    //     throw notAuthorizedError;
                    // }
-                   PlotUtils.getData();
+                   PlotUtils.getData(config);
                  });
                } catch (exception) {
                    throw exception;
@@ -495,3 +526,69 @@
              }
          ]);
 })();
+}
+
+var chaisePath = "/chaise/";
+if (typeof chaiseConfig != 'undefined' && typeof chaiseConfig === "object" && chaiseConfig['chaiseBasePath'] !== undefined) {
+    chaisePath = chaiseConfig['chaiseBasePath'];
+}
+
+const JS_DEPS = [
+    'chaise-config.js',
+    'scripts/vendor/angular.js',
+    'scripts/vendor/jquery-1.11.1.min.js',
+    'scripts/vendor/bootstrap-3.3.7.min.js',
+    'scripts/vendor/plotly-latest.min.js',
+    'common/vendor/angular-cookies.min.js',
+    'scripts/vendor/angular-sanitize.js',
+    'scripts/vendor/ui-bootstrap-tpls-2.5.0.min.js',
+    'common/config.js',
+    'common/errors.js',
+    '../ermrestjs/ermrest.js',
+    'common/utils.js',
+    'common/validators.js',
+    'common/inputs.js',
+    'common/authen.js',
+    'common/filters.js',
+    'common/modal.js',
+    'common/navbar.js',
+    'common/storage.js',
+    'common/alerts.js',
+    'common/login.js',
+];
+
+const CSS_DEPS = [
+    'styles/vendor/bootstrap.min.css',
+    'common/styles/app.css',
+    'common/styles/appheader.css'
+];
+
+var head = document.getElementsByTagName('head')[0];
+function loadStylesheets(url) {
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.type = 'text/css';
+    link.href = chaisePath + url;
+    head.appendChild(link);
+}
+function loadJSDeps(url, callback) {
+    var script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = chaisePath + url;
+    script.onload = callback;
+    head.appendChild(script);
+}
+var jsIndex = 0;
+
+function fileLoaded() {
+    jsIndex = jsIndex + 1;
+    if (jsIndex == JS_DEPS.length) {
+        loadModule();
+    } else {
+        loadJSDeps(JS_DEPS[jsIndex], fileLoaded);
+    }
+}
+CSS_DEPS.forEach(function (url) {
+    loadStylesheets(url);
+});
+loadJSDeps(JS_DEPS[0], fileLoaded);
