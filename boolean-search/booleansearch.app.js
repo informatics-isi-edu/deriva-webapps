@@ -172,7 +172,7 @@ var setSourceForFilter;
                 getSourceOptions: getSourceOptions
             };
         }])
-        .controller('BooleanSearchController', ['$scope', 'booleanSearchModel', 'defaultOptions', '$rootScope', 'ERMrest', '$window', 'filterOptions', 'Errors', 'ErrorService', 'modalUtils', 'UriUtils', 'headerInfo', function BooleanSearchController($scope, booleanSearchModel, defaultOptions, $rootScope, ERMrest, $window, filterOptions, Errors, ErrorService, modalUtils, UriUtils, headerInfo) {
+        .controller('BooleanSearchController', ['$scope', 'booleanSearchModel', 'defaultOptions', '$rootScope', 'ERMrest', '$window', 'filterOptions', 'Errors', 'ErrorService', 'modalUtils', 'UiUtils', 'UriUtils', 'headerInfo', function BooleanSearchController($scope, booleanSearchModel, defaultOptions, $rootScope, ERMrest, $window, filterOptions, Errors, ErrorService, modalUtils, UiUtils, UriUtils, headerInfo) {
             var config = Object.assign({}, booleanSearchConfig);
             $scope.options = defaultOptions;
             $scope.treeviewOpen = true;
@@ -202,6 +202,9 @@ var setSourceForFilter;
             });
 
             function initialize() {
+                // make sure the height is properly set
+                UiUtils.attachContainerHeightSensors();
+
                 vm.initialized = true;
                 var firstRow = new filterModel(defaultOptions);
                 vm.booleanSearchModel.rows[0] = firstRow;

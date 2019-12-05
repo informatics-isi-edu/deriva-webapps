@@ -2,30 +2,31 @@
 <html lang="en" id="booleansearch">
 <head>
     <title>Boolean Search App</title>
-    <script src='/chaise/chaise-config.js'></script>
-    <script src='/chaise/scripts/vendor/jquery-1.11.1.min.js'></script>
-    <script src='/chaise/scripts/vendor/angular.js'></script>
-    <script src='/chaise/scripts/vendor/angular-sanitize.js'></script>
-    <script src='/chaise/scripts/vendor/angular-messages.min.js'></script>
-    <script src='/chaise/common/vendor/angular-cookies.min.js'></script>
-    <script src='/chaise/common/vendor/angular-animate.min.js'></script>
-    <link rel="stylesheet" type="text/css" href="/chaise/styles/vendor/bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" href="/chaise/common/styles/app.css">
-    <link rel="stylesheet" type="text/css" href="/chaise/common/styles/appheader.css">
-    <script src='/chaise/scripts/vendor/bootstrap-3.3.7.min.js'></script>
-    <script src='/chaise/scripts/vendor/ui-bootstrap-tpls-2.5.0.min.js'></script>
-    <script src='/chaise/common/alerts.js'></script>
-    <script src='/chaise/common/authen.js'></script>
-    <script src='/chaise/common/storage.js'></script>
-    <script src='/chaise/common/errors.js'></script>
-    <script src='/chaise/common/filters.js'></script>
-    <script src='/chaise/common/modal.js'></script>
-    <script src='/chaise/common/utils.js'></script>
-    <script src='/chaise/common/login.js'></script>
-    <script src='/chaise/common/navbar.js'></script>
-    <script src='/chaise/common/resizable.js'></script>
-    <script src='/chaise/common/config.js'></script>
-    <script src='/ermrestjs/ermrest.js'></script>
+    <script src='../../chaise/chaise-config.js'></script>
+    <script src='../../chaise/scripts/vendor/jquery-1.11.1.min.js'></script>
+    <script src='../../chaise/scripts/vendor/angular.js'></script>
+    <script src='../../chaise/scripts/vendor/angular-sanitize.js'></script>
+    <script src='../../chaise/scripts/vendor/angular-messages.min.js'></script>
+    <script src='../../chaise/common/vendor/angular-cookies.min.js'></script>
+    <script src='../../chaise/common/vendor/angular-animate.min.js'></script>
+    <link rel="stylesheet" type="text/css" href="../../chaise/styles/vendor/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="../../chaise/common/styles/app.css">
+    <link rel="stylesheet" type="text/css" href="../../chaise/common/styles/navbar.css">
+    <script src='../../chaise/scripts/vendor/bootstrap-3.3.7.min.js'></script>
+    <script src='../../chaise/scripts/vendor/ui-bootstrap-tpls-2.5.0.min.js'></script>
+    <script src="../../chaise/common/vendor/css-element-queries.js"></script>
+    <script src='../../chaise/common/alerts.js'></script>
+    <script src='../../chaise/common/authen.js'></script>
+    <script src='../../chaise/common/storage.js'></script>
+    <script src='../../chaise/common/errors.js'></script>
+    <script src='../../chaise/common/filters.js'></script>
+    <script src='../../chaise/common/modal.js'></script>
+    <script src='../../chaise/common/utils.js'></script>
+    <script src='../../chaise/common/login.js'></script>
+    <script src='../../chaise/common/navbar.js'></script>
+    <script src='../../chaise/common/resizable.js'></script>
+    <script src='../../chaise/common/config.js'></script>
+    <script src='../../ermrestjs/ermrest.js'></script>
     <link rel="stylesheet" type="text/css" href="styles/booleansearch.css">
     <script src="booleansearch-config.js"></script>
     <script src="booleansearch.app.js"></script>
@@ -34,17 +35,15 @@
 
 </head>
 
-<body>
+<body class="chaise-body">
     <div class="configure-container" ng-app="chaise.configure-booleansearchApp"></div>
-    <div class="mainContainer">
+    <div class="app-container">
         <navbar></navbar>
-        <div class="app-container" ng-controller="BooleanSearchController as form" id="appDiv">
-            <div class="row">
-                <div id="titleBar" class="col-xs-12 meta-icons">
-                    <div id="title" class="pull-left">
-                        <h3 id="page-title">
-                            <span>Boolean Search</span>
-                        </h3>
+        <div class="boolean-search-container app-content-container" ng-controller="BooleanSearchController as form">
+            <div class="top-panel-container">
+                <div class="top-flex-panel">
+                    <div class="top-left-panel">
+                        <h1 id="page-title">Boolean Search</h1>
                     </div>
                 </div>
             </div>
@@ -52,7 +51,8 @@
                 <img src="styles/images/loader.gif" class="spinner" />
                 <div style="margin-top: 15px;">Loading...</div>
             </div>
-            <div class="content-container" ng-show="form.initialized">
+            <div class="bottom-panel-container">
+                <div ng-show="form.initialized"></div>
                 <div class="resizable-panel resizable" ng-class="{'open-panel': treeviewOpen, 'close-panel': !treeviewOpen}">
                     <div class="treeview-panel">
                         <tree-view></tree-view>
@@ -65,8 +65,8 @@
                         </button>
                     </div>
                 </div>
-                <div class="booleanSearchContainer">
-                    <div class="sideMargin">
+                <div class="booleanSearchContainer main-container">
+                    <div>
                         <div class="input-group inlineClass">
                             <input id="filtersInput" ng-model="form.filters" ng-required="true" placeholder="Boolean Query"></input>
                             <button id="clear-filter-btn" class="btn btn-primary btn-inverted center-block btn-height filter-btn"
@@ -99,7 +99,7 @@
                             </button>
                         </div>
                     </div>
-                    <div class="form-container sideMargin">
+                    <div class="form-container">
                         <table ng-form="form.formContainer" class="table table-hover filterTable" cellspacing="10">
                             <tbody>
                                 <tr>
@@ -188,6 +188,7 @@
                         </table>
                     </div>
                 </div>
+            </div>
             </div>
         </div>
     </div>
