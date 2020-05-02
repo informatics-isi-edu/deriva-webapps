@@ -1,5 +1,5 @@
 var plotConfigs = {
-  "rbk-config": {                                                                   // Array of object plots to be shown on the page
+    "rbk-config": {                                                                   // Array of object plots to be shown on the page
         page_title: "GUDMAP Release Status Dashboard",                                                     // Title of the page
         plots: [
           {                                                                   // Array of object plots to be shown on the page
