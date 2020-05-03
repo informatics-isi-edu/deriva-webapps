@@ -3,6 +3,8 @@
 This app uses Chaise assuming Chaise is at the same level as deriva-webapps folder.
 
 ## Configuration
+A Plot app deployment includes a sample config file (plot-config-sample.js) at the root directory that you can edit and then rename to plot-config.js.
+
 The plot-config.js file has the following parameters which can be modified when using this app.
 
 ### Data parameters
