@@ -4,6 +4,7 @@ This app uses Chaise assuming Chaise is at the same level as deriva-webapps fold
 
 ## Configuration
 The plot-config.js file has the following parameters which can be modified when using this app.
+The config file specify the parameters for a particular key i.e. `rbk-config`
 
 ### Data parameters
 1. page_title(optional): Title of the plot app.
@@ -29,22 +30,26 @@ Each plot will have the following parameters:
       10. format_data_x: false // defualt : false: to use the formatting of string for data or not. (Currently on valid for a particular case)
       10. format_data_y: false // defualt : false: to use the hack for data or not (Currently on valid for a particular case)
       10. format_data: false // defualt : false: to use the hack for data or not for 1d plot (Currently on valid for a particular case)
-6. traces: Contains the information about each each trace.
+6. plotly_config: the config is ignored if plot_config is provided. For all plotly_config, see [here](https://plotly.com/javascript/configuration-options/)
+7. traces: Contains the information about each each trace.
       1. uri : The url from which the data has to be fetched.
       2. legend: The value of legend to be shown for this trace.
       3. x_col: The column name for the x values
       4. y_col: An array of column name for the y values
+      5. orientation: Optional parameter for displaying the bar chart horizontally // default: 'h'
+      6. textfont: It will work till the bar size can accomodate the font size
+
 
 For 1d plot,
-6. traces: Contains the information about each each trace.
+7. traces: Contains the information about each each trace.
       1. uri : The url from which the data has to be fetched.
       2. legend: The value of legend to be shown for this trace.
       3. data_col: The column name for the values
       4. legend_col: An array of column name for the legend to be shown for the respective values
+      5. show_percentage: To show the percentage or not on slices
 
 
-
-7. plotlyButtonsToRemove: The button to be removed shown by plotly by defualt.
+8. plotlyButtonsToRemove: The button to be removed shown by plotly by defualt.
 
 #### Note
 If any of the above (Presentation or data) values is not mentioned, the app will throw an error. If you don't want to set a value, set it to `null`.
@@ -63,6 +68,22 @@ var plotConfig = {
       config: {
         bargap: 0,                                                              // the distance between the bins in the histogram - only for histogram
         showlegend: false,                                                      // to show the legend or not
+      },
+      plotly_config:{                                                 // config is ignored if plotly_config is provided
+        title: "Plot",                                               // plot title
+        height: 700,
+        width: 1200,
+        legend:{
+          traceorder: "reversed"                                      // order of the legend is reversed
+        },
+        xaxis: {
+          title: "value",                                            // plot x_axis label
+          // tickformat: ',d',                                         // format for the ticks. For more formatting types, see: https://github.com/d3/d3-format/blob/master/README.md#locale_format
+          type: 'log',                                                 // optional value: tickformat should compatible with type
+        },
+        yaxis: {
+          title: "Resource",                                          // plot y_axis label
+        }
       },
       traces: [
           {
@@ -108,6 +129,7 @@ var plotConfig = {
               legend: ["Browser All Events", "Browser Read Events"],            // OPTIONAL: custom name of legend in the traces
               data_col: "requests",                                                // name of the attribute of the data column
               legend_col: "viewer",                                              // name of the attribute of the legend column
+
           },
       ],
       plotlyDefaultButtonsToRemove: ["scrollZoom", "zoom2d","sendDataToCloud","autoScale2d", "lasso2d", "select2d", "hoverClosestCartesian", "hoverCompareCartesian", "toggleSpikelines"]
@@ -119,7 +141,6 @@ if (typeof module === 'object' && module.exports && typeof require === 'function
     exports.config = plotConfig;
 }
 ```
-
 
 ## Installation
 
