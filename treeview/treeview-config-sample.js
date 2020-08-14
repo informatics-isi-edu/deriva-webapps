@@ -1,3 +1,8 @@
+/**
+ * Please Note
+ * This is a sample configuration file. Copy the contents to `treeview-config.js` and run `make install_w_configs` to use this configuration
+ */
+
 // url paramters (accessed by $url_parameters)
 // - Species
 // - Specimen_RID
