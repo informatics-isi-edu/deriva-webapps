@@ -1,4 +1,8 @@
 node_modules
 .DS_Store*
+plot/booleansearch-config.js
+plot/heatmap-config.js
+plot/lineplot-config.js
 plot/plot-config.js
+plot/treeview-config.js
 plot/.make-asset-block
