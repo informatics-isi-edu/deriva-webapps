@@ -1,3 +1,8 @@
+/**
+ * Please Note
+ * This is a sample configuration file. Copy the contents to `plot-config.js` and run `make install_w_configs` to use this configuration
+ */
+
 var plotConfigs = {
   "rbk-config": {                                                                   // Array of object plots to be shown on the page
         page_title: "GUDMAP Release Status Dashboard",                                                     // Title of the page

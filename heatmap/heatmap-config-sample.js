@@ -1,3 +1,8 @@
+/**
+ * Please Note
+ * This is a sample configuration file. Copy the contents to `heatmap-config.js` and run `make install_w_configs` to use this configuration
+ */
+
 var heatmapConfig = {
     data:{
         titleColumn: "Section",

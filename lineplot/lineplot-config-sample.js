@@ -1,3 +1,8 @@
+/**
+ * Please Note
+ * This is a sample configuration file. Copy the contents to `lineplot-config.js` and run `make install_w_configs` to use this configuration
+ */
+
 var currentDate = Date.now();
 var start = currentDate - (5*60*60*1000);
 var startDate = new Date(start);
