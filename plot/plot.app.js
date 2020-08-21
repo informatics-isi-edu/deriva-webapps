@@ -52,6 +52,8 @@ function loadModule() {
                       return "pie";
                     case "histogram":
                       return "histogram";
+                    case "violin":
+                      return "violin";
                     default:
                       return "scatter";
                   }
@@ -72,6 +74,8 @@ function loadModule() {
                     case "pie":
                       return "";
                     case "histogram":
+                      return "";
+                    case "violin":
                       return "";
                     default:
                       return "line+markers";
@@ -118,7 +122,13 @@ function loadModule() {
                             orientation: orientation
                         }
                         return values;
-
+                    case "violin":
+                        values = {
+                          x: [],
+                          y: [],
+                          name: legend
+                        }
+                        return values;
                     default:
                       values = {
                           x: [],
@@ -142,6 +152,13 @@ function loadModule() {
 
                   var margin = {}
 
+                  var layoutForViolinPlot = {
+                      title: "Multiple Traces Violin Plot",
+                      yaxis: {
+                        zeroline: false
+                      }
+                  }
+
                   var layout = {
                       title: plot.plot_title,
                       width: config.width || 1200,
@@ -163,6 +180,8 @@ function loadModule() {
                     case "histogram-vertical":
                       layout.bargap = plot.config.bargap;
                       return layout;
+                    case "violin":
+                      return layoutForViolinPlot;
                     default:
                       layout.margin = config.margin ? config.margin : '';
                       layout.xaxis = {
@@ -239,16 +258,85 @@ function loadModule() {
                             data: [],
                           };
                           i += 1;
+                          var config = {
+                              displaylogo: false,
+                              modeBarButtonsToRemove: plot.plotlyDefaultButtonsToRemove,
+                              responsive: true
+                          };
                           var tracesComplete = 0;
+                          if(plot.plot_type == "violin") {
+                              // var layout = getLayout(plot);
+
+                              var dataForVP = {
+                                  type: 'violin',
+                                  x: ['Exp-1','Exp-1','Exp-4','Exp-1','Exp-1','Exp-2','Exp-3','Exp-2','Exp-2','Exp-4','Exp-5','Exp-1','Exp-4','Exp-1','Exp-4','Exp-1','Exp-2','Exp-5',
+                                      'Exp-5','Exp-4','Exp-4','Exp-3','Exp-2','Exp-1','Exp-1','Exp-2','Exp-5','Exp-3','Exp-2','Exp-5','Exp-1','Exp-2','Exp-4','Exp-1','Exp-5','Exp-1',
+                                      'Exp-1','Exp-1','Exp-1','Exp-5','Exp-3','Exp-5','Exp-5','Exp-5','Exp-3','Exp-5','Exp-2','Exp-2','Exp-1','Exp-4','Exp-2','Exp-2','Exp-5','Exp-4',
+                                      'Exp-3','Exp-3','Exp-2','Exp-2','Exp-5','Exp-3','Exp-2','Exp-3','Exp-4','Exp-3','Exp-4','Exp-1','Exp-5','Exp-4','Exp-3','Exp-4','Exp-1','Exp-2',
+                                      'Exp-2','Exp-1','Exp-1','Exp-5','Exp-5','Exp-2','Exp-5','Exp-3','Exp-3','Exp-5','Exp-4','Exp-1','Exp-2','Exp-5','Exp-2','Exp-2','Exp-1','Exp-1',
+                                      'Exp-4','Exp-4','Exp-5','Exp-3','Exp-1','Exp-2','Exp-2','Exp-1','Exp-1'],
+
+                                  y: ['703.34','938.968','884.015','304.698','774.298','971.773','519.296','155.22','308.908','79.146','610.217','950.372','895.207','839.104','211.723',
+                                      '622.563','367.011','580.243','784.19','950.275','741.848','340.381','689.229','518.671','352.226','833.074','101.019','476.802','465.399','543.563',
+                                      '169.754','422.382','761.932','549.364','958.456','953.197','587.373','853.021','327.662','850.922','903.977','925.768','564.601','508.658','350.916',
+                                      '790.655','144.26','77.719','771.576','322.358','569.353','892.265','985.505','508.283','764.488','32.071','470.262','201.675','996.925','404.286','974.869',
+                                      '402.373','762.116','464.251','911.75','324.425','506.807','653.48','668.004','452.229','465.793','809.651','739.547','447.928','260.487','198.974','823.095',
+                                      '152.728','248.291','435.548','701.164','23.407','921.307','385.331','924.217','162.681','931.291','204.11','931.755','638.209','564.759','929.372','360.634',
+                                      '39.935','708.046','535.198','864.045','199.052','526.609'],
+                                  points: 'none',
+                                  box: {
+                                    visible: true
+                                  },
+                                  line: {
+                                    color: 'red',
+                                  },
+                                  meanline: {
+                                    visible: true
+                                  },
+                                  transforms: [{
+                                    	 type: 'groupby',
+                                  	 groups: ['Exp-1','Exp-1','Exp-4','Exp-1','Exp-1','Exp-2','Exp-3','Exp-2','Exp-2','Exp-4','Exp-5','Exp-1','Exp-4','Exp-1','Exp-4','Exp-1','Exp-2','Exp-5',
+                                              'Exp-5','Exp-4','Exp-4','Exp-3','Exp-2','Exp-1','Exp-1','Exp-2','Exp-5','Exp-3','Exp-2','Exp-5','Exp-1','Exp-2','Exp-4','Exp-1','Exp-5','Exp-1',
+                                              'Exp-1','Exp-1','Exp-1','Exp-5','Exp-3','Exp-5','Exp-5','Exp-5','Exp-3','Exp-5','Exp-2','Exp-2','Exp-1','Exp-4','Exp-2','Exp-2','Exp-5','Exp-4',
+                                              'Exp-3','Exp-3','Exp-2','Exp-2','Exp-5','Exp-3','Exp-2','Exp-3','Exp-4','Exp-3','Exp-4','Exp-1','Exp-5','Exp-4','Exp-3','Exp-4','Exp-1','Exp-2',
+                                              'Exp-2','Exp-1','Exp-1','Exp-5','Exp-5','Exp-2','Exp-5','Exp-3','Exp-3','Exp-5','Exp-4','Exp-1','Exp-2','Exp-5','Exp-2','Exp-2','Exp-1','Exp-1',
+                                              'Exp-4','Exp-4','Exp-5','Exp-3','Exp-1','Exp-2','Exp-2','Exp-1','Exp-1'],
+                                  	 styles: [
+                                       {target: 'Exp-1', value: {line: {color: 'blue'}}},
+                                       {target: 'Exp-2', value: {line: {color: 'orange'}}},
+                                       {target: 'Exp-3', value: {line: {color: 'green'}}},
+                                       {target: 'Exp-4', value: {line: {color: 'red'}}},
+                                       {target: 'Exp-5', value: {line: {color: 'yellow'}}}
+                                  	 ]
+                                 }]
+                              }
+
+                              var layoutForViolinPlot = {
+                                title: "Multiple Traces Violin Plot",
+                                yaxis: {
+                                  zeroline: false
+                              }
+                            }
+
+                              // var values = getValues(plot.plot_type, '',  '');
+                              // for(var p = 0; p < d1.length;p++) {
+                              //   values.x.push(d1[p]);
+                              // }
+                              //
+                              // for(var q = 0; q < d2.length; q++) {
+                              //   values.y.push(d2[q]);
+                              // }
+
+                              // values.hoverinfo = 'text'
+                              plot_values.data.push(dataForVP);
+                              plot_values.layout = layoutForViolinPlot;
+                              plot_values.config = plot.config;
+                          }
+                          else {
                           plot.traces.forEach(function (trace) {
                               server.http.get(trace.uri).then(function(response) {
                                 try {
                                   var layout = getLayout(plot);
-                                  var config = {
-                                    displaylogo: false,
-                                    modeBarButtonsToRemove: plot.plotlyDefaultButtonsToRemove,
-                                    responsive: true
-                                  };
                                   var data = response.data;
                                   switch (plot.plot_type) {
                                     case "pie":
@@ -344,23 +432,6 @@ function loadModule() {
                                         break;
                                   }
 
-
-
-                                  tracesComplete++;
-                                  if (tracesComplete == plot.traces.length) {
-                                    plots[plot_values.id].plot_values = plot_values;
-                                    plots[plot_values.id].loaded = true;
-                                    var allLoaded = true;
-                                    for (var j=0; j<plots.length; j++) {
-                                      if (plots[j].loaded == false) {
-                                        allLoaded = false;
-                                        break;
-                                      }
-                                    }
-                                    if (allLoaded) {
-                                      $rootScope.plots = plots;
-                                    }
-                                  }
                                 } catch (error) {
                                   console.log(error);
                               }
@@ -383,10 +454,23 @@ function loadModule() {
                                       }
                                   }
                               });
-                          });
-                        });
-
-                    }
+                            });
+                          }
+                          tracesComplete++;
+                          plots[plot_values.id].plot_values = plot_values;
+                          plots[plot_values.id].loaded = true;
+                          var allLoaded = true;
+                          for (var j=0; j<plots.length; j++) {
+                            if (plots[j].loaded == false) {
+                                allLoaded = false;
+                                break;
+                            }
+                          }
+                          if (allLoaded) {
+                              $rootScope.plots = plots;
+                          }
+                      });
+                   }
                 }
             }])
             .controller('plotController', ['AlertsService', 'dataFormats', 'PlotUtils', 'UriUtils', '$window', '$rootScope', '$scope', '$timeout', function plotController(AlertsService, dataFormats, PlotUtils, UriUtils, $window, $rootScope, $scope, $timeout) {
