@@ -316,7 +316,8 @@
                                 type: $rootScope.yAxisScale,
                                 zeroline: false
                             },
-                            hovermode: "closest"
+                            hovermode: "closest",
+                            dragmode: "pan"
                         }
 
                         // values.hoverinfo = 'text'
