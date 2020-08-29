@@ -4,6 +4,36 @@
  */
 
 var plotConfigs = {
+    "study-violin": {
+        plots: [
+            {
+                plot_type: "violin",
+                geneUriPattern: "/ermrest/catalog/2/entity/RNASeq:Replicate_Expression/Study={{{$url_parameters.Study}}}/(NCBI_GeneID)=(Common:Gene:NCBI_GeneID)",
+                defaultGene: {
+                    data: {
+                        NCBI_GeneID: "18231"
+                    },
+                    displayname: {
+                        value: "Nxph1"
+                    }
+                },
+                config: {
+                    modeBarButtonsToRemove: ["select2d", "lasso2d", "hoverClosestCartesian", "hoverCompareCartesian", "toggleSpikelines"],
+                    displaylogo: false
+                },
+                groupKeys: ["Anatomical_Source", "Experiment", "Replicate", "Species", "Specimen", "Specimen_Type", "Stage"],
+                defaultGroup: "Experiment", //xaxis
+                yAxis: "TPM",
+                plotTitlePattern: "Study {{{$url_parameters.Study}}}: TPM Expression",
+                traces: [
+                    {
+                        // The request url that has to be used to fetch the data.
+                        queryPattern: "/ermrest/catalog/2/entity/RNASeq:Replicate_Expression/Study={{{$url_parameters.Study}}}&NCBI_GeneID={{{$filters.NCBI_GeneID}}}"
+                    }
+                ]
+            }
+        ]
+    },
   "rbk-config": {                                                                   // Array of object plots to be shown on the page
         page_title: "GUDMAP Release Status Dashboard",                                                     // Title of the page
         plots: [

@@ -1,4 +1,4 @@
-function loadModule() {
+// function loadModule() {
 (function () {
     'use strict';
 
@@ -18,9 +18,13 @@ function loadModule() {
         angular.module('plotApp', [
             'ngSanitize',
             'ngCookies',
+            'ngAnimate',
+            'duScroll',
             'chaise.alerts',
             'chaise.filters',
             'chaise.inputs',
+            'chaise.recordcreate',
+            'chaise.record.table',
             'chaise.utils',
             'ermrestjs',
             'ui.bootstrap',
@@ -31,7 +35,12 @@ function loadModule() {
             .config(['$cookiesProvider', function ($cookiesProvider) {
                 $cookiesProvider.defaults.path = '/';
             }])
-            .factory('PlotUtils', ['AlertsService', 'ConfigUtils', 'dataFormats', 'Errors', 'ErrorService', 'Session', 'UriUtils', '$rootScope', function (AlertsService, ConfigUtils, dataFormats, Errors, ErrorService,  Session, UriUtils, $rootScope) {
+            .constant('dataParams', {
+                uri: "",
+                plot: {},
+                id: null
+            })
+            .factory('PlotUtils', ['AlertsService', 'ConfigUtils', 'dataFormats', 'dataParams', 'Errors', 'ErrorService', 'Session', 'UriUtils', '$q', '$rootScope', '$window', function (AlertsService, ConfigUtils, dataFormats, dataParams, Errors, ErrorService,  Session, UriUtils, $q, $rootScope, $window) {
                 var ermrestServiceUrl = ConfigUtils.getConfigJSON().ermrestLocation;
                 var contextHeaderParams = {"cid": "2d-plot"};
                 var server = ERMrest.ermrestFactory.getServer(ermrestServiceUrl, contextHeaderParams);
@@ -200,6 +209,7 @@ function loadModule() {
                       return layout;
                   }
                 }
+
                 function formatData(data, format) {
                   if(format) {
                     try {
@@ -219,6 +229,110 @@ function loadModule() {
                   }
                 }
 
+                function setViolinUri() {
+                    $rootScope.geneId = $rootScope.templateParams.$filters.NCBI_GeneID = $rootScope.gene.data["NCBI_GeneID"];
+
+                    var uri = dataParams.traceUri;
+                    if (dataParams.queryPattern) {
+                        uri = ERMrest._renderHandlebarsTemplate(dataParams.queryPattern, $rootScope.templateParams);
+                        console.log(uri);
+                    }
+                    return uri;
+                }
+
+                function getViolinData() {
+                    var defer = $q.defer(),
+                        uri = setViolinUri(),
+                        plot = dataParams.plot,
+                        plot_values = dataParams.plot_values;
+
+                    server.http.get(uri).then(function(response) {
+                        var layout = getLayout(plot);
+                        var data = response.data;
+
+                        // NOTE: violin plot has it's own case since it's using the reference APIs in ermrestJS
+                        if (!$rootScope.groups) $rootScope.groups = plot.groupKeys;
+
+                        if (!$rootScope.groupKey) $rootScope.groupKey = plot.defaultGroup;
+                        console.log(data);
+
+                        // transform x data
+                        var xData = data.map(function (obj) {
+                            var value = obj[$rootScope.groupKey];
+                            return (value !== null && value !== undefined) ? value : "N/A"
+                        });
+
+                        console.log(xData);
+
+                        // transform y data
+                        var yData = data.map(function (obj) {
+                            return obj[plot.yAxis]
+                        });
+
+                        console.log(yData);
+
+                        // get unique x values and assign colors for group key
+                        var groupStyles = [];
+                        var colors = ["blue", "orange", "green", "red", "yellow"];
+                        var uniqueX = xData.filter(function (key, index, self) {
+                            return self.indexOf(key) === index;
+                        });
+
+                        uniqueX.forEach(function (x, index) {
+                            groupStyles.push({
+                                target: x,
+                                value: {line: {color: colors[index%colors.length]}}
+                            });
+                        });
+
+                        var dataForVP = {
+                            type: 'violin',
+                            x: xData,
+                            y: yData,
+                            // points: 'none',
+                            points: 'all',
+                            showlegend: false,
+                            box: {
+                                visible: true
+                            },
+                            meanline: {
+                                visible: true
+                            },
+                            transforms: [{
+                                type: 'groupby',
+                                groups: xData,
+                                styles: groupStyles
+                            }]
+                        }
+
+                        var plotTitle = (plot.plotTitlePattern ? ERMrest._renderHandlebarsTemplate(plot.plotTitlePattern, $rootScope.templateParams) : "TPM Expression");
+                        var layoutForViolinPlot = {
+                            title: plotTitle,
+                            xaxis: {
+                                title: $rootScope.groupKey
+                            },
+                            yaxis: {
+                                title: plot.yAxis,
+                                type: $rootScope.yAxisScale,
+                                zeroline: false
+                            },
+                            hovermode: "closest"
+                        }
+
+                        // values.hoverinfo = 'text'
+                        plot_values.data = [dataForVP];
+                        plot_values.layout = layoutForViolinPlot;
+                        plot_values.config = plot.config;
+
+                        defer.resolve(plot_values);
+                    }).catch(function (err) {
+                        console.log(err);
+                        defer.reject();
+                    });
+
+                    return defer.promise;
+                }
+
                 return {
                     getData: function (config) {
                         var plots = [];
@@ -230,256 +344,302 @@ function loadModule() {
                             plotConfig = plotConfigs[plotConfig];
                         }
                         if (plotConfig == undefined) {
-                          if (config) {
-                            message = "Invalid config parameter in the url";
-                            error = new Errors.CustomError("Invalid config", message);
-                          } else {
-                            plotConfig = plotConfigs["*"];
-                          }
+                            if (config) {
+                                message = "Invalid config parameter in the url";
+                                error = new Errors.CustomError("Invalid config", message);
+                            } else {
+                                plotConfig = plotConfigs["*"];
+                            }
                         }
 
                         try {
 
-                          plotConfig.plots.forEach(function () {
-                              plots.push({id: count, loaded: false});
-                              count+=1
-                          });
+                            plotConfig.plots.forEach(function () {
+                                plots.push({id: count, loaded: false});
+                                count+=1
+                            });
                         } catch (err) {
-                          var message = message || "Invalid config parameter in the url";
-                          var error = error || new Errors.CustomError("Invalid config", message);
-                          ErrorService.handleException(error);
+                            var message = message || "Invalid config parameter in the url";
+                            var error = error || new Errors.CustomError("Invalid config", message);
+                            ErrorService.handleException(error);
                         }
                         var tracesComplete = 0;
                         var plotComplete = 0;
+                        function checkPlotsLoaded(plotValues, plot) {
+                            tracesComplete++;
+                            plots[plotValues.id].plot_values = plotValues;
+                            plots[plotValues.id].loaded = true;
+                            plots[plotValues.id].plot_type = plot.plot_type;
+                            var allLoaded = true;
+                            for (var j=0; j<plots.length; j++) {
+                                if (plots[j].loaded == false) {
+                                    allLoaded = false;
+                                    break;
+                                }
+                            }
+                            if (allLoaded) {
+                                $rootScope.plots = plots;
+                            }
+                        }
+
                         var i = 0
-                        plotConfig.plots.forEach(function(plot) {
-                          var plot_values = {
-                            id: i,
-                            data: [],
-                          };
-                          i += 1;
-                          var config = {
-                              displaylogo: false,
-                              modeBarButtonsToRemove: plot.plotlyDefaultButtonsToRemove,
-                              responsive: true
-                          };
-                          var tracesComplete = 0;
-                          if(plot.plot_type == "violin") {
-                              // var layout = getLayout(plot);
+                        plotConfig.plots.forEach(function(plot, index) {
+                            var plot_values = {
+                                id: index,
+                                data: [],
+                            };
+                            var config = {
+                                displaylogo: false,
+                                modeBarButtonsToRemove: plot.plotlyDefaultButtonsToRemove,
+                                responsive: true
+                            };
+                            var tracesComplete = 0;
+                            if(plot.plot_type == "example") {
+                                var dataForVP = {
+                                    type: 'violin',
+                                    x: ['Exp-1','Exp-1','Exp-4','Exp-1','Exp-1','Exp-2','Exp-3','Exp-2','Exp-2','Exp-4','Exp-5','Exp-1','Exp-4','Exp-1','Exp-4','Exp-1','Exp-2','Exp-5',
+                                        'Exp-5','Exp-4','Exp-4','Exp-3','Exp-2','Exp-1','Exp-1','Exp-2','Exp-5','Exp-3','Exp-2','Exp-5','Exp-1','Exp-2','Exp-4','Exp-1','Exp-5','Exp-1',
+                                        'Exp-1','Exp-1','Exp-1','Exp-5','Exp-3','Exp-5','Exp-5','Exp-5','Exp-3','Exp-5','Exp-2','Exp-2','Exp-1','Exp-4','Exp-2','Exp-2','Exp-5','Exp-4',
+                                        'Exp-3','Exp-3','Exp-2','Exp-2','Exp-5','Exp-3','Exp-2','Exp-3','Exp-4','Exp-3','Exp-4','Exp-1','Exp-5','Exp-4','Exp-3','Exp-4','Exp-1','Exp-2',
+                                        'Exp-2','Exp-1','Exp-1','Exp-5','Exp-5','Exp-2','Exp-5','Exp-3','Exp-3','Exp-5','Exp-4','Exp-1','Exp-2','Exp-5','Exp-2','Exp-2','Exp-1','Exp-1',
+                                        'Exp-4','Exp-4','Exp-5','Exp-3','Exp-1','Exp-2','Exp-2','Exp-1','Exp-1'
+                                    ],
 
-                              var dataForVP = {
-                                  type: 'violin',
-                                  x: ['Exp-1','Exp-1','Exp-4','Exp-1','Exp-1','Exp-2','Exp-3','Exp-2','Exp-2','Exp-4','Exp-5','Exp-1','Exp-4','Exp-1','Exp-4','Exp-1','Exp-2','Exp-5',
-                                      'Exp-5','Exp-4','Exp-4','Exp-3','Exp-2','Exp-1','Exp-1','Exp-2','Exp-5','Exp-3','Exp-2','Exp-5','Exp-1','Exp-2','Exp-4','Exp-1','Exp-5','Exp-1',
-                                      'Exp-1','Exp-1','Exp-1','Exp-5','Exp-3','Exp-5','Exp-5','Exp-5','Exp-3','Exp-5','Exp-2','Exp-2','Exp-1','Exp-4','Exp-2','Exp-2','Exp-5','Exp-4',
-                                      'Exp-3','Exp-3','Exp-2','Exp-2','Exp-5','Exp-3','Exp-2','Exp-3','Exp-4','Exp-3','Exp-4','Exp-1','Exp-5','Exp-4','Exp-3','Exp-4','Exp-1','Exp-2',
-                                      'Exp-2','Exp-1','Exp-1','Exp-5','Exp-5','Exp-2','Exp-5','Exp-3','Exp-3','Exp-5','Exp-4','Exp-1','Exp-2','Exp-5','Exp-2','Exp-2','Exp-1','Exp-1',
-                                      'Exp-4','Exp-4','Exp-5','Exp-3','Exp-1','Exp-2','Exp-2','Exp-1','Exp-1'],
+                                    y: ['703.34','938.968','884.015','304.698','774.298','971.773','519.296','155.22','308.908','79.146','610.217','950.372','895.207','839.104','211.723','622.563','367.011','580.243',
+                                        '784.19','950.275','741.848','340.381','689.229','518.671','352.226','833.074','101.019','476.802','465.399','543.563','169.754','422.382','761.932','549.364','958.456','953.197',
+                                        '587.373','853.021','327.662','850.922','903.977','925.768','564.601','508.658','350.916','790.655','144.26','77.719','771.576','322.358','569.353','892.265','985.505','508.283',
+                                        '764.488','32.071','470.262','201.675','996.925','404.286','974.869','402.373','762.116','464.251','911.75','324.425','506.807','653.48','668.004','452.229','465.793','809.651',
+                                        '739.547','447.928','260.487','198.974','823.095','152.728','248.291','435.548','701.164','23.407','921.307','385.331','924.217','162.681','931.291','204.11','931.755','638.209',
+                                        '564.759','929.372','360.634','39.935','708.046','535.198','864.045','199.052','526.609'
+                                    ],
+                                    // points: 'none',
+                                    points: 'all',
+                                    box: {
+                                        visible: true
+                                    },
+                                    meanline: {
+                                        visible: true
+                                    },
+                                    transforms: [{
+                                        type: 'groupby',
+                                        groups: ['Exp-1','Exp-1','Exp-4','Exp-1','Exp-1','Exp-2','Exp-3','Exp-2','Exp-2','Exp-4','Exp-5','Exp-1','Exp-4','Exp-1','Exp-4','Exp-1','Exp-2','Exp-5',
+                                            'Exp-5','Exp-4','Exp-4','Exp-3','Exp-2','Exp-1','Exp-1','Exp-2','Exp-5','Exp-3','Exp-2','Exp-5','Exp-1','Exp-2','Exp-4','Exp-1','Exp-5','Exp-1',
+                                            'Exp-1','Exp-1','Exp-1','Exp-5','Exp-3','Exp-5','Exp-5','Exp-5','Exp-3','Exp-5','Exp-2','Exp-2','Exp-1','Exp-4','Exp-2','Exp-2','Exp-5','Exp-4',
+                                            'Exp-3','Exp-3','Exp-2','Exp-2','Exp-5','Exp-3','Exp-2','Exp-3','Exp-4','Exp-3','Exp-4','Exp-1','Exp-5','Exp-4','Exp-3','Exp-4','Exp-1','Exp-2',
+                                            'Exp-2','Exp-1','Exp-1','Exp-5','Exp-5','Exp-2','Exp-5','Exp-3','Exp-3','Exp-5','Exp-4','Exp-1','Exp-2','Exp-5','Exp-2','Exp-2','Exp-1','Exp-1',
+                                            'Exp-4','Exp-4','Exp-5','Exp-3','Exp-1','Exp-2','Exp-2','Exp-1','Exp-1'
+                                        ],
+                                        styles: [
+                                            {target: 'Exp-1', value: {line: {color: 'blue'}}},
+                                            {target: 'Exp-2', value: {line: {color: 'orange'}}},
+                                            {target: 'Exp-3', value: {line: {color: 'green'}}},
+                                            {target: 'Exp-4', value: {line: {color: 'red'}}},
+                                            {target: 'Exp-5', value: {line: {color: 'yellow'}}}
+                                        ]
+                                    }]
+                                }
+                                console.log(dataForVP.x);
+                                console.log(dataForVP.y);
 
-                                  y: ['703.34','938.968','884.015','304.698','774.298','971.773','519.296','155.22','308.908','79.146','610.217','950.372','895.207','839.104','211.723',
-                                      '622.563','367.011','580.243','784.19','950.275','741.848','340.381','689.229','518.671','352.226','833.074','101.019','476.802','465.399','543.563',
-                                      '169.754','422.382','761.932','549.364','958.456','953.197','587.373','853.021','327.662','850.922','903.977','925.768','564.601','508.658','350.916',
-                                      '790.655','144.26','77.719','771.576','322.358','569.353','892.265','985.505','508.283','764.488','32.071','470.262','201.675','996.925','404.286','974.869',
-                                      '402.373','762.116','464.251','911.75','324.425','506.807','653.48','668.004','452.229','465.793','809.651','739.547','447.928','260.487','198.974','823.095',
-                                      '152.728','248.291','435.548','701.164','23.407','921.307','385.331','924.217','162.681','931.291','204.11','931.755','638.209','564.759','929.372','360.634',
-                                      '39.935','708.046','535.198','864.045','199.052','526.609'],
-                                  points: 'none',
-                                  box: {
-                                    visible: true
-                                  },
-                                  line: {
-                                    color: 'red',
-                                  },
-                                  meanline: {
-                                    visible: true
-                                  },
-                                  transforms: [{
-                                    	 type: 'groupby',
-                                  	 groups: ['Exp-1','Exp-1','Exp-4','Exp-1','Exp-1','Exp-2','Exp-3','Exp-2','Exp-2','Exp-4','Exp-5','Exp-1','Exp-4','Exp-1','Exp-4','Exp-1','Exp-2','Exp-5',
-                                              'Exp-5','Exp-4','Exp-4','Exp-3','Exp-2','Exp-1','Exp-1','Exp-2','Exp-5','Exp-3','Exp-2','Exp-5','Exp-1','Exp-2','Exp-4','Exp-1','Exp-5','Exp-1',
-                                              'Exp-1','Exp-1','Exp-1','Exp-5','Exp-3','Exp-5','Exp-5','Exp-5','Exp-3','Exp-5','Exp-2','Exp-2','Exp-1','Exp-4','Exp-2','Exp-2','Exp-5','Exp-4',
-                                              'Exp-3','Exp-3','Exp-2','Exp-2','Exp-5','Exp-3','Exp-2','Exp-3','Exp-4','Exp-3','Exp-4','Exp-1','Exp-5','Exp-4','Exp-3','Exp-4','Exp-1','Exp-2',
-                                              'Exp-2','Exp-1','Exp-1','Exp-5','Exp-5','Exp-2','Exp-5','Exp-3','Exp-3','Exp-5','Exp-4','Exp-1','Exp-2','Exp-5','Exp-2','Exp-2','Exp-1','Exp-1',
-                                              'Exp-4','Exp-4','Exp-5','Exp-3','Exp-1','Exp-2','Exp-2','Exp-1','Exp-1'],
-                                  	 styles: [
-                                       {target: 'Exp-1', value: {line: {color: 'blue'}}},
-                                       {target: 'Exp-2', value: {line: {color: 'orange'}}},
-                                       {target: 'Exp-3', value: {line: {color: 'green'}}},
-                                       {target: 'Exp-4', value: {line: {color: 'red'}}},
-                                       {target: 'Exp-5', value: {line: {color: 'yellow'}}}
-                                  	 ]
-                                 }]
-                              }
+                                var layoutForViolinPlot = {
+                                    title: "Multiple Traces Violin Plot",
+                                    yaxis: {
+                                        zeroline: false
+                                    }
+                                }
 
-                              var layoutForViolinPlot = {
-                                title: "Multiple Traces Violin Plot",
-                                yaxis: {
-                                  zeroline: false
-                              }
+                                // var values = getValues(plot.plot_type, '',  '');
+                                // for(var p = 0; p < d1.length;p++) {
+                                //   values.x.push(d1[p]);
+                                // }
+                                //
+                                // for(var q = 0; q < d2.length; q++) {
+                                //   values.y.push(d2[q]);
+                                // }
+
+                                // values.hoverinfo = 'text'
+                                plot_values.data.push(dataForVP);
+                                plot_values.layout = layoutForViolinPlot;
+                                plot_values.config = plot.config;
+                            } else if (plot.plot_type == "violin") {
+                                plot.traces.forEach(function (trace) {
+                                    // var ermrestUri
+                                    var geneUri = ERMrest._renderHandlebarsTemplate(plot.geneUriPattern, $rootScope.templateParams);
+                                    ERMrest.resolve(geneUri, ConfigUtils.getContextHeaderParams()).then(function (ref) {
+                                        $rootScope.geneReference = ref.contextualize.compactSelect;
+
+                                        // get the first gene to use as a default
+                                        return $rootScope.geneReference.read(1);
+                                    }).then(function (page) {
+                                        if (!$rootScope.gene) $rootScope.gene = page.tuples[0];
+
+                                        // set dataParams to be used later for refetching violin data
+                                        if(trace.queryPattern) dataParams.queryPattern = trace.queryPattern
+                                        dataParams.traceUri = trace.uri;
+                                        dataParams.plot = plot;
+                                        dataParams.id = plot_values.id;
+                                        dataParams.plot_values = plot_values;
+
+                                        getViolinData().then(function (values) {
+                                            checkPlotsLoaded(values, plot);
+                                        });
+                                    });
+                                });
+                            } else {
+                                plot.traces.forEach(function (trace) {
+                                    var uri = trace.uri;
+                                    server.http.get(uri).then(function(response) {
+                                        try {
+                                            var layout = getLayout(plot);
+                                            var data = response.data;
+                                            switch (plot.plot_type) {
+                                                case "pie":
+                                                    var values = getValues(plot.plot_type, '',  '');
+                                                    if (plot.config) {
+                                                        values.textinfo = plot.config.slice_label ? plot.config.slice_label : "none";
+                                                    } else {
+                                                        values.textinfo = "none";
+                                                    }
+
+                                                    var label = true;
+                                                    if(trace.legend != undefined) {
+                                                        values.labels = trace.legend;
+                                                        label = false;
+                                                    }
+
+                                                    data.forEach(function (row) {
+                                                        if(label) {
+                                                            values.labels.push(row[trace.legend_col]);
+                                                        }
+                                                        values.values.push(formatData(row[trace.data_col], plot.config ? plot.config.format_data : false));
+                                                    });
+                                                    plot_values.data.push(values);
+                                                    plot_values.layout = layout;
+                                                    plot_values.config = config;
+                                                    break;
+                                                case "histogram-horizontal":
+                                                    var values = getValues(plot.plot_type, trace.legend);
+                                                    data.forEach(function (row) {
+                                                        values.x.push(formatData(row[trace.data_col], plot.config ? plot.config.format_data : false));
+                                                    });
+                                                    plot_values.data.push(values);
+                                                    plot_values.layout = layout;
+                                                    plot_values.config = config;
+                                                    break;
+                                                case "histogram-vertical":
+                                                    var values = getValues(plot.plot_type, trace.legend);
+                                                    data.forEach(function (row) {
+                                                        values.y.push(formatData(row[trace.data_col], plot.config ? plot.config.format_data : false));
+                                                    });
+                                                    plot_values.data.push(values);
+                                                    plot_values.layout = layout;
+                                                    plot_values.config = config;
+                                                    break;
+
+                                                case "bar":
+                                                    if(trace.orientation == "h") {
+                                                        for(var i = 0; i < trace.x_col.length;i++) {
+                                                            var values = getValues(plot.plot_type, trace.legend ? trace.legend[i]: '',  trace.orientation);
+                                                            if (trace.textangle) {
+                                                                values.textangle = trace.textangle;
+                                                            }
+                                                            if (trace.textfont) {
+                                                                values.textfont = trace.textfont;
+                                                            }
+                                                            data.forEach(function (row) {
+                                                                values.x.push(formatData(row[trace.x_col[i]], plot.config ? plot.config.format_data_x : false));
+                                                                values.y.push(formatData(row[trace.y_col], plot.config ? plot.config.format_data_y : false));
+                                                                values.text.push(formatData(row[trace.x_col[i]], plot.config ? plot.config.format_data_x : false))
+                                                            });
+                                                            values.hoverinfo = 'text'
+                                                            plot_values.data.push(values);
+                                                            plot_values.layout = layout;
+                                                            plot_values.config = config;
+                                                        }
+                                                    } else {
+                                                        for(var i = 0; i < trace.y_col.length;i++) {
+                                                            var values = getValues(plot.plot_type, trace.legend ? trace.legend[i]: '',  trace.orientation);
+                                                            data.forEach(function (row) {
+                                                                values.x.push(formatData(row[trace.x_col], plot.config ? plot.config.format_data_x : false));
+                                                                values.y.push(formatData(row[trace.y_col[i]], plot.config ? plot.config.format_data_y : false));
+                                                                values.text.push(formatData(row[trace.y_col[i]], plot.config ? plot.config.format_data_y : false));
+                                                            });
+                                                            values.hoverinfo = 'text'
+                                                            plot_values.data.push(values);
+                                                            plot_values.layout = layout;
+                                                            plot_values.config = config;
+                                                        }
+                                                    }
+                                                    break;
+                                                default:
+                                                    for(var i = 0; i < trace.y_col.length;i++) {
+                                                        var values = getValues(plot.plot_type, trace.legend ? trace.legend[i]: '',  trace.orientation);
+
+                                                        data.forEach(function (row) {
+                                                            values.x.push(formatData(row[trace.x_col], plot.config ? plot.config.format_data_x : false));
+                                                            values.y.push(formatData(row[trace.y_col[i]], plot.config ? plot.config.format_data_y : false));
+                                                        });
+                                                        plot_values.data.push(values);
+                                                        plot_values.layout = layout;
+                                                        plot_values.config = config;
+                                                    }
+                                                    break;
+                                            }
+
+                                            tracesComplete++;
+                                            plots[plot_values.id].plot_values = plot_values;
+                                            plots[plot_values.id].loaded = true;
+                                            plots[plot_values.id].plot_type = plot.plot_type;
+                                            var allLoaded = true;
+                                            for (var j=0; j<plots.length; j++) {
+                                                if (plots[j].loaded == false) {
+                                                    allLoaded = false;
+                                                    break;
+                                                }
+                                            }
+                                            if (allLoaded) {
+                                                $rootScope.plots = plots;
+                                            }
+
+                                        } catch (error) {
+                                            console.log(error);
+                                        }
+
+                                    }).catch(function (err) {
+                                        if (err.data) {
+                                            if (err.status == 401) {
+                                                if (!$rootScope.loginShown) {
+                                                    $rootScope.loginShown = true;
+                                                    Session.loginInAModal(function () {
+                                                        // set to false in case a request fails after with 401
+                                                        $rootScope.loginShown = false;
+                                                        window.location.reload();
+                                                    });
+                                                }
+                                            } else {
+                                                // else add warning alert
+                                                AlertsService.addAlert(err.data, 'warning');
+                                                throw ERMrest.responseToError(err);
+                                            }
+                                        }
+                                    });
+                                });
                             }
-
-                              // var values = getValues(plot.plot_type, '',  '');
-                              // for(var p = 0; p < d1.length;p++) {
-                              //   values.x.push(d1[p]);
-                              // }
-                              //
-                              // for(var q = 0; q < d2.length; q++) {
-                              //   values.y.push(d2[q]);
-                              // }
-
-                              // values.hoverinfo = 'text'
-                              plot_values.data.push(dataForVP);
-                              plot_values.layout = layoutForViolinPlot;
-                              plot_values.config = plot.config;
-                          }
-                          else {
-                          plot.traces.forEach(function (trace) {
-                              server.http.get(trace.uri).then(function(response) {
-                                try {
-                                  var layout = getLayout(plot);
-                                  var data = response.data;
-                                  switch (plot.plot_type) {
-                                    case "pie":
-                                      var values = getValues(plot.plot_type, '',  '');
-                                      if (plot.config) {
-                                        values.textinfo = plot.config.slice_label ? plot.config.slice_label : "none";
-                                      } else {
-                                        values.textinfo = "none";
-                                      }
-
-                                      var label = true;
-                                      if(trace.legend != undefined) {
-                                        values.labels = trace.legend;
-                                        label = false;
-                                      }
-
-                                      data.forEach(function (row) {
-                                        if(label) {
-                                          values.labels.push(row[trace.legend_col]);
-                                        }
-                                        values.values.push(formatData(row[trace.data_col], plot.config ? plot.config.format_data : false));
-                                      });
-                                      plot_values.data.push(values);
-                                      plot_values.layout = layout;
-                                      plot_values.config = config;
-                                      break;
-                                    case "histogram-horizontal":
-                                      var values = getValues(plot.plot_type, trace.legend);
-                                      data.forEach(function (row) {
-                                        values.x.push(formatData(row[trace.data_col], plot.config ? plot.config.format_data : false));
-                                      });
-                                      plot_values.data.push(values);
-                                      plot_values.layout = layout;
-                                      plot_values.config = config;
-                                      break;
-                                    case "histogram-vertical":
-                                      var values = getValues(plot.plot_type, trace.legend);
-                                      data.forEach(function (row) {
-                                        values.y.push(formatData(row[trace.data_col], plot.config ? plot.config.format_data : false));
-                                      });
-                                      plot_values.data.push(values);
-                                      plot_values.layout = layout;
-                                      plot_values.config = config;
-                                      break;
-
-                                    case "bar":
-                                      if(trace.orientation == "h") {
-                                        for(var i = 0; i < trace.x_col.length;i++) {
-                                          var values = getValues(plot.plot_type, trace.legend ? trace.legend[i]: '',  trace.orientation);
-                                          if (trace.textangle) {
-                                            values.textangle = trace.textangle;
-                                          }
-                                          if (trace.textfont) {
-                                            values.textfont = trace.textfont;
-                                          }
-                                          data.forEach(function (row) {
-                                              values.x.push(formatData(row[trace.x_col[i]], plot.config ? plot.config.format_data_x : false));
-                                              values.y.push(formatData(row[trace.y_col], plot.config ? plot.config.format_data_y : false));
-                                              values.text.push(formatData(row[trace.x_col[i]], plot.config ? plot.config.format_data_x : false))
-                                          });
-                                          values.hoverinfo = 'text'
-                                          plot_values.data.push(values);
-                                          plot_values.layout = layout;
-                                          plot_values.config = config;
-                                        }
-                                      } else {
-                                        for(var i = 0; i < trace.y_col.length;i++) {
-                                          var values = getValues(plot.plot_type, trace.legend ? trace.legend[i]: '',  trace.orientation);
-                                          data.forEach(function (row) {
-                                              values.x.push(formatData(row[trace.x_col], plot.config ? plot.config.format_data_x : false));
-                                              values.y.push(formatData(row[trace.y_col[i]], plot.config ? plot.config.format_data_y : false));
-                                              values.text.push(formatData(row[trace.y_col[i]], plot.config ? plot.config.format_data_y : false));
-                                          });
-                                          values.hoverinfo = 'text'
-                                          plot_values.data.push(values);
-                                          plot_values.layout = layout;
-                                          plot_values.config = config;
-                                        }
-                                      }
-                                      break;
-                                    default:
-                                        for(var i = 0; i < trace.y_col.length;i++) {
-                                          var values = getValues(plot.plot_type, trace.legend ? trace.legend[i]: '',  trace.orientation);
-
-                                          data.forEach(function (row) {
-                                            values.x.push(formatData(row[trace.x_col], plot.config ? plot.config.format_data_x : false));
-                                            values.y.push(formatData(row[trace.y_col[i]], plot.config ? plot.config.format_data_y : false));
-                                          });
-                                          plot_values.data.push(values);
-                                          plot_values.layout = layout;
-                                          plot_values.config = config;
-                                        }
-                                        break;
-                                  }
-
-                                } catch (error) {
-                                  console.log(error);
-                              }
-
-                              }).catch(function (err) {
-                                  if (err.data) {
-                                      if (err.status == 401) {
-                                          if (!$rootScope.loginShown) {
-                                              $rootScope.loginShown = true;
-                                              Session.loginInAModal(function () {
-                                                  // set to false in case a request fails after with 401
-                                                  $rootScope.loginShown = false;
-                                                  window.location.reload();
-                                              });
-                                          }
-                                      } else {
-                                          // else add warning alert
-                                          AlertsService.addAlert(err.data, 'warning');
-                                          throw ERMrest.responseToError(err);
-                                      }
-                                  }
-                              });
-                            });
-                          }
-                          tracesComplete++;
-                          plots[plot_values.id].plot_values = plot_values;
-                          plots[plot_values.id].loaded = true;
-                          var allLoaded = true;
-                          for (var j=0; j<plots.length; j++) {
-                            if (plots[j].loaded == false) {
-                                allLoaded = false;
-                                break;
-                            }
-                          }
-                          if (allLoaded) {
-                              $rootScope.plots = plots;
-                          }
-                      });
-                   }
+                        });
+                    },
+                    getViolinData: getViolinData
                 }
             }])
-            .controller('plotController', ['AlertsService', 'dataFormats', 'PlotUtils', 'UriUtils', '$window', '$rootScope', '$scope', '$timeout', function plotController(AlertsService, dataFormats, PlotUtils, UriUtils, $window, $rootScope, $scope, $timeout) {
+            .controller('plotController', ['AlertsService', 'dataFormats', 'dataParams', 'modalUtils', 'PlotUtils', 'UriUtils', '$rootScope', '$scope', '$timeout', '$window', function plotController(AlertsService, dataFormats, dataParams, modalUtils, PlotUtils, UriUtils, $rootScope, $scope, $timeout, $window) {
                 var vm = this;
                 vm.alerts = AlertsService.alerts;
                 vm.dataFormats = dataFormats;
                 // vm.x_label = plotConfig.x_axis_label;
                 vm.types = ["line", "bar", "dot", "area"];
                 vm.model = {};
+                vm.scales = ["linear", "log"];
+                $rootScope.yAxisScale = "linear";
+
                 vm.changeSelection = function(value) { // Not yet used for the selection of plot type
                   var plotsData = $rootScope.plots.data;
                   var layout = $rootScope.plots.layout;
@@ -555,20 +715,114 @@ function loadModule() {
                   }
                 }
 
+                vm.showViolinControls = function (plot_type) {
+                    return $rootScope.geneReference && plot_type == "violin";
+                }
+
+                vm.openGeneSelector = function () {
+                    var params = {};
+
+                    // TODO: logging
+                    params.logStack = [{type: "set", s_t: "Common:Gene"}]
+                    params.logStackPath = "set/gene-selector"
+
+                    // for the title
+                    // params.parentReference = scope.facetColumn.reference; // Maybe should be study reference?
+                    // params.displayname = scope.facetColumn.displayname;
+                    // disable comment for facet, since it might be confusing
+                    // params.comment = scope.facetColumn.comment;
+
+                    params.reference = $rootScope.geneReference;
+                    params.reference.session = $rootScope.session;
+                    params.selectMode = "single-select";
+                    params.faceting = true;
+                    params.facetPanelOpen = false;
+
+                    // to choose the correct directive
+                    params.mode = "selectFaceting";
+                    params.showFaceting = true;
+
+                    params.displayMode = "popup";
+                    // params.displayMode = "popup/facet";
+                    // params.displayMode = recordsetDisplayModes.facetPopup;
+                    params.editable = false;
+
+                    params.selectedRows = [];
+
+                    // // generate list of rows needed for modal
+                    // scope.checkboxRows.forEach(function (row) {
+                    //     if (!row.selected) return;
+                    //     var newRow = {};
+                    //
+                    //     // - row.uniqueId will return the filter's uniqueId and not
+                    //     //    the tuple's. We need tuple's uniqueId in here
+                    //     //    (it will be used in the logic of isSelected in modal).
+                    //     // - data is needed for the post process that we do on the data.
+                    //     if (row.tuple && row.tuple.data && scope.facetColumn.isEntityMode) {
+                    //         newRow.uniqueId = row.tuple.uniqueId;
+                    //         newRow.data = row.tuple.data;
+                    //     } else {
+                    //         newRow.uniqueId = row.uniqueId;
+                    //     }
+                    //
+                    //     newRow.displayname = (newRow.uniqueId === null) ? {value: null, isHTML: false} : row.displayname;
+                    //     newRow.tooltip = newRow.displayname;
+                    //     newRow.isNotNull = row.notNull;
+                    //     params.selectedRows.push(newRow);
+                    // });
+
+                    // modal properties
+                    var windowClass = "search-popup gene-selector-popup";
+
+                    modalUtils.showModal({
+                        animation: false,
+                        controller: "SearchPopupController",
+                        windowClass: windowClass,
+                        controllerAs: "ctrl",
+                        resolve: {
+                            params: params
+                        },
+                        size: modalUtils.getSearchPopupSize(params),
+                        templateUrl:  UriUtils.chaiseDeploymentPath() + "common/templates/searchPopup.modal.html"
+                    }, function (res) {
+                        $rootScope.gene = res;
+
+                        // the gene has changed, fetch new plot data for new gene
+                        PlotUtils.getViolinData();
+                    }, null, false);
+                }
+
+                vm.setGroup = function (group) {
+                    $rootScope.groupKey = group;
+
+                    PlotUtils.getViolinData();
+                }
+
+                vm.toggleScale = function (scale) {
+                    $rootScope.yAxisScale = scale;
+
+                    console.log($rootScope.yAxisScale);
+                    PlotUtils.getViolinData();
+                }
+
                 $scope.plotsLoaded = false;
                 $scope.showPlot = function () {
-                	if (vm.model.user == null) {
-                		vm.model.user = $rootScope.user;
-                	}
-                  try {
-                    $scope.$apply(function () {
-                        $scope.plotsLoaded = true;
-                    });
-                  } catch (e) {
-                    throw e;
-                  }
+                    if (vm.model.user == null) {
+                        vm.model.user = $rootScope.user;
+                    }
+                    try {
+                        $scope.$apply(function () {
+                            $scope.plotsLoaded = true;
+                        });
+                    } catch (e) {
+                        throw e;
+                    }
 
                 }
+
+                $scope.$watch('groups', function (newValue, oldValue) {
+                    if (newValue) vm.groups = newValue;
+                });
             }])
             .directive('plot', ['$rootScope', '$timeout', function ($rootScope, $timeout) {
 
@@ -590,11 +844,12 @@ function loadModule() {
                     }
                 };
             }])
-            .run(['ERMrest', 'PlotUtils', 'messageMap', 'Session', 'UriUtils', '$rootScope', '$window',
-             function runApp(ERMrest, PlotUtils, messageMap, Session, UriUtils, $rootScope, $window) {
+            .run(['ERMrest', 'FunctionUtils', 'PlotUtils', 'messageMap', 'Session', 'UriUtils', '$rootScope', '$window',
+             function runApp(ERMrest, FunctionUtils, PlotUtils, messageMap, Session, UriUtils, $rootScope, $window) {
                try {
                  $rootScope.loginShown = false;
-                 var config = UriUtils.getQueryParam($window.location.href, "config");
+                 $rootScope.config = UriUtils.getQueryParam($window.location.href, "config");
+                 FunctionUtils.registerErmrestCallbacks();
                  var subId = Session.subscribeOnChange(function () {
                    Session.unsubscribeOnChange(subId);
                    var session = Session.getSessionValue();
@@ -602,7 +857,15 @@ function loadModule() {
                    //     var notAuthorizedError = new ERMrest.UnauthorizedError(messageMap.unauthorizedErrorCode, (messageMap.unauthorizedMessage + messageMap.reportErrorToAdmin));
                    //     throw notAuthorizedError;
                    // }
-                   PlotUtils.getData(config);
+                   var studyRid = UriUtils.getQueryParam($window.location.href, "Study");
+
+                   $rootScope.templateParams = {
+                       $url_parameters: {
+                           Study: studyRid
+                       },
+                       $filters: {}
+                   }
+                   PlotUtils.getData($rootScope.config);
                  });
                } catch (exception) {
                    throw exception;
@@ -610,69 +873,87 @@ function loadModule() {
              }
          ]);
 })();
-}
+// }
 
-var chaisePath = "/chaise/";
-if (typeof chaiseConfig != 'undefined' && typeof chaiseConfig === "object" && chaiseConfig['chaiseBasePath'] !== undefined) {
-    chaisePath = chaiseConfig['chaiseBasePath'];
-}
+// TODO: reenable dynamic loading of dependencies
+// var chaisePath = "/chaise/";
+// if (typeof chaiseConfig != 'undefined' && typeof chaiseConfig === "object" && chaiseConfig['chaiseBasePath'] !== undefined) {
+//     chaisePath = chaiseConfig['chaiseBasePath'];
+// }
 
-const JS_DEPS = [
-    'chaise-config.js',
-    'scripts/vendor/angular.js',
-    'scripts/vendor/jquery-1.11.1.min.js',
-    'scripts/vendor/bootstrap-3.3.7.min.js',
-    'scripts/vendor/plotly-latest.min.js',
-    'common/vendor/angular-cookies.min.js',
-    'scripts/vendor/angular-sanitize.js',
-    'scripts/vendor/ui-bootstrap-tpls-2.5.0.min.js',
-    'common/config.js',
-    'common/errors.js',
-    '../ermrestjs/ermrest.js',
-    'common/utils.js',
-    'common/validators.js',
-    'common/inputs.js',
-    'common/authen.js',
-    'common/filters.js',
-    'common/modal.js',
-    'common/navbar.js',
-    'common/storage.js',
-    'common/alerts.js',
-    'common/login.js',
-];
+// const JS_DEPS = [
+//     'chaise-config.js',
+//     'scripts/vendor/angular.js',
+//     'scripts/vendor/jquery-1.11.1.min.js',
+//     'scripts/vendor/bootstrap-3.3.7.min.js',
+//     'scripts/vendor/plotly-latest.min.js',
+//     'common/vendor/angular-cookies.min.js',
+//     'scripts/vendor/angular-sanitize.js',
+//     'scripts/vendor/ui-bootstrap-tpls-2.5.0.min.js',
+//     '../ermrestjs/ermrest.js',
+//     'common/alerts.js',
+//     'common/authen.js',
+//     'common/config.js',
+//     'common/errors.js',
+//     'common/filters.js',
+//     'common/inputs.js',
+//     'common/login.js',
+//     'common/modal.js',
+//     'common/navbar.js',
+//     'common/recordCreate.js',
+//     'common/storage.js',
+//     'common/table.js',
+//     'common/utils.js',
+//     'common/validators.js'
+// ];
 
-const CSS_DEPS = [
-    'styles/vendor/bootstrap.min.css',
-    'common/styles/app.css',
-    'common/styles/appheader.css'
-];
-
-var head = document.getElementsByTagName('head')[0];
-function loadStylesheets(url) {
-    var link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.type = 'text/css';
-    link.href = chaisePath + url;
-    head.appendChild(link);
-}
-function loadJSDeps(url, callback) {
-    var script = document.createElement('script');
-    script.type = 'text/javascript';
-    script.src = chaisePath + url;
-    script.onload = callback;
-    head.appendChild(script);
-}
-var jsIndex = 0;
-
-function fileLoaded() {
-    jsIndex = jsIndex + 1;
-    if (jsIndex == JS_DEPS.length) {
-        loadModule();
-    } else {
-        loadJSDeps(JS_DEPS[jsIndex], fileLoaded);
-    }
-}
-CSS_DEPS.forEach(function (url) {
-    loadStylesheets(url);
-});
-loadJSDeps(JS_DEPS[0], fileLoaded);
+// const JS_DEPS = [
+//     'scripts/vendor/angular.js',
+//     'chaise-config.js',
+//     'scripts/vendor/jquery-3.4.1.min.js',
+//     'scripts/vendor/plotly-latest.min.js',
+//     'dist/chaise.vendor.min.js',
+//     'dist/chaise.min.js',
+//     '../ermrestjs/ermrest.min.js'
+// ];
+//
+// const CSS_DEPS = [
+//     'styles/vendor/bootstrap.min.css',
+//     'common/styles/app.css',
+//     'common/styles/appheader.css'
+// ];
+//
+// var head = document.getElementsByTagName('head')[0];
+// function loadStylesheets(url) {
+//     var link = document.createElement('link');
+//     link.rel = 'stylesheet';
+//     link.type = 'text/css';
+//     link.href = chaisePath + url;
+//     head.appendChild(link);
+// }
+// function loadJSDeps(url, callback) {
+//     var script = document.createElement('script');
+//     script.type = 'text/javascript';
+//     // if (url == 'scripts/vendor/plotly-latest.min.js') {
+//     //     script.src = "../../" + chaisePath + url;
+//     // } else {
+//         script.src = "../.." + chaisePath + url;
+//     // }
+//     script.onload = callback;
+//     head.appendChild(script);
+// }
+// var jsIndex = 0;
+//
+// function fileLoaded() {
+//     jsIndex = jsIndex + 1;
+//     if (jsIndex == JS_DEPS.length) {
+//         loadModule();
+//     } else {
+//         loadJSDeps(JS_DEPS[jsIndex], fileLoaded);
+//     }
+// }
+// CSS_DEPS.forEach(function (url) {
+//     loadStylesheets(url);
+// });
+// loadJSDeps(JS_DEPS[0], fileLoaded);
+// loadModule();
