@@ -8,19 +8,14 @@ var plotConfigs = {
         plots: [
             {
                 plot_type: "violin",
+                // uri pattern with templating to fetch gene information
                 geneUriPattern: "/ermrest/catalog/2/entity/RNASeq:Replicate_Expression/Study={{{$url_parameters.Study}}}/(NCBI_GeneID)=(Common:Gene:NCBI_GeneID)",
-                defaultGene: {
-                    data: {
-                        NCBI_GeneID: "18231"
-                    },
-                    displayname: {
-                        value: "Nxph1"
-                    }
-                },
+                // configuration options passed directly to plotly
                 config: {
                     modeBarButtonsToRemove: ["select2d", "lasso2d", "hoverClosestCartesian", "hoverCompareCartesian", "toggleSpikelines"],
                     displaylogo: false
                 },
+                // list of column names for "RNASeq:Replicate_Expression" to group data by
                 groupKeys: ["Anatomical_Source", "Experiment", "Replicate", "Species", "Specimen", "Specimen_Type", "Stage"],
                 defaultGroup: "Experiment", //xaxis
                 yAxis: "TPM",

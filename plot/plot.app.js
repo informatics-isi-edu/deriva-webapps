@@ -1,4 +1,3 @@
-// function loadModule() {
 (function () {
     'use strict';
 
@@ -161,7 +160,7 @@
 
                   var margin = {}
 
-                  var layoutForViolinPlot = {
+                  var plotlyLayout = {
                       title: "Multiple Traces Violin Plot",
                       yaxis: {
                         zeroline: false
@@ -190,7 +189,7 @@
                       layout.bargap = plot.config.bargap;
                       return layout;
                     case "violin":
-                      return layoutForViolinPlot;
+                      return plotlyLayout;
                     default:
                       layout.margin = config.margin ? config.margin : '';
                       layout.xaxis = {
@@ -229,17 +228,18 @@
                   }
                 }
 
+                // updates the geneID used for templating and generate the templated uri
                 function setViolinUri() {
                     $rootScope.geneId = $rootScope.templateParams.$filters.NCBI_GeneID = $rootScope.gene.data["NCBI_GeneID"];
 
                     var uri = dataParams.traceUri;
                     if (dataParams.queryPattern) {
                         uri = ERMrest._renderHandlebarsTemplate(dataParams.queryPattern, $rootScope.templateParams);
-                        console.log(uri);
                     }
                     return uri;
                 }
 
+                // fetches the violin plot data and sets it up for plotly
                 function getViolinData() {
                     var defer = $q.defer(),
                         uri = setViolinUri(),
@@ -252,28 +252,22 @@
 
                         // NOTE: violin plot has it's own case since it's using the reference APIs in ermrestJS
                         if (!$rootScope.groups) $rootScope.groups = plot.groupKeys;
-
                         if (!$rootScope.groupKey) $rootScope.groupKey = plot.defaultGroup;
-                        console.log(data);
 
-                        // transform x data
+                        // transform x data based on groupKey
                         var xData = data.map(function (obj) {
                             var value = obj[$rootScope.groupKey];
                             return (value !== null && value !== undefined) ? value : "N/A"
                         });
 
-                        console.log(xData);
-
-                        // transform y data
+                        // transform y data based on configuration option in plot-config
                         var yData = data.map(function (obj) {
                             return obj[plot.yAxis]
                         });
 
-                        console.log(yData);
-
-                        // get unique x values and assign colors for group key
                         var groupStyles = [];
-                        var colors = ["blue", "orange", "green", "red", "yellow"];
+                        var colors = ["blue", "orange", "green", "red", "yellow"]; // note: samples I tested only had 5 differentiating values (I think)?
+                        // get unique x values and assign colors for each group key (x value)
                         var uniqueX = xData.filter(function (key, index, self) {
                             return self.indexOf(key) === index;
                         });
@@ -285,7 +279,7 @@
                             });
                         });
 
-                        var dataForVP = {
+                        var plotlyData = {
                             type: 'violin',
                             x: xData,
                             y: yData,
@@ -306,7 +300,7 @@
                         }
 
                         var plotTitle = (plot.plotTitlePattern ? ERMrest._renderHandlebarsTemplate(plot.plotTitlePattern, $rootScope.templateParams) : "TPM Expression");
-                        var layoutForViolinPlot = {
+                        var plotlyLayout = {
                             title: plotTitle,
                             xaxis: {
                                 title: $rootScope.groupKey
@@ -320,9 +314,8 @@
                             dragmode: "pan"
                         }
 
-                        // values.hoverinfo = 'text'
-                        plot_values.data = [dataForVP];
-                        plot_values.layout = layoutForViolinPlot;
+                        plot_values.data = [plotlyData];
+                        plot_values.layout = plotlyLayout;
                         plot_values.config = plot.config;
 
                         defer.resolve(plot_values);
@@ -364,8 +357,10 @@
                             var error = error || new Errors.CustomError("Invalid config", message);
                             ErrorService.handleException(error);
                         }
+
                         var tracesComplete = 0;
                         var plotComplete = 0;
+                        // checks if all plots have had .loaded set to true
                         function checkPlotsLoaded(plotValues, plot) {
                             tracesComplete++;
                             plots[plotValues.id].plot_values = plotValues;
@@ -395,74 +390,9 @@
                                 responsive: true
                             };
                             var tracesComplete = 0;
-                            if(plot.plot_type == "example") {
-                                var dataForVP = {
-                                    type: 'violin',
-                                    x: ['Exp-1','Exp-1','Exp-4','Exp-1','Exp-1','Exp-2','Exp-3','Exp-2','Exp-2','Exp-4','Exp-5','Exp-1','Exp-4','Exp-1','Exp-4','Exp-1','Exp-2','Exp-5',
-                                        'Exp-5','Exp-4','Exp-4','Exp-3','Exp-2','Exp-1','Exp-1','Exp-2','Exp-5','Exp-3','Exp-2','Exp-5','Exp-1','Exp-2','Exp-4','Exp-1','Exp-5','Exp-1',
-                                        'Exp-1','Exp-1','Exp-1','Exp-5','Exp-3','Exp-5','Exp-5','Exp-5','Exp-3','Exp-5','Exp-2','Exp-2','Exp-1','Exp-4','Exp-2','Exp-2','Exp-5','Exp-4',
-                                        'Exp-3','Exp-3','Exp-2','Exp-2','Exp-5','Exp-3','Exp-2','Exp-3','Exp-4','Exp-3','Exp-4','Exp-1','Exp-5','Exp-4','Exp-3','Exp-4','Exp-1','Exp-2',
-                                        'Exp-2','Exp-1','Exp-1','Exp-5','Exp-5','Exp-2','Exp-5','Exp-3','Exp-3','Exp-5','Exp-4','Exp-1','Exp-2','Exp-5','Exp-2','Exp-2','Exp-1','Exp-1',
-                                        'Exp-4','Exp-4','Exp-5','Exp-3','Exp-1','Exp-2','Exp-2','Exp-1','Exp-1'
-                                    ],
 
-                                    y: ['703.34','938.968','884.015','304.698','774.298','971.773','519.296','155.22','308.908','79.146','610.217','950.372','895.207','839.104','211.723','622.563','367.011','580.243',
-                                        '784.19','950.275','741.848','340.381','689.229','518.671','352.226','833.074','101.019','476.802','465.399','543.563','169.754','422.382','761.932','549.364','958.456','953.197',
-                                        '587.373','853.021','327.662','850.922','903.977','925.768','564.601','508.658','350.916','790.655','144.26','77.719','771.576','322.358','569.353','892.265','985.505','508.283',
-                                        '764.488','32.071','470.262','201.675','996.925','404.286','974.869','402.373','762.116','464.251','911.75','324.425','506.807','653.48','668.004','452.229','465.793','809.651',
-                                        '739.547','447.928','260.487','198.974','823.095','152.728','248.291','435.548','701.164','23.407','921.307','385.331','924.217','162.681','931.291','204.11','931.755','638.209',
-                                        '564.759','929.372','360.634','39.935','708.046','535.198','864.045','199.052','526.609'
-                                    ],
-                                    // points: 'none',
-                                    points: 'all',
-                                    box: {
-                                        visible: true
-                                    },
-                                    meanline: {
-                                        visible: true
-                                    },
-                                    transforms: [{
-                                        type: 'groupby',
-                                        groups: ['Exp-1','Exp-1','Exp-4','Exp-1','Exp-1','Exp-2','Exp-3','Exp-2','Exp-2','Exp-4','Exp-5','Exp-1','Exp-4','Exp-1','Exp-4','Exp-1','Exp-2','Exp-5',
-                                            'Exp-5','Exp-4','Exp-4','Exp-3','Exp-2','Exp-1','Exp-1','Exp-2','Exp-5','Exp-3','Exp-2','Exp-5','Exp-1','Exp-2','Exp-4','Exp-1','Exp-5','Exp-1',
-                                            'Exp-1','Exp-1','Exp-1','Exp-5','Exp-3','Exp-5','Exp-5','Exp-5','Exp-3','Exp-5','Exp-2','Exp-2','Exp-1','Exp-4','Exp-2','Exp-2','Exp-5','Exp-4',
-                                            'Exp-3','Exp-3','Exp-2','Exp-2','Exp-5','Exp-3','Exp-2','Exp-3','Exp-4','Exp-3','Exp-4','Exp-1','Exp-5','Exp-4','Exp-3','Exp-4','Exp-1','Exp-2',
-                                            'Exp-2','Exp-1','Exp-1','Exp-5','Exp-5','Exp-2','Exp-5','Exp-3','Exp-3','Exp-5','Exp-4','Exp-1','Exp-2','Exp-5','Exp-2','Exp-2','Exp-1','Exp-1',
-                                            'Exp-4','Exp-4','Exp-5','Exp-3','Exp-1','Exp-2','Exp-2','Exp-1','Exp-1'
-                                        ],
-                                        styles: [
-                                            {target: 'Exp-1', value: {line: {color: 'blue'}}},
-                                            {target: 'Exp-2', value: {line: {color: 'orange'}}},
-                                            {target: 'Exp-3', value: {line: {color: 'green'}}},
-                                            {target: 'Exp-4', value: {line: {color: 'red'}}},
-                                            {target: 'Exp-5', value: {line: {color: 'yellow'}}}
-                                        ]
-                                    }]
-                                }
-                                console.log(dataForVP.x);
-                                console.log(dataForVP.y);
-
-                                var layoutForViolinPlot = {
-                                    title: "Multiple Traces Violin Plot",
-                                    yaxis: {
-                                        zeroline: false
-                                    }
-                                }
-
-                                // var values = getValues(plot.plot_type, '',  '');
-                                // for(var p = 0; p < d1.length;p++) {
-                                //   values.x.push(d1[p]);
-                                // }
-                                //
-                                // for(var q = 0; q < d2.length; q++) {
-                                //   values.y.push(d2[q]);
-                                // }
-
-                                // values.hoverinfo = 'text'
-                                plot_values.data.push(dataForVP);
-                                plot_values.layout = layoutForViolinPlot;
-                                plot_values.config = plot.config;
-                            } else if (plot.plot_type == "violin") {
+                            // violin plot has it's own case outside of the switch condition below since it relies reference api for the gene selector
+                            if (plot.plot_type == "violin") {
                                 plot.traces.forEach(function (trace) {
                                     // var ermrestUri
                                     var geneUri = ERMrest._renderHandlebarsTemplate(plot.geneUriPattern, $rootScope.templateParams);
@@ -716,10 +646,13 @@
                   }
                 }
 
+                // conditional to show violin plot controls (gene selector, group selector, scale selector)
                 vm.showViolinControls = function (plot_type) {
                     return $rootScope.geneReference && plot_type == "violin";
                 }
 
+                // opens search popup for gene table based on current study.
+                // Callback for selected gene defined as the modal close callback
                 vm.openGeneSelector = function () {
                     var params = {};
 
@@ -750,6 +683,7 @@
 
                     params.selectedRows = [];
 
+                    // TODO: grey out row that is already selected
                     // // generate list of rows needed for modal
                     // scope.checkboxRows.forEach(function (row) {
                     //     if (!row.selected) return;
@@ -793,16 +727,17 @@
                     }, null, false);
                 }
 
+                // callback for group by selector
                 vm.setGroup = function (group) {
                     $rootScope.groupKey = group;
 
                     PlotUtils.getViolinData();
                 }
 
+                // callback for scale selector
                 vm.toggleScale = function (scale) {
                     $rootScope.yAxisScale = scale;
 
-                    console.log($rootScope.yAxisScale);
                     PlotUtils.getViolinData();
                 }
 
@@ -829,52 +764,51 @@
 
                 return {
                     link: function (scope, element) {
-                          scope.$watch('plots', function (plots) {
-                              if (plots) {
+                        scope.$watch('plots', function (plots) {
+                            if (plots) {
                                 $timeout(function() {
-                                  for (var i = 0; i < plots.length; i++) {
-                                    if (plots[i].id == element[0].attributes['plot-id'].nodeValue) {
-                                      Plotly.newPlot(element[0], plots[i].plot_values.data, plots[i].plot_values.layout, plots[i].plot_values.config).then(function () {
-                                        scope.showPlot();
-                                      }.bind(plots.length));
+                                    for (var i = 0; i < plots.length; i++) {
+                                        if (plots[i].id == element[0].attributes['plot-id'].nodeValue) {
+                                            Plotly.newPlot(element[0], plots[i].plot_values.data, plots[i].plot_values.layout, plots[i].plot_values.config).then(function () {
+                                                scope.showPlot();
+                                            }.bind(plots.length));
+                                        }
                                     }
-                                  }
                                 }, 0, false);
-                              }
-                            }, true);
+                            }
+                        }, true);
                     }
                 };
             }])
             .run(['ERMrest', 'FunctionUtils', 'PlotUtils', 'messageMap', 'Session', 'UriUtils', '$rootScope', '$window',
-             function runApp(ERMrest, FunctionUtils, PlotUtils, messageMap, Session, UriUtils, $rootScope, $window) {
-               try {
-                 $rootScope.loginShown = false;
-                 $rootScope.config = UriUtils.getQueryParam($window.location.href, "config");
-                 FunctionUtils.registerErmrestCallbacks();
-                 var subId = Session.subscribeOnChange(function () {
-                   Session.unsubscribeOnChange(subId);
-                   var session = Session.getSessionValue();
-                   // if (!session) {
-                   //     var notAuthorizedError = new ERMrest.UnauthorizedError(messageMap.unauthorizedErrorCode, (messageMap.unauthorizedMessage + messageMap.reportErrorToAdmin));
-                   //     throw notAuthorizedError;
-                   // }
-                   var studyRid = UriUtils.getQueryParam($window.location.href, "Study");
+            function runApp(ERMrest, FunctionUtils, PlotUtils, messageMap, Session, UriUtils, $rootScope, $window) {
+                try {
+                    $rootScope.loginShown = false;
+                    $rootScope.config = UriUtils.getQueryParam($window.location.href, "config");
+                    FunctionUtils.registerErmrestCallbacks();
+                    var subId = Session.subscribeOnChange(function () {
+                        Session.unsubscribeOnChange(subId);
+                        var session = Session.getSessionValue();
+                        // if (!session) {
+                        //     var notAuthorizedError = new ERMrest.UnauthorizedError(messageMap.unauthorizedErrorCode, (messageMap.unauthorizedMessage + messageMap.reportErrorToAdmin));
+                        //     throw notAuthorizedError;
+                        // }
+                        var studyRid = UriUtils.getQueryParam($window.location.href, "Study");
 
-                   $rootScope.templateParams = {
-                       $url_parameters: {
-                           Study: studyRid
-                       },
-                       $filters: {}
-                   }
-                   PlotUtils.getData($rootScope.config);
-                 });
-               } catch (exception) {
-                   throw exception;
-               }
-             }
-         ]);
+                        $rootScope.templateParams = {
+                            $url_parameters: {
+                                Study: studyRid
+                            },
+                            $filters: {}
+                        }
+                        PlotUtils.getData($rootScope.config);
+                    });
+                } catch (exception) {
+                    throw exception;
+                }
+            }
+        ]);
 })();
-// }
 
 // TODO: reenable dynamic loading of dependencies
 // var chaisePath = "/chaise/";
