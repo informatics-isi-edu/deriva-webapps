@@ -230,8 +230,6 @@
 
                 // updates the geneID used for templating and generate the templated uri
                 function setViolinUri() {
-                    $rootScope.geneId = $rootScope.templateParams.$filters.NCBI_GeneID = $rootScope.gene.data["NCBI_GeneID"];
-
                     var uri = dataParams.traceUri;
                     if (dataParams.queryPattern) {
                         uri = ERMrest._renderHandlebarsTemplate(dataParams.queryPattern, $rootScope.templateParams);
@@ -246,7 +244,9 @@
                         plot = dataParams.plot,
                         plot_values = dataParams.plot_values;
 
+                    console.log(uri);
                     server.http.get(uri).then(function(response) {
+                        console.log(response);
                         var layout = getLayout(plot);
                         var data = response.data;
 
@@ -303,7 +303,11 @@
                         var plotlyLayout = {
                             title: plotTitle,
                             xaxis: {
-                                title: $rootScope.groupKey
+                                automargin: true,
+                                title: {
+                                    text: $rootScope.groupKey,
+                                    standoff: 20
+                                }
                             },
                             yaxis: {
                                 title: plot.yAxis,
@@ -394,7 +398,6 @@
                             // violin plot has it's own case outside of the switch condition below since it relies reference api for the gene selector
                             if (plot.plot_type == "violin") {
                                 plot.traces.forEach(function (trace) {
-                                    // var ermrestUri
                                     var geneUri = ERMrest._renderHandlebarsTemplate(plot.geneUriPattern, $rootScope.templateParams);
                                     ERMrest.resolve(geneUri, ConfigUtils.getContextHeaderParams()).then(function (ref) {
                                         $rootScope.geneReference = ref.contextualize.compactSelect;
@@ -402,7 +405,15 @@
                                         // get the first gene to use as a default
                                         return $rootScope.geneReference.read(1);
                                     }).then(function (page) {
-                                        if (!$rootScope.gene) $rootScope.gene = page.tuples[0];
+                                        if (!$rootScope.gene) {
+                                            $rootScope.gene = page.tuples[0];
+                                            $rootScope.templateParams.$filters.NCBI_GeneID = $rootScope.gene.data["NCBI_GeneID"];
+                                        }
+
+                                        var studyUri = ERMrest._renderHandlebarsTemplate(plot.studyUriPattern, $rootScope.templateParams);
+                                        return ERMrest.resolve(studyUri, ConfigUtils.getContextHeaderParams())
+                                    }).then(function (ref) {
+                                        $rootScope.studyReference = ref.contextualize.compactSelect;
 
                                         // set dataParams to be used later for refetching violin data
                                         if(trace.queryPattern) dataParams.queryPattern = trace.queryPattern
@@ -721,6 +732,84 @@
                         templateUrl:  UriUtils.chaiseDeploymentPath() + "common/templates/searchPopup.modal.html"
                     }, function (res) {
                         $rootScope.gene = res;
+                        $rootScope.geneId = $rootScope.templateParams.$filters.NCBI_GeneID = $rootScope.gene.data["NCBI_GeneID"];
+
+                        // the gene has changed, fetch new plot data for new gene
+                        PlotUtils.getViolinData();
+                    }, null, false);
+                }
+
+                // opens search popup for study table based on current gene.
+                // Callback for selected study defined as the modal close callback
+                vm.openStudySelector = function () {
+                    var params = {};
+
+                    // TODO: logging
+                    params.logStack = [{type: "set", s_t: "RNASeq:Study"}]
+                    params.logStackPath = "set/study-selector"
+
+                    // for the title
+                    // params.parentReference = scope.facetColumn.reference; // Maybe should be study reference?
+                    // params.displayname = scope.facetColumn.displayname;
+                    // disable comment for facet, since it might be confusing
+                    // params.comment = scope.facetColumn.comment;
+
+                    params.reference = $rootScope.studyReference;
+                    params.reference.session = $rootScope.session;
+                    params.selectMode = "single-select";
+                    params.faceting = true;
+                    params.facetPanelOpen = false;
+
+                    // to choose the correct directive
+                    params.mode = "selectFaceting";
+                    params.showFaceting = true;
+
+                    params.displayMode = "popup";
+                    // params.displayMode = "popup/facet";
+                    // params.displayMode = recordsetDisplayModes.facetPopup;
+                    params.editable = false;
+
+                    params.selectedRows = [];
+
+                    // TODO: grey out row that is already selected
+                    // // generate list of rows needed for modal
+                    // scope.checkboxRows.forEach(function (row) {
+                    //     if (!row.selected) return;
+                    //     var newRow = {};
+                    //
+                    //     // - row.uniqueId will return the filter's uniqueId and not
+                    //     //    the tuple's. We need tuple's uniqueId in here
+                    //     //    (it will be used in the logic of isSelected in modal).
+                    //     // - data is needed for the post process that we do on the data.
+                    //     if (row.tuple && row.tuple.data && scope.facetColumn.isEntityMode) {
+                    //         newRow.uniqueId = row.tuple.uniqueId;
+                    //         newRow.data = row.tuple.data;
+                    //     } else {
+                    //         newRow.uniqueId = row.uniqueId;
+                    //     }
+                    //
+                    //     newRow.displayname = (newRow.uniqueId === null) ? {value: null, isHTML: false} : row.displayname;
+                    //     newRow.tooltip = newRow.displayname;
+                    //     newRow.isNotNull = row.notNull;
+                    //     params.selectedRows.push(newRow);
+                    // });
+
+                    // modal properties
+                    var windowClass = "search-popup study-selector-popup";
+
+                    modalUtils.showModal({
+                        animation: false,
+                        controller: "SearchPopupController",
+                        windowClass: windowClass,
+                        controllerAs: "ctrl",
+                        resolve: {
+                            params: params
+                        },
+                        size: modalUtils.getSearchPopupSize(params),
+                        templateUrl:  UriUtils.chaiseDeploymentPath() + "common/templates/searchPopup.modal.html"
+                    }, function (res) {
+                        $rootScope.study = res;
+                        $rootScope.studyId = $rootScope.templateParams.$url_parameters.Study = $rootScope.study.data["RID"];
 
                         // the gene has changed, fetch new plot data for new gene
                         PlotUtils.getViolinData();
