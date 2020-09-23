@@ -73,7 +73,7 @@
                                     <!-- So that the foreign key input can be validated -->
                                     <input type="hidden" ng-model="geneId" />
                                     <span class="chaise-input-group-append">
-                                        <button ng-focus="::form.blurElement($event);" class="chaise-btn chaise-btn-primary modal-popup-btn" type="button" ng-click="ctrl.openGeneSelector()" tooltip-placement="bottom-right" uib-tooltip="Choose a gene.">
+                                        <button ng-focus="::form.blurElement($event);" class="chaise-btn chaise-btn-primary modal-popup-btn" type="button" ng-click="ctrl.openGeneSelector()" tooltip-placement="top-right" uib-tooltip="Choose a gene.">
                                             <span class="glyphicon glyphicon-chevron-down"></span>
                                         </button>
                                     </span>
@@ -83,7 +83,7 @@
                                     <div class="chaise-input-group" uib-dropdown >
                                         <div class="chaise-input-control" uib-dropdown-toggle>
                                             <div contenteditable="false" style="cursor: pointer" ng-bind-html="groupKey"></div>
-                                            <button class="chaise-btn chaise-btn-primary" type="button" tooltip-placement="bottom-right" uib-tooltip="Choose a value to group by.">
+                                            <button class="chaise-btn chaise-btn-primary" type="button" tooltip-placement="top-right" uib-tooltip="Choose a value to group by.">
                                                 <span class="glyphicon glyphicon-chevron-down"></span>
                                             </button>
                                         </div>
@@ -99,7 +99,7 @@
                                     <div class="chaise-input-group" uib-dropdown >
                                         <div class="chaise-input-control" uib-dropdown-toggle>
                                             <div contenteditable="false" style="cursor: pointer" ng-bind-html="yAxisScale"></div>
-                                            <button class="chaise-btn chaise-btn-primary" type="button" tooltip-placement="bottom-right" uib-tooltip="Change y axis scale.">
+                                            <button class="chaise-btn chaise-btn-primary" type="button" tooltip-placement="top-right" uib-tooltip="Change y axis scale.">
                                                 <span class="glyphicon glyphicon-chevron-down"></span>
                                             </button>
                                         </div>

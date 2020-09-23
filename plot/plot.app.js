@@ -303,7 +303,9 @@
                         var plotlyLayout = {
                             title: plotTitle,
                             xaxis: {
-                                title: $rootScope.groupKey
+                                title: {
+                                    text: $rootScope.groupKey
+                                }
                             },
                             yaxis: {
                                 title: plot.yAxis,
