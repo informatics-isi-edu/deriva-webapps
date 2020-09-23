@@ -303,8 +303,10 @@
                         var plotlyLayout = {
                             title: plotTitle,
                             xaxis: {
+                                automargin: true,
                                 title: {
-                                    text: $rootScope.groupKey
+                                    text: $rootScope.groupKey,
+                                    standoff: 20
                                 }
                             },
                             yaxis: {
