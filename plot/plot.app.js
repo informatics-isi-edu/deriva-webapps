@@ -301,6 +301,7 @@
 
                         var plotTitle = (plot.plotTitlePattern ? ERMrest._renderHandlebarsTemplate(plot.plotTitlePattern, $rootScope.templateParams) : "TPM Expression");
                         var plotlyLayout = {
+                            height: 500,
                             title: plotTitle,
                             xaxis: {
                                 automargin: true,
