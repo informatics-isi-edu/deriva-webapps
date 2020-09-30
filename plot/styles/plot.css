@@ -13,10 +13,58 @@
 
 .violin-controls {
     display: flex;
-    margin-top: 50px;
     width: 60%;
     margin-left: auto;
     margin-right: auto;
+}
+
+.violin-controls.single-select-group {
+    margin-top: 50px;
+}
+
+.violin-controls.study-group {
+    margin-top: 25px;
+}
+
+.violin-controls .recordset-chiclets-container.recordset-chiclets {
+    padding-right: 250px;
+}
+
+.violin-controls .recordset-chiclets-container .selected-chiclet {
+    border: none;
+    margin-right: 8px;
+    padding-top: 6px;
+    padding-right: 0;
+    display: inline-block;
+
+    /* forces one line chiclet */
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.violin-controls .recordset-chiclets-container .selected-chiclet .selected-chiclet-name {
+    cursor: default;
+    user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+}
+
+.violin-controls .recordset-chiclets-container .selected-chiclet .selected-chiclet-remove {
+    cursor: pointer;
+    margin-right: -3px;
+}
+.violin-controls .recordset-chiclets-container .selected-chiclet .selected-chiclet-remove i {
+    top: 2px;
+}
+
+.violin-controls .recordset-selected-rows .clear-all-btn {
+    vertical-align: bottom;
+    padding: 0;
+    padding-bottom: 4px;
+    height: auto;
 }
 
 .violin-controls .input-label {
@@ -29,13 +77,13 @@
 /* study selector and text */
 .violin-controls .study-selector-group {
     padding-right: 10px;
-    width: 25%;
+    width: 30%;
 }
 
 /* gene selector and text */
 .violin-controls .gene-selector-group {
     padding-right: 10px;
-    width: 25%;
+    width: 35%;
 }
 
 .violin-controls .gene-selector-group .chaise-input-control,
@@ -56,7 +104,7 @@
 .violin-controls .group-by-dropdown {
     display: flex;
     padding-right: 10px;
-    width: 30%;
+    width: 35%;
 }
 
 .violin-controls .group-by-dropdown .group-by-text,
@@ -90,7 +138,7 @@
 /* toggle scale selector and text */
 .violin-controls .toggle-scale-dropdown {
     display: flex;
-    width: 20%;
+    width: 30%;
 }
 
 .tooltip {

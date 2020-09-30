@@ -20,6 +20,7 @@
             'ngAnimate',
             'duScroll',
             'chaise.alerts',
+            'chaise.faceting',
             'chaise.filters',
             'chaise.inputs',
             'chaise.recordcreate',
@@ -31,9 +32,14 @@
             'chaise.navbar'
           ])
 
-            .config(['$cookiesProvider', function ($cookiesProvider) {
-                $cookiesProvider.defaults.path = '/';
+            .config(['$compileProvider', '$cookiesProvider', '$logProvider', '$provide', '$uibTooltipProvider', 'ConfigUtilsProvider', function($compileProvider, $cookiesProvider, $logProvider, $provide, $uibTooltipProvider, ConfigUtilsProvider) {
+                ConfigUtilsProvider.$get().configureAngular($compileProvider, $cookiesProvider, $logProvider, $uibTooltipProvider);
+
+                $provide.decorator('$templateRequest', ['ConfigUtils', 'UriUtils', '$delegate', function (ConfigUtils, UriUtils, $delegate) {
+                    return ConfigUtils.decorateTemplateRequest($delegate, UriUtils.chaiseDeploymentPath());
+                }]);
             }])
+
             .constant('dataParams', {
                 uri: "",
                 plot: {},
@@ -230,9 +236,27 @@
 
                 // updates the geneID used for templating and generate the templated uri
                 function setViolinUri() {
-                    var uri = dataParams.traceUri;
-                    if (dataParams.queryPattern) {
-                        uri = ERMrest._renderHandlebarsTemplate(dataParams.queryPattern, $rootScope.templateParams);
+                    var studyInfo = $rootScope.studySet,
+                        uri;
+
+                    // array of Tuple objects
+                    if (Array.isArray(studyInfo)) {
+                        if (studyInfo.length == 0) {
+                            // throw error, or hide graph
+                            return
+                        }
+                        // query: "/ermrest/catalog/2/entity/RNASeq:Replicate_Expression/",
+                        // studyPattern: "Study=",
+                        // genePattern: "&NCBI_GeneID={{{$url_parameters.NCBI_GeneID}}}"
+                        uri = dataParams.trace.multiStudy.query;
+                        for (var j=0; j<studyInfo.length; j++){
+                            var rid = studyInfo[j].data.RID;
+                            uri += dataParams.trace.multiStudy.studyPattern + rid;
+                            if (j != studyInfo.length-1) uri += ";"
+                        }
+                        uri += ERMrest._renderHandlebarsTemplate(dataParams.trace.multiStudy.genePattern, $rootScope.templateParams);
+                    } else {
+                        uri = ERMrest._renderHandlebarsTemplate(dataParams.trace.queryPattern, $rootScope.templateParams);
                     }
                     return uri;
                 }
@@ -245,6 +269,7 @@
                         plot_values = dataParams.plot_values;
 
                     console.log(uri);
+                    if (!uri) return; // don;t try to fetch data when no uri is defined
                     server.http.get(uri).then(function(response) {
                         console.log(response);
                         var layout = getLayout(plot);
@@ -399,7 +424,24 @@
                             // violin plot has it's own case outside of the switch condition below since it relies reference api for the gene selector
                             if (plot.plot_type == "violin") {
                                 plot.traces.forEach(function (trace) {
-                                    var geneUri = ERMrest._renderHandlebarsTemplate(plot.geneUriPattern, $rootScope.templateParams);
+                                    var studyIds = $rootScope.templateParams.$url_parameters.Study,
+                                        geneUri;
+
+                                    // array of strings from url
+                                    if (typeof studyIds == "Object" && studyIds.length > 1) {
+                                        // query: "/ermrest/catalog/2/entity/RNASeq:Replicate_Expression/",
+                                        // studyPattern: "Study=",
+                                        // genePattern: "/(NCBI_GeneID)=(Common:Gene:NCBI_GeneID)"
+                                        geneUri = plot.geneMultiStudy.query;
+                                        for (var j=0; j<studyIds.length; j++){
+                                            var rid = studyIds[j];
+                                            geneUri += plot.geneMultiStudy.studyPattern + rid;
+                                            if (j != studyIds.length-1) geneUri += ";"
+                                        }
+                                        geneUri += plot.geneMultiStudy.genePattern;
+                                    } else {
+                                        geneUri = ERMrest._renderHandlebarsTemplate(plot.geneUriPattern, $rootScope.templateParams);
+                                    }
                                     ERMrest.resolve(geneUri, ConfigUtils.getContextHeaderParams()).then(function (ref) {
                                         $rootScope.geneReference = ref.contextualize.compactSelect;
 
@@ -408,7 +450,7 @@
                                     }).then(function (page) {
                                         if (!$rootScope.gene) {
                                             $rootScope.gene = page.tuples[0];
-                                            $rootScope.templateParams.$filters.NCBI_GeneID = $rootScope.gene.data["NCBI_GeneID"];
+                                            $rootScope.templateParams.$url_parameters.NCBI_GeneID = $rootScope.gene.data["NCBI_GeneID"];
                                         }
 
                                         var studyUri = ERMrest._renderHandlebarsTemplate(plot.studyUriPattern, $rootScope.templateParams);
@@ -417,8 +459,7 @@
                                         $rootScope.studyReference = ref.contextualize.compactSelect;
 
                                         // set dataParams to be used later for refetching violin data
-                                        if(trace.queryPattern) dataParams.queryPattern = trace.queryPattern
-                                        dataParams.traceUri = trace.uri;
+                                        dataParams.trace = trace;
                                         dataParams.plot = plot;
                                         dataParams.id = plot_values.id;
                                         dataParams.plot_values = plot_values;
@@ -685,7 +726,7 @@
                     params.facetPanelOpen = false;
 
                     // to choose the correct directive
-                    params.mode = "selectFaceting";
+                    params.mode = "default";
                     params.showFaceting = true;
 
                     params.displayMode = "popup";
@@ -733,7 +774,7 @@
                         templateUrl:  UriUtils.chaiseDeploymentPath() + "common/templates/searchPopup.modal.html"
                     }, function (res) {
                         $rootScope.gene = res;
-                        $rootScope.geneId = $rootScope.templateParams.$filters.NCBI_GeneID = $rootScope.gene.data["NCBI_GeneID"];
+                        $rootScope.geneId = $rootScope.templateParams.$url_parameters.NCBI_GeneID = $rootScope.gene.data["NCBI_GeneID"];
 
                         // the gene has changed, fetch new plot data for new gene
                         PlotUtils.getViolinData();
@@ -757,20 +798,19 @@
 
                     params.reference = $rootScope.studyReference;
                     params.reference.session = $rootScope.session;
-                    params.selectMode = "single-select";
+                    params.selectMode = "multi-select";
+                    params.showFaceting = true;
                     params.faceting = true;
                     params.facetPanelOpen = false;
 
                     // to choose the correct directive
-                    params.mode = "selectFaceting";
-                    params.showFaceting = true;
-
+                    params.mode = "default";
                     params.displayMode = "popup";
                     // params.displayMode = "popup/facet";
                     // params.displayMode = recordsetDisplayModes.facetPopup;
                     params.editable = false;
 
-                    params.selectedRows = [];
+                    params.selectedRows = $rootScope.studySet ? $rootScope.studySet : [];
 
                     // TODO: grey out row that is already selected
                     // // generate list of rows needed for modal
@@ -809,12 +849,37 @@
                         size: modalUtils.getSearchPopupSize(params),
                         templateUrl:  UriUtils.chaiseDeploymentPath() + "common/templates/searchPopup.modal.html"
                     }, function (res) {
-                        $rootScope.study = res;
-                        $rootScope.studyId = $rootScope.templateParams.$url_parameters.Study = $rootScope.study.data["RID"];
+                        console.log(res);
+                        $rootScope.studySet = $rootScope.templateParams.$url_parameters.Study = vm.studySet = res.rows;
+                        console.log(typeof $rootScope.studySet)
+                        console.log($rootScope.studySet.length)
+                        // $rootScope.studyId = $rootScope.study.data["RID"];
 
-                        // the gene has changed, fetch new plot data for new gene
+                        // the study has changed, fetch new plot data for new study info
                         PlotUtils.getViolinData();
                     }, null, false);
+                }
+
+                vm.studySetIsArray = function () {
+                    return Array.isArray(vm.studySet);
+                }
+
+                vm.removeStudyPill = function (studyId, $event) {
+                    var index = vm.studySet.findIndex(function (obj) {
+                        return obj.uniqueId == studyId;
+                    });
+
+                    // this sanity check is not necessary since we're always calling
+                    // this function with a valid key. but it doesn't harm to check
+                    if (index === -1) {
+                        $event.preventDefault();
+                        return;
+                    }
+
+                    vm.studySet.splice(index, 1)[0];
+
+                    // the study has changed, fetch new plot data for new study info
+                    PlotUtils.getViolinData();
                 }
 
                 // callback for group by selector
@@ -883,13 +948,27 @@
                         //     var notAuthorizedError = new ERMrest.UnauthorizedError(messageMap.unauthorizedErrorCode, (messageMap.unauthorizedMessage + messageMap.reportErrorToAdmin));
                         //     throw notAuthorizedError;
                         // }
-                        var studyRid = UriUtils.getQueryParam($window.location.href, "Study");
+                        var studyId = UriUtils.getQueryParam($window.location.href, "Study");
+                        var geneId = UriUtils.getQueryParam($window.location.href, "NCBI_GeneID");
 
+                        $rootScope.hideStudySelector = false;
+                        $rootScope.hideGeneSelector = false;
                         $rootScope.templateParams = {
-                            $url_parameters: {
-                                Study: studyRid
-                            },
-                            $filters: {}
+                            $url_parameters: {}
+                        }
+
+                        // trick to verify if this config app is running inside of an iframe as part of another app
+                        var inIframe = $window.self !== $window.parent;
+
+                        if (studyId) {
+                            $rootScope.templateParams.$url_parameters.Study = studyId;
+                            // in iframe and study means embedded on study page, hide study selector
+                            if (inIframe) $rootScope.hideStudySelector = true;
+                        }
+                        if (geneId) {
+                            $rootScope.templateParams.$url_parameters.NCBI_GeneID = geneId;
+                            // in iframe and gene means embedded on gene page, hide gene selector
+                            if (inIframe) $rootScope.hideGeneSelector = true;
                         }
                         PlotUtils.getData($rootScope.config);
                     });

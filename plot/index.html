@@ -62,67 +62,83 @@
                             <div style="margin-top: 15px;">Loading...</div>
                         </div>
                         <div ng-show="plotsLoaded" class="plots-wrapper" ng-repeat="plot in plots">
-                            <div ng-if="ctrl.showViolinControls(plot.plot_type)" class="violin-controls">
-                                <!-- modal popup input -->
-                                <div class="chaise-input-group modal-popup study-selector-group">
-                                    <div class="input-label">Study:</div>
-                                    <div class="chaise-input-control has-feedback">
-                                        <div contenteditable="false" class="popup-select-value" style="cursor: pointer" ng-click="ctrl.openStudySelector()" ng-bind-html="templateParams.$url_parameters.Study"></div>
-                                    </div>
-                                    <label class="sr-only"></label>
-                                    <!-- So that the foreign key input can be validated -->
-                                    <input type="hidden" ng-model="geneId" />
-                                    <span class="chaise-input-group-append">
-                                        <button ng-focus="::form.blurElement($event);" class="chaise-btn chaise-btn-primary modal-popup-btn" type="button" ng-click="ctrl.openStudySelector()" tooltip-placement="top-right" uib-tooltip="Choose a study.">
-                                            <span class="glyphicon glyphicon-chevron-down"></span>
-                                        </button>
-                                    </span>
-                                </div>
-                                <!-- modal popup input -->
-                                <div class="chaise-input-group modal-popup gene-selector-group">
-                                    <div class="input-label">Gene:</div>
-                                    <div class="chaise-input-control has-feedback">
-                                        <div contenteditable="false" class="popup-select-value" style="cursor: pointer" ng-click="ctrl.openGeneSelector()" ng-bind-html="gene.displayname.value"></div>
-                                    </div>
-                                    <label class="sr-only"></label>
-                                    <!-- So that the foreign key input can be validated -->
-                                    <input type="hidden" ng-model="geneId" />
-                                    <span class="chaise-input-group-append">
-                                        <button ng-focus="::form.blurElement($event);" class="chaise-btn chaise-btn-primary modal-popup-btn" type="button" ng-click="ctrl.openGeneSelector()" tooltip-placement="top-right" uib-tooltip="Choose a gene.">
-                                            <span class="glyphicon glyphicon-chevron-down"></span>
-                                        </button>
-                                    </span>
-                                </div>
-                                <div class="group-by-dropdown">
-                                    <div class="group-by-text input-label">Group By:</div>
-                                    <div class="chaise-input-group" uib-dropdown>
-                                        <div class="chaise-input-control" uib-dropdown-toggle>
-                                            <div contenteditable="false" style="cursor: pointer" ng-bind-html="groupKey"></div>
-                                            <button class="chaise-btn chaise-btn-primary" type="button" tooltip-placement="top-right" uib-tooltip="Choose a value to group by.">
+                            <div ng-if="ctrl.showViolinControls(plot.plot_type)">
+                                <div class="violin-controls single-select-group">
+                                    <!-- modal single select popup input -->
+                                    <div ng-hide="hideGeneSelector"class="chaise-input-group modal-popup gene-selector-group">
+                                        <div class="input-label">Gene:</div>
+                                        <div class="chaise-input-control has-feedback">
+                                            <div contenteditable="false" class="popup-select-value" style="cursor: pointer" ng-click="ctrl.openGeneSelector()" ng-bind-html="gene.displayname.value"></div>
+                                        </div>
+                                        <label class="sr-only"></label>
+                                        <!-- So that the foreign key input can be validated -->
+                                        <input type="hidden" ng-model="geneId" />
+                                        <span class="chaise-input-group-append">
+                                            <button ng-focus="::form.blurElement($event);" class="chaise-btn chaise-btn-primary modal-popup-btn" type="button" ng-click="ctrl.openGeneSelector()" tooltip-placement="top-right" uib-tooltip="Choose a gene.">
                                                 <span class="glyphicon glyphicon-chevron-down"></span>
                                             </button>
+                                        </span>
+                                    </div>
+                                    <div class="group-by-dropdown">
+                                        <div class="group-by-text input-label">Group By:</div>
+                                        <div class="chaise-input-group" uib-dropdown>
+                                            <div class="chaise-input-control" uib-dropdown-toggle>
+                                                <div contenteditable="false" style="cursor: pointer" ng-bind-html="groupKey"></div>
+                                                <button class="chaise-btn chaise-btn-primary" type="button" tooltip-placement="top-right" uib-tooltip="Choose a value to group by.">
+                                                    <span class="glyphicon glyphicon-chevron-down"></span>
+                                                </button>
+                                            </div>
+                                            <ul uib-dropdown-menu role="menu">
+                                                <li ng-repeat="group in ctrl.groups" ng-click="ctrl.setGroup(group)">
+                                                    <a ng-bind-html="group"></a>
+                                                </li>
+                                            </ul>
                                         </div>
-                                        <ul uib-dropdown-menu role="menu">
-                                            <li ng-repeat="group in ctrl.groups" ng-click="ctrl.setGroup(group)">
-                                                <a ng-bind-html="group"></a>
-                                            </li>
-                                        </ul>
+                                    </div>
+                                    <div class="toggle-scale-dropdown">
+                                        <div class="toggle-scale-text input-label">Scale:</div>
+                                        <div class="chaise-input-group" uib-dropdown >
+                                            <div class="chaise-input-control" uib-dropdown-toggle>
+                                                <div contenteditable="false" style="cursor: pointer" ng-bind-html="yAxisScale"></div>
+                                                <button class="chaise-btn chaise-btn-primary" type="button" tooltip-placement="top-right" uib-tooltip="Change y axis scale.">
+                                                    <span class="glyphicon glyphicon-chevron-down"></span>
+                                                </button>
+                                            </div>
+                                            <ul uib-dropdown-menu role="menu">
+                                                <li ng-repeat="scale in ctrl.scales" ng-click="ctrl.toggleScale(scale)">
+                                                    <a ng-bind-html="scale"></a>
+                                                </li>
+                                            </ul>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="toggle-scale-dropdown">
-                                    <div class="toggle-scale-text input-label">Scale:</div>
-                                    <div class="chaise-input-group" uib-dropdown >
-                                        <div class="chaise-input-control" uib-dropdown-toggle>
-                                            <div contenteditable="false" style="cursor: pointer" ng-bind-html="yAxisScale"></div>
-                                            <button class="chaise-btn chaise-btn-primary" type="button" tooltip-placement="top-right" uib-tooltip="Change y axis scale.">
+                                <div class="violin-controls study-group">
+                                    <!-- modal multi select popup input -->
+                                    <div ng-hide="hideStudySelector" class="chaise-input-group modal-popup study-selector-group">
+                                        <div class="input-label">Study:</div>
+                                        <div class="chaise-input-control has-feedback">
+                                            <div contenteditable="false" class="popup-select-value" style="cursor: pointer" ng-click="ctrl.openStudySelector()" ng-bind-html="!ctrl.studySetIsArray() ? templateParams.$url_parameters.Study : ''"></div>
+                                        </div>
+                                        <label class="sr-only"></label>
+                                        <!-- So that the foreign key input can be validated -->
+                                        <input type="hidden" ng-model="geneId" />
+                                        <span class="chaise-input-group-append">
+                                            <button ng-focus="::form.blurElement($event);" class="chaise-btn chaise-btn-primary modal-popup-btn" type="button" ng-click="ctrl.openStudySelector()" tooltip-placement="top-right" uib-tooltip="Choose a study.">
                                                 <span class="glyphicon glyphicon-chevron-down"></span>
                                             </button>
+                                        </span>
+                                    </div>
+                                    <div ng-show="ctrl.studySetIsArray() && ctrl.studySet.length > 0" class="recordset-selected-rows recordset-chiclets-container">
+                                        <div class="selected-chiclet" chaise-enable-tooltip-width ng-repeat="study in ctrl.studySet track by $index">
+                                            <span class="selected-chiclet-remove" ng-click="ctrl.removeStudyPill(study.uniqueId, $event)" uib-tooltip="Clear selected study" tooltip-placement="bottom-left">
+                                                <i class="glyphicon glyphicon-remove"></i>
+                                            </span>
+                                            <span class="selected-chiclet-name" ng-if="study.displayname.isHTML" ng-bind-html="study.displayname.value"></span>
+                                            <span class="selected-chiclet-name" ng-if="!study.displayname.isHTML" ng-bind="study.displayname.value"></span>
                                         </div>
-                                        <ul uib-dropdown-menu role="menu">
-                                            <li ng-repeat="scale in ctrl.scales" ng-click="ctrl.toggleScale(scale)">
-                                                <a ng-bind-html="scale"></a>
-                                            </li>
-                                        </ul>
+                                        <button ng-click="" class="chaise-btn chaise-btn-tertiary clear-all-btn" tooltip-placement="bottom-left" uib-tooltip="Clear all selected rows">
+                                            <span>Clear All Studies</span>
+                                        </button>
                                     </div>
                                 </div>
                             </div>

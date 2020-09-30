@@ -23,7 +23,7 @@ var plotConfigs = {
                 traces: [
                     {
                         // The request url that has to be used to fetch the data.
-                        queryPattern: "/ermrest/catalog/2/entity/RNASeq:Replicate_Expression/Study={{{$url_parameters.Study}}}&NCBI_GeneID={{{$filters.NCBI_GeneID}}}"
+                        queryPattern: "/ermrest/catalog/2/entity/RNASeq:Replicate_Expression/Study={{{$url_parameters.Study}}}&NCBI_GeneID={{{$url_parameters.NCBI_GeneID}}}"
                     }
                 ]
             }
