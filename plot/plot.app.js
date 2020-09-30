@@ -20,6 +20,7 @@
             'ngAnimate',
             'duScroll',
             'chaise.alerts',
+            'chaise.faceting',
             'chaise.filters',
             'chaise.inputs',
             'chaise.recordcreate',
@@ -31,8 +32,13 @@
             'chaise.navbar'
           ])
 
-            .config(['$cookiesProvider', function ($cookiesProvider) {
-                $cookiesProvider.defaults.path = '/';
+
+            .config(['$compileProvider', '$cookiesProvider', '$logProvider', '$provide', '$uibTooltipProvider', 'ConfigUtilsProvider', function($compileProvider, $cookiesProvider, $logProvider, $provide, $uibTooltipProvider, ConfigUtilsProvider) {
+                ConfigUtilsProvider.$get().configureAngular($compileProvider, $cookiesProvider, $logProvider, $uibTooltipProvider);
+
+                $provide.decorator('$templateRequest', ['ConfigUtils', 'UriUtils', '$delegate', function (ConfigUtils, UriUtils, $delegate) {
+                    return ConfigUtils.decorateTemplateRequest($delegate, UriUtils.chaiseDeploymentPath());
+                }]);
             }])
             .constant('dataParams', {
                 uri: "",
@@ -256,13 +262,22 @@
 
                         // transform x data based on groupKey
                         var xData = data.map(function (obj) {
-                            var value = obj[$rootScope.groupKey];
+                            var value = obj[$rootScope.groupKey.column_name];
                             return (value !== null && value !== undefined) ? value : "N/A"
+                        });
+
+                        // transform x data based on groupKey
+                        var xDataTicks = data.map(function (obj) {
+                            var value = obj[$rootScope.groupKey.column_name];
+                            // TODO: this extends the value, instead of templating with the value
+                            // how to add set of values to templating environment?
+                            var extendedVal = $rootScope.groupKey.tick_display_pattern ? ERMrest._renderHandlebarsTemplate($rootScope.groupKey.tick_display_pattern, $rootScope.templateParams) : ''
+                            return (value !== null && value !== undefined) ? (value + extendedVal) : "N/A"
                         });
 
                         // transform y data based on configuration option in plot-config
                         var yData = data.map(function (obj) {
-                            return obj[plot.yAxis]
+                            return obj[plot.yAxisGroupKey] + plot.yAxisTransform
                         });
 
                         var groupStyles = [];
@@ -302,15 +317,18 @@
                         var plotTitle = (plot.plotTitlePattern ? ERMrest._renderHandlebarsTemplate(plot.plotTitlePattern, $rootScope.templateParams) : "TPM Expression");
                         var plotlyLayout = {
                             title: plotTitle,
+                            height: 500,
                             xaxis: {
                                 automargin: true,
                                 title: {
-                                    text: $rootScope.groupKey,
+                                    text: ($rootScope.groupKey.title_display_pattern ? ERMrest._renderHandlebarsTemplate($rootScope.groupKey.title_display_pattern, $rootScope.templateParams) : $rootScope.groupKey.column_name),
                                     standoff: 20
-                                }
+                                },
+                                tickvals: xData,
+                                ticktext: xDataTicks
                             },
                             yaxis: {
-                                title: plot.yAxis,
+                                title: ERMrest._renderHandlebarsTemplate(plot.yAxisTitlePattern, $rootScope.templateParams),
                                 type: $rootScope.yAxisScale,
                                 zeroline: false
                             },
