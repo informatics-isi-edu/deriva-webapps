@@ -695,7 +695,7 @@
                     params.facetPanelOpen = false;
 
                     // to choose the correct directive
-                    params.mode = "selectFaceting";
+                    params.mode = "default";
                     params.showFaceting = true;
 
                     params.displayMode = "popup";
