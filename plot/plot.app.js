@@ -156,64 +156,87 @@
                   }
                 }
 
-                function getLayout(plot) {
-                  var config = plot.config ? plot.config :
-                  { width: 1200,
-                    height: 500,
-                    showlegend: true,
-                    legend: { x:1, y:1 }
-                  };
+                function getPlotlyConfig(plot) {
+                    // use config from plot.plotly.config if exists
+                    if (plot.plotly && plot.plotly.config) return plot.plotly.config;
 
-                  var margin = {}
-
-                  var plotlyLayout = {
-                      title: "Multiple Traces Violin Plot",
-                      yaxis: {
-                        zeroline: false
-                      }
-                  }
-
-                  var layout = {
-                      title: plot.plot_title,
-                      width: config.width || 1200,
-                      height: config.height || 500,
-                      showlegend: config.showlegend != undefined ? config.showlegend : true,
-                      legend: config.legend,
-                      margin: margin,
-
-                  };
-                  if (plot.plotly_config) {
-                    return plot.plotly_config
-                  }
-
-                  switch (plot.plot_type) {
-                    case "pie":
-                      return layout;
-                    case "histogram-horizontal":
-                      layout.bargap = plot.config.bargap;
-                    case "histogram-vertical":
-                      layout.bargap = plot.config.bargap;
-                      return layout;
-                    case "violin":
-                      return plotlyLayout;
-                    default:
-                      layout.margin = config.margin ? config.margin : '';
-                      layout.xaxis = {
-                          title: plot.x_axis_label ? plot.x_axis_label : '',
-                          automargin: true,
-                          type: config.x_axis_type ? config.x_axis_type : 'auto',
-                          tickformat: config.x_axis_thousands_separator ? ',d' : '',
-
-                      };
-                      layout.yaxis = {
-                          title: plot.y_axis_label ? plot.y_axis_label : '',
-                          automargin: true,
-                          type: config.y_axis_type ? config.y_axis_type : 'auto',
-                          tickformat: config.y_axis_thousands_separator ? ',d' : '',
-                      };
-                      return layout;
-                  }
+                    return { displaylogo: false, responsive: true }
                 }
+
+                /**
+                 * Get or set the plotly.layout
+                 *
+                 * defaults for layout:
+                 *     height: 500,
+                 *     width: 1200,
+                 *     showlegend: true,
+                 *     legend: { x:1, y:1 },
+                 *     margin: {},
+                 *
+                 * NOTE: plot.config holds configurable vaules to add to layout
+                 */
+                function getPlotlyLayout(plot) {
+                    // use layout from plot.plotly.layout if exists
+                    if (plot.plotly && plot.plotly.layout) {
+                        return plot.plotly.layout;
+                    } else if (plot.plotly_config) {
+                        return plot.plotly_config;
+                    }
+
+                    // default values for plot used as defaults if nothing else is defined
+                    // grab whole object or define object with base values
+                    var tempConfig = plot.config || {
+                        height: 500,
+                        width: 1200,
+                        showlegend: true,
+                        legend: { x:1, y:1 },
+                        margin: {}
+                    }
+
+                    var layout = {
+                        title: plot.plot_title, // NOTE: does not support templating (violin overrides outside of function with templating)
+                        height: tempConfig.height || 500,
+                        width: tempConfig.width || 1200,
+                        showlegend: tempConfig.showlegend != undefined ? tempConfig.showlegend : true,
+                        legend: tempConfig.legend,
+                        margin: tempConfig.margin || {}
+                    };
+
+                    switch (plot.plot_type) {
+                        case "pie":
+                            break;
+                        case "histogram-horizontal":
+                        case "histogram-vertical":
+                            layout.bargap = tempConfig.bargap;
+                            break;
+                        case "violin":
+                            layout.xaxis = { automargin: true, title: { standoff: 20 } };
+                            layout.yaxis = { zeroline: false };
+                            layout.hovermode = "closest";
+                            layout.dragmode = "pan";
+
+                            // delete layout.legend;
+                            // delete layout.margin;
+
+                            break;
+                        default:
+                            layout.xaxis = {
+                                title: plot.x_axis_label ? plot.x_axis_label : '',
+                                automargin: true,
+                                type: tempConfig.x_axis_type ? tempConfig.x_axis_type : 'auto',
+                                tickformat: config.x_axis_thousands_separator ? ',d' : '',
+                            };
+                            layout.yaxis = {
+                                title: plot.y_axis_label ? plot.y_axis_label : '',
+                                automargin: true,
+                                type: tempConfig.y_axis_type ? tempConfig.y_axis_type : 'auto',
+                                tickformat: tempConfig.y_axis_thousands_separator ? ',d' : '',
+                            };
+                            break;
+                    }
+
+                    return layout;
+                };
 
                 function formatData(data, format) {
                   if(format) {
@@ -250,34 +273,46 @@
                     var defer = $q.defer(),
                         uri = setViolinUri(),
                         plot = dataParams.plot,
-                        plot_values = dataParams.plot_values;
+                        plot_values = dataParams.plot_values,
+                        config = plot.config,
+                        xGroupKey = $rootScope.groupKey;
 
+                    // NOTE: violin plot has it's own case since it's using the reference APIs in ermrestJS
                     server.http.get(uri).then(function(response) {
-                        var layout = getLayout(plot);
                         var data = response.data;
 
-                        // NOTE: violin plot has it's own case since it's using the reference APIs in ermrestJS
-                        if (!$rootScope.groups) $rootScope.groups = plot.groupKeys;
-                        if (!$rootScope.groupKey) $rootScope.groupKey = plot.defaultGroup;
-
                         // transform x data based on groupKey
+                        // xData used for graph x data AND xaxis grouping
                         var xData = data.map(function (obj) {
-                            var value = obj[$rootScope.groupKey.column_name];
+                            var value = obj[xGroupKey.column_name];
                             return (value !== null && value !== undefined) ? value : "N/A"
                         });
 
                         // transform x data based on groupKey
+                        // xDataTicks used for xaxis grouping display values
                         var xDataTicks = data.map(function (obj) {
-                            var value = obj[$rootScope.groupKey.column_name];
-                            // TODO: this extends the value, instead of templating with the value
-                            // how to add set of values to templating environment?
-                            var extendedVal = $rootScope.groupKey.tick_display_pattern ? ERMrest._renderHandlebarsTemplate($rootScope.groupKey.tick_display_pattern, $rootScope.templateParams) : ''
-                            return (value !== null && value !== undefined) ? (value + extendedVal) : "N/A"
+                            // add row of data to templating environment
+                            $rootScope.templateParams.$row = obj;
+
+                            // use template if available/defined, else use value for column
+                            var value = xGroupKey.tick_display_pattern ? ERMrest._renderHandlebarsTemplate(xGroupKey.tick_display_pattern, $rootScope.templateParams) : obj[xGroupKey.column_name];
+
+                            // remove row after using it for templating
+                            delete $rootScope.templateParams.$row;
+                            return (value !== null && value !== undefined) ? value : "N/A"
                         });
 
                         // transform y data based on configuration option in plot-config
                         var yData = data.map(function (obj) {
-                            return obj[plot.yAxisGroupKey] + plot.yAxisTransform
+                            // add row of data to templating environment
+                            $rootScope.templateParams.$row = obj;
+
+                            // use template if available/defined, else use value for column
+                            var value = config.yaxis.tick_display_pattern ? ERMrest._renderHandlebarsTemplate(config.yaxis.tick_display_pattern, $rootScope.templateParams) : obj[config.yaxis.group_key];
+
+                            // remove row after using it for templating
+                            delete $rootScope.templateParams.$row;
+                            return value;
                         });
 
                         var groupStyles = [];
@@ -294,51 +329,58 @@
                             });
                         });
 
-                        var plotlyData = {
-                            type: 'violin',
-                            x: xData,
-                            y: yData,
-                            // points: 'none',
-                            points: 'all',
-                            showlegend: false,
-                            box: {
-                                visible: true
-                            },
-                            meanline: {
-                                visible: true
-                            },
-                            transforms: [{
-                                type: 'groupby',
-                                groups: xData,
-                                styles: groupStyles
-                            }]
-                        }
-
-                        var plotTitle = (plot.plotTitlePattern ? ERMrest._renderHandlebarsTemplate(plot.plotTitlePattern, $rootScope.templateParams) : "TPM Expression");
-                        var plotlyLayout = {
-                            title: plotTitle,
-                            height: 500,
-                            xaxis: {
-                                automargin: true,
-                                title: {
-                                    text: ($rootScope.groupKey.title_display_pattern ? ERMrest._renderHandlebarsTemplate($rootScope.groupKey.title_display_pattern, $rootScope.templateParams) : $rootScope.groupKey.column_name),
-                                    standoff: 20
+                        // set base violin plot config
+                        // NOTE: getPlotlyConfig and getViolinLayout (TODO: rename to getPlotlyLayout) fetch from plot-config.js plot object or use default
+                        var plotlyConfig = {
+                            // passed directly to plotly (plotly.config)
+                            config: getPlotlyConfig(plot),
+                            // passed directly to plotly (plotly.data)
+                            data: [{
+                                type: 'violin',
+                                x: xData,
+                                y: yData,
+                                points: 'all',
+                                showlegend: false,
+                                box: {
+                                    visible: true
                                 },
-                                tickvals: xData,
-                                ticktext: xDataTicks
-                            },
-                            yaxis: {
-                                title: ERMrest._renderHandlebarsTemplate(plot.yAxisTitlePattern, $rootScope.templateParams),
-                                type: $rootScope.yAxisScale,
-                                zeroline: false
-                            },
-                            hovermode: "closest",
-                            dragmode: "pan"
+                                meanline: {
+                                    visible: true
+                                },
+                                transforms: [{
+                                    type: 'groupby',
+                                    groups: xData,
+                                    styles: groupStyles
+                                }],
+                            }],
+                            // passed directly to plotly (plotly.layout)
+                            layout: getPlotlyLayout(plot)
                         }
 
-                        plot_values.data = [plotlyData];
-                        plot_values.layout = plotlyLayout;
-                        plot_values.config = plot.config;
+                        // attach configurable plotly values
+                        // TODO: Do we set configuration based on whitelist or blacklist?
+                        // plotly.data values that probably should NOT be overwritten:
+                        //   - [type, x, y, transforms[].groups]
+
+                        // TODO: should plotTitlePattern be required? if no, should "TPM Expression" remain the default
+                        plotlyConfig.layout.title = (config.title_display_pattern ? ERMrest._renderHandlebarsTemplate(config.title_display_pattern, $rootScope.templateParams) : "TPM Expression");
+
+                        // xaxis
+                        // use title pattern OR column_name if pattern doesn't exist
+                        plotlyConfig.layout.xaxis.title.text = (xGroupKey.title_display_pattern ? ERMrest._renderHandlebarsTemplate(xGroupKey.title_display_pattern, $rootScope.templateParams) : xGroupKey.column_name);
+                        plotlyConfig.layout.xaxis.tickvals = xData;
+                        plotlyConfig.layout.xaxis.ticktext = xDataTicks;
+
+                        // yaxis
+                        // use title pattern OR group_key if pattern doesn't exist
+                        plotlyConfig.layout.yaxis.title = config.yaxis.title_pattern ? ERMrest._renderHandlebarsTemplate(config.yaxis.title_pattern, $rootScope.templateParams) : config.yaxis.group_key;
+                        plotlyConfig.layout.yaxis.type = $rootScope.yAxisScale;
+
+                        // attach configuration and data for plot
+                        plot_values.data = plotlyConfig.data;
+                        plot_values.layout = plotlyConfig.layout;
+                        plot_values.config = plotlyConfig.config;
+
 
                         defer.resolve(plot_values);
                     }).catch(function (err) {
@@ -413,7 +455,7 @@
                             };
                             var tracesComplete = 0;
 
-                            // violin plot has it's own case outside of the switch condition below since it relies reference api for the gene selector
+                            // violin plot has it's own case outside of the switch condition below since it relies on reference api for the gene selector
                             if (plot.plot_type == "violin") {
                                 plot.traces.forEach(function (trace) {
                                     // var ermrestUri
@@ -425,6 +467,13 @@
                                         return $rootScope.geneReference.read(1);
                                     }).then(function (page) {
                                         if (!$rootScope.gene) $rootScope.gene = page.tuples[0];
+
+                                        $rootScope.groups = plot.config.xaxis.groupKeys;
+                                        // set default groupKey
+                                        // NOTE: should only ever be one. If multiple defaults are set, first one is used
+                                        $rootScope.groupKey = plot.config.xaxis.groupKeys.filter(function (obj) {
+                                            return obj.default == true
+                                        })[0];
 
                                         // set dataParams to be used later for refetching violin data
                                         if(trace.queryPattern) dataParams.queryPattern = trace.queryPattern
@@ -443,7 +492,7 @@
                                     var uri = trace.uri;
                                     server.http.get(uri).then(function(response) {
                                         try {
-                                            var layout = getLayout(plot);
+                                            var layout = getPlotlyLayout(plot);
                                             var data = response.data;
                                             switch (plot.plot_type) {
                                                 case "pie":
