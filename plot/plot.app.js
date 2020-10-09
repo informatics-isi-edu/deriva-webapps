@@ -257,37 +257,10 @@
                   }
                 }
 
-                // updates the geneID used for templating and generate the templated uri
-                function setViolinUri() {
-                    var studyInfo = $rootScope.studySet,
-                        uri;
-
-                    // array of Tuple objects
-                    if (Array.isArray(studyInfo)) {
-                        if (studyInfo.length == 0) {
-                            // throw error, or hide graph
-                            return
-                        }
-                        // query: "/ermrest/catalog/2/entity/RNASeq:Replicate_Expression/",
-                        // studyPattern: "Study=",
-                        // genePattern: "&NCBI_GeneID={{{$url_parameters.NCBI_GeneID}}}"
-                        uri = dataParams.trace.multiStudy.query;
-                        for (var j=0; j<studyInfo.length; j++){
-                            var rid = studyInfo[j].data.RID;
-                            uri += dataParams.trace.multiStudy.studyPattern + rid;
-                            if (j != studyInfo.length-1) uri += ";"
-                        }
-                        uri += ERMrest._renderHandlebarsTemplate(dataParams.trace.multiStudy.genePattern, $rootScope.templateParams);
-                    } else {
-                        uri = ERMrest._renderHandlebarsTemplate(dataParams.trace.queryPattern, $rootScope.templateParams);
-                    }
-                    return uri;
-                }
-
                 // fetches the violin plot data and sets it up for plotly
                 function getViolinData() {
                     var defer = $q.defer(),
-                        uri = setViolinUri(),
+                        uri = ERMrest._renderHandlebarsTemplate(dataParams.trace.queryPattern, $rootScope.templateParams),
                         plot = dataParams.plot,
                         plot_values = dataParams.plot_values,
                         config = plot.config,
@@ -296,7 +269,6 @@
                     console.log(uri);
                     if (!uri) return; // don't try to fetch data when no uri is defined
                     server.http.get(uri).then(function(response) {
-                        console.log(response);
                         var data = response.data;
 
                         // transform x data based on groupKey
@@ -476,24 +448,8 @@
                             // violin plot has it's own case outside of the switch condition below since it relies on reference api for the gene selector
                             if (plot.plot_type == "violin") {
                                 plot.traces.forEach(function (trace) {
-                                    var studyIds = $rootScope.templateParams.$url_parameters.Study,
-                                        geneUri;
+                                    var geneUri = ERMrest._renderHandlebarsTemplate(plot.geneUriPattern, $rootScope.templateParams);
 
-                                    // array of strings from url
-                                    if (typeof studyIds == "Object" && studyIds.length > 1) {
-                                        // query: "/ermrest/catalog/2/entity/RNASeq:Replicate_Expression/",
-                                        // studyPattern: "Study=",
-                                        // genePattern: "/(NCBI_GeneID)=(Common:Gene:NCBI_GeneID)"
-                                        geneUri = plot.geneMultiStudy.query;
-                                        for (var j=0; j<studyIds.length; j++){
-                                            var rid = studyIds[j];
-                                            geneUri += plot.geneMultiStudy.studyPattern + rid;
-                                            if (j != studyIds.length-1) geneUri += ";"
-                                        }
-                                        geneUri += plot.geneMultiStudy.genePattern;
-                                    } else {
-                                        geneUri = ERMrest._renderHandlebarsTemplate(plot.geneUriPattern, $rootScope.templateParams);
-                                    }
                                     ERMrest.resolve(geneUri, ConfigUtils.getContextHeaderParams()).then(function (ref) {
                                         $rootScope.geneReference = ref.contextualize.compactSelect;
 
@@ -869,9 +825,16 @@
                     // params.displayMode = recordsetDisplayModes.facetPopup;
                     params.editable = false;
 
-                    params.selectedRows = $rootScope.studySet ? $rootScope.studySet : [];
+                    // should be triggered once to remove fake tuple objects from array used for default display
+                    if (vm.studySelectorOpened == false) {
+                        params.selectedRows = [];
+                        vm.studySelectorOpened == true;
+                    } else {
+                        params.selectedRows = $rootScope.studySet; // ? $rootScope.studySet : [];
+                    };
 
-                    // TODO: grey out row that is already selected
+
+                    // TODO: preselect rows that are already selected
                     // // generate list of rows needed for modal
                     // scope.checkboxRows.forEach(function (row) {
                     //     if (!row.selected) return;
@@ -908,11 +871,7 @@
                         size: modalUtils.getSearchPopupSize(params),
                         templateUrl:  UriUtils.chaiseDeploymentPath() + "common/templates/searchPopup.modal.html"
                     }, function (res) {
-                        console.log(res);
                         $rootScope.studySet = $rootScope.templateParams.$url_parameters.Study = vm.studySet = res.rows;
-                        console.log(typeof $rootScope.studySet)
-                        console.log($rootScope.studySet.length)
-                        // $rootScope.studyId = $rootScope.study.data["RID"];
 
                         // the study has changed, fetch new plot data for new study info
                         PlotUtils.getViolinData();
@@ -970,6 +929,14 @@
 
                 }
 
+                $scope.$watch('templateParams', function (newValue, oldValue) {
+                    // execute once study parameter is digested (or setup from reference default when embedded on gene page.. in future)
+                    if (newValue && newValue.$url_parameters.Study) {
+                        vm.studySelectorOpened = false;
+                        $rootScope.studySet = vm.studySet = newValue.$url_parameters.Study;
+                    }
+                });
+
                 $scope.$watch('groups', function (newValue, oldValue) {
                     if (newValue) vm.groups = newValue;
                 });
@@ -1007,6 +974,7 @@
                         //     var notAuthorizedError = new ERMrest.UnauthorizedError(messageMap.unauthorizedErrorCode, (messageMap.unauthorizedMessage + messageMap.reportErrorToAdmin));
                         //     throw notAuthorizedError;
                         // }
+                        // TODO: only fetches one study ID, support multiple
                         var studyId = UriUtils.getQueryParam($window.location.href, "Study");
                         var geneId = UriUtils.getQueryParam($window.location.href, "NCBI_GeneID");
 
@@ -1019,8 +987,10 @@
                         // trick to verify if this config app is running inside of an iframe as part of another app
                         var inIframe = $window.self !== $window.parent;
 
+                        // TODO: generalize as part of version 1.3
                         if (studyId) {
-                            $rootScope.templateParams.$url_parameters.Study = studyId;
+                            //
+                            $rootScope.templateParams.$url_parameters.Study = [{"data": {"RID": studyId}}];
                             // in iframe and study means embedded on study page, hide study selector
                             if (inIframe) $rootScope.hideStudySelector = true;
                         }

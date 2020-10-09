@@ -83,14 +83,14 @@
                                         <div class="group-by-text input-label">Group By:</div>
                                         <div class="chaise-input-group" uib-dropdown>
                                             <div class="chaise-input-control" uib-dropdown-toggle>
-                                                <div contenteditable="false" style="cursor: pointer" ng-bind-html="groupKey"></div>
+                                                <div contenteditable="false" style="cursor: pointer" ng-bind-html="groupKey.title_display_pattern"></div>
                                                 <button class="chaise-btn chaise-btn-primary" type="button" tooltip-placement="top-right" uib-tooltip="Choose a value to group by.">
                                                     <span class="glyphicon glyphicon-chevron-down"></span>
                                                 </button>
                                             </div>
                                             <ul uib-dropdown-menu role="menu">
                                                 <li ng-repeat="group in ctrl.groups" ng-click="ctrl.setGroup(group)">
-                                                    <a ng-bind-html="group"></a>
+                                                    <a ng-bind-html="group.title_display_pattern"></a>
                                                 </li>
                                             </ul>
                                         </div>
@@ -133,8 +133,8 @@
                                             <span class="selected-chiclet-remove" ng-click="ctrl.removeStudyPill(study.uniqueId, $event)" uib-tooltip="Clear selected study" tooltip-placement="bottom-left">
                                                 <i class="glyphicon glyphicon-remove"></i>
                                             </span>
-                                            <span class="selected-chiclet-name" ng-if="study.displayname.isHTML" ng-bind-html="study.displayname.value"></span>
-                                            <span class="selected-chiclet-name" ng-if="!study.displayname.isHTML" ng-bind="study.displayname.value"></span>
+                                            <span class="selected-chiclet-name" ng-if="study.displayname.isHTML" ng-bind-html="study.displayname.value || study.data.RID"></span>
+                                            <span class="selected-chiclet-name" ng-if="!study.displayname.isHTML" ng-bind="study.displayname.value || study.data.RID"></span>
                                         </div>
                                         <button ng-click="" class="chaise-btn chaise-btn-tertiary clear-all-btn" tooltip-placement="bottom-left" uib-tooltip="Clear all selected rows">
                                             <span>Clear All Studies</span>
