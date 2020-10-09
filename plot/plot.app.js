@@ -459,7 +459,7 @@
                             if (plot.plot_type == "violin") {
                                 plot.traces.forEach(function (trace) {
                                     // var ermrestUri
-                                    var geneUri = ERMrest._renderHandlebarsTemplate(plot.geneUriPattern, $rootScope.templateParams);
+                                    var geneUri = ERMrest._renderHandlebarsTemplate(plot.gene_uri_pattern, $rootScope.templateParams);
                                     ERMrest.resolve(geneUri, ConfigUtils.getContextHeaderParams()).then(function (ref) {
                                         $rootScope.geneReference = ref.contextualize.compactSelect;
 
@@ -468,10 +468,10 @@
                                     }).then(function (page) {
                                         if (!$rootScope.gene) $rootScope.gene = page.tuples[0];
 
-                                        $rootScope.groups = plot.config.xaxis.groupKeys;
+                                        $rootScope.groups = plot.config.xaxis.group_keys;
                                         // set default groupKey
                                         // NOTE: should only ever be one. If multiple defaults are set, first one is used
-                                        $rootScope.groupKey = plot.config.xaxis.groupKeys.filter(function (obj) {
+                                        $rootScope.groupKey = $rootScope.groups.filter(function (obj) {
                                             return obj.default == true
                                         })[0];
 
