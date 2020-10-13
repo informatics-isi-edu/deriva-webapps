@@ -448,8 +448,8 @@
                             // violin plot has it's own case outside of the switch condition below since it relies on reference api for the gene selector
                             if (plot.plot_type == "violin") {
                                 plot.traces.forEach(function (trace) {
-                                    var geneUri = ERMrest._renderHandlebarsTemplate(plot.geneUriPattern, $rootScope.templateParams);
-
+                                    // var ermrestUri
+                                    var geneUri = ERMrest._renderHandlebarsTemplate(plot.gene_uri_pattern, $rootScope.templateParams);
                                     ERMrest.resolve(geneUri, ConfigUtils.getContextHeaderParams()).then(function (ref) {
                                         $rootScope.geneReference = ref.contextualize.compactSelect;
 
@@ -466,10 +466,10 @@
                                     }).then(function (ref) {
                                         $rootScope.studyReference = ref.contextualize.compactSelect;
 
-                                        $rootScope.groups = plot.config.xaxis.groupKeys;
+                                        $rootScope.groups = plot.config.xaxis.group_keys;
                                         // set default groupKey
                                         // NOTE: should only ever be one. If multiple defaults are set, first one is used
-                                        $rootScope.groupKey = plot.config.xaxis.groupKeys.filter(function (obj) {
+                                        $rootScope.groupKey = $rootScope.groups.filter(function (obj) {
                                             return obj.default == true
                                         })[0];
 
