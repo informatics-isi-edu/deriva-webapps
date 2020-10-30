@@ -257,17 +257,158 @@
                   }
                 }
 
+                /** 3 cases:
+                 *   standalone app
+                 *     Nothing in url || both Study and NCBI_GeneID $url_parameter:
+                 *       - both controls active
+                 *       - Nothing in url:
+                 *         - fetch gene selector with no constraints
+                 *           - default to first gene in set returned
+                 *         - fetch study selector info based on gene
+                 *           - All Studies
+                 *       - both Study and NCBI_GeneID $url_parameter:
+                 *         - fetch gene selector info based on study
+                 *           - modify gene URL to append NCBI_GeneID
+                 *           - use gene from url as default
+                 *         - fetch study selector info based on gene
+                 *           - modify study URL to append RID
+                 *           - fetch tuple for study from url for rowname info to display
+                 *
+                 *   embedded in study page with Study $url_parameter || fullscreen with Study $url_parameter
+                 *     - remove study selector (don't fetch study set)
+                 *     - don't fetch any study info
+                 *
+                 *   embedded in gene page with NCBI_GeneID $url_parameter || fullscreen with NCBI_GeneID $url_parameter
+                 *     - disable gene selector (don't fetch gene set)
+                 *     - fetch rowname for gene that was selected and display in input
+                 **/
+                function setupViolinPlotSelectors(plot) {
+                    var defer = $q.defer();
+
+                    // TODO: only fetches one study ID, support multiple
+                    var studyId = UriUtils.getQueryParam($window.location.href, "Study");
+                    var geneId = UriUtils.getQueryParam($window.location.href, "NCBI_GeneID");
+
+                    $rootScope.hideStudySelector = false;
+                    $rootScope.disableGeneSelector = false;
+                    $rootScope.templateParams = {
+                        $url_parameters: {
+                            NCBI_GeneID: geneId || null,
+                            Study: []
+                        }
+                    }
+
+                    // trick to verify if this config app is running inside of an iframe as part of another app
+                    var inIframe = $window.self !== $window.parent;
+
+                    // TODO: generalize as part of version 1.3
+                    if (studyId) {
+                        $rootScope.templateParams.$url_parameters.Study.push({
+                            "uniqueId": studyId,
+                            "data": {
+                                "RID": studyId
+                            }
+                        });
+                    }
+
+                    // in iframe and gene means embedded on gene page, disable gene selector
+                    // in iframe and study means embedded on study page, hide study selector
+                    // OR if only one of geneId or studyId, assume we fullscreened from iframe
+                    // NOTE: this may change in future but is a requirement for now
+                    if ( inIframe || ((geneId && !studyId) || (!geneId && studyId)) ) {
+                        $rootScope.disableGeneSelector = geneId ? true : false;
+                        $rootScope.hideStudySelector = studyId ? true : false;
+                    }
+
+                    // both booleans imply we are in an iframe
+                    var skipStudy = $rootScope.hideStudySelector;
+                    var skipGene = $rootScope.disableGeneSelector;
+
+                    var geneUri = ERMrest.renderHandlebarsTemplate(plot.gene_uri_pattern, $rootScope.templateParams);
+
+                    console.log($rootScope.templateParams)
+                    // relies on geneUri not passed as param
+                    function generalOrSpecificGene(reference) {
+                        var innerDefer = $q.defer();
+                        // if we need a specific gene as default
+                        if ($rootScope.templateParams.$url_parameters.NCBI_GeneID) {
+                            var specificGeneUri = geneUri + "/NCBI_GeneID=" + $rootScope.templateParams.$url_parameters.NCBI_GeneID;
+
+                            ERMrest.resolve(specificGeneUri, ConfigUtils.getContextHeaderParams()).then(function (ref) {
+                                return ref.contextualize.compactSelect.read(1);
+                            }).then(function (page) {
+                                return innerDefer.resolve(page);
+                            }).catch(function (err) {
+                                console.log(err);
+                                innerDefer.reject(err);
+                            });
+                        } else {
+                            // nothing set, read first gene from general reference
+                            reference.read(1).then(function (page) {
+                                return innerDefer.resolve(page);
+                            }).catch(function (err) {
+                                console.log(err);
+                                innerDefer.reject(err);
+                            });
+                        }
+
+                        return innerDefer.promise;
+                    }
+
+                    // for gene popup
+                    ERMrest.resolve(geneUri, ConfigUtils.getContextHeaderParams()).then(function (ref) {
+                        $rootScope.geneReference = ref.contextualize.compactSelect;
+
+                        return generalOrSpecificGene($rootScope.geneReference);
+                    }).then(function (page) {
+                        $rootScope.gene = page.tuples[0];
+
+                        if (!geneId) {
+                            // use first returned from set if no default was defined
+                            $rootScope.templateParams.$url_parameters.NCBI_GeneID = $rootScope.gene.data["NCBI_GeneID"];
+                        }
+
+                        if (!skipStudy && $rootScope.templateParams.$url_parameters.Study.length > 0) {
+                            // get study information for 1 study
+                            var singleStudyUri = ERMrest.renderHandlebarsTemplate(plot.study_uri_pattern, $rootScope.templateParams);
+                            singleStudyUri += "/RID=" + $rootScope.templateParams.$url_parameters.Study[0].uniqueId;
+                            ERMrest.resolve(singleStudyUri, ConfigUtils.getContextHeaderParams()).then(function (singleStudyRef) {
+
+                                return singleStudyRef.read(1);
+                            }).then(function (page) {
+                                $rootScope.templateParams.$url_parameters.Study = $rootScope.studySet = [page.tuples[0]];
+                            }).catch(function (err) {
+                                console.log(err);
+                            });
+                        }
+
+                        return defer.resolve();
+                    }).catch(function (err) {
+                        console.log(err);
+                        defer.reject();
+                    });
+
+                    return defer.promise;
+                }
+
                 // fetches the violin plot data and sets it up for plotly
-                function getViolinData() {
+                function getViolinData(removeData) {
                     var defer = $q.defer(),
-                        uri = ERMrest._renderHandlebarsTemplate(dataParams.trace.queryPattern, $rootScope.templateParams),
+                        uri = ERMrest.renderHandlebarsTemplate(dataParams.trace.queryPattern, $rootScope.templateParams),
                         plot = dataParams.plot,
                         plot_values = dataParams.plot_values,
                         config = plot.config,
                         xGroupKey = $rootScope.groupKey;
 
-                    console.log(uri);
-                    if (!uri) return; // don't try to fetch data when no uri is defined
+                    // don't try to fetch data when no uri is defined or flag is set
+                    if (!uri || removeData) {
+                        // empty the plot of data but keep the configuration
+                        plot_values.data = [];
+                        defer.resolve(plot_values);// TODO: figure out how to return an error to catch clause without breaking code
+                        return defer.promise;
+                    }
+
+                    console.log("data:", uri);
                     server.http.get(uri).then(function(response) {
                         var data = response.data;
 
@@ -285,7 +426,7 @@
                             $rootScope.templateParams.$row = obj;
 
                             // use template if available/defined, else use value for column
-                            var value = xGroupKey.tick_display_pattern ? ERMrest._renderHandlebarsTemplate(xGroupKey.tick_display_pattern, $rootScope.templateParams) : obj[xGroupKey.column_name];
+                            var value = xGroupKey.tick_display_pattern ? ERMrest.renderHandlebarsTemplate(xGroupKey.tick_display_pattern, $rootScope.templateParams) : obj[xGroupKey.column_name];
 
                             // remove row after using it for templating
                             delete $rootScope.templateParams.$row;
@@ -298,7 +439,7 @@
                             $rootScope.templateParams.$row = obj;
 
                             // use template if available/defined, else use value for column
-                            var value = config.yaxis.tick_display_pattern ? ERMrest._renderHandlebarsTemplate(config.yaxis.tick_display_pattern, $rootScope.templateParams) : obj[config.yaxis.group_key];
+                            var value = config.yaxis.tick_display_pattern ? ERMrest.renderHandlebarsTemplate(config.yaxis.tick_display_pattern, $rootScope.templateParams) : obj[config.yaxis.group_key];
 
                             // remove row after using it for templating
                             delete $rootScope.templateParams.$row;
@@ -353,17 +494,17 @@
                         //   - [type, x, y, transforms[].groups]
 
                         // TODO: should plotTitlePattern be required? if no, should "TPM Expression" remain the default
-                        plotlyConfig.layout.title = (config.title_display_pattern ? ERMrest._renderHandlebarsTemplate(config.title_display_pattern, $rootScope.templateParams) : "TPM Expression");
+                        plotlyConfig.layout.title = (config.title_display_pattern ? ERMrest.renderHandlebarsTemplate(config.title_display_pattern, $rootScope.templateParams) : "TPM Expression");
 
                         // xaxis
                         // use title pattern OR column_name if pattern doesn't exist
-                        plotlyConfig.layout.xaxis.title.text = (xGroupKey.title_display_pattern ? ERMrest._renderHandlebarsTemplate(xGroupKey.title_display_pattern, $rootScope.templateParams) : xGroupKey.column_name);
+                        plotlyConfig.layout.xaxis.title.text = (xGroupKey.title_display_pattern ? ERMrest.renderHandlebarsTemplate(xGroupKey.title_display_pattern, $rootScope.templateParams) : xGroupKey.column_name);
                         plotlyConfig.layout.xaxis.tickvals = xData;
                         plotlyConfig.layout.xaxis.ticktext = xDataTicks;
 
                         // yaxis
                         // use title pattern OR group_key if pattern doesn't exist
-                        plotlyConfig.layout.yaxis.title = config.yaxis.title_pattern ? ERMrest._renderHandlebarsTemplate(config.yaxis.title_pattern, $rootScope.templateParams) : config.yaxis.group_key;
+                        plotlyConfig.layout.yaxis.title = config.yaxis.title_pattern ? ERMrest.renderHandlebarsTemplate(config.yaxis.title_pattern, $rootScope.templateParams) : config.yaxis.group_key;
                         plotlyConfig.layout.yaxis.type = $rootScope.yAxisScale;
 
                         // attach configuration and data for plot
@@ -447,25 +588,10 @@
 
                             // violin plot has it's own case outside of the switch condition below since it relies on reference api for the gene selector
                             if (plot.plot_type == "violin") {
+                                // TODO: assumes only 1 plot
+                                $rootScope.plot = plot;
                                 plot.traces.forEach(function (trace) {
-                                    // var ermrestUri
-                                    var geneUri = ERMrest._renderHandlebarsTemplate(plot.gene_uri_pattern, $rootScope.templateParams);
-                                    ERMrest.resolve(geneUri, ConfigUtils.getContextHeaderParams()).then(function (ref) {
-                                        $rootScope.geneReference = ref.contextualize.compactSelect;
-
-                                        // get the first gene to use as a default
-                                        return $rootScope.geneReference.read(1);
-                                    }).then(function (page) {
-                                        if (!$rootScope.gene) {
-                                            $rootScope.gene = page.tuples[0];
-                                            $rootScope.templateParams.$url_parameters.NCBI_GeneID = $rootScope.gene.data["NCBI_GeneID"];
-                                        }
-
-                                        var studyUri = ERMrest._renderHandlebarsTemplate(plot.studyUriPattern, $rootScope.templateParams);
-                                        return ERMrest.resolve(studyUri, ConfigUtils.getContextHeaderParams())
-                                    }).then(function (ref) {
-                                        $rootScope.studyReference = ref.contextualize.compactSelect;
-
+                                    setupViolinPlotSelectors(plot).then(function () {
                                         $rootScope.groups = plot.config.xaxis.group_keys;
                                         // set default groupKey
                                         // NOTE: should only ever be one. If multiple defaults are set, first one is used
@@ -479,9 +605,11 @@
                                         dataParams.id = plot_values.id;
                                         dataParams.plot_values = plot_values;
 
-                                        getViolinData().then(function (values) {
-                                            checkPlotsLoaded(values, plot);
-                                        });
+                                        return getViolinData();
+                                    }).then(function (values) {
+                                        checkPlotsLoaded(values, plot);
+                                    }).catch(function (err) {
+                                        console.log(err);
                                     });
                                 });
                             } else {
@@ -629,7 +757,7 @@
                     getViolinData: getViolinData
                 }
             }])
-            .controller('plotController', ['AlertsService', 'dataFormats', 'dataParams', 'modalUtils', 'PlotUtils', 'UriUtils', '$rootScope', '$scope', '$timeout', '$window', function plotController(AlertsService, dataFormats, dataParams, modalUtils, PlotUtils, UriUtils, $rootScope, $scope, $timeout, $window) {
+            .controller('plotController', ['AlertsService', 'ConfigUtils', 'dataFormats', 'dataParams', 'modalUtils', 'PlotUtils', 'UriUtils', '$rootScope', '$scope', '$timeout', '$window', function plotController(AlertsService, ConfigUtils, dataFormats, dataParams, modalUtils, PlotUtils, UriUtils, $rootScope, $scope, $timeout, $window) {
                 var vm = this;
                 vm.alerts = AlertsService.alerts;
                 vm.dataFormats = dataFormats;
@@ -637,6 +765,8 @@
                 vm.types = ["line", "bar", "dot", "area"];
                 vm.model = {};
                 vm.scales = ["linear", "log"];
+                vm.showMore = true;
+                vm.selectAll = false;
                 $rootScope.yAxisScale = "linear";
 
                 vm.changeSelection = function(value) { // Not yet used for the selection of plot type
@@ -733,67 +863,77 @@
                     // params.displayname = scope.facetColumn.displayname;
                     // disable comment for facet, since it might be confusing
                     // params.comment = scope.facetColumn.comment;
+                    var geneUri = ERMrest.renderHandlebarsTemplate($rootScope.plot.gene_uri_pattern, $rootScope.templateParams);
+                    console.log(geneUri);
+                    ERMrest.resolve(geneUri, ConfigUtils.getContextHeaderParams()).then(function (ref) {
+                        params.reference = ref.contextualize.compactSelect;
+                        params.reference.session = $rootScope.session;
+                        params.selectMode = "single-select";
+                        params.faceting = true;
+                        params.facetPanelOpen = false;
 
-                    params.reference = $rootScope.geneReference;
-                    params.reference.session = $rootScope.session;
-                    params.selectMode = "single-select";
-                    params.faceting = true;
-                    params.facetPanelOpen = false;
+                        // to choose the correct directive
+                        params.mode = "default";
+                        params.showFaceting = true;
 
-                    // to choose the correct directive
-                    params.mode = "default";
-                    params.showFaceting = true;
+                        params.displayMode = "popup";
+                        // params.displayMode = "popup/facet";
+                        // params.displayMode = recordsetDisplayModes.facetPopup;
+                        params.editable = false;
 
-                    params.displayMode = "popup";
-                    // params.displayMode = "popup/facet";
-                    // params.displayMode = recordsetDisplayModes.facetPopup;
-                    params.editable = false;
+                        params.selectedRows = [];
 
-                    params.selectedRows = [];
+                        // TODO: grey out row that is already selected
+                        // // generate list of rows needed for modal
+                        // scope.checkboxRows.forEach(function (row) {
+                        //     if (!row.selected) return;
+                        //     var newRow = {};
+                        //
+                        //     // - row.uniqueId will return the filter's uniqueId and not
+                        //     //    the tuple's. We need tuple's uniqueId in here
+                        //     //    (it will be used in the logic of isSelected in modal).
+                        //     // - data is needed for the post process that we do on the data.
+                        //     if (row.tuple && row.tuple.data && scope.facetColumn.isEntityMode) {
+                        //         newRow.uniqueId = row.tuple.uniqueId;
+                        //         newRow.data = row.tuple.data;
+                        //     } else {
+                        //         newRow.uniqueId = row.uniqueId;
+                        //     }
+                        //
+                        //     newRow.displayname = (newRow.uniqueId === null) ? {value: null, isHTML: false} : row.displayname;
+                        //     newRow.tooltip = newRow.displayname;
+                        //     newRow.isNotNull = row.notNull;
+                        //     params.selectedRows.push(newRow);
+                        // });
 
-                    // TODO: grey out row that is already selected
-                    // // generate list of rows needed for modal
-                    // scope.checkboxRows.forEach(function (row) {
-                    //     if (!row.selected) return;
-                    //     var newRow = {};
-                    //
-                    //     // - row.uniqueId will return the filter's uniqueId and not
-                    //     //    the tuple's. We need tuple's uniqueId in here
-                    //     //    (it will be used in the logic of isSelected in modal).
-                    //     // - data is needed for the post process that we do on the data.
-                    //     if (row.tuple && row.tuple.data && scope.facetColumn.isEntityMode) {
-                    //         newRow.uniqueId = row.tuple.uniqueId;
-                    //         newRow.data = row.tuple.data;
-                    //     } else {
-                    //         newRow.uniqueId = row.uniqueId;
-                    //     }
-                    //
-                    //     newRow.displayname = (newRow.uniqueId === null) ? {value: null, isHTML: false} : row.displayname;
-                    //     newRow.tooltip = newRow.displayname;
-                    //     newRow.isNotNull = row.notNull;
-                    //     params.selectedRows.push(newRow);
-                    // });
+                        // modal properties
+                        var windowClass = "search-popup gene-selector-popup";
 
-                    // modal properties
-                    var windowClass = "search-popup gene-selector-popup";
+                        modalUtils.showModal({
+                            animation: false,
+                            controller: "SearchPopupController",
+                            windowClass: windowClass,
+                            controllerAs: "ctrl",
+                            resolve: {
+                                params: params
+                            },
+                            size: modalUtils.getSearchPopupSize(params),
+                            templateUrl:  UriUtils.chaiseDeploymentPath() + "common/templates/searchPopup.modal.html"
+                        }, function (res) {
+                            $rootScope.gene = res;
+                            $rootScope.geneId = $rootScope.templateParams.$url_parameters.NCBI_GeneID = $rootScope.gene.data["NCBI_GeneID"];
 
-                    modalUtils.showModal({
-                        animation: false,
-                        controller: "SearchPopupController",
-                        windowClass: windowClass,
-                        controllerAs: "ctrl",
-                        resolve: {
-                            params: params
-                        },
-                        size: modalUtils.getSearchPopupSize(params),
-                        templateUrl:  UriUtils.chaiseDeploymentPath() + "common/templates/searchPopup.modal.html"
-                    }, function (res) {
-                        $rootScope.gene = res;
-                        $rootScope.geneId = $rootScope.templateParams.$url_parameters.NCBI_GeneID = $rootScope.gene.data["NCBI_GeneID"];
-
-                        // the gene has changed, fetch new plot data for new gene
-                        PlotUtils.getViolinData();
-                    }, null, false);
+                            // the gene has changed, fetch new plot data for new gene
+                            PlotUtils.getViolinData(vm.studySet.length == 0 && !vm.selectAll).then(function (values) {
+                                console.log("gene changed, data loaded");
+                                // TODO: checkPlotsLoaded()
+                            }).catch(function (err) {
+                                console.log(err);
+                            });
+                        }, null, false);
+                    }).catch(function (err) {
+                        console.log(err);
+                    });
                 }
 
                 // opens search popup for study table based on current gene.
@@ -811,78 +951,111 @@
                     // disable comment for facet, since it might be confusing
                     // params.comment = scope.facetColumn.comment;
 
-                    params.reference = $rootScope.studyReference;
-                    params.reference.session = $rootScope.session;
-                    params.selectMode = "multi-select";
-                    params.showFaceting = true;
-                    params.faceting = true;
-                    params.facetPanelOpen = false;
+                    var studyUri = ERMrest.renderHandlebarsTemplate($rootScope.plot.study_uri_pattern, $rootScope.templateParams);
+                    console.log(studyUri);
+                    ERMrest.resolve(studyUri, ConfigUtils.getContextHeaderParams()).then(function (ref) {
+                        params.reference = ref.contextualize.compactSelect;
+                        params.reference.session = $rootScope.session;
+                        params.selectMode = "multi-select";
+                        params.showFaceting = true;
+                        params.faceting = true;
+                        params.facetPanelOpen = false;
 
-                    // to choose the correct directive
-                    params.mode = "default";
-                    params.displayMode = "popup";
-                    // params.displayMode = "popup/facet";
-                    // params.displayMode = recordsetDisplayModes.facetPopup;
-                    params.editable = false;
+                        // to choose the correct directive
+                        params.mode = "default";
+                        params.displayMode = "popup";
+                        // params.displayMode = "popup/facet";
+                        // params.displayMode = recordsetDisplayModes.facetPopup;
+                        params.editable = false;
 
-                    // should be triggered once to remove fake tuple objects from array used for default display
-                    if (vm.studySelectorOpened == false) {
-                        params.selectedRows = [];
-                        vm.studySelectorOpened == true;
-                    } else {
-                        params.selectedRows = $rootScope.studySet; // ? $rootScope.studySet : [];
-                    };
+                        // should be triggered once to remove fake tuple objects from array used for default display
+                        if (vm.studySelectorOpened == false) {
+                            params.selectedRows = [];
+                            vm.studySelectorOpened == true;
+                        } else {
+                            params.selectedRows = $rootScope.studySet ? $rootScope.studySet : [];
+                        };
 
 
-                    // TODO: preselect rows that are already selected
-                    // // generate list of rows needed for modal
-                    // scope.checkboxRows.forEach(function (row) {
-                    //     if (!row.selected) return;
-                    //     var newRow = {};
-                    //
-                    //     // - row.uniqueId will return the filter's uniqueId and not
-                    //     //    the tuple's. We need tuple's uniqueId in here
-                    //     //    (it will be used in the logic of isSelected in modal).
-                    //     // - data is needed for the post process that we do on the data.
-                    //     if (row.tuple && row.tuple.data && scope.facetColumn.isEntityMode) {
-                    //         newRow.uniqueId = row.tuple.uniqueId;
-                    //         newRow.data = row.tuple.data;
-                    //     } else {
-                    //         newRow.uniqueId = row.uniqueId;
-                    //     }
-                    //
-                    //     newRow.displayname = (newRow.uniqueId === null) ? {value: null, isHTML: false} : row.displayname;
-                    //     newRow.tooltip = newRow.displayname;
-                    //     newRow.isNotNull = row.notNull;
-                    //     params.selectedRows.push(newRow);
-                    // });
+                        // TODO: preselect rows that are already selected
+                        // // generate list of rows needed for modal
+                        // scope.checkboxRows.forEach(function (row) {
+                        //     if (!row.selected) return;
+                        //     var newRow = {};
+                        //
+                        //     // - row.uniqueId will return the filter's uniqueId and not
+                        //     //    the tuple's. We need tuple's uniqueId in here
+                        //     //    (it will be used in the logic of isSelected in modal).
+                        //     // - data is needed for the post process that we do on the data.
+                        //     if (row.tuple && row.tuple.data && scope.facetColumn.isEntityMode) {
+                        //         newRow.uniqueId = row.tuple.uniqueId;
+                        //         newRow.data = row.tuple.data;
+                        //     } else {
+                        //         newRow.uniqueId = row.uniqueId;
+                        //     }
+                        //
+                        //     newRow.displayname = (newRow.uniqueId === null) ? {value: null, isHTML: false} : row.displayname;
+                        //     newRow.tooltip = newRow.displayname;
+                        //     newRow.isNotNull = row.notNull;
+                        //     params.selectedRows.push(newRow);
+                        // });
 
-                    // modal properties
-                    var windowClass = "search-popup study-selector-popup";
+                        // modal properties
+                        var windowClass = "search-popup study-selector-popup";
 
-                    modalUtils.showModal({
-                        animation: false,
-                        controller: "SearchPopupController",
-                        windowClass: windowClass,
-                        controllerAs: "ctrl",
-                        resolve: {
-                            params: params
-                        },
-                        size: modalUtils.getSearchPopupSize(params),
-                        templateUrl:  UriUtils.chaiseDeploymentPath() + "common/templates/searchPopup.modal.html"
-                    }, function (res) {
-                        $rootScope.studySet = $rootScope.templateParams.$url_parameters.Study = vm.studySet = res.rows;
+                        modalUtils.showModal({
+                            animation: false,
+                            controller: "SearchPopupController",
+                            windowClass: windowClass,
+                            controllerAs: "ctrl",
+                            resolve: {
+                                params: params
+                            },
+                            size: modalUtils.getSearchPopupSize(params),
+                            templateUrl:  UriUtils.chaiseDeploymentPath() + "common/templates/searchPopup.modal.html"
+                        }, function (res) {
+                            vm.selectAll = false;
+                            $rootScope.studySet = $rootScope.templateParams.$url_parameters.Study = vm.studySet = res.rows;
 
-                        // the study has changed, fetch new plot data for new study info
-                        PlotUtils.getViolinData();
-                    }, null, false);
+                            // the study has changed, fetch new plot data for new study info
+                            // Can't close popup without returning study info
+                            PlotUtils.getViolinData().then(function (values) {
+                                console.log("study changed, data loaded");
+                                // TODO: checkPlotsLoaded()
+                            }).catch(function (err) {
+                                console.log(err);
+                            });
+                        }, null, false);
+                    }).catch(function (err) {
+                        console.log(err);
+                    });
                 }
 
                 vm.studySetIsArray = function () {
                     return Array.isArray(vm.studySet);
                 }
 
+                vm.selectAllStudy = function () {
+                    // empty the studySet
+                    $rootScope.studySet = $rootScope.templateParams.$url_parameters.Study = vm.studySet = [];
+                    PlotUtils.getViolinData().then(function (values) {
+                        console.log("all studies selected, data loaded");
+
+                        vm.selectAll = true;
+                        // TODO: checkPlotsLoaded()
+                    }).catch(function (err) {
+                        console.log(err);
+                    });
+                }
+
+                vm.showMoreLessBtn = function (bool) {
+                    // get height of chiclets
+                    var ele = angular.element(document.getElementById('study-selections'));
+                    return bool && ele[0].offsetHeight > 100;
+                }
+
                 vm.removeStudyPill = function (studyId, $event) {
+                    vm.selectAll = false;
                     var index = vm.studySet.findIndex(function (obj) {
                         return obj.uniqueId == studyId;
                     });
@@ -895,23 +1068,56 @@
                     }
 
                     vm.studySet.splice(index, 1)[0];
+                    $rootScope.studySet = vm.studySet;
 
                     // the study has changed, fetch new plot data for new study info
-                    PlotUtils.getViolinData();
+                    PlotUtils.getViolinData(vm.studySet.length == 0).then(function (values) {
+                        console.log("1 study removed, data loaded");
+                        // TODO: checkPlotsLoaded()
+                    }).catch(function (err) {
+                        console.log(err);
+                    });
+                }
+
+                vm.removeAllStudy = function () {
+                    vm.selectAll = false;
+                    $rootScope.studySet = vm.studySet = [];
+
+                    // all studies removed, call getViolinData with true to call case when we want to remove data from plot
+                    PlotUtils.getViolinData(true).then(function (values) {
+                        console.log("all studies removed, no data to load");
+                        // TODO: checkPlotsLoaded()
+                    }).catch(function (err) {
+                        console.log(err);
+                    });
                 }
 
                 // callback for group by selector
                 vm.setGroup = function (group) {
                     $rootScope.groupKey = group;
 
-                    PlotUtils.getViolinData();
+                    // Request to fetch data doesn't need to be made, currently should return 304 not modified and make very little difference
+                    // TODO: change settings for plotly and reapply to plot instead of trying to fetch data first
+                    PlotUtils.getViolinData(vm.studySet.length == 0 && !vm.selectAll).then(function (values) {
+                        console.log("group changed, data loaded");
+                        // TODO: checkPlotsLoaded()
+                    }).catch(function (err) {
+                        console.log(err);
+                    });
                 }
 
                 // callback for scale selector
                 vm.toggleScale = function (scale) {
                     $rootScope.yAxisScale = scale;
 
-                    PlotUtils.getViolinData();
+                    // Request to fetch data doesn't need to be made, currently should return 304 not modified and make very little difference
+                    // TODO: change settings for plotly and reapply to plot instead of trying to fetch data first
+                    PlotUtils.getViolinData(vm.studySet.length == 0 && !vm.selectAll).then(function (values) {
+                        console.log("scale changed, data loaded");
+                        // TODO: checkPlotsLoaded()
+                    }).catch(function (err) {
+                        console.log(err);
+                    });
                 }
 
                 $scope.plotsLoaded = false;
@@ -929,11 +1135,15 @@
 
                 }
 
-                $scope.$watch('templateParams', function (newValue, oldValue) {
+                $scope.$watch(function () {
+                    return ($rootScope.templateParams ? $rootScope.templateParams.$url_parameters.Study : null)
+                }, function (newValue, oldValue) {
                     // execute once study parameter is digested (or setup from reference default when embedded on gene page.. in future)
-                    if (newValue && newValue.$url_parameters.Study) {
+                    if (newValue) {
+                        // if no study set, select "All Studies" so we have graph data to show
+                        vm.selectAll = $rootScope.templateParams.$url_parameters.Study.length == 0
                         vm.studySelectorOpened = false;
-                        $rootScope.studySet = vm.studySet = newValue.$url_parameters.Study;
+                        $rootScope.studySet = vm.studySet = newValue;
                     }
                 });
 
@@ -974,31 +1184,6 @@
                         //     var notAuthorizedError = new ERMrest.UnauthorizedError(messageMap.unauthorizedErrorCode, (messageMap.unauthorizedMessage + messageMap.reportErrorToAdmin));
                         //     throw notAuthorizedError;
                         // }
-                        // TODO: only fetches one study ID, support multiple
-                        var studyId = UriUtils.getQueryParam($window.location.href, "Study");
-                        var geneId = UriUtils.getQueryParam($window.location.href, "NCBI_GeneID");
-
-                        $rootScope.hideStudySelector = false;
-                        $rootScope.hideGeneSelector = false;
-                        $rootScope.templateParams = {
-                            $url_parameters: {}
-                        }
-
-                        // trick to verify if this config app is running inside of an iframe as part of another app
-                        var inIframe = $window.self !== $window.parent;
-
-                        // TODO: generalize as part of version 1.3
-                        if (studyId) {
-                            //
-                            $rootScope.templateParams.$url_parameters.Study = [{"data": {"RID": studyId}}];
-                            // in iframe and study means embedded on study page, hide study selector
-                            if (inIframe) $rootScope.hideStudySelector = true;
-                        }
-                        if (geneId) {
-                            $rootScope.templateParams.$url_parameters.NCBI_GeneID = geneId;
-                            // in iframe and gene means embedded on gene page, hide gene selector
-                            if (inIframe) $rootScope.hideGeneSelector = true;
-                        }
                         PlotUtils.getData($rootScope.config);
                     });
                 } catch (exception) {

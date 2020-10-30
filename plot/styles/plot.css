@@ -12,13 +12,14 @@
 }
 
 .violin-controls {
-    display: flex;
+    min-width: 800px;
     width: 60%;
     margin-left: auto;
     margin-right: auto;
 }
 
 .violin-controls.single-select-group {
+    display: flex;
     margin-top: 50px;
 }
 
@@ -26,25 +27,30 @@
     margin-top: 25px;
 }
 
-.violin-controls .recordset-chiclets-container.recordset-chiclets {
-    padding-right: 250px;
+.violin-controls.study-group .truncate-chiclets {
+    max-height: 90px;
+    overflow: hidden;
 }
 
-.violin-controls .recordset-chiclets-container .selected-chiclet {
+.violin-controls.study-group .recordset-selected-rows {
+    min-height: 30px;
+}
+
+.violin-controls .recordset-selected-rows .selected-chiclet {
     border: none;
     margin-right: 8px;
-    padding-top: 6px;
+    padding-top: 8px;
     padding-right: 0;
     display: inline-block;
 
     /* forces one line chiclet */
-    max-width: 200px;
+    max-width: 240px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.violin-controls .recordset-chiclets-container .selected-chiclet .selected-chiclet-name {
+.violin-controls .recordset-selected-rows .selected-chiclet .selected-chiclet-name {
     cursor: default;
     user-select: text;
     -webkit-user-select: text;
@@ -52,18 +58,18 @@
     -ms-user-select: text;
 }
 
-.violin-controls .recordset-chiclets-container .selected-chiclet .selected-chiclet-remove {
+.violin-controls .recordset-selected-rows .selected-chiclet .selected-chiclet-remove {
     cursor: pointer;
     margin-right: -3px;
 }
-.violin-controls .recordset-chiclets-container .selected-chiclet .selected-chiclet-remove i {
+.violin-controls .recordset-selected-rows .selected-chiclet .selected-chiclet-remove i {
     top: 2px;
 }
 
-.violin-controls .recordset-selected-rows .clear-all-btn {
+.violin-controls .recordset-selected-rows .clear-all-btn,
+.violin-controls .recordset-selected-rows .show-more-less {
     vertical-align: bottom;
-    padding: 0;
-    padding-bottom: 4px;
+    padding: 0 15px 4px 0;
     height: auto;
 }
 
@@ -76,8 +82,19 @@
 
 /* study selector and text */
 .violin-controls .study-selector-group {
+    float: left;
     padding-right: 10px;
-    width: 30%;
+    min-width: 250px;
+    width: unset; /* overrides style from chaise-input-group */
+}
+
+.study-selector-group .glyphicon-chevron-down {
+    top: 4px;
+    left: 4px;
+}
+
+.violin-controls .study-selector-group .input-label {
+    margin: 5px 0 0 0;
 }
 
 /* gene selector and text */
@@ -86,15 +103,18 @@
     width: 35%;
 }
 
-.violin-controls .gene-selector-group .chaise-input-control,
-.violin-controls .study-selector-group .chaise-input-control {
+.violin-controls .gene-selector-group .chaise-input-control {
     /* override a style from chaise for inputs getting 0 border radius */
     border-top-left-radius: 4px;
     border-bottom-left-radius: 4px;
 }
 
-.violin-controls .gene-selector-group .chaise-btn,
-.violin-controls .study-selector-group .chaise-btn {
+.violin-controls .gene-selector-group .chaise-input-control.disabled-gene {
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+.violin-controls .gene-selector-group .chaise-btn {
     /* override a style from chaise for inputs getting 0 border radius */
     border-top-right-radius: 4px !important;
     border-bottom-right-radius: 4px !important;
