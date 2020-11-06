@@ -215,9 +215,6 @@
                             layout.hovermode = "closest";
                             layout.dragmode = "pan";
 
-                            delete layout.legend;
-                            delete layout.margin;
-
                             break;
                         default:
                             layout.xaxis = {
@@ -414,7 +411,6 @@
                         return defer.promise;
                     }
 
-                    console.log("data:", uri);
                     server.http.get(uri).then(function(response) {
                         var data = response.data;
 
@@ -518,8 +514,6 @@
                         plot_values.layout = plotlyConfig.layout;
                         plot_values.config = plotlyConfig.config;
 
-
-                        console.log(plot_values)
                         defer.resolve(plot_values);
                     }).catch(function (err) {
                         console.log(err);
@@ -871,17 +865,13 @@
                 vm.openGeneSelector = function () {
                     var params = {};
 
-                    // TODO: logging
                     params.logStack = [{type: "set", s_t: "Common:Gene"}]
                     params.logStackPath = "set/gene-selector"
 
-                    // for the title
-                    // params.parentReference = scope.facetColumn.reference; // Maybe should be study reference?
-                    // params.displayname = scope.facetColumn.displayname;
-                    // disable comment for facet, since it might be confusing
-                    // params.comment = scope.facetColumn.comment;
+                    // TODO: configure title
+
                     var geneUri = ERMrest.renderHandlebarsTemplate($rootScope.plot.gene_uri_pattern, $rootScope.templateParams);
-                    console.log(geneUri);
+
                     ERMrest.resolve(geneUri, ConfigUtils.getContextHeaderParams()).then(function (ref) {
                         params.reference = ref.contextualize.compactSelect;
                         params.reference.session = $rootScope.session;
@@ -894,34 +884,9 @@
                         params.showFaceting = true;
 
                         params.displayMode = "popup";
-                        // params.displayMode = "popup/facet";
-                        // params.displayMode = recordsetDisplayModes.facetPopup;
                         params.editable = false;
 
                         params.selectedRows = [];
-
-                        // TODO: grey out row that is already selected
-                        // // generate list of rows needed for modal
-                        // scope.checkboxRows.forEach(function (row) {
-                        //     if (!row.selected) return;
-                        //     var newRow = {};
-                        //
-                        //     // - row.uniqueId will return the filter's uniqueId and not
-                        //     //    the tuple's. We need tuple's uniqueId in here
-                        //     //    (it will be used in the logic of isSelected in modal).
-                        //     // - data is needed for the post process that we do on the data.
-                        //     if (row.tuple && row.tuple.data && scope.facetColumn.isEntityMode) {
-                        //         newRow.uniqueId = row.tuple.uniqueId;
-                        //         newRow.data = row.tuple.data;
-                        //     } else {
-                        //         newRow.uniqueId = row.uniqueId;
-                        //     }
-                        //
-                        //     newRow.displayname = (newRow.uniqueId === null) ? {value: null, isHTML: false} : row.displayname;
-                        //     newRow.tooltip = newRow.displayname;
-                        //     newRow.isNotNull = row.notNull;
-                        //     params.selectedRows.push(newRow);
-                        // });
 
                         // modal properties
                         var windowClass = "search-popup gene-selector-popup";
@@ -942,7 +907,6 @@
 
                             // the gene has changed, fetch new plot data for new gene
                             PlotUtils.getViolinData(vm.studySet.length == 0 && !vm.selectAll).then(function (values) {
-                                console.log("gene changed, data loaded");
                                 // TODO: checkPlotsLoaded()
                             }).catch(function (err) {
                                 console.log(err);
@@ -958,18 +922,13 @@
                 vm.openStudySelector = function () {
                     var params = {};
 
-                    // TODO: logging
                     params.logStack = [{type: "set", s_t: "RNASeq:Study"}]
                     params.logStackPath = "set/study-selector"
 
-                    // for the title
-                    // params.parentReference = scope.facetColumn.reference; // Maybe should be study reference?
-                    // params.displayname = scope.facetColumn.displayname;
-                    // disable comment for facet, since it might be confusing
-                    // params.comment = scope.facetColumn.comment;
+                    // TODO: configure title?
 
                     var studyUri = ERMrest.renderHandlebarsTemplate($rootScope.plot.study_uri_pattern, $rootScope.templateParams);
-                    console.log(studyUri);
+
                     ERMrest.resolve(studyUri, ConfigUtils.getContextHeaderParams()).then(function (ref) {
                         params.reference = ref.contextualize.compactSelect;
                         params.reference.session = $rootScope.session;
@@ -981,8 +940,6 @@
                         // to choose the correct directive
                         params.mode = "default";
                         params.displayMode = "popup";
-                        // params.displayMode = "popup/facet";
-                        // params.displayMode = recordsetDisplayModes.facetPopup;
                         params.editable = false;
 
                         // should be triggered once to remove fake tuple objects from array used for default display
@@ -993,29 +950,7 @@
                             params.selectedRows = $rootScope.studySet ? $rootScope.studySet : [];
                         };
 
-
                         // TODO: preselect rows that are already selected
-                        // // generate list of rows needed for modal
-                        // scope.checkboxRows.forEach(function (row) {
-                        //     if (!row.selected) return;
-                        //     var newRow = {};
-                        //
-                        //     // - row.uniqueId will return the filter's uniqueId and not
-                        //     //    the tuple's. We need tuple's uniqueId in here
-                        //     //    (it will be used in the logic of isSelected in modal).
-                        //     // - data is needed for the post process that we do on the data.
-                        //     if (row.tuple && row.tuple.data && scope.facetColumn.isEntityMode) {
-                        //         newRow.uniqueId = row.tuple.uniqueId;
-                        //         newRow.data = row.tuple.data;
-                        //     } else {
-                        //         newRow.uniqueId = row.uniqueId;
-                        //     }
-                        //
-                        //     newRow.displayname = (newRow.uniqueId === null) ? {value: null, isHTML: false} : row.displayname;
-                        //     newRow.tooltip = newRow.displayname;
-                        //     newRow.isNotNull = row.notNull;
-                        //     params.selectedRows.push(newRow);
-                        // });
 
                         // modal properties
                         var windowClass = "search-popup study-selector-popup";
@@ -1037,7 +972,6 @@
                             // the study has changed, fetch new plot data for new study info
                             // Can't close popup without returning study info
                             PlotUtils.getViolinData().then(function (values) {
-                                console.log("study changed, data loaded");
                                 // TODO: checkPlotsLoaded()
                             }).catch(function (err) {
                                 console.log(err);
@@ -1056,8 +990,6 @@
                     // empty the studySet
                     $rootScope.studySet = $rootScope.templateParams.$url_parameters.Study = vm.studySet = [];
                     PlotUtils.getViolinData().then(function (values) {
-                        console.log("all studies selected, data loaded");
-
                         vm.selectAll = $rootScope.selectAll = true;
                         // TODO: checkPlotsLoaded()
                     }).catch(function (err) {
@@ -1089,7 +1021,6 @@
 
                     // the study has changed, fetch new plot data for new study info
                     PlotUtils.getViolinData(vm.studySet.length == 0).then(function (values) {
-                        console.log("1 study removed, data loaded");
                         // TODO: checkPlotsLoaded()
                     }).catch(function (err) {
                         console.log(err);
@@ -1102,7 +1033,6 @@
 
                     // all studies removed, call getViolinData with true to call case when we want to remove data from plot
                     PlotUtils.getViolinData(true).then(function (values) {
-                        console.log("all studies removed, no data to load");
                         // TODO: checkPlotsLoaded()
                     }).catch(function (err) {
                         console.log(err);
@@ -1116,7 +1046,6 @@
                     // Request to fetch data doesn't need to be made, currently should return 304 not modified and make very little difference
                     // TODO: change settings for plotly and reapply to plot instead of trying to fetch data first
                     PlotUtils.getViolinData(vm.studySet.length == 0 && !vm.selectAll).then(function (values) {
-                        console.log("group changed, data loaded");
                         // TODO: checkPlotsLoaded()
                     }).catch(function (err) {
                         console.log(err);
@@ -1130,7 +1059,6 @@
                     // Request to fetch data doesn't need to be made, currently should return 304 not modified and make very little difference
                     // TODO: change settings for plotly and reapply to plot instead of trying to fetch data first
                     PlotUtils.getViolinData(vm.studySet.length == 0 && !vm.selectAll).then(function (values) {
-                        console.log("scale changed, data loaded");
                         // TODO: checkPlotsLoaded()
                     }).catch(function (err) {
                         console.log(err);
