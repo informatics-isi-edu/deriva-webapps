@@ -72,7 +72,7 @@
                                             <div contenteditable="false" class="popup-select-value" style="cursor: pointer" ng-click="ctrl.openGeneSelector()" ng-bind-html="gene.displayname.value"></div>
                                         </div>
                                         <!-- show a normal uneditable input when disabled -->
-                                        <div ng-show="disableGeneSelector" contenteditable="false" class="chaise-input-control disabled-gene" ng-bind-html="gene.displayname.value"></div>
+                                        <div ng-show="disableGeneSelector" contenteditable="false" class="chaise-input-control input-disabled" ng-bind-html="gene.displayname.value"></div>
                                         <label class="sr-only"></label>
                                         <!-- So that the foreign key input can be validated -->
                                         <input type="hidden" ng-model="geneId" />

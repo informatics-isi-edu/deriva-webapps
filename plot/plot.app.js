@@ -215,8 +215,8 @@
                             layout.hovermode = "closest";
                             layout.dragmode = "pan";
 
-                            // delete layout.legend;
-                            // delete layout.margin;
+                            delete layout.legend;
+                            delete layout.margin;
 
                             break;
                         default:
@@ -257,7 +257,8 @@
                   }
                 }
 
-                /** 3 cases:
+                /** NOTE: this is specific to the data used for RBK
+                 * 3 cases:
                  *   standalone app
                  *     Nothing in url || both Study and NCBI_GeneID $url_parameter:
                  *       - both controls active
@@ -266,6 +267,7 @@
                  *           - default to first gene in set returned
                  *         - fetch study selector info based on gene
                  *           - All Studies
+                 *         - default group to Anatomical Source (plot-config)
                  *       - both Study and NCBI_GeneID $url_parameter:
                  *         - fetch gene selector info based on study
                  *           - modify gene URL to append NCBI_GeneID
@@ -275,12 +277,17 @@
                  *           - fetch tuple for study from url for rowname info to display
                  *
                  *   embedded in study page with Study $url_parameter || fullscreen with Study $url_parameter
+                 *     - fetch gene selector info based on study
+                 *       - default to first gene in set returned
                  *     - remove study selector (don't fetch study set)
-                 *     - don't fetch any study info
+                 *       - fetch study info in case it's used in title or other parts of graph
                  *
                  *   embedded in gene page with NCBI_GeneID $url_parameter || fullscreen with NCBI_GeneID $url_parameter
                  *     - disable gene selector (don't fetch gene set)
-                 *     - fetch rowname for gene that was selected and display in input
+                 *       - fetch rowname for gene that was selected and display in input
+                 *     - fetch study selector info based on gene
+                 *       - All Studies
+                 *     - default group to Anatomical Source (plot-config)
                  **/
                 function setupViolinPlotSelectors(plot) {
                     var defer = $q.defer();
@@ -326,7 +333,6 @@
 
                     var geneUri = ERMrest.renderHandlebarsTemplate(plot.gene_uri_pattern, $rootScope.templateParams);
 
-                    console.log($rootScope.templateParams)
                     // relies on geneUri not passed as param
                     function generalOrSpecificGene(reference) {
                         var innerDefer = $q.defer();
@@ -513,6 +519,7 @@
                         plot_values.config = plotlyConfig.config;
 
 
+                        console.log(plot_values)
                         defer.resolve(plot_values);
                     }).catch(function (err) {
                         console.log(err);
@@ -598,6 +605,16 @@
                                         $rootScope.groupKey = $rootScope.groups.filter(function (obj) {
                                             return obj.default == true
                                         })[0];
+
+                                        // no default was set, use first group
+                                        if (!$rootScope.groupKey) $rootScope.groupKey = $rootScope.groups[0];
+
+                                        // we have no study info at the start, default to group set for "all studies"
+                                        if ($rootScope.templateParams.$url_parameters.Study.length == 0) {
+                                            $rootScope.groupKey = $rootScope.groups.filter(function (obj) {
+                                                return obj.column_name == plot.config.xaxis.default_all_studies_group;
+                                            })[0];
+                                        }
 
                                         // set dataParams to be used later for refetching violin data
                                         dataParams.trace = trace;
@@ -766,7 +783,7 @@
                 vm.model = {};
                 vm.scales = ["linear", "log"];
                 vm.showMore = true;
-                vm.selectAll = false;
+                vm.selectAll = $rootScope.selectAll = false;
                 $rootScope.yAxisScale = "linear";
 
                 vm.changeSelection = function(value) { // Not yet used for the selection of plot type
@@ -1014,7 +1031,7 @@
                             size: modalUtils.getSearchPopupSize(params),
                             templateUrl:  UriUtils.chaiseDeploymentPath() + "common/templates/searchPopup.modal.html"
                         }, function (res) {
-                            vm.selectAll = false;
+                            vm.selectAll = $rootScope.selectAll = false;
                             $rootScope.studySet = $rootScope.templateParams.$url_parameters.Study = vm.studySet = res.rows;
 
                             // the study has changed, fetch new plot data for new study info
@@ -1041,7 +1058,7 @@
                     PlotUtils.getViolinData().then(function (values) {
                         console.log("all studies selected, data loaded");
 
-                        vm.selectAll = true;
+                        vm.selectAll = $rootScope.selectAll = true;
                         // TODO: checkPlotsLoaded()
                     }).catch(function (err) {
                         console.log(err);
@@ -1055,7 +1072,7 @@
                 }
 
                 vm.removeStudyPill = function (studyId, $event) {
-                    vm.selectAll = false;
+                    vm.selectAll = $rootScope.selectAll = false;
                     var index = vm.studySet.findIndex(function (obj) {
                         return obj.uniqueId == studyId;
                     });
@@ -1080,7 +1097,7 @@
                 }
 
                 vm.removeAllStudy = function () {
-                    vm.selectAll = false;
+                    vm.selectAll = $rootScope.selectAll = false;
                     $rootScope.studySet = vm.studySet = [];
 
                     // all studies removed, call getViolinData with true to call case when we want to remove data from plot
@@ -1141,7 +1158,7 @@
                     // execute once study parameter is digested (or setup from reference default when embedded on gene page.. in future)
                     if (newValue) {
                         // if no study set, select "All Studies" so we have graph data to show
-                        vm.selectAll = $rootScope.templateParams.$url_parameters.Study.length == 0
+                        vm.selectAll = $rootScope.selectAll = $rootScope.templateParams.$url_parameters.Study.length == 0
                         vm.studySelectorOpened = false;
                         $rootScope.studySet = vm.studySet = newValue;
                     }

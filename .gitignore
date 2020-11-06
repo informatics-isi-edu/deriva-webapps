@@ -4,4 +4,5 @@ boolean-search/booleansearch-config.js
 heatmap/heatmap-config.js
 lineplot/lineplot-config.js
 plot/plot-config.js
+plot/test.html
 treeview/treeview-config.js
