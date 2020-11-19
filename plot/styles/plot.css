@@ -3,6 +3,26 @@
     margin-left: 10px;
 }
 
+.chaise-iframe #appDiv {
+    margin: unset;
+}
+
+/* no navbar */
+.chaise-iframe .js-plotly-plot,  /* assumes no other controls present, just plot */
+.chaise-iframe .plot-container {
+    height: 100vh;
+    width: 100vw;
+}
+
+ /* violin control present */
+.chaise-iframe .violin-plot .js-plotly-plot {
+    height: 88vh;
+}
+
+.chaise-iframe .violin-plot.extended-violin-plot-controls .js-plotly-plot {
+    height: 78vh;
+}
+
 .plot-container {
     display: block;
 }
@@ -172,9 +192,20 @@
     margin: 20px 0;
 }
 
+/* unset margin set in rule above */
+.chaise-iframe .plot {
+    margin: unset;
+}
+
 #main-content {
     height: 91vh;
     overflow: auto;
+}
+
+/* unset height and overflow set in rule above */
+.chaise-iframe #main-content {
+    height: unset; /* height is set on js-plotly-plot and plot-container */
+    overflow: hidden;
 }
 
 #plotSpinner{

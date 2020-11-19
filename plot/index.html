@@ -151,7 +151,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="plot">
+                            <div class="plot" ng-class="{'{{plot.plot_type}}-plot': true, 'extended-violin-plot-controls': !hideStudySelector}">
                                 <plot plot-id="{{plot.id}}"></plot>
                             </div>
                         </div>
