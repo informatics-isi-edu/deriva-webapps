@@ -8,10 +8,19 @@
 }
 
 /* no navbar */
-.chaise-iframe .js-plotly-plot,
+.chaise-iframe .js-plotly-plot,  /* assumes no other controls present, just plot */
 .chaise-iframe .plot-container {
     height: 100vh;
     width: 100vw;
+}
+
+ /* violin control present */
+.chaise-iframe .violin-plot .js-plotly-plot {
+    height: 88vh;
+}
+
+.chaise-iframe .violin-plot.extended-violin-plot-controls .js-plotly-plot {
+    height: 78vh;
 }
 
 .plot-container {
