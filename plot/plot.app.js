@@ -165,43 +165,25 @@
 
                 /**
                  * Get or set the plotly.layout
-                 *
-                 * defaults for layout:
-                 *     height: 500,
-                 *     width: 1200,
-                 *     showlegend: true,
-                 *     legend: { x:1, y:1 },
-                 *     margin: {},
-                 *
-                 * NOTE: plot.config holds configurable vaules to add to layout
+                 * NOTE: plot.config holds configurable values to add to layout
                  */
                 function getPlotlyLayout(plot) {
-                    // use layout from plot.plotly.layout if exists
+                    var configLayout = {},
+                        layout = {};
+
+                    // layout object from plot.plotly.layout or plot.plotly_config
+                    // NOTE: plotly_config will be deprecated eventually so prefer plotly.layout
                     if (plot.plotly && plot.plotly.layout) {
-                        return plot.plotly.layout;
+                        configLayout = plot.plotly.layout;
                     } else if (plot.plotly_config) {
-                        return plot.plotly_config;
+                        configLayout = plot.plotly_config;
                     }
 
-                    // default values for plot used as defaults if nothing else is defined
-                    // grab whole object or define object with base values
-                    var tempConfig = plot.config || {
-                        height: 500,
-                        width: 1200,
-                        showlegend: true,
-                        legend: { x:1, y:1 },
-                        margin: {}
-                    }
+                     // NOTE: does not support templating (violin overrides outside of function with templating)
+                    layout.title = plot.plot_title;
 
-                    var layout = {
-                        title: plot.plot_title, // NOTE: does not support templating (violin overrides outside of function with templating)
-                        height: tempConfig.height || 500,
-                        width: tempConfig.width || 1200,
-                        showlegend: tempConfig.showlegend != undefined ? tempConfig.showlegend : true,
-                        legend: tempConfig.legend,
-                        margin: tempConfig.margin || {}
-                    };
-
+                    // configuration overrides
+                    var tempConfig = plot.config;
                     switch (plot.plot_type) {
                         case "pie":
                             break;
@@ -214,23 +196,30 @@
                             layout.yaxis = { zeroline: false };
                             layout.hovermode = "closest";
                             layout.dragmode = "pan";
-
                             break;
                         default:
                             layout.xaxis = {
-                                title: plot.x_axis_label ? plot.x_axis_label : '',
+                                title: plot.x_axis_label || '',
                                 automargin: true,
-                                type: tempConfig.x_axis_type ? tempConfig.x_axis_type : 'auto',
-                                tickformat: config.x_axis_thousands_separator ? ',d' : '',
+                                type: tempConfig.x_axis_type || 'auto',
+                                tickformat: tempConfig.x_axis_thousands_separator ? ',d' : ''
                             };
+
                             layout.yaxis = {
-                                title: plot.y_axis_label ? plot.y_axis_label : '',
+                                title: plot.y_axis_label || '',
                                 automargin: true,
-                                type: tempConfig.y_axis_type ? tempConfig.y_axis_type : 'auto',
+                                type: tempConfig.y_axis_type || 'auto',
                                 tickformat: tempConfig.y_axis_thousands_separator ? ',d' : '',
                             };
                             break;
                     }
+
+                    // apply plotly.layout properties one at a time
+                    // NOTE: applies plotly_config as well but will be deprecated in future
+                    // NOTE: this does not recursively apply object key/value pairs, it will only go one level deep and override
+                    Object.keys(configLayout).forEach(function (key) {
+                        layout[key] = configLayout[key];
+                    });
 
                     return layout;
                 };
@@ -449,7 +438,7 @@
                         });
 
                         var groupStyles = [];
-                        var colors = ["blue", "orange", "green", "red", "yellow"]; // note: samples I tested only had 5 differentiating values (I think)?
+                        var colors = ["blue", "orange", "green", "red", "yellow"]; // note: samples I tested only had 5 differentiating values
                         // get unique x values and assign colors for each group key (x value)
                         var uniqueX = xData.filter(function (key, index, self) {
                             return self.indexOf(key) === index;
