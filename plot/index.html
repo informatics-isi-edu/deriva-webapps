@@ -32,7 +32,9 @@
 </head>
 
 <body class="chaise-body">
-    <div class="configure-container" ng-app="chaise.configure-plotApp"></div>
+    <div class="configure-container" ng-app="chaise.configure-plotApp">
+      <loading-spinner ng-show="!plotsLoaded"></loading-spinner>
+    </div>
     <div class="app-container">
         <navbar></navbar>
         <div ng-controller="plotController as ctrl" id="appDiv">
