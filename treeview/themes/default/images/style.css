@@ -1995,3 +1995,36 @@ input {
 }
 
 /* IE6 END */
+
+/* PRINT MEDIA STYLES AND RULES */
+@media print {
+  a[href]:after {
+    content: none !important;
+  }
+
+  html{
+    overflow: scroll !important;
+  }
+
+  .jstree-default .jstree-leaf>.jstree-ocl{
+     background-position: -66px -4px !important;
+     background-image: url(32px.png) !important;
+  }
+
+  .jstree-default .jstree-closed>.jstree-ocl{
+    background-position: -98px -4px !important;
+    background-image: url(32px.png) !important;
+    background-color: transparent !important;
+  }
+
+  .jstree-default .jstree-node{
+    background-position: -290px -4px !important;
+    background-image: url(32px.png) !important;
+    background-repeat: repeat-y !important;
+  }
+
+  .jstree-default .jstree-open>.jstree-ocl {
+    background-position: -130px -4px !important;
+    background-image: url(32px.png) !important;
+  }
+}

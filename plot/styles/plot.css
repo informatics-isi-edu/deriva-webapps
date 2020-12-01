@@ -1,22 +1,211 @@
 #appDiv {
-  margin-top: 0px;
-  margin-left: 10px;
+    margin-top: 0px;
+    margin-left: 10px;
+}
+
+.chaise-iframe #appDiv {
+    margin: unset;
+}
+
+/* no navbar */
+.chaise-iframe .js-plotly-plot,  /* assumes no other controls present, just plot */
+.chaise-iframe .plot-container {
+    height: 100vh;
+    width: 100vw;
+}
+
+ /* violin control present */
+.chaise-iframe .violin-plot .js-plotly-plot {
+    height: 88vh;
+}
+
+.chaise-iframe .violin-plot.extended-violin-plot-controls .js-plotly-plot {
+    height: 78vh;
 }
 
 .plot-container {
-  display: block;
+    display: block;
+}
+
+.plots-wrapper {
+    justify-content: center;
+}
+
+.violin-controls {
+    min-width: 800px;
+    width: 60%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.violin-controls.single-select-group {
+    display: flex;
+    margin-top: 50px;
+}
+
+.violin-controls.study-group {
+    margin-top: 25px;
+}
+
+.violin-controls.study-group .truncate-chiclets {
+    max-height: 90px;
+    overflow: hidden;
+}
+
+.violin-controls.study-group .recordset-selected-rows {
+    min-height: 30px;
+}
+
+.violin-controls .recordset-selected-rows .selected-chiclet {
+    border: none;
+    margin-right: 8px;
+    padding-top: 8px;
+    padding-right: 0;
+    display: inline-block;
+
+    /* forces one line chiclet */
+    max-width: 240px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.violin-controls .recordset-selected-rows .selected-chiclet .selected-chiclet-name {
+    cursor: default;
+    user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+}
+
+.violin-controls .recordset-selected-rows .selected-chiclet .selected-chiclet-remove {
+    cursor: pointer;
+    margin-right: -3px;
+}
+.violin-controls .recordset-selected-rows .selected-chiclet .selected-chiclet-remove i {
+    top: 2px;
+}
+
+.violin-controls .recordset-selected-rows .clear-all-btn,
+.violin-controls .recordset-selected-rows .show-more-less {
+    vertical-align: bottom;
+    padding: 0 15px 4px 0;
+    height: auto;
+}
+
+.violin-controls .input-label {
+    font-size: 14px;
+    margin: auto;
+    padding-right: 10px;
+    padding-bottom: 1px;
+}
+
+/* study selector and text */
+.violin-controls .study-selector-group {
+    float: left;
+    padding-right: 10px;
+    min-width: 250px;
+    width: unset; /* overrides style from chaise-input-group */
+}
+
+.study-selector-group .glyphicon-chevron-down {
+    top: 4px;
+    left: 4px;
+}
+
+.violin-controls .study-selector-group .input-label {
+    margin: 5px 0 0 0;
+}
+
+/* gene selector and text */
+.violin-controls .gene-selector-group {
+    padding-right: 10px;
+    width: 35%;
+}
+
+.violin-controls .gene-selector-group .chaise-input-control {
+    /* override a style from chaise for inputs getting 0 border radius */
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+}
+
+.violin-controls .gene-selector-group .chaise-input-control.input-disabled {
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+.violin-controls .gene-selector-group .chaise-btn {
+    /* override a style from chaise for inputs getting 0 border radius */
+    border-top-right-radius: 4px !important;
+    border-bottom-right-radius: 4px !important;
+}
+
+/* group by selector and text */
+.violin-controls .group-by-dropdown {
+    display: flex;
+    padding-right: 10px;
+    width: 35%;
+}
+
+.violin-controls .group-by-dropdown .group-by-text,
+.violin-controls .toggle-scale-dropdown .toggle-scale-text {
+    white-space: nowrap;
+    padding-left: 10px;
+}
+
+.violin-controls .group-by-dropdown .chaise-input-control,
+.violin-controls .toggle-scale-dropdown .chaise-input-control {
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+.violin-controls .group-by-dropdown .chaise-btn,
+.violin-controls .toggle-scale-dropdown .chaise-btn {
+    position: absolute;
+    top: -1px;
+    right: -1px;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.violin-controls .group-by-dropdown .dropdown-menu,
+.violin-controls .toggle-scale-dropdown .dropdown-menu {
+    margin-top: -1px;
+    width: inherit;
+    min-width: unset;
+}
+
+/* toggle scale selector and text */
+.violin-controls .toggle-scale-dropdown {
+    display: flex;
+    width: 30%;
+}
+
+.tooltip {
+    width: fit-content;
 }
 
 .plot {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 20px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+/* unset margin set in rule above */
+.chaise-iframe .plot {
+    margin: unset;
 }
 
 #main-content {
-  height: 91vh;
-  overflow: auto;
+    height: 91vh;
+    overflow: auto;
+}
+
+/* unset height and overflow set in rule above */
+.chaise-iframe #main-content {
+    height: unset; /* height is set on js-plotly-plot and plot-container */
+    overflow: hidden;
 }
 
 #plotSpinner{
