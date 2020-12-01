@@ -224,22 +224,31 @@
                     return layout;
                 };
 
-                function formatData(data, format) {
+                function addComma(data) {
+                  // this regex is used to add a thousand separator in the number if possible
+                  return data.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
+                }
+
+                function formatData(data, format, type) {
                   if(format) {
                     try {
                       var formated_data = parseInt(data.split(' ')[0], 10);
                       if (isNaN(formated_data)) {
                         return data;
                       }
+                      if (type == "pie") {
+                        return formated_data.toString();
+                      }
                       // this regex is used to add a thousand separator in the number if possible
-                      return  formated_data.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
+                      return  addComma(formated_data)
                     } catch (e) {
                       return data;
                     }
-                  }
-                  else {
-                    // this regex is used to add a thousand separator in the number if possible
-                    return data.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
+                  } else {
+                    if (type == "pie") {
+                      return data;
+                    }
+                    return addComma(data)
                   }
                 }
 
@@ -638,7 +647,7 @@
                                                         if(label) {
                                                             values.labels.push(row[trace.legend_col]);
                                                         }
-                                                        values.values.push(formatData(row[trace.data_col], plot.config ? plot.config.format_data : false));
+                                                        values.values.push(formatData(row[trace.data_col], plot.config ? plot.config.format_data : false, "pie"));
                                                     });
                                                     plot_values.data.push(values);
                                                     plot_values.layout = layout;
