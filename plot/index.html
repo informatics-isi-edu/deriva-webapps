@@ -1,79 +1,166 @@
+<!DOCTYPE html>
 <html id="plot">
 
 <head>
-  <title>Plot App</title>
-  <script src='/chaise/chaise-config.js'></script>
-  <script src='../../chaise/scripts/vendor/jquery-1.11.1.min.js'></script>
-  <script src='../../chaise/scripts/vendor/bootstrap-3.3.7.min.js'></script>
-  <script src='../../chaise/scripts/vendor/plotly-latest.min.js'></script>
-  <script src='../../chaise/scripts/vendor/moment.min.js'></script>
-  <script src='../../chaise/scripts/vendor/angular.js'></script>
-  <script src='../../chaise/scripts/vendor/angular-sanitize.js'></script>
-  <script src='../../chaise/common/vendor/angular-cookies.min.js'></script>
-  <link rel="stylesheet" type="text/css" href="../../chaise/styles/vendor/bootstrap.min.css">
-  <link rel="stylesheet" type="text/css" href="../../chaise/common/styles/app.css">
-  <link rel="stylesheet" type="text/css" href="../../chaise/common/styles/appheader.css">
-  <script src='../../chaise/common/alerts.js'></script>
-  <script src='../../chaise/common/authen.js'></script>
-  <script src='../../chaise/common/storage.js'></script>
-  <script src='../../chaise/common/errors.js'></script>
-  <script src='../../chaise/common/filters.js'></script>
-  <script src='../../chaise/common/inputs.js'></script>
-  <script src='../../chaise/common/modal.js'></script>
-  <script src='../../chaise/common/login.js'></script>
-  <script src='../../chaise/common/navbar.js'></script>
-  <script src='../../chaise/common/utils.js'></script>
-  <script src='../../chaise/common/validators.js'></script>
-  <script src='../../chaise/common/config.js'></script>
+    <title>Plot App</title>
+    <!-- CSS -->
+    <link rel="stylesheet" type="text/css" href="../../chaise/styles/vendor/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="../../chaise/common/styles/app.css">
+    <link rel="stylesheet" type="text/css" href="../../chaise/common/styles/appheader.css">
+    <link rel="stylesheet" type="text/css" href="styles/plot.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <script src='../../chaise/scripts/vendor/ui-bootstrap-tpls-2.5.0.min.js'></script>
-  <script src='../../ermrestjs/ermrest.js'></script>
-  <script src="plot-config.js"></script>
-  <script src="plot.app.js"></script>
-  <link rel="stylesheet" type="text/css" href="styles/plot.css">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- vendor dependencies -->
+    <!-- TODO: change to dynamicly load assets -->
+    <script src="../../chaise/scripts/vendor/jquery-3.4.1.min.js"></script>
+    <script src="../../chaise/scripts/vendor/angular.js"></script>
+    <!-- TODO: This shouldn't be "latest", maybe rename so it doesn't imply the current master vsion from plotly.js -->
+    <script src="../../chaise/scripts/vendor/plotly-latest.min.js"></script>
+    <script src="../../chaise/dist/chaise.vendor.min.js"></script>
+
+    <!-- chaise dependencies -->
+    <script src="../../chaise/chaise-config.js"></script>
+    <script src="../../chaise/dist/chaise.min.js"></script>
+
+    <!-- plot dependencies -->
+    <script src="plot-config.js"></script>
+    <script src="plot.app.js"></script>
+
+    <!-- ermrestJS dependecnies -->
+    <script src="../../ermrestjs/ermrest.min.js"></script>
+
 </head>
 
 <body class="chaise-body">
-  <div class="configure-container" ng-app="chaise.configure-plotApp">
-    <loading-spinner ng-show="!plotsLoaded"></loading-spinner>
-  </div>
-  <div class="app-container">
-    <navbar></navbar>
-    <div ng-controller="plotController as ctrl" id="appDiv">
-      <div ng-if= "ctrl.model.title" class="row">
-      	<div id="bookmark-container" class="col-xs-12 meta-icons">
-      		<div id="title" class="pull-left">
-      			<h1 id="page-title"><span>{{ctrl.model.title}}</span></h1>
-      		</div>
-      	</div>
-      </div>
-      <div id="main-content" class="plot-container">
-        <div class="main-container">
-          <div class="main-body">
-            <div class="alerts-container">
-                <alerts alerts="ctrl.alerts"></alerts>
-            </div>
-            <!-- <div class="col-sm-3">  TODO: UI : selection for different types of plot types.
-              <div class="sub-header">
-                Plot type
-              </div>
-              <div>
-                <select ng-model="ctrl.model.type.name" ng-options="s for s in ctrl.types"
-                    ng-change="::ctrl.changeSelection()"></select>
-              </div>
-            </div> -->
-            <div id="plotSpinner" ng-show="!plotsLoaded">
-              <img src="styles/images/loader.gif" class="spinner" />
-              <div style="margin-top: 15px;">Loading...</div>
-            </div>
-            <div class="plot" ng-show="plotsLoaded" ng-repeat="plot in plots">
-              <plot plot-id="{{plot.id}}"></plot>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div class="configure-container" ng-app="chaise.configure-plotApp">
+      <loading-spinner ng-show="!plotsLoaded"></loading-spinner>
     </div>
-  </div>
+    <div class="app-container">
+        <navbar></navbar>
+        <div ng-controller="plotController as ctrl" id="appDiv">
+            <div ng-if= "ctrl.model.title" class="row">
+                <div id="bookmark-container" class="col-xs-12 meta-icons">
+                    <div id="title" class="pull-left">
+                        <h1 id="page-title"><span>{{ctrl.model.title}}</span></h1>
+                    </div>
+                </div>
+            </div>
+            <div id="main-content" class="plot-container">
+                <div class="main-container">
+                    <div class="main-body">
+                        <div class="alerts-container">
+                            <alerts alerts="ctrl.alerts"></alerts>
+                        </div>
+                        <!-- <div class="col-sm-3">  TODO: UI : selection for different types of plot types.
+                            <div class="sub-header">Plot type</div>
+                            <div>
+                                <select ng-model="ctrl.model.type.name" ng-options="s for s in ctrl.types"
+                                ng-change="::ctrl.changeSelection()"></select>
+                            </div>
+                        </div> -->
+
+                        <div id="plotSpinner" ng-show="!plotsLoaded">
+                            <img src="styles/images/loader.gif" class="spinner" />
+                            <div style="margin-top: 15px;">Loading...</div>
+                        </div>
+                        <div ng-show="plotsLoaded" class="plots-wrapper" ng-repeat="plot in plots">
+                            <div ng-if="ctrl.showViolinControls(plot.plot_type)">
+                                <div class="violin-controls single-select-group">
+                                    <!-- modal single select popup input -->
+                                    <div class="chaise-input-group modal-popup gene-selector-group">
+                                        <div class="input-label">Gene:</div>
+                                        <!-- hidden when disabled -->
+                                        <div ng-show="!disableGeneSelector" class="chaise-input-control has-feedback">
+                                            <div contenteditable="false" class="popup-select-value" style="cursor: pointer" ng-click="ctrl.openGeneSelector()" ng-bind-html="gene.displayname.value"></div>
+                                        </div>
+                                        <!-- show a normal uneditable input when disabled -->
+                                        <div ng-show="disableGeneSelector" contenteditable="false" class="chaise-input-control input-disabled" ng-bind-html="gene.displayname.value"></div>
+                                        <label class="sr-only"></label>
+                                        <!-- So that the foreign key input can be validated -->
+                                        <input type="hidden" ng-model="geneId" />
+                                        <!-- hidden when disabled -->
+                                        <span ng-show="!disableGeneSelector" class="chaise-input-group-append">
+                                            <button ng-focus="::form.blurElement($event);" class="chaise-btn chaise-btn-primary modal-popup-btn" type="button" ng-click="ctrl.openGeneSelector()" tooltip-placement="top-right" uib-tooltip="Choose a gene.">
+                                                <span class="glyphicon glyphicon-chevron-down"></span>
+                                            </button>
+                                        </span>
+                                    </div>
+                                    <div class="group-by-dropdown">
+                                        <div class="group-by-text input-label">Group By:</div>
+                                        <div class="chaise-input-group" uib-dropdown>
+                                            <div class="chaise-input-control" uib-dropdown-toggle>
+                                                <div contenteditable="false" style="cursor: pointer" ng-bind-html="groupKey.title_display_pattern"></div>
+                                                <button class="chaise-btn chaise-btn-primary" type="button" tooltip-placement="top-right" uib-tooltip="Choose a value to group by.">
+                                                    <span class="glyphicon glyphicon-chevron-down"></span>
+                                                </button>
+                                            </div>
+                                            <ul uib-dropdown-menu role="menu">
+                                                <li ng-repeat="group in ctrl.groups" ng-click="ctrl.setGroup(group)">
+                                                    <a ng-bind-html="group.title_display_pattern"></a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="toggle-scale-dropdown">
+                                        <div class="toggle-scale-text input-label">Scale:</div>
+                                        <div class="chaise-input-group" uib-dropdown >
+                                            <div class="chaise-input-control" uib-dropdown-toggle>
+                                                <div contenteditable="false" style="cursor: pointer" ng-bind-html="yAxisScale"></div>
+                                                <button class="chaise-btn chaise-btn-primary" type="button" tooltip-placement="top-right" uib-tooltip="Change y axis scale.">
+                                                    <span class="glyphicon glyphicon-chevron-down"></span>
+                                                </button>
+                                            </div>
+                                            <ul uib-dropdown-menu role="menu">
+                                                <li ng-repeat="scale in ctrl.scales" ng-click="ctrl.toggleScale(scale)">
+                                                    <a ng-bind-html="scale"></a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div ng-hide="hideStudySelector" class="violin-controls study-group">
+                                    <div ng-class="{'truncate-chiclets': !ctrl.showMore}">
+                                        <!-- modal multi select popup input -->
+                                        <div class="chaise-input-group modal-popup study-selector-group">
+                                            <div class="input-label">Study:</div>
+                                            <span class="chaise-btn-group">
+                                                <button class="chaise-btn chaise-btn-secondary" type="button" ng-click="ctrl.selectAllStudy()" tooltip-placement="bottom-left" uib-tooltip="Click to apply all available studies.">Select All</button>
+                                                <button class="chaise-btn chaise-btn-secondary" type="button" ng-click="ctrl.openStudySelector()" tooltip-placement="bottom-left" uib-tooltip="Click to choose from a list of studies.">Select Some <span class="glyphicon glyphicon-chevron-down"></span></button>
+                                            </span>
+                                        </div>
+                                        <div id="study-selections" class="recordset-selected-rows">
+                                            <div class="recordset-chiclets-container">
+                                                <div ng-show="ctrl.studySetIsArray() && ctrl.studySet.length > 0" class="selected-chiclet" chaise-enable-tooltip-width ng-repeat="study in ctrl.studySet track by $index">
+                                                    <span class="selected-chiclet-remove" ng-click="ctrl.removeStudyPill(study.uniqueId, $event)" uib-tooltip="Clear selected study" tooltip-placement="bottom-left">
+                                                        <i class="glyphicon glyphicon-remove"></i>
+                                                    </span>
+                                                    <span class="selected-chiclet-name" ng-if="study.displayname.isHTML" ng-bind-html="study.displayname.value || study.data.RID" uib-tooltip="{{study.displayname.value || study.data.RID}}" tooltip-placement="bottom-left"></span>
+                                                    <span class="selected-chiclet-name" ng-if="!study.displayname.isHTML" ng-bind="study.displayname.value || study.data.RID" uib-tooltip="{{study.displayname.value || study.data.RID}}" tooltip-placement="bottom-left"></span>
+                                                </div>
+                                                <div ng-if="ctrl.selectAll" class="selected-chiclet">
+                                                    <span class="selected-chiclet-name"><i>All Studies Selected</i></span>
+                                                </div>
+                                                <!-- Add buttons AFTER list if not truncated -->
+                                                <button ng-show="ctrl.studySetIsArray() && ctrl.studySet.length > 0 && ctrl.showMoreLessBtn(ctrl.showMore)" ng-click="ctrl.showMore = !ctrl.showMore" class="chaise-btn chaise-btn-tertiary show-more-less" tooltip-placement="bottom-left" uib-tooltip="{{ctrl.showMore ? 'Click to hide some chiclets' : 'Click to show all chiclets'}}">... Show Less</button>
+                                                <button ng-show="(ctrl.studySetIsArray() && ctrl.studySet.length > 0 && ctrl.showMore) || ctrl.selectAll" ng-click="ctrl.removeAllStudy()" class="chaise-btn chaise-btn-tertiary clear-all-btn" tooltip-placement="bottom-left" uib-tooltip="Clear all selected rows">Clear All Studies</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Add buttons BELOW list if it is truncated -->
+                                    <div ng-show="ctrl.studySetIsArray() && ctrl.studySet.length > 0">
+                                        <button ng-show="!ctrl.showMore" ng-click="ctrl.showMore = !ctrl.showMore" class="chaise-btn chaise-btn-tertiary show-more-less" tooltip-placement="bottom-left" uib-tooltip="{{ctrl.showMore ? 'Click to hide some chiclets' : 'Click to show all chiclets'}}">... Show More</button>
+                                        <button ng-show="!ctrl.showMore" ng-click="ctrl.removeAllStudy()" class="chaise-btn chaise-btn-tertiary clear-all-btn" tooltip-placement="bottom-left" uib-tooltip="Clear all selected rows">Clear All Studies</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="plot" ng-class="{'{{plot.plot_type}}-plot': true, 'extended-violin-plot-controls': !hideStudySelector}">
+                                <plot plot-id="{{plot.id}}"></plot>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
