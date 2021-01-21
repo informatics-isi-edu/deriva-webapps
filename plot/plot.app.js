@@ -674,6 +674,15 @@
 
                                                 case "bar":
                                                     if(trace.orientation == "h") {
+                                                        var suffix = "  ";
+                                                        if (!layout.yaxis) {
+                                                            layout.yaxis = {
+                                                                ticksuffix: suffix
+                                                            };
+                                                        } else if (!layout.yaxis.ticksuffix) {
+                                                            layout.yaxis.ticksuffix = suffix;
+                                                        }
+
                                                         for(var i = 0; i < trace.x_col.length;i++) {
                                                             var values = getValues(plot.plot_type, trace.legend ? trace.legend[i]: '',  trace.orientation);
                                                             if (trace.textangle) {
@@ -742,21 +751,19 @@
                                         }
 
                                     }).catch(function (err) {
-                                        if (err.data) {
-                                            if (err.status == 401) {
-                                                if (!$rootScope.loginShown) {
-                                                    $rootScope.loginShown = true;
-                                                    Session.loginInAModal(function () {
-                                                        // set to false in case a request fails after with 401
-                                                        $rootScope.loginShown = false;
-                                                        window.location.reload();
-                                                    });
-                                                }
-                                            } else {
-                                                // else add warning alert
-                                                AlertsService.addAlert(err.data, 'warning');
-                                                throw ERMrest.responseToError(err);
+                                        if (err.status == 401) {
+                                            if (!$rootScope.loginShown) {
+                                                $rootScope.loginShown = true;
+                                                Session.loginInAModal(function () {
+                                                    // set to false in case a request fails after with 401
+                                                    $rootScope.loginShown = false;
+                                                    window.location.reload();
+                                                });
                                             }
+                                        } else {
+                                            // else add warning alert
+                                            AlertsService.addAlert(err.data, 'warning');
+                                            throw ERMrest.responseToError(err);
                                         }
                                     });
                                 });
