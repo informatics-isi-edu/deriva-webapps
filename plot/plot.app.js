@@ -4,9 +4,7 @@
     angular.module('chaise.configure-plotApp', ['chaise.config'])
 
         .constant('settings', {
-            appName: "plotApp",
-            disableHeadTitle: true,
-            disableOnclickBehavior: true
+            appName: "plotApp"
         })
 
         .run(['$rootScope', function ($rootScope) {

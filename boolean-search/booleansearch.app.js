@@ -11,9 +11,7 @@ var setSourceForFilter;
     angular.module('chaise.configure-booleansearchApp', ['chaise.config'])
 
         .constant('settings', {
-            appName: "booleansearchApp",
-            disableHeadTitle: true,
-            disableOnclickBehavior: true
+            appName: "booleansearchApp"
         })
 
         .run(['$rootScope', function ($rootScope) {

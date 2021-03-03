@@ -4,9 +4,7 @@
     angular.module('chaise.configure-lineplotApp', ['chaise.config'])
 
         .constant('settings', {
-            appName: "lineplotApp",
-            disableHeadTitle: true,
-            disableOnclickBehavior: true
+            appName: "lineplotApp"
         })
 
         .run(['$rootScope', function ($rootScope) {
