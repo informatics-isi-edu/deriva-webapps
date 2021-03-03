@@ -3,7 +3,9 @@
 
     angular.module('chaise.configure-lineplotApp', ['chaise.config'])
 
-        .constant('appName', 'lineplotApp')
+        .constant('settings', {
+            appName: "lineplotApp"
+        })
 
         .run(['$rootScope', function ($rootScope) {
             // When the configuration module's run block emits the `configuration-done` event, attach the app to the DOM

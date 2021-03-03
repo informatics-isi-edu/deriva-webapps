@@ -3,7 +3,9 @@
 
     angular.module('chaise.configure-plotApp', ['chaise.config'])
 
-        .constant('appName', 'plotApp')
+        .constant('settings', {
+            appName: "plotApp"
+        })
 
         .run(['$rootScope', function ($rootScope) {
             // When the configuration module's run block emits the `configuration-done` event, attach the app to the DOM

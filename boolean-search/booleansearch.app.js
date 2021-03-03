@@ -10,7 +10,9 @@ var setSourceForFilter;
 
     angular.module('chaise.configure-booleansearchApp', ['chaise.config'])
 
-        .constant('appName', 'booleansearchApp')
+        .constant('settings', {
+            appName: "booleansearchApp"
+        })
 
         .run(['$rootScope', function ($rootScope) {
             // When the configuration module's run block emits the `configuration-done` event, attach the app to the DOM
