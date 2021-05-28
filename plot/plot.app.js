@@ -49,10 +49,6 @@
                 plot: {},
                 id: null
             })
-            .value('headerInfo', {
-                pid: "",
-                cid: ""
-            })
             .factory('PlotUtils', ['AlertsService', 'ConfigUtils', 'dataFormats', 'dataParams', 'Errors', 'ErrorService', 'Session', 'UriUtils', '$q', '$rootScope', '$window', function (AlertsService, ConfigUtils, dataFormats, dataParams, Errors, ErrorService,  Session, UriUtils, $q, $rootScope, $window) {
                 var ermrestServiceUrl = ConfigUtils.getConfigJSON().ermrestLocation;
                 var contextHeaderParams = {"cid": "2d-plot"};
@@ -189,7 +185,6 @@
 
                      // NOTE: does not support templating (violin overrides outside of function with templating)
                     layout.title = plot.plot_title;
-
 
                     // configuration overrides
                     var tempConfig = plot.config;
@@ -420,7 +415,6 @@
 
                     server.http.get(uri).then(function(response) {
                         var data = response.data;
-                        console.log("1:",response.data)
                         // transform x data based on groupKey
                         // xData used for graph x data AND xaxis grouping
                         var xData = data.map(function (obj) {
@@ -1151,3 +1145,86 @@
             }
         ]);
 })();
+
+// TODO: reenable dynamic loading of dependencies
+// var chaisePath = "/chaise/";
+// if (typeof chaiseConfig != 'undefined' && typeof chaiseConfig === "object" && chaiseConfig['chaiseBasePath'] !== undefined) {
+//     chaisePath = chaiseConfig['chaiseBasePath'];
+// }
+
+// const JS_DEPS = [
+//     'chaise-config.js',
+//     'scripts/vendor/angular.js',
+//     'scripts/vendor/jquery-1.11.1.min.js',
+//     'scripts/vendor/bootstrap-3.3.7.min.js',
+//     'scripts/vendor/plotly-latest.min.js',
+//     'common/vendor/angular-cookies.min.js',
+//     'scripts/vendor/angular-sanitize.js',
+//     'scripts/vendor/ui-bootstrap-tpls-2.5.0.min.js',
+//     '../ermrestjs/ermrest.js',
+//     'common/alerts.js',
+//     'common/authen.js',
+//     'common/config.js',
+//     'common/errors.js',
+//     'common/filters.js',
+//     'common/inputs.js',
+//     'common/login.js',
+//     'common/modal.js',
+//     'common/navbar.js',
+//     'common/recordCreate.js',
+//     'common/storage.js',
+//     'common/table.js',
+//     'common/utils.js',
+//     'common/validators.js'
+// ];
+
+// const JS_DEPS = [
+//     'scripts/vendor/angular.js',
+//     'chaise-config.js',
+//     'scripts/vendor/jquery-3.4.1.min.js',
+//     'scripts/vendor/plotly-latest.min.js',
+//     'dist/chaise.vendor.min.js',
+//     'dist/chaise.min.js',
+//     '../ermrestjs/ermrest.min.js'
+// ];
+//
+// const CSS_DEPS = [
+//     'styles/vendor/bootstrap.min.css',
+//     'common/styles/app.css',
+//     'common/styles/appheader.css'
+// ];
+//
+// var head = document.getElementsByTagName('head')[0];
+// function loadStylesheets(url) {
+//     var link = document.createElement('link');
+//     link.rel = 'stylesheet';
+//     link.type = 'text/css';
+//     link.href = chaisePath + url;
+//     head.appendChild(link);
+// }
+// function loadJSDeps(url, callback) {
+//     var script = document.createElement('script');
+//     script.type = 'text/javascript';
+//     // if (url == 'scripts/vendor/plotly-latest.min.js') {
+//     //     script.src = "../../" + chaisePath + url;
+//     // } else {
+//         script.src = "../.." + chaisePath + url;
+//     // }
+//     script.onload = callback;
+//     head.appendChild(script);
+// }
+// var jsIndex = 0;
+//
+// function fileLoaded() {
+//     jsIndex = jsIndex + 1;
+//     if (jsIndex == JS_DEPS.length) {
+//         loadModule();
+//     } else {
+//         loadJSDeps(JS_DEPS[jsIndex], fileLoaded);
+//     }
+// }
+// CSS_DEPS.forEach(function (url) {
+//     loadStylesheets(url);
+// });
+// loadJSDeps(JS_DEPS[0], fileLoaded);
+// loadModule();
