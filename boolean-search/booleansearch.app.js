@@ -11,7 +11,9 @@ var setSourceForFilter;
     angular.module('chaise.configure-booleansearchApp', ['chaise.config'])
 
         .constant('settings', {
-            appName: "booleansearchApp"
+            appName: "booleansearchApp",
+            appTitle: "Boolean Search",
+            overrideHeadTitle: true,
         })
 
         .run(['$rootScope', function ($rootScope) {

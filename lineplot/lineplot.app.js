@@ -4,7 +4,9 @@
     angular.module('chaise.configure-lineplotApp', ['chaise.config'])
 
         .constant('settings', {
-            appName: "lineplotApp"
+            appName: "lineplotApp",
+            appTitle: "Line Plot",
+            overrideHeadTitle: true,
         })
 
         .run(['$rootScope', function ($rootScope) {
