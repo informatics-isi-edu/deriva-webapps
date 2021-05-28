@@ -415,6 +415,7 @@
 
                     server.http.get(uri).then(function(response) {
                         var data = response.data;
+
                         // transform x data based on groupKey
                         // xData used for graph x data AND xaxis grouping
                         var xData = data.map(function (obj) {
@@ -1227,4 +1228,3 @@
 //     loadStylesheets(url);
 // });
 // loadJSDeps(JS_DEPS[0], fileLoaded);
-// loadModule();
