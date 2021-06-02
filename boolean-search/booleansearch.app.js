@@ -629,9 +629,12 @@ var setSourceForFilter;
                 }
             };
         }])
-        .run(['ERMrest', 'filterOptions', 'defaultOptions', '$rootScope',
-            function runBooleanSearchApp(ERMrest, filterOptions, defaultOptions, $rootScope) {
-                $rootScope.dataLoaded = {
+        .run(['ERMrest', 'filterOptions', 'defaultOptions', '$rootScope','headInjector', '$window',
+            function runBooleanSearchApp(ERMrest, filterOptions, defaultOptions, $rootScope,headInjector, $window) {
+                $rootScope.headTitle=$window.booleanSearchConfig.headTitle;
+                if ($rootScope.headTitle)
+                    headInjector.updateHeadTitle($rootScope.headTitle);
+                    $rootScope.dataLoaded = {
                     count: 0
                 };
                 filterOptions.getStrengthOptions().then(function (data) {
