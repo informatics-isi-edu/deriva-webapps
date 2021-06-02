@@ -630,13 +630,13 @@ var setSourceForFilter;
             };
         }])
         .run(['ERMrest', 'filterOptions', 'defaultOptions', '$rootScope','headInjector', '$window',
-            function runBooleanSearchApp(ERMrest, filterOptions, defaultOptions, $rootScope,headInjector, $window) {
-                $rootScope.headTitle=$window.booleanSearchConfig.headTitle;
-                if ($rootScope.headTitle)
-                    headInjector.updateHeadTitle($rootScope.headTitle);
-                    $rootScope.dataLoaded = {
-                    count: 0
-                };
+        function runBooleanSearchApp(ERMrest, filterOptions, defaultOptions, $rootScope,headInjector, $window) {
+            $rootScope.headTitle=$window.booleanSearchConfig.headTitle;
+            if ($rootScope.headTitle)
+                headInjector.updateHeadTitle($rootScope.headTitle);
+            $rootScope.dataLoaded = {
+                count: 0
+            };
                 filterOptions.getStrengthOptions().then(function (data) {
                     data.forEach(function (el) {
                         defaultOptions.strengthOptions.push(el.Strength);
