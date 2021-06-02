@@ -188,8 +188,7 @@
               try {
                 $rootScope.loginShown = false;
                 $rootScope.params = {};
-                if ($rootScope.headTitle)
-                    $rootScope.headTitle=$window.lineplotConfig.headTitle;
+                $rootScope.headTitle=$window.lineplotConfig.headTitle;
                 var query = $window.location.search;
                 query = query.slice(query.indexOf("?")+1, query.length);
                 var queryParams = query.split('&');
@@ -209,7 +208,8 @@
                 var subId = Session.subscribeOnChange(function () {
                   Session.unsubscribeOnChange(subId);
                   var session = Session.getSessionValue();
-                  headInjector.updateHeadTitle($rootScope.headTitle);
+                  if ($rootScope.headTitle)
+                    headInjector.updateHeadTitle($rootScope.headTitle);
                   if (!session) {
                       var notAuthorizedError = new ERMrest.UnauthorizedError(messageMap.unauthorizedErrorCode, (messageMap.unauthorizedMessage + messageMap.reportErrorToAdmin));
                       throw notAuthorizedError;
