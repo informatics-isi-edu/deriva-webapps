@@ -11,7 +11,9 @@ var setSourceForFilter;
     angular.module('chaise.configure-booleansearchApp', ['chaise.config'])
 
         .constant('settings', {
-            appName: "booleansearchApp"
+            appName: "booleansearchApp",
+            appTitle: "Boolean Search",
+            overrideHeadTitle: true,
         })
 
         .run(['$rootScope', function ($rootScope) {
@@ -627,11 +629,14 @@ var setSourceForFilter;
                 }
             };
         }])
-        .run(['ERMrest', 'filterOptions', 'defaultOptions', '$rootScope',
-            function runBooleanSearchApp(ERMrest, filterOptions, defaultOptions, $rootScope) {
-                $rootScope.dataLoaded = {
-                    count: 0
-                };
+        .run(['ERMrest', 'filterOptions', 'defaultOptions', '$rootScope','headInjector', '$window',
+        function runBooleanSearchApp(ERMrest, filterOptions, defaultOptions, $rootScope,headInjector, $window) {
+            $rootScope.headTitle=$window.booleanSearchConfig.headTitle;
+            if ($rootScope.headTitle)
+                headInjector.updateHeadTitle($rootScope.headTitle);
+            $rootScope.dataLoaded = {
+                count: 0
+            };
                 filterOptions.getStrengthOptions().then(function (data) {
                     data.forEach(function (el) {
                         defaultOptions.strengthOptions.push(el.Strength);

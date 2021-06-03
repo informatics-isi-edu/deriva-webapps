@@ -4,7 +4,9 @@
     angular.module('chaise.configure-lineplotApp', ['chaise.config'])
 
         .constant('settings', {
-            appName: "lineplotApp"
+            appName: "lineplotApp",
+            appTitle: "Line Plot",
+            overrideHeadTitle: true,
         })
 
         .run(['$rootScope', function ($rootScope) {
@@ -181,11 +183,12 @@
                     }
                 };
             }])
-            .run(['AlertsService', 'ERMrest', 'LineplotUtils', 'messageMap', 'Session', 'UriUtils', '$rootScope', '$window',
-            function runApp(AlertsService, ERMrest, LineplotUtils, messageMap, Session, UriUtils, $rootScope, $window) {
+            .run(['AlertsService', 'ERMrest', 'LineplotUtils', 'messageMap', 'Session', 'UriUtils', '$rootScope', '$window','headInjector',
+            function runApp(AlertsService, ERMrest, LineplotUtils, messageMap, Session, UriUtils, $rootScope, $window,headInjector) {
               try {
                 $rootScope.loginShown = false;
                 $rootScope.params = {};
+                $rootScope.headTitle=$window.lineplotConfig.headTitle;
                 var query = $window.location.search;
                 query = query.slice(query.indexOf("?")+1, query.length);
                 var queryParams = query.split('&');
@@ -205,7 +208,8 @@
                 var subId = Session.subscribeOnChange(function () {
                   Session.unsubscribeOnChange(subId);
                   var session = Session.getSessionValue();
-
+                  if ($rootScope.headTitle)
+                    headInjector.updateHeadTitle($rootScope.headTitle);
                   if (!session) {
                       var notAuthorizedError = new ERMrest.UnauthorizedError(messageMap.unauthorizedErrorCode, (messageMap.unauthorizedMessage + messageMap.reportErrorToAdmin));
                       throw notAuthorizedError;

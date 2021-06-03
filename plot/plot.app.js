@@ -4,7 +4,9 @@
     angular.module('chaise.configure-plotApp', ['chaise.config'])
 
         .constant('settings', {
-            appName: "plotApp"
+            appName: "plotApp",
+            appTitle: "Plot",
+            overrideHeadTitle: true,
         })
 
         .run(['$rootScope', function ($rootScope) {
@@ -1123,15 +1125,18 @@
                     }
                 };
             }])
-            .run(['ERMrest', 'FunctionUtils', 'PlotUtils', 'messageMap', 'Session', 'UriUtils', '$rootScope', '$window',
-            function runApp(ERMrest, FunctionUtils, PlotUtils, messageMap, Session, UriUtils, $rootScope, $window) {
+            .run(['ERMrest', 'FunctionUtils', 'PlotUtils', 'messageMap', 'Session', 'UriUtils', '$rootScope', '$window','headInjector',
+            function runApp(ERMrest, FunctionUtils, PlotUtils, messageMap, Session, UriUtils, $rootScope, $window, headInjector) {
                 try {
                     $rootScope.loginShown = false;
                     $rootScope.config = UriUtils.getQueryParam($window.location.href, "config");
+                    $rootScope.headTitle=$window.plotConfigs[$rootScope.config].headTitle;
                     FunctionUtils.registerErmrestCallbacks();
                     var subId = Session.subscribeOnChange(function () {
                         Session.unsubscribeOnChange(subId);
                         var session = Session.getSessionValue();
+                        if ($rootScope.headTitle)
+                            headInjector.updateHeadTitle($rootScope.headTitle);
                         // if (!session) {
                         //     var notAuthorizedError = new ERMrest.UnauthorizedError(messageMap.unauthorizedErrorCode, (messageMap.unauthorizedMessage + messageMap.reportErrorToAdmin));
                         //     throw notAuthorizedError;
