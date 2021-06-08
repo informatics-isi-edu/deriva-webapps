@@ -37,7 +37,8 @@
             }])
             .factory('LineplotUtils', ['AlertsService', 'ConfigUtils', 'dataFormats', 'Session', 'UriUtils', '$rootScope', function (AlertsService, ConfigUtils, dataFormats, Session, UriUtils, $rootScope) {
               var ermrestServiceUrl = ConfigUtils.getConfigJSON().ermrestLocation;
-              var contextHeaderParams = {"cid": "line-plot"};
+              console.log(ConfigUtils.getContextHeaderParams())
+              var contextHeaderParams = ConfigUtils.getContextHeaderParams();
               var server = ERMrest.ermrestFactory.getServer(ermrestServiceUrl, contextHeaderParams);
 
                 return {

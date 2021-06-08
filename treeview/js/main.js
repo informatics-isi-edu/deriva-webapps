@@ -13,7 +13,6 @@
             }
             return s4() + s4() + s4() + s4() + s4() + s4();
         }
-
         function getHeader(action, schemaTable, params) {
             return ERMrest._certifyContextHeader({
                 wid: window.name,
@@ -558,6 +557,8 @@
                 function getTreeData(queryConfig) {
                     var treeHeaders = {};
                     treeHeaders[ERMrest.contextHeaderName] = getHeader("main", queryConfig.tree_schema_table);
+                    console.log(urlParamNames)
+                    console.log(treeHeaders[ERMrest.contextHeaderName])
                     $.ajax({
                         headers: treeHeaders,
                         dataType: "json",
@@ -918,10 +919,14 @@
                     // assuming Parent_App is booleanSearch
                     s["onClick"] = nodeClickCallback(node);
                 } else {
+                    var context=JSON.parse(getHeader())
                     // TODO: this function should be exposed as public in ermrestJS
+                    console.log(ERMrest._fixedEncodeURIComponent(node.dbxref))
                     templateParams.$node_id = ERMrest._fixedEncodeURIComponent(node.dbxref);
-                    var l = "'" + ERMrest._renderHandlebarsTemplate(treeviewConfig.tree.click_event_callback, templateParams) + "','_blank'";
-                    s["onClick"] = "window.open(" + l + ");";
+                    var l = "'" + ERMrest._renderHandlebarsTemplate(treeviewConfig.tree.click_event_callback, templateParams);
+                    url=l+"?pcid=" + context.cid + "&ppid=" + context.pid+ "','_blank'";
+                    console.log(url)
+                    s["onClick"] = "window.open(" + url + ");";
                 }
                 // properties stored under "original" property on jstree_node object
                 var newNode = {

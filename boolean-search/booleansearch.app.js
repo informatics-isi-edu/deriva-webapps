@@ -78,23 +78,25 @@ var setSourceForFilter;
         })
         .value('headerInfo', {
             pid: "",
-            cid: ""
+            cid: "",
+            wid: ""
         })
-        .factory('filterOptions', ['$http', '$window', 'ERMrest', 'headInjector', 'MathUtils', 'UriUtils', 'headerInfo', function ($http, $window, ERMrest, headInjector, MathUtils, UriUtils, headerInfo) {
+        .factory('filterOptions', ['$http', '$window', 'ERMrest', 'headInjector', 'MathUtils', 'UriUtils', 'headerInfo','ConfigUtils', function ($http, $window, ERMrest, headInjector, MathUtils, UriUtils, headerInfo,ConfigUtils) {
             var baseUrl = $window.location.origin;
             var specExprUrl = baseUrl + "/ermrest/catalog/2/attributegroup/Gene_Expression:Specimen_Expression";
             var devStageUrl = baseUrl + "/ermrest/catalog/2/attribute/Vocabulary:Developmental_Stage";
             var sourceUrl = baseUrl + "/ermrest/catalog/2/entity/Vocabulary:Anatomy";
 
             // Configuring ERMrestjs service object and http module
-            var contextHeaderParams = { "cid": "boolean-search" };
+            console.log(ConfigUtils.getContextHeaderParams())
+            var contextHeaderParams = ConfigUtils.getContextHeaderParams();
             var server = ERMrest.ermrestFactory.getServer(baseUrl + "/ermrest", contextHeaderParams);
-            headerInfo.pid = MathUtils.uuid();
-            headerInfo.cid = "boolean-search";
-            headInjector.setWindowName();
+            headerInfo.pid = contextHeaderParams.pid;
+            headerInfo.cid = contextHeaderParams.cid;
+            headerInfo.wid = contextHeaderParams.wid;
             var getHeader = function () {
                 return {
-                    wid: $window.name,
+                    wid: headerInfo.wid,
                     cid: headerInfo.cid,
                     pid: headerInfo.pid,
                     action: "facet"

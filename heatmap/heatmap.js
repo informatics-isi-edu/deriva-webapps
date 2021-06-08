@@ -150,6 +150,8 @@ heatmapApp.controller('HeatmapController', function HeatmapController($scope, $h
 			}]
 		};
 		var url = window.origin + "/chaise/recordset/" + ERMrest.createPath("2", "Gene_Expression", "Array_Data", facet);
+		console.log(url)
+		console.log(url + "?pcid=" + headerInfo.cid + "&ppid=" + headerInfo.pid)
 		window.location = url + "?pcid=" + headerInfo.cid + "&ppid=" + headerInfo.pid;
 	}
 });
