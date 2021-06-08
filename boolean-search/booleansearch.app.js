@@ -88,7 +88,6 @@ var setSourceForFilter;
             var sourceUrl = baseUrl + "/ermrest/catalog/2/entity/Vocabulary:Anatomy";
 
             // Configuring ERMrestjs service object and http module
-            console.log(ConfigUtils.getContextHeaderParams())
             var contextHeaderParams = ConfigUtils.getContextHeaderParams();
             var server = ERMrest.ermrestFactory.getServer(baseUrl + "/ermrest", contextHeaderParams);
             headerInfo.pid = contextHeaderParams.pid;

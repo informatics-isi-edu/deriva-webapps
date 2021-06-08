@@ -51,7 +51,6 @@
             })
             .factory('PlotUtils', ['AlertsService', 'ConfigUtils', 'dataFormats', 'dataParams', 'Errors', 'ErrorService', 'Session', 'UriUtils', '$q', '$rootScope', '$window', function (AlertsService, ConfigUtils, dataFormats, dataParams, Errors, ErrorService,  Session, UriUtils, $q, $rootScope, $window) {
                 var ermrestServiceUrl = ConfigUtils.getConfigJSON().ermrestLocation;
-                console.log(ConfigUtils.getContextHeaderParams())
                 var server = ERMrest.ermrestFactory.getServer(ermrestServiceUrl, ConfigUtils.getContextHeaderParams());
                 function getType(type) {
                   switch (type) {
