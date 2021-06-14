@@ -637,8 +637,8 @@ var setSourceForFilter;
                 }
             };
         }])
-        .run(['ERMrest', 'filterOptions', 'defaultOptions', '$rootScope','headInjector', '$window','UriUtils',
-        function runBooleanSearchApp(ERMrest, filterOptions, defaultOptions, $rootScope,headInjector, $window,UriUtils) {
+        .run(['ERMrest', 'filterOptions', 'defaultOptions', '$rootScope','headInjector', '$window',
+        function runBooleanSearchApp(ERMrest, filterOptions, defaultOptions, $rootScope,headInjector, $window) {
             $rootScope.headTitle=$window.booleanSearchConfig.headTitle;
             if ($rootScope.headTitle)
                 headInjector.updateHeadTitle($rootScope.headTitle);
