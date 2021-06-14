@@ -98,6 +98,7 @@ var setSourceForFilter;
                     wid: headerInfo.wid,
                     cid: headerInfo.cid,
                     pid: headerInfo.pid,
+                    catalog:UriUtils.getCatalogId(),
                     action: "facet"
                 };
             };
@@ -636,8 +637,8 @@ var setSourceForFilter;
                 }
             };
         }])
-        .run(['ERMrest', 'filterOptions', 'defaultOptions', '$rootScope','headInjector', '$window',
-        function runBooleanSearchApp(ERMrest, filterOptions, defaultOptions, $rootScope,headInjector, $window) {
+        .run(['ERMrest', 'filterOptions', 'defaultOptions', '$rootScope','headInjector', '$window','UriUtils',
+        function runBooleanSearchApp(ERMrest, filterOptions, defaultOptions, $rootScope,headInjector, $window,UriUtils) {
             $rootScope.headTitle=$window.booleanSearchConfig.headTitle;
             if ($rootScope.headTitle)
                 headInjector.updateHeadTitle($rootScope.headTitle);
