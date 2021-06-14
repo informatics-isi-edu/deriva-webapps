@@ -109,6 +109,12 @@ var setSourceForFilter;
                 headers[ERMrest.contextHeaderName].column = "Strength";
                 headers[ERMrest.contextHeaderName].referrer = { schema_table: "Gene_Expression:Specimen" };
                 headers[ERMrest.contextHeaderName].source = [{ "inbound": ["Gene_Expression", "Specimen_Expression_Specimen_fkey"] }, "Strength"];
+                var pcid= UriUtils.getQueryParams($window.location.href).pcid;
+                var ppid= UriUtils.getQueryParams($window.location.href).ppid;
+                if(pcid)
+                    headers[ERMrest.contextHeaderName].pcid=pcid
+                if(ppid)
+                    headers[ERMrest.contextHeaderName].ppid=ppid
                 return server.http.get(specExprUrl + "/Strength", { headers: headers }).then(function success(response) {
                     return response.data;
                 }).catch(function (err) {

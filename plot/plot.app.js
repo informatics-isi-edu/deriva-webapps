@@ -410,8 +410,14 @@
                         defer.resolve(plot_values);// TODO: figure out how to return an error to catch clause without breaking code
                         return defer.promise;
                     }
+                    var headers = {};
+                    headers[ERMrest.contextHeaderName]=ConfigUtils.getContextHeaderParams();
+                    if(UriUtils.getQueryParams($window.location.href).pcid)
+                        headers[ERMrest.contextHeaderName].pcid=UriUtils.getQueryParams($window.location.href).pcid;
+                    if(UriUtils.getQueryParams($window.location.href).ppid)
+                        headers[ERMrest.contextHeaderName].ppid=UriUtils.getQueryParams($window.location.href).ppid;
 
-                    server.http.get(uri).then(function(response) {
+                    server.http.get(uri,{ headers: headers}).then(function(response) {
                         var data = response.data;
 
                         // transform x data based on groupKey
@@ -626,7 +632,14 @@
                             } else {
                                 plot.traces.forEach(function (trace) {
                                     var uri = trace.uri;
-                                    server.http.get(uri).then(function(response) {
+                                    var headers = {};
+                                    headers[ERMrest.contextHeaderName]=ConfigUtils.getContextHeaderParams();
+                                    if(UriUtils.getQueryParams($window.location.href).pcid)
+                                        headers[ERMrest.contextHeaderName].pcid=UriUtils.getQueryParams($window.location.href).pcid;
+                                    if(UriUtils.getQueryParams($window.location.href).ppid)
+                                        headers[ERMrest.contextHeaderName].ppid=UriUtils.getQueryParams($window.location.href).ppid;
+
+                                    server.http.get(uri,{ headers: headers }).then(function(response) {
                                         try {
                                             var layout = getPlotlyLayout(plot);
                                             var data = response.data;

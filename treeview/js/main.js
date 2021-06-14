@@ -5,6 +5,8 @@
         // console.log($);
         // console.log(ERMrest);
         // console.log(Q);
+        var urlParams=[];
+        var urlParamNames=[];
 
         function uuid() {
             // gets a string of a deterministic length of 4
@@ -14,14 +16,21 @@
             return s4() + s4() + s4() + s4() + s4() + s4();
         }
         function getHeader(action, schemaTable, params) {
-            return ERMrest._certifyContextHeader({
+            var header={
                 wid: window.name,
                 pid: uuid(),
                 cid: "treeview",
                 action: action,
                 schema_table: schemaTable,
-                params: params
-            });
+                params: params,
+            }
+            if(action==="main"){
+                if(urlParams['pcid'])
+                    header['pcid']=urlParams['pcid']
+                if(urlParams['ppid'])
+                    header['ppid']=urlParams['ppid']
+            }
+            return ERMrest._certifyContextHeader(header);
         }
 
         if (!window.name) {
@@ -34,8 +43,8 @@
             var showAnnotation, id_parameter, filterUrl, filterValue, columnName, parentAppExists, selected_option;
             var annotated_term  = "";
             var annotated_terms = [],
-                urlParams       = {}, // key/values from uri
-                urlParamNames   = [], // keys defined in url
+                // urlParams       = {}, // key/values from uri
+                // urlParamNames   = [], // keys defined in url
                 queryParams     = {}, // key/values from uri and defaults in config
                 queryParamNames = [], // keys defined in templating
                 requiredParams  = []; // params that are required and are used for identification purposes
