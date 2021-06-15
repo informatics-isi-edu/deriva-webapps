@@ -416,7 +416,7 @@
                         headers[ERMrest.contextHeaderName].pcid=UriUtils.getQueryParams($window.location.href).pcid;
                     if(UriUtils.getQueryParams($window.location.href).ppid)
                         headers[ERMrest.contextHeaderName].ppid=UriUtils.getQueryParams($window.location.href).ppid;
-
+                    headers[ERMrest.contextHeaderName]=ERMrest._certifyContextHeader(headers[ERMrest.contextHeaderName]); 
                     server.http.get(uri,{ headers: headers}).then(function(response) {
                         var data = response.data;
 
@@ -638,7 +638,7 @@
                                         headers[ERMrest.contextHeaderName].pcid=UriUtils.getQueryParams($window.location.href).pcid;
                                     if(UriUtils.getQueryParams($window.location.href).ppid)
                                         headers[ERMrest.contextHeaderName].ppid=UriUtils.getQueryParams($window.location.href).ppid;
-
+                                    headers[ERMrest.contextHeaderName]=ERMrest._certifyContextHeader(headers[ERMrest.contextHeaderName]); 
                                     server.http.get(uri,{ headers: headers }).then(function(response) {
                                         try {
                                             var layout = getPlotlyLayout(plot);
@@ -799,7 +799,6 @@
                 vm.showMore = true;
                 vm.selectAll = $rootScope.selectAll = false;
                 $rootScope.yAxisScale = "linear";
-
                 vm.changeSelection = function(value) { // Not yet used for the selection of plot type
                   var plotsData = $rootScope.plots.data;
                   var layout = $rootScope.plots.layout;

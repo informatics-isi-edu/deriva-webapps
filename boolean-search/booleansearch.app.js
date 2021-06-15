@@ -98,7 +98,7 @@ var setSourceForFilter;
                     wid: headerInfo.wid,
                     cid: headerInfo.cid,
                     pid: headerInfo.pid,
-                    catalog:UriUtils.getCatalogId(),
+                    catalog:"2",
                     action: "facet"
                 };
             };

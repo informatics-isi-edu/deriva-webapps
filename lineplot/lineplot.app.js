@@ -36,6 +36,7 @@
                 $cookiesProvider.defaults.path = '/';
             }])
             .factory('LineplotUtils', ['AlertsService', 'ConfigUtils', 'dataFormats', 'Session', 'UriUtils', '$rootScope', function (AlertsService, ConfigUtils, dataFormats, Session, UriUtils, $rootScope) {
+              var headers = {};
               var ermrestServiceUrl = ConfigUtils.getConfigJSON().ermrestLocation;
               var contextHeaderParams = ConfigUtils.getContextHeaderParams();
               var server = ERMrest.ermrestFactory.getServer(ermrestServiceUrl, contextHeaderParams);
@@ -55,12 +56,13 @@
                                 uriWithFilters += "&recorded_time::leq::" + UriUtils.fixedEncodeURIComponent(end_x);
                             }
                             var uri = uriWithFilters + "/" + trace.x_col + "," + trace.y_col + "@sort(recorded_time)?limit=" + $rootScope.limit;
+                            headers[ERMrest.contextHeaderName]=contextHeaderParams;
                             if($rootScope.params["pcid"])
-                                contextHeaderParams['pcid']=$rootScope.params["pcid"]
+                                headers[ERMrest.contextHeaderName]['pcid']=$rootScope.params["pcid"]
                             if($rootScope.params["ppid"])
-                                contextHeaderParams['ppid']=$rootScope.params["ppid"]
-                                
-                            server.http.get(uri, { headers: contextHeaderParams }).then(function(response) {
+                                headers[ERMrest.contextHeaderName]['ppid']=$rootScope.params["ppid"]
+                            headers[ERMrest.contextHeaderName]=ERMrest._certifyContextHeader(headers[ERMrest.contextHeaderName]); 
+                            server.http.get(uri, { headers: headers }).then(function(response) {
                                 // console.log(response, response.headers('content-type'));
                                 var layout = {
                                     title: lineplotConfig.plot_title,

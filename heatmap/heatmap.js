@@ -47,8 +47,13 @@ var heatmapApp =
 						var sortBy = typeof heatmapConfig.data.sortBy !== "undefined" ? heatmapConfig.data.sortBy : [];
 						var ref = reference.sort(sortBy);
 						header['action']="main";
-						header["ppid"]=UriUtils.getQueryParams(location.href).ppid;
-						header["pcid"]=UriUtils.getQueryParams(location.href).pcid;
+						var pcid=UriUtils.getQueryParams(location.href).pcid
+						var ppid=UriUtils.getQueryParams(location.href).ppid
+						if(pcid)
+							header["pcid"]=pcid;
+						if(ppid)
+							header["ppid"]=ppid;
+						console.log(header)
 						ref.read(1000, header).then(function getPage(page) {
 							readAll(page);
 						}).catch(function (error) {

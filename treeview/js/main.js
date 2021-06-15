@@ -16,7 +16,7 @@
             return s4() + s4() + s4() + s4() + s4() + s4();
         }
         function getHeader(action, schemaTable, params) {
-            var header={
+            return {
                 wid: window.name,
                 pid: uuid(),
                 cid: "treeview",
@@ -24,13 +24,6 @@
                 schema_table: schemaTable,
                 params: params,
             }
-            if(action==="main"){
-                if(urlParams['pcid'])
-                    header['pcid']=urlParams['pcid']
-                if(urlParams['ppid'])
-                    header['ppid']=urlParams['ppid']
-            }
-            return ERMrest._certifyContextHeader(header);
         }
 
         if (!window.name) {
@@ -100,7 +93,7 @@
                     var headers = {};
                     var params = {};
                     params[requiredParams[idx]] = queryParams[requiredParams[idx]];
-                    headers[ERMrest.contextHeaderName] = getHeader("facet/selected", filter.schema_table, params);
+                    headers[ERMrest.contextHeaderName] = ERMrest._certifyContextHeader(getHeader("facet/selected", filter.schema_table, params));
                     $.ajax({
                         headers: headers,
                         dataType: "json",
@@ -161,7 +154,7 @@
                     $el.empty(); // remove old options
 
                     var headers = {};
-                    headers[ERMrest.contextHeaderName] = getHeader("facet", filter.schema_table);
+                    headers[ERMrest.contextHeaderName] = ERMrest._certifyContextHeader(getHeader("facet", filter.schema_table));
                     $.ajax({
                         headers: headers,
                         dataType: "json",
@@ -566,6 +559,14 @@
                 function getTreeData(queryConfig) {
                     var treeHeaders = {};
                     treeHeaders[ERMrest.contextHeaderName] = getHeader("main", queryConfig.tree_schema_table);
+                    if(urlParams['pcid'] || urlParams['ppid']){
+                        if(urlParams['pcid'])
+                            header['pcid']=urlParams['pcid']
+                        if(urlParams['ppid'])
+                            header['ppid']=urlParams['ppid']
+                        treeHeaders[ERMrest.contextHeaderName] =header;
+                    }   
+                    treeHeaders[ERMrest.contextHeaderName] = ERMrest._certifyContextHeader(treeHeaders[ERMrest.contextHeaderName]);
                     $.ajax({
                         headers: treeHeaders,
                         dataType: "json",
@@ -575,7 +576,7 @@
                         }
                     }).done(function() {
                         var isolatedHeaders = {};
-                        isolatedHeaders[ERMrest.contextHeaderName] = getHeader("isolated", queryConfig.isolated_schema_table);
+                        isolatedHeaders[ERMrest.contextHeaderName] = ERMrest._certifyContextHeader(getHeader("isolated", queryConfig.isolated_schema_table));
                         $.ajax({
                             headers: isolatedHeaders,
                             dataType: "json",
@@ -590,7 +591,7 @@
                                 var params = {}
                                 var idx = requiredParams.length-1;
                                 params[requiredParams[idx]] = queryParams[requiredParams[idx]];
-                                annotationHeaders[ERMrest.contextHeaderName] = getHeader("annotation", treeviewConfig.annotation.schema_table, params);
+                                annotationHeaders[ERMrest.contextHeaderName] = ERMrest._certifyContextHeader(getHeader("annotation", treeviewConfig.annotation.schema_table, params));
                                 $.ajax({
                                     headers: annotationHeaders,
                                     dataType: "json",
@@ -926,7 +927,7 @@
                     // assuming Parent_App is booleanSearch
                     s["onClick"] = nodeClickCallback(node);
                 } else {
-                    var context=JSON.parse(getHeader())
+                    var context=JSON.parse(ERMrest._certifyContextHeader(getHeader()))
                     // TODO: this function should be exposed as public in ermrestJS
                     templateParams.$node_id = ERMrest._fixedEncodeURIComponent(node.dbxref);
                     var l = "'" + ERMrest._renderHandlebarsTemplate(treeviewConfig.tree.click_event_callback, templateParams);
