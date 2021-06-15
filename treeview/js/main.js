@@ -20,6 +20,7 @@
                 wid: window.name,
                 pid: uuid(),
                 cid: "treeview",
+                catalog:"2",
                 action: action,
                 schema_table: schemaTable,
                 params: params,
