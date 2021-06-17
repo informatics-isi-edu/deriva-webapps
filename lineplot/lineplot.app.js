@@ -57,6 +57,9 @@
                             }
                             var uri = uriWithFilters + "/" + trace.x_col + "," + trace.y_col + "@sort(recorded_time)?limit=" + $rootScope.limit;
                             headers[ERMrest.contextHeaderName]=contextHeaderParams;
+                            if(trace.path){
+                                headers[ERMrest.contextHeaderName].schema_table=trace.path
+                            }
                             if($rootScope.params["pcid"])
                                 headers[ERMrest.contextHeaderName]['pcid']=$rootScope.params["pcid"]
                             if($rootScope.params["ppid"])

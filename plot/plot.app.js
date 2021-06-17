@@ -401,7 +401,8 @@
                         plot = dataParams.plot,
                         plot_values = dataParams.plot_values,
                         config = plot.config,
-                        xGroupKey = $rootScope.groupKey;
+                        xGroupKey = $rootScope.groupKey,
+                        uriParams=uri.split("/");
 
                     // don't try to fetch data when no uri is defined or flag is set
                     if (!uri || removeData) {
@@ -412,6 +413,11 @@
                     }
                     var headers = {};
                     headers[ERMrest.contextHeaderName]=ConfigUtils.getContextHeaderParams();
+                    if(uriParams[uriParams.indexOf("attributegroup")+1])
+                        headers[ERMrest.contextHeaderName].schema_table=uriParams[uriParams.indexOf("attributegroup")+1]
+                    if(uriParams[uriParams.indexOf("catalog")+1])
+                        headers[ERMrest.contextHeaderName].catalog=uriParams[uriParams.indexOf("catalog")+1]
+                    console.log(headers[ERMrest.contextHeaderName])
                     if(UriUtils.getQueryParams($window.location.href).pcid)
                         headers[ERMrest.contextHeaderName].pcid=UriUtils.getQueryParams($window.location.href).pcid;
                     if(UriUtils.getQueryParams($window.location.href).ppid)
@@ -633,12 +639,18 @@
                                 plot.traces.forEach(function (trace) {
                                     var uri = trace.uri;
                                     var headers = {};
+                                    var uriParams=uri.split("/");
                                     headers[ERMrest.contextHeaderName]=ConfigUtils.getContextHeaderParams();
+                                    if(uriParams[uriParams.indexOf("entity")+1])
+                                        headers[ERMrest.contextHeaderName].schema_table=uriParams[uriParams.indexOf("entity")+1]
+                                    if(uriParams[uriParams.indexOf("catalog")+1])
+                                        headers[ERMrest.contextHeaderName].catalog=uriParams[uriParams.indexOf("catalog")+1]
                                     if(UriUtils.getQueryParams($window.location.href).pcid)
                                         headers[ERMrest.contextHeaderName].pcid=UriUtils.getQueryParams($window.location.href).pcid;
                                     if(UriUtils.getQueryParams($window.location.href).ppid)
                                         headers[ERMrest.contextHeaderName].ppid=UriUtils.getQueryParams($window.location.href).ppid;
                                     headers[ERMrest.contextHeaderName]=ERMrest._certifyContextHeader(headers[ERMrest.contextHeaderName]); 
+                                    console.log(headers[ERMrest.contextHeaderName])
                                     server.http.get(uri,{ headers: headers }).then(function(response) {
                                         try {
                                             var layout = getPlotlyLayout(plot);
@@ -890,8 +902,15 @@
                     // TODO: configure title
 
                     var geneUri = ERMrest.renderHandlebarsTemplate($rootScope.plot.gene_uri_pattern, $rootScope.templateParams);
-
-                    ERMrest.resolve(geneUri, ConfigUtils.getContextHeaderParams()).then(function (ref) {
+                    var uriParams=geneUri.split("/")
+                    var headers={}
+                    headers[ERMrest.contextHeaderName]=ConfigUtils.getContextHeaderParams();
+                    if(uriParams[uriParams.indexOf("entity")+1])
+                        headers[ERMrest.contextHeaderName].schema_table=uriParams[uriParams.indexOf("entity")+1]
+                    if(uriParams[uriParams.indexOf("catalog")+1])
+                        headers[ERMrest.contextHeaderName].catalog=uriParams[uriParams.indexOf("catalog")+1]
+                    console.log(headers[ERMrest.contextHeaderName])
+                    ERMrest.resolve(geneUri,{headers : headers}).then(function (ref) {
                         params.reference = ref.contextualize.compactSelect;
                         params.reference.session = $rootScope.session;
                         params.selectMode = "single-select";
@@ -947,8 +966,16 @@
                     // TODO: configure title?
 
                     var studyUri = ERMrest.renderHandlebarsTemplate($rootScope.plot.study_uri_pattern, $rootScope.templateParams);
+                    var headers={}
+                    headers[ERMrest.contextHeaderName]=ConfigUtils.getContextHeaderParams();
+                    var uriParams=studyUri.split("/")
+                    if(uriParams[uriParams.indexOf("entity")+1])
+                        headers[ERMrest.contextHeaderName].schema_table=uriParams[uriParams.indexOf("entity")+1]
+                    if(uriParams[uriParams.indexOf("catalog")+1])
+                        headers[ERMrest.contextHeaderName].catalog=uriParams[uriParams.indexOf("catalog")+1]
+                    console.log(headers[ERMrest.contextHeaderName])
 
-                    ERMrest.resolve(studyUri, ConfigUtils.getContextHeaderParams()).then(function (ref) {
+                    ERMrest.resolve(studyUri, { headers : headers}).then(function (ref) {
                         params.reference = ref.contextualize.compactSelect;
                         params.reference.session = $rootScope.session;
                         params.selectMode = "multi-select";
