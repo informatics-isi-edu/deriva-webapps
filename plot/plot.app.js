@@ -417,7 +417,6 @@
                         headers[ERMrest.contextHeaderName].schema_table=uriParams[uriParams.indexOf("attributegroup")+1]
                     if(uriParams[uriParams.indexOf("catalog")+1])
                         headers[ERMrest.contextHeaderName].catalog=uriParams[uriParams.indexOf("catalog")+1]
-                    console.log(headers[ERMrest.contextHeaderName])
                     if(UriUtils.getQueryParams($window.location.href).pcid)
                         headers[ERMrest.contextHeaderName].pcid=UriUtils.getQueryParams($window.location.href).pcid;
                     if(UriUtils.getQueryParams($window.location.href).ppid)
@@ -650,7 +649,6 @@
                                     if(UriUtils.getQueryParams($window.location.href).ppid)
                                         headers[ERMrest.contextHeaderName].ppid=UriUtils.getQueryParams($window.location.href).ppid;
                                     headers[ERMrest.contextHeaderName]=ERMrest._certifyContextHeader(headers[ERMrest.contextHeaderName]); 
-                                    console.log(headers[ERMrest.contextHeaderName])
                                     server.http.get(uri,{ headers: headers }).then(function(response) {
                                         try {
                                             var layout = getPlotlyLayout(plot);
@@ -909,7 +907,6 @@
                         headers[ERMrest.contextHeaderName].schema_table=uriParams[uriParams.indexOf("entity")+1]
                     if(uriParams[uriParams.indexOf("catalog")+1])
                         headers[ERMrest.contextHeaderName].catalog=uriParams[uriParams.indexOf("catalog")+1]
-                    console.log(headers[ERMrest.contextHeaderName])
                     ERMrest.resolve(geneUri,{headers : headers}).then(function (ref) {
                         params.reference = ref.contextualize.compactSelect;
                         params.reference.session = $rootScope.session;
@@ -973,7 +970,6 @@
                         headers[ERMrest.contextHeaderName].schema_table=uriParams[uriParams.indexOf("entity")+1]
                     if(uriParams[uriParams.indexOf("catalog")+1])
                         headers[ERMrest.contextHeaderName].catalog=uriParams[uriParams.indexOf("catalog")+1]
-                    console.log(headers[ERMrest.contextHeaderName])
 
                     ERMrest.resolve(studyUri, { headers : headers}).then(function (ref) {
                         params.reference = ref.contextualize.compactSelect;
