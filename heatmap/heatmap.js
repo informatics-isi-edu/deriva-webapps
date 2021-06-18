@@ -53,7 +53,6 @@ var heatmapApp =
 							header["pcid"]=pcid;
 						if(ppid)
 							header["ppid"]=ppid;
-						console.log(header)
 						ref.read(1000, header).then(function getPage(page) {
 							readAll(page);
 						}).catch(function (error) {

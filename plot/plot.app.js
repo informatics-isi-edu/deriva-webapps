@@ -329,15 +329,19 @@
                     var skipGene = $rootScope.disableGeneSelector;
 
                     var geneUri = ERMrest.renderHandlebarsTemplate(plot.gene_uri_pattern, $rootScope.templateParams);
-
                     // relies on geneUri not passed as param
                     function generalOrSpecificGene(reference) {
                         var innerDefer = $q.defer();
                         // if we need a specific gene as default
                         if ($rootScope.templateParams.$url_parameters.NCBI_GeneID) {
                             var specificGeneUri = geneUri + "/NCBI_GeneID=" + $rootScope.templateParams.$url_parameters.NCBI_GeneID;
-
-                            ERMrest.resolve(specificGeneUri, ConfigUtils.getContextHeaderParams()).then(function (ref) {
+                            var headers = {};
+                            var uriParams=specificGeneUri.split("/")
+                            headers[ERMrest.contextHeaderName]=ConfigUtils.getContextHeaderParams();
+                            // URI looks like "/ermrest/catalog/2/entity/RNASeq:Replicate_Expression/(NCBI_GeneID)=(Common:Gene:NCBI_GeneID)/NCBI_GeneID="
+                            headers[ERMrest.contextHeaderName].schema_table=uriParams[uriParams.indexOf("entity")+1];
+                            headers[ERMrest.contextHeaderName].catalog=uriParams[uriParams.indexOf("catalog")+1];
+                            ERMrest.resolve(specificGeneUri, {headers : headers}).then(function (ref) {
                                 return ref.contextualize.compactSelect.read(1);
                             }).then(function (page) {
                                 return innerDefer.resolve(page);
@@ -358,8 +362,14 @@
                         return innerDefer.promise;
                     }
 
+                    var headers = {};
+                    var uriParams=geneUri.split("/")
+                    headers[ERMrest.contextHeaderName]=ConfigUtils.getContextHeaderParams();
+                    // URI looks like "/ermrest/catalog/2/entity/RNASeq:Replicate_Expression/(NCBI_GeneID)=(Common:Gene:NCBI_GeneID)"
+                    headers[ERMrest.contextHeaderName].schema_table=uriParams[uriParams.indexOf("entity")+1];
+                    headers[ERMrest.contextHeaderName].catalog=uriParams[uriParams.indexOf("catalog")+1]
                     // for gene popup
-                    ERMrest.resolve(geneUri, ConfigUtils.getContextHeaderParams()).then(function (ref) {
+                    ERMrest.resolve(geneUri, {headers : headers}).then(function (ref) {
                         $rootScope.geneReference = ref.contextualize.compactSelect;
 
                         return generalOrSpecificGene($rootScope.geneReference);
@@ -413,10 +423,12 @@
                     }
                     var headers = {};
                     headers[ERMrest.contextHeaderName]=ConfigUtils.getContextHeaderParams();
-                    if(uriParams[uriParams.indexOf("attributegroup")+1])
-                        headers[ERMrest.contextHeaderName].schema_table=uriParams[uriParams.indexOf("attributegroup")+1]
-                    if(uriParams[uriParams.indexOf("catalog")+1])
-                        headers[ERMrest.contextHeaderName].catalog=uriParams[uriParams.indexOf("catalog")+1]
+                    // URI looks like "/ermrest/catalog/2/attributegroup/M:=RNASeq:Replicate_Expression/{{#if (gt $url_parameters.Study.length 0)}}({{#each $url_parameters.Study}}Study={{{this.data.RID}}}{{#unless @last}};{{/unless}}{{/each}})&{{/if}}NCBI_GeneID={{{$url_parameters.NCBI_GeneID}}}/exp:=(Experiment)=(RNASeq:Experiment:RID)/$M/Anatomical_Source,Experiment,Experiment_Internal_ID:=exp:Internal_ID,NCBI_GeneID,Replicate,Sex,Species,Specimen,Specimen_Type,Stage,TPM"
+                    var schema_table=uriParams[uriParams.indexOf("attributegroup")+1]
+                    if(schema_table.includes(":="))
+                        schema_table=schema_table.split(":=")[1]
+                    headers[ERMrest.contextHeaderName].schema_table=schema_table;
+                    headers[ERMrest.contextHeaderName].catalog=uriParams[uriParams.indexOf("catalog")+1]
                     if(UriUtils.getQueryParams($window.location.href).pcid)
                         headers[ERMrest.contextHeaderName].pcid=UriUtils.getQueryParams($window.location.href).pcid;
                     if(UriUtils.getQueryParams($window.location.href).ppid)
@@ -640,10 +652,12 @@
                                     var headers = {};
                                     var uriParams=uri.split("/");
                                     headers[ERMrest.contextHeaderName]=ConfigUtils.getContextHeaderParams();
-                                    if(uriParams[uriParams.indexOf("entity")+1])
-                                        headers[ERMrest.contextHeaderName].schema_table=uriParams[uriParams.indexOf("entity")+1]
-                                    if(uriParams[uriParams.indexOf("catalog")+1])
-                                        headers[ERMrest.contextHeaderName].catalog=uriParams[uriParams.indexOf("catalog")+1]
+                                    //URI looks like "/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23_Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26"
+                                    var schema_table=uriParams[uriParams.indexOf("entity")+1]
+                                    if(schema_table.includes(":="))
+                                        schema_table=schema_table.split(":=")[1]
+                                    headers[ERMrest.contextHeaderName].schema_table=schema_table;
+                                    headers[ERMrest.contextHeaderName].catalog=uriParams[uriParams.indexOf("catalog")+1]
                                     if(UriUtils.getQueryParams($window.location.href).pcid)
                                         headers[ERMrest.contextHeaderName].pcid=UriUtils.getQueryParams($window.location.href).pcid;
                                     if(UriUtils.getQueryParams($window.location.href).ppid)
@@ -902,11 +916,14 @@
                     var geneUri = ERMrest.renderHandlebarsTemplate($rootScope.plot.gene_uri_pattern, $rootScope.templateParams);
                     var uriParams=geneUri.split("/")
                     var headers={}
+
                     headers[ERMrest.contextHeaderName]=ConfigUtils.getContextHeaderParams();
-                    if(uriParams[uriParams.indexOf("entity")+1])
-                        headers[ERMrest.contextHeaderName].schema_table=uriParams[uriParams.indexOf("entity")+1]
-                    if(uriParams[uriParams.indexOf("catalog")+1])
-                        headers[ERMrest.contextHeaderName].catalog=uriParams[uriParams.indexOf("catalog")+1]
+                    //URI looks like "/ermrest/catalog/2/entity/RNASeq:Replicate_Expression/{{#if (gt $url_parameters.Study.length 0)}}{{#each $url_parameters.Study}}Study={{{this.data.RID}}}{{#unless @last}};{{/unless}}{{/each}}/{{/if}}(NCBI_GeneID)=(Common:Gene:NCBI_GeneID)"
+                    var schema_table=uriParams[uriParams.indexOf("entity")+1]
+                    if(schema_table.includes(":="))
+                        schema_table=schema_table.split(":=")[1]
+                    headers[ERMrest.contextHeaderName].schema_table=schema_table;
+                    headers[ERMrest.contextHeaderName].catalog=uriParams[uriParams.indexOf("catalog")+1]
                     ERMrest.resolve(geneUri,{headers : headers}).then(function (ref) {
                         params.reference = ref.contextualize.compactSelect;
                         params.reference.session = $rootScope.session;
@@ -966,10 +983,12 @@
                     var headers={}
                     headers[ERMrest.contextHeaderName]=ConfigUtils.getContextHeaderParams();
                     var uriParams=studyUri.split("/")
-                    if(uriParams[uriParams.indexOf("entity")+1])
-                        headers[ERMrest.contextHeaderName].schema_table=uriParams[uriParams.indexOf("entity")+1]
-                    if(uriParams[uriParams.indexOf("catalog")+1])
-                        headers[ERMrest.contextHeaderName].catalog=uriParams[uriParams.indexOf("catalog")+1]
+                    //URI looks like "/ermrest/catalog/2/entity/RNASeq:Replicate_Expression/NCBI_GeneID={{{$url_parameters.NCBI_GeneID}}}/(Study)=(RNASeq:Study:RID)"
+                    var schema_table=uriParams[uriParams.indexOf("entity")+1]
+                    if(schema_table.includes(":="))
+                        schema_table=schema_table.split(":=")[1]
+                    headers[ERMrest.contextHeaderName].schema_table=schema_table;
+                    headers[ERMrest.contextHeaderName].catalog=uriParams[uriParams.indexOf("catalog")+1]
 
                     ERMrest.resolve(studyUri, { headers : headers}).then(function (ref) {
                         params.reference = ref.contextualize.compactSelect;

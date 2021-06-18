@@ -57,16 +57,14 @@
                             }
                             var uri = uriWithFilters + "/" + trace.x_col + "," + trace.y_col + "@sort(recorded_time)?limit=" + $rootScope.limit;
                             headers[ERMrest.contextHeaderName]=contextHeaderParams;
-                            if(trace.path){
-                                headers[ERMrest.contextHeaderName].schema_table=trace.path
-                            }
+                            headers[ERMrest.contextHeaderName].schema_table=trace.path;
+                            headers[ERMrest.contextHeaderName].catalog="2";
                             if($rootScope.params["pcid"])
                                 headers[ERMrest.contextHeaderName]['pcid']=$rootScope.params["pcid"]
                             if($rootScope.params["ppid"])
                                 headers[ERMrest.contextHeaderName]['ppid']=$rootScope.params["ppid"]
                             headers[ERMrest.contextHeaderName]=ERMrest._certifyContextHeader(headers[ERMrest.contextHeaderName]); 
                             server.http.get(uri, { headers: headers }).then(function(response) {
-                                // console.log(response, response.headers('content-type'));
                                 var layout = {
                                     title: lineplotConfig.plot_title,
                                     xaxis: {
