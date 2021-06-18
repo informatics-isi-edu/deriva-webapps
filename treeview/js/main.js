@@ -557,13 +557,13 @@
                 // defined inline because of scoped variables
                 function getTreeData(queryConfig) {
                     var treeHeaders = {};
-                    treeHeaders[ERMrest.contextHeaderName] = getHeader("main", queryConfig.tree_schema_table);
+                    var header = getHeader("main", queryConfig.tree_schema_table);
                     if(urlParams['pcid'])
-                        header['pcid']=urlParams['pcid']
+                      header['pcid']=urlParams['pcid']
                     if(urlParams['ppid'])
-                        header['ppid']=urlParams['ppid']
-                    treeHeaders[ERMrest.contextHeaderName] =header;
-                    treeHeaders[ERMrest.contextHeaderName] = ERMrest._certifyContextHeader(treeHeaders[ERMrest.contextHeaderName]);
+                      header['ppid']=urlParams['ppid']
+                    
+                    treeHeaders[ERMrest.contextHeaderName] = ERMrest._certifyContextHeader(header);
                     $.ajax({
                         headers: treeHeaders,
                         dataType: "json",
