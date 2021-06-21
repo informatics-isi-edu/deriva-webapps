@@ -78,25 +78,27 @@ var setSourceForFilter;
         })
         .value('headerInfo', {
             pid: "",
-            cid: ""
+            cid: "",
+            wid: ""
         })
-        .factory('filterOptions', ['$http', '$window', 'ERMrest', 'headInjector', 'MathUtils', 'UriUtils', 'headerInfo', function ($http, $window, ERMrest, headInjector, MathUtils, UriUtils, headerInfo) {
+        .factory('filterOptions', ['$http', '$window', 'ERMrest', 'headInjector', 'MathUtils', 'UriUtils', 'headerInfo','ConfigUtils', function ($http, $window, ERMrest, headInjector, MathUtils, UriUtils, headerInfo,ConfigUtils) {
             var baseUrl = $window.location.origin;
             var specExprUrl = baseUrl + "/ermrest/catalog/2/attributegroup/Gene_Expression:Specimen_Expression";
             var devStageUrl = baseUrl + "/ermrest/catalog/2/attribute/Vocabulary:Developmental_Stage";
             var sourceUrl = baseUrl + "/ermrest/catalog/2/entity/Vocabulary:Anatomy";
 
             // Configuring ERMrestjs service object and http module
-            var contextHeaderParams = { "cid": "boolean-search" };
+            var contextHeaderParams = ConfigUtils.getContextHeaderParams();
             var server = ERMrest.ermrestFactory.getServer(baseUrl + "/ermrest", contextHeaderParams);
-            headerInfo.pid = MathUtils.uuid();
-            headerInfo.cid = "boolean-search";
-            headInjector.setWindowName();
+            headerInfo.pid = contextHeaderParams.pid;
+            headerInfo.cid = contextHeaderParams.cid;
+            headerInfo.wid = contextHeaderParams.wid;
             var getHeader = function () {
                 return {
-                    wid: $window.name,
+                    wid: headerInfo.wid,
                     cid: headerInfo.cid,
                     pid: headerInfo.pid,
+                    catalog:"2",
                     action: "facet"
                 };
             };
@@ -108,6 +110,12 @@ var setSourceForFilter;
                 headers[ERMrest.contextHeaderName].column = "Strength";
                 headers[ERMrest.contextHeaderName].referrer = { schema_table: "Gene_Expression:Specimen" };
                 headers[ERMrest.contextHeaderName].source = [{ "inbound": ["Gene_Expression", "Specimen_Expression_Specimen_fkey"] }, "Strength"];
+                var pcid= UriUtils.getQueryParams($window.location.href).pcid;
+                var ppid= UriUtils.getQueryParams($window.location.href).ppid;
+                if(pcid)
+                    headers[ERMrest.contextHeaderName].pcid=pcid
+                if(ppid)
+                    headers[ERMrest.contextHeaderName].ppid=ppid
                 return server.http.get(specExprUrl + "/Strength", { headers: headers }).then(function success(response) {
                     return response.data;
                 }).catch(function (err) {

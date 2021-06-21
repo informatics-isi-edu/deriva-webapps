@@ -33,19 +33,26 @@ var heatmapApp =
 				headInjector.setWindowName();
 				headerInfo.pid = MathUtils.uuid();
 				headerInfo.cid = "heatmap";
-				$rootScope.pid
 				var header = {
                     wid: $window.name,
                     cid: headerInfo.cid,
                     pid: headerInfo.pid,
-					action: "main",
-					schema_table: "Gene_Expression:Array_Data_view"
+					action: "model/read",
+					schema_table: "Gene_Expression:Array_Data_view",
+					catalog: UriUtils.getCatalogId()
 				};
-				ERMrest.resolve(ermrestURI, {cid: headerInfo.cid, pid: headerInfo.pid, wid: $window.name, action: "model/read"}).then(function getReference(reference) {
+				ERMrest.resolve(ermrestURI, header).then(function getReference(reference) {
 					verifyConfiguration(reference);
 					if (!$rootScope.configErrorsPresent) {
 						var sortBy = typeof heatmapConfig.data.sortBy !== "undefined" ? heatmapConfig.data.sortBy : [];
 						var ref = reference.sort(sortBy);
+						header['action']="main";
+						var pcid=UriUtils.getQueryParams(location.href).pcid
+						var ppid=UriUtils.getQueryParams(location.href).ppid
+						if(pcid)
+							header["pcid"]=pcid;
+						if(ppid)
+							header["ppid"]=ppid;
 						ref.read(1000, header).then(function getPage(page) {
 							readAll(page);
 						}).catch(function (error) {

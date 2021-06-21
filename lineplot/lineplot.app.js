@@ -36,8 +36,9 @@
                 $cookiesProvider.defaults.path = '/';
             }])
             .factory('LineplotUtils', ['AlertsService', 'ConfigUtils', 'dataFormats', 'Session', 'UriUtils', '$rootScope', function (AlertsService, ConfigUtils, dataFormats, Session, UriUtils, $rootScope) {
+              var headers = {};
               var ermrestServiceUrl = ConfigUtils.getConfigJSON().ermrestLocation;
-              var contextHeaderParams = {"cid": "line-plot"};
+              var contextHeaderParams = ConfigUtils.getContextHeaderParams();
               var server = ERMrest.ermrestFactory.getServer(ermrestServiceUrl, contextHeaderParams);
 
                 return {
@@ -55,8 +56,15 @@
                                 uriWithFilters += "&recorded_time::leq::" + UriUtils.fixedEncodeURIComponent(end_x);
                             }
                             var uri = uriWithFilters + "/" + trace.x_col + "," + trace.y_col + "@sort(recorded_time)?limit=" + $rootScope.limit;
-                            server.http.get(uri).then(function(response) {
-                                // console.log(response, response.headers('content-type'));
+                            headers[ERMrest.contextHeaderName]=contextHeaderParams;
+                            headers[ERMrest.contextHeaderName].schema_table=trace.path;
+                            headers[ERMrest.contextHeaderName].catalog="1";
+                            if($rootScope.params["pcid"])
+                                headers[ERMrest.contextHeaderName]['pcid']=$rootScope.params["pcid"]
+                            if($rootScope.params["ppid"])
+                                headers[ERMrest.contextHeaderName]['ppid']=$rootScope.params["ppid"]
+                            headers[ERMrest.contextHeaderName]=ERMrest._certifyContextHeader(headers[ERMrest.contextHeaderName]); 
+                            server.http.get(uri, { headers: headers }).then(function(response) {
                                 var layout = {
                                     title: lineplotConfig.plot_title,
                                     xaxis: {

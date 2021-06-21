@@ -51,9 +51,7 @@
             })
             .factory('PlotUtils', ['AlertsService', 'ConfigUtils', 'dataFormats', 'dataParams', 'Errors', 'ErrorService', 'Session', 'UriUtils', '$q', '$rootScope', '$window', function (AlertsService, ConfigUtils, dataFormats, dataParams, Errors, ErrorService,  Session, UriUtils, $q, $rootScope, $window) {
                 var ermrestServiceUrl = ConfigUtils.getConfigJSON().ermrestLocation;
-                var contextHeaderParams = {"cid": "2d-plot"};
-                var server = ERMrest.ermrestFactory.getServer(ermrestServiceUrl, contextHeaderParams);
-
+                var server = ERMrest.ermrestFactory.getServer(ermrestServiceUrl, ConfigUtils.getContextHeaderParams());
                 function getType(type) {
                   switch (type) {
                     case "line":
@@ -331,15 +329,19 @@
                     var skipGene = $rootScope.disableGeneSelector;
 
                     var geneUri = ERMrest.renderHandlebarsTemplate(plot.gene_uri_pattern, $rootScope.templateParams);
-
                     // relies on geneUri not passed as param
                     function generalOrSpecificGene(reference) {
                         var innerDefer = $q.defer();
                         // if we need a specific gene as default
                         if ($rootScope.templateParams.$url_parameters.NCBI_GeneID) {
                             var specificGeneUri = geneUri + "/NCBI_GeneID=" + $rootScope.templateParams.$url_parameters.NCBI_GeneID;
-
-                            ERMrest.resolve(specificGeneUri, ConfigUtils.getContextHeaderParams()).then(function (ref) {
+                            var headers = {};
+                            var uriParams=specificGeneUri.split("/")
+                            headers[ERMrest.contextHeaderName]=ConfigUtils.getContextHeaderParams();
+                            // URI looks like "/ermrest/catalog/2/entity/RNASeq:Replicate_Expression/(NCBI_GeneID)=(Common:Gene:NCBI_GeneID)/NCBI_GeneID="
+                            headers[ERMrest.contextHeaderName].schema_table=uriParams[uriParams.indexOf("entity")+1];
+                            headers[ERMrest.contextHeaderName].catalog=uriParams[uriParams.indexOf("catalog")+1];
+                            ERMrest.resolve(specificGeneUri, {headers : headers}).then(function (ref) {
                                 return ref.contextualize.compactSelect.read(1);
                             }).then(function (page) {
                                 return innerDefer.resolve(page);
@@ -360,8 +362,14 @@
                         return innerDefer.promise;
                     }
 
+                    var headers = {};
+                    var uriParams=geneUri.split("/")
+                    headers[ERMrest.contextHeaderName]=ConfigUtils.getContextHeaderParams();
+                    // URI looks like "/ermrest/catalog/2/entity/RNASeq:Replicate_Expression/(NCBI_GeneID)=(Common:Gene:NCBI_GeneID)"
+                    headers[ERMrest.contextHeaderName].schema_table=uriParams[uriParams.indexOf("entity")+1];
+                    headers[ERMrest.contextHeaderName].catalog=uriParams[uriParams.indexOf("catalog")+1]
                     // for gene popup
-                    ERMrest.resolve(geneUri, ConfigUtils.getContextHeaderParams()).then(function (ref) {
+                    ERMrest.resolve(geneUri, {headers : headers}).then(function (ref) {
                         $rootScope.geneReference = ref.contextualize.compactSelect;
 
                         return generalOrSpecificGene($rootScope.geneReference);
@@ -403,7 +411,8 @@
                         plot = dataParams.plot,
                         plot_values = dataParams.plot_values,
                         config = plot.config,
-                        xGroupKey = $rootScope.groupKey;
+                        xGroupKey = $rootScope.groupKey,
+                        uriParams=uri.split("/");
 
                     // don't try to fetch data when no uri is defined or flag is set
                     if (!uri || removeData) {
@@ -412,8 +421,20 @@
                         defer.resolve(plot_values);// TODO: figure out how to return an error to catch clause without breaking code
                         return defer.promise;
                     }
-
-                    server.http.get(uri).then(function(response) {
+                    var headers = {};
+                    headers[ERMrest.contextHeaderName]=ConfigUtils.getContextHeaderParams();
+                    // URI looks like "/ermrest/catalog/2/attributegroup/M:=RNASeq:Replicate_Expression/{{#if (gt $url_parameters.Study.length 0)}}({{#each $url_parameters.Study}}Study={{{this.data.RID}}}{{#unless @last}};{{/unless}}{{/each}})&{{/if}}NCBI_GeneID={{{$url_parameters.NCBI_GeneID}}}/exp:=(Experiment)=(RNASeq:Experiment:RID)/$M/Anatomical_Source,Experiment,Experiment_Internal_ID:=exp:Internal_ID,NCBI_GeneID,Replicate,Sex,Species,Specimen,Specimen_Type,Stage,TPM"
+                    var schema_table=uriParams[uriParams.indexOf("attributegroup")+1]
+                    if(schema_table.includes(":="))
+                        schema_table=schema_table.split(":=")[1]
+                    headers[ERMrest.contextHeaderName].schema_table=schema_table;
+                    headers[ERMrest.contextHeaderName].catalog=uriParams[uriParams.indexOf("catalog")+1]
+                    if(UriUtils.getQueryParams($window.location.href).pcid)
+                        headers[ERMrest.contextHeaderName].pcid=UriUtils.getQueryParams($window.location.href).pcid;
+                    if(UriUtils.getQueryParams($window.location.href).ppid)
+                        headers[ERMrest.contextHeaderName].ppid=UriUtils.getQueryParams($window.location.href).ppid;
+                    headers[ERMrest.contextHeaderName]=ERMrest._certifyContextHeader(headers[ERMrest.contextHeaderName]); 
+                    server.http.get(uri,{ headers: headers}).then(function(response) {
                         var data = response.data;
 
                         // transform x data based on groupKey
@@ -628,7 +649,21 @@
                             } else {
                                 plot.traces.forEach(function (trace) {
                                     var uri = trace.uri;
-                                    server.http.get(uri).then(function(response) {
+                                    var headers = {};
+                                    var uriParams=uri.split("/");
+                                    headers[ERMrest.contextHeaderName]=ConfigUtils.getContextHeaderParams();
+                                    //URI looks like "/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23_Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26"
+                                    var schema_table=uriParams[uriParams.indexOf("entity")+1]
+                                    if(schema_table.includes(":="))
+                                        schema_table=schema_table.split(":=")[1]
+                                    headers[ERMrest.contextHeaderName].schema_table=schema_table;
+                                    headers[ERMrest.contextHeaderName].catalog=uriParams[uriParams.indexOf("catalog")+1]
+                                    if(UriUtils.getQueryParams($window.location.href).pcid)
+                                        headers[ERMrest.contextHeaderName].pcid=UriUtils.getQueryParams($window.location.href).pcid;
+                                    if(UriUtils.getQueryParams($window.location.href).ppid)
+                                        headers[ERMrest.contextHeaderName].ppid=UriUtils.getQueryParams($window.location.href).ppid;
+                                    headers[ERMrest.contextHeaderName]=ERMrest._certifyContextHeader(headers[ERMrest.contextHeaderName]); 
+                                    server.http.get(uri,{ headers: headers }).then(function(response) {
                                         try {
                                             var layout = getPlotlyLayout(plot);
                                             var data = response.data;
@@ -788,7 +823,6 @@
                 vm.showMore = true;
                 vm.selectAll = $rootScope.selectAll = false;
                 $rootScope.yAxisScale = "linear";
-
                 vm.changeSelection = function(value) { // Not yet used for the selection of plot type
                   var plotsData = $rootScope.plots.data;
                   var layout = $rootScope.plots.layout;
@@ -880,8 +914,17 @@
                     // TODO: configure title
 
                     var geneUri = ERMrest.renderHandlebarsTemplate($rootScope.plot.gene_uri_pattern, $rootScope.templateParams);
+                    var uriParams=geneUri.split("/")
+                    var headers={}
 
-                    ERMrest.resolve(geneUri, ConfigUtils.getContextHeaderParams()).then(function (ref) {
+                    headers[ERMrest.contextHeaderName]=ConfigUtils.getContextHeaderParams();
+                    //URI looks like "/ermrest/catalog/2/entity/RNASeq:Replicate_Expression/{{#if (gt $url_parameters.Study.length 0)}}{{#each $url_parameters.Study}}Study={{{this.data.RID}}}{{#unless @last}};{{/unless}}{{/each}}/{{/if}}(NCBI_GeneID)=(Common:Gene:NCBI_GeneID)"
+                    var schema_table=uriParams[uriParams.indexOf("entity")+1]
+                    if(schema_table.includes(":="))
+                        schema_table=schema_table.split(":=")[1]
+                    headers[ERMrest.contextHeaderName].schema_table=schema_table;
+                    headers[ERMrest.contextHeaderName].catalog=uriParams[uriParams.indexOf("catalog")+1]
+                    ERMrest.resolve(geneUri,{headers : headers}).then(function (ref) {
                         params.reference = ref.contextualize.compactSelect;
                         params.reference.session = $rootScope.session;
                         params.selectMode = "single-select";
@@ -937,8 +980,17 @@
                     // TODO: configure title?
 
                     var studyUri = ERMrest.renderHandlebarsTemplate($rootScope.plot.study_uri_pattern, $rootScope.templateParams);
+                    var headers={}
+                    headers[ERMrest.contextHeaderName]=ConfigUtils.getContextHeaderParams();
+                    var uriParams=studyUri.split("/")
+                    //URI looks like "/ermrest/catalog/2/entity/RNASeq:Replicate_Expression/NCBI_GeneID={{{$url_parameters.NCBI_GeneID}}}/(Study)=(RNASeq:Study:RID)"
+                    var schema_table=uriParams[uriParams.indexOf("entity")+1]
+                    if(schema_table.includes(":="))
+                        schema_table=schema_table.split(":=")[1]
+                    headers[ERMrest.contextHeaderName].schema_table=schema_table;
+                    headers[ERMrest.contextHeaderName].catalog=uriParams[uriParams.indexOf("catalog")+1]
 
-                    ERMrest.resolve(studyUri, ConfigUtils.getContextHeaderParams()).then(function (ref) {
+                    ERMrest.resolve(studyUri, { headers : headers}).then(function (ref) {
                         params.reference = ref.contextualize.compactSelect;
                         params.reference.session = $rootScope.session;
                         params.selectMode = "multi-select";
