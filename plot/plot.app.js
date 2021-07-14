@@ -1292,15 +1292,12 @@
                                                     }
                                                 }),
                                                 element[0].on('plotly_legendclick', function(data){
-                                                    var contextUrlParams=ConfigUtils.getContextHeaderParams();
+                                                    // var contextUrlParams=ConfigUtils.getContextHeaderParams();
                                                     if(data.hasOwnProperty("data")){
                                                         console.log(data.data)
                                                             if(data.data[0].hasOwnProperty("legend_markdown_pattern") ){
                                                                 var idx=data.data[0].labels.indexOf(data.label.toString());
                                                                 if(data.data[0].legend_markdown_pattern[idx]!=false && data.data[0].legend_markdown_pattern[idx]!=undefined){
-                                                                    //var qCharacter = data.data[0].legend_markdown_pattern[idx].indexOf("?") !== -1 ? "&" : "?";
-                                                                    var url=data.data[0].legend_markdown_pattern[idx];//+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid;
-                                                                    window.open(url,'_blank');
                                                                     return false;
                                                                 }
 
@@ -1309,13 +1306,12 @@
                                                             if(data.data[0].hasOwnProperty("data_legend_pattern")){
 
                                                                 if(data.data[0].data_legend_pattern[0]!=false && data.data[0].data_legend_pattern[0]!=undefined){
-                                                                    var qCharacter = data.data[0].data_legend_pattern[0].indexOf("?") !== -1 ? "&" : "?";
-                                                                    var url=data.data[0].data_legend_pattern[0]+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid;
-                                                                    console.log(url)
-                                                                    window.open(url,'_blank');
-
+                                                                    // var qCharacter = data.data[0].data_legend_pattern[0].indexOf("?") !== -1 ? "&" : "?";
+                                                                    // var url=data.data[0].data_legend_pattern[0]+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid;
+                                                                    // console.log(url)
+                                                                    // window.open(url,'_blank');
                                                                     return false;
-                                                                    }
+                                                                }
                                                             }
                                                         console.log(data)
                                                         if(data.layout.hasOwnProperty("disable_default_legend_click") && data.layout.disable_default_legend_click==true)
