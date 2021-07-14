@@ -105,13 +105,18 @@
                       values = {
                         type: "pie",
                         labels: [],
-                        values: []
+                        values: [],
+                        legend_markdown_pattern: [],
+                        text:[],
+                        hoverinfo: 'text+value+percent'
                       };
                       return values;
                     case "bar":
                       values = {
                           x: [],
                           y: [],
+                          y_col_hyperlink_pattern: [],
+                          data_legend_pattern:[],
                           text:[],
                           textposition: 'outside',
                           type: getType(type),
@@ -173,12 +178,12 @@
                     var configLayout = {},
                         layout = {};
 
-                    // layout object from plot.plotly.layout or plot.plotly_config
-                    // NOTE: plotly_config will be deprecated eventually so prefer plotly.layout
+                    // layout object from plot.plotly.layout or plot.config
+                    // NOTE: config will be deprecated eventually so prefer plotly.layout
                     if (plot.plotly && plot.plotly.layout) {
                         configLayout = plot.plotly.layout;
-                    } else if (plot.plotly_config) {
-                        configLayout = plot.plotly_config;
+                    } else if (plot.config) {
+                        configLayout = plot.config;
                     }
 
                      // NOTE: does not support templating (violin overrides outside of function with templating)
@@ -217,7 +222,7 @@
                     }
 
                     // apply plotly.layout properties one at a time
-                    // NOTE: applies plotly_config as well but will be deprecated in future
+                    // NOTE: applies config as well but will be deprecated in future
                     // NOTE: this does not recursively apply object key/value pairs, it will only go one level deep and override
                     Object.keys(configLayout).forEach(function (key) {
                         layout[key] = configLayout[key];
@@ -667,6 +672,7 @@
                                         try {
                                             var layout = getPlotlyLayout(plot);
                                             var data = response.data;
+                                            var contextUrlParams=ConfigUtils.getContextHeaderParams();
                                             switch (plot.plot_type) {
                                                 case "pie":
                                                     var values = getValues(plot.plot_type, '',  '');
@@ -684,13 +690,42 @@
 
                                                     data.forEach(function (row) {
                                                         if(label) {
-                                                            values.labels.push(row[trace.legend_col]);
+                                                            var traceLabel=row[trace.legend_col];
+
+                                                            if(trace.hasOwnProperty("legend_markdown_pattern") && trace.legend_markdown_pattern){
+                                                                var qCharacter = /\((.*?)\)/ig.exec(trace.legend_markdown_pattern)[1] !== -1 ? "&" : "?";
+                                                                $rootScope.templateParams= {
+                                                                    Schema_Table: row['Schema_Table'],
+                                                                    Data_Type_Filter: ERMrest.encodeFacet(row['Data_Type_Filter']),
+                                                                    Title: traceLabel,
+                                                                    Context_Params: qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid
+                                                                };
+                                                                traceLabel=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(trace.legend_markdown_pattern,$rootScope.templateParams),true);
+                                                                var matchs =/<a\b.+href="([^\n\r]*)"\s/ig.exec(traceLabel);
+                                                                values.legend_markdown_pattern.push(matchs[1]);
+                                                                delete $rootScope.templateParams;
+                                                            }
+                                                            values.labels.push(traceLabel);
+                                                            values.text.push(row[trace.legend_col]);
+                                                            console.log(values.text)
                                                         }
                                                         values.values.push(formatData(row[trace.data_col], plot.config ? plot.config.format_data : false, "pie"));
+                                                    
                                                     });
                                                     plot_values.data.push(values);
+                                                    if(plot.config.hasOwnProperty("title_hyperlink_pattern")){
+                                                        var qCharacter = /\((.*?)\)/ig.exec(plot.config.title_hyperlink_pattern)[1].indexOf("?") !== -1 ? "&" : "?";
+                                                        console.log(qCharacter)
+                                                        $rootScope.templateParams= {
+                                                            Title: layout.title,
+                                                            Context_Params: qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid
+                                                        };
+                                                        layout.title=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(plot.config.title_hyperlink_pattern,$rootScope.templateParams),true);
+                                                        delete  $rootScope.templateParams;
+                                                    }
                                                     plot_values.layout = layout;
                                                     plot_values.config = config;
+                                                    plot_values.layout.disable_legend_click=plot.config.disable_legend_click;
                                                     break;
                                                 case "histogram-horizontal":
                                                     var values = getValues(plot.plot_type, trace.legend);
@@ -704,7 +739,7 @@
                                                 case "histogram-vertical":
                                                     var values = getValues(plot.plot_type, trace.legend);
                                                     data.forEach(function (row) {
-                                                        values.y.push(formatData(row[trace.data_col], plot.config ? plot.config.format_data : false));
+                                                        values.y.push(formatData(row[trace.data_col], plot.plotly.config ? plot.plotly.config.format_data : false));
                                                     });
                                                     plot_values.data.push(values);
                                                     plot_values.layout = layout;
@@ -723,7 +758,14 @@
                                                         }
 
                                                         for(var i = 0; i < trace.x_col.length;i++) {
-                                                            var values = getValues(plot.plot_type, trace.legend ? trace.legend[i]: '',  trace.orientation);
+                                                            var trace_legend=trace.legend ? trace.legend[i]: '';
+                                                            if(trace.hasOwnProperty("legend_patterns")){
+                                                                trace_legend="<a>"+trace_legend+"</a>";
+                                                            }
+                                                            var values = getValues(plot.plot_type, trace_legend,  trace.orientation);
+                                                            if(trace.hasOwnProperty("legend_patterns")){
+                                                                values.data_legend_pattern.push(trace.legend_patterns[i]);
+                                                            }
                                                             if (trace.textangle) {
                                                                 values.textangle = trace.textangle;
                                                             }
@@ -731,8 +773,23 @@
                                                                 values.textfont = trace.textfont;
                                                             }
                                                             data.forEach(function (row) {
+                                                                $rootScope.templateParams= {
+                                                                    Schema_Table: row['Schema_Table'],
+                                                                    Data_Type_Filter: ERMrest.encodeFacet(row['Data_Type_Filter'])
+                                                                };
+                                                                var y_col=row[trace.y_col];
+                                                                //Checking if y_col_hyperlink_pattern is available in plot_config file if yes, then make the y axis labels as hyperlinks.
+                                                                if(trace.hasOwnProperty("y_col_hyperlink_pattern") && trace.y_col_hyperlink_pattern){
+                                                                    var patternLink=ERMrest.renderHandlebarsTemplate(trace.y_col_hyperlink_pattern,$rootScope.templateParams);
+                                                                    values.y_col_hyperlink_pattern.push(patternLink);
+                                                                    var qCharacter = patternLink.indexOf("?") !== -1 ? "&" : "?";
+                                                                    y_col="<a href='"+patternLink+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid+"'>"+row[trace.y_col]+"</a>"
+                                                                }
+                                                                else{
+                                                                    values.y_col_hyperlink_pattern.push(false);
+                                                                }
                                                                 values.x.push(formatData(row[trace.x_col[i]], plot.config ? plot.config.format_data_x : false));
-                                                                values.y.push(formatData(row[trace.y_col], plot.config ? plot.config.format_data_y : false));
+                                                                values.y.push(formatData(y_col, plot.config ? plot.config.format_data_y : false));
                                                                 values.text.push(formatData(row[trace.x_col[i]], plot.config ? plot.config.format_data_x : false))
                                                             });
                                                             values.hoverinfo = 'text'
@@ -744,7 +801,22 @@
                                                         for(var i = 0; i < trace.y_col.length;i++) {
                                                             var values = getValues(plot.plot_type, trace.legend ? trace.legend[i]: '',  trace.orientation);
                                                             data.forEach(function (row) {
-                                                                values.x.push(formatData(row[trace.x_col], plot.config ? plot.config.format_data_x : false));
+                                                                $rootScope.templateParams= {
+                                                                    Schema_Table: row['Schema_Table'],
+                                                                    Data_Type_Filter: ERMrest.encodeFacet(row['Data_Type_Filter'])
+                                                                };
+                                                                var x_col=row[trace.x_col];
+                                                                //Checking if x_col_hyperlink_pattern is available in plot_config file if yes, then make the x axis labels as hyperlinks.
+                                                                if(trace.hasOwnProperty("x_col_hyperlink_pattern") && trace.x_col_hyperlink_pattern){
+                                                                    var patternLink=ERMrest.renderHandlebarsTemplate(trace.x_col_hyperlink_pattern,$rootScope.templateParams);
+                                                                    values.x_col_hyperlink_pattern.push(patternLink);
+                                                                    var qCharacter = patternLink.indexOf("?") !== -1 ? "&" : "?";
+                                                                    x_col="<a href='"+patternLink+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid;"'>"+row[trace.x_col]+"</a>"
+                                                                }
+                                                                else{
+                                                                    values.x_col_hyperlink_pattern.push(false);
+                                                                }
+                                                                values.x.push(formatData(x_col, plot.config ? plot.config.format_data_x : false));
                                                                 values.y.push(formatData(row[trace.y_col[i]], plot.config ? plot.config.format_data_y : false));
                                                                 values.text.push(formatData(row[trace.y_col[i]], plot.config ? plot.config.format_data_y : false));
                                                             });
@@ -754,6 +826,37 @@
                                                             plot_values.config = config;
                                                         }
                                                     }
+                                                    delete  $rootScope.templateParams;
+                                                    //If title_hyperlink_pattern is present in the config file in title or xaxis title, make them as hyperlinks as well
+                                                    if(plot.config.hasOwnProperty("title_hyperlink_pattern")){
+                                                        var qCharacter = /\((.*?)\)/ig.exec(plot_values.layout.title)[1].indexOf("?") !== -1 ? "&" : "?";
+                                                        $rootScope.templateParams= {
+                                                            Title: layout.title,
+                                                            Context_Params: qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid
+                                                        };
+                                                        plot_values.layout.title=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(plot.config.title_hyperlink_pattern,$rootScope.templateParams),true);
+                                                        delete  $rootScope.templateParams;
+                                                    }
+                                                    if(plot.config.hasOwnProperty("xaxis") &&  plot.config.xaxis.hasOwnProperty("title_hyperlink_pattern")){
+                                                        var qCharacter = /\((.*?)\)/ig.exec(plot_values.layout.xaxis.title)[1].indexOf("?") !== -1 ? "&" : "?";
+                                                        $rootScope.templateParams= {
+                                                            Title: layout.xaxis.title,
+                                                            Context_Params: qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid
+                                                        };
+                                                        plot_values.layout.xaxis.title=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(plot.config.xaxis.title_hyperlink_pattern,$rootScope.templateParams),true);
+                                                        delete  $rootScope.templateParams;
+            
+                                                    }
+                                                    if(plot.config.hasOwnProperty("yaxis") && plot.config.yaxis.hasOwnProperty("title_hyperlink_pattern")){
+                                                        var qCharacter = /\((.*?)\)/ig.exec(plot_values.layout.yaxis.title)[1].indexOf("?") !== -1 ? "&" : "?";
+                                                        $rootScope.templateParams= {
+                                                            Title: layout.yaxis.title,
+                                                            Context_Params: qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid
+                                                        };
+                                                        plot_values.layout.yaxis.title=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(plot.config.yaxis.title_hyperlink_pattern,$rootScope.templateParams),true);
+                                                        delete  $rootScope.templateParams;
+                                                    }   
+                                                    plot_values.layout.disable_legend_click=plot.config.disable_legend_click;                                                 
                                                     break;
                                                 default:
                                                     for(var i = 0; i < trace.y_col.length;i++) {
@@ -1157,8 +1260,8 @@
                     if (newValue) vm.groups = newValue;
                 });
             }])
-            .directive('plot', ['$rootScope', '$timeout', function ($rootScope, $timeout) {
-
+            .directive('plot', ['$rootScope', '$timeout','ConfigUtils', function ($rootScope, $timeout,ConfigUtils) {
+                
                 return {
                     link: function (scope, element) {
                         scope.$watch('plots', function (plots) {
@@ -1166,7 +1269,64 @@
                                 $timeout(function() {
                                     for (var i = 0; i < plots.length; i++) {
                                         if (plots[i].id == element[0].attributes['plot-id'].nodeValue) {
-                                            Plotly.newPlot(element[0], plots[i].plot_values.data, plots[i].plot_values.layout, plots[i].plot_values.config).then(function () {
+                                            Plotly.newPlot(element[0], plots[i].plot_values.data, plots[i].plot_values.layout, plots[i].plot_values.config)
+                                            .then(
+                                                element[0].on('plotly_click',function(data){
+                                                    var contextUrlParams=ConfigUtils.getContextHeaderParams();
+
+                                                    if(data.hasOwnProperty("points") && data.points[0].data.hasOwnProperty("y_col_hyperlink_pattern")){
+                                                        var idx=data.points[0].data.x.indexOf(data.points[0].x.toString())
+                                                        if(data.points[0].data.y_col_hyperlink_pattern[idx]!=false && data.points[0].data.y_col_hyperlink_pattern[idx]!=undefined){
+                                                            var qCharacter = data.points[0].data.y_col_hyperlink_pattern[idx].indexOf("?") !== -1 ? "&" : "?";
+                                                            var url=data.points[0].data.y_col_hyperlink_pattern[idx]+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid;
+                                                            window.open(url,'_blank');
+                                                        }
+                                                    }
+                                                    if(data.hasOwnProperty("points") && data.points[0].data.hasOwnProperty("legend_markdown_pattern")){
+                                                        var idx=data.points[0].data.labels.indexOf(data.points[0].label.toString());
+                                                        if( data.points[0].data.legend_markdown_pattern[idx]!=false && data.points[0].data.legend_markdown_pattern[idx]!=undefined){
+                                                            console.log(data.points[0].data.legend_markdown_pattern[idx])
+                                                            var url=data.points[0].data.legend_markdown_pattern[idx];
+                                                            window.open(url,'_blank');
+                                                        }
+                                                    }
+                                                }),
+                                                element[0].on('plotly_legendclick', function(data){
+                                                    var contextUrlParams=ConfigUtils.getContextHeaderParams();
+                                                    if(data.hasOwnProperty("data")){
+                                                        console.log(data.data)
+                                                            if(data.data[0].hasOwnProperty("legend_markdown_pattern") ){
+                                                                var idx=data.data[0].labels.indexOf(data.label.toString());
+                                                                if(data.data[0].legend_markdown_pattern[idx]!=false && data.data[0].legend_markdown_pattern[idx]!=undefined){
+                                                                    //var qCharacter = data.data[0].legend_markdown_pattern[idx].indexOf("?") !== -1 ? "&" : "?";
+                                                                    var url=data.data[0].legend_markdown_pattern[idx];//+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid;
+                                                                    window.open(url,'_blank');
+                                                                    return false;
+                                                                }
+
+                                                            }
+
+                                                            if(data.data[0].hasOwnProperty("data_legend_pattern")){
+
+                                                                if(data.data[0].data_legend_pattern[0]!=false && data.data[0].data_legend_pattern[0]!=undefined){
+                                                                    var qCharacter = data.data[0].data_legend_pattern[0].indexOf("?") !== -1 ? "&" : "?";
+                                                                    var url=data.data[0].data_legend_pattern[0]+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid;
+                                                                    console.log(url)
+                                                                    window.open(url,'_blank');
+
+                                                                    return false;
+                                                                    }
+                                                            }
+                                                        console.log(data)
+                                                        if(data.layout.hasOwnProperty("disable_legend_click") && data.layout.disable_legend_click==true)
+                                                            return false;
+
+                                                    }
+                
+                                                  }
+                                                )
+                                            )
+                                            .then(function () {
                                                 scope.showPlot();
                                             }.bind(plots.length));
                                         }
