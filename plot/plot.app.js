@@ -725,7 +725,7 @@
                                                     }
                                                     plot_values.layout = layout;
                                                     plot_values.config = config;
-                                                    plot_values.layout.disable_legend_click=plot.config.disable_legend_click;
+                                                    plot_values.layout.disable_default_legend_click=plot.config.disable_default_legend_click;
                                                     break;
                                                 case "histogram-horizontal":
                                                     var values = getValues(plot.plot_type, trace.legend);
@@ -856,7 +856,7 @@
                                                         plot_values.layout.yaxis.title=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(plot.config.yaxis.title_hyperlink_pattern,$rootScope.templateParams),true);
                                                         delete  $rootScope.templateParams;
                                                     }   
-                                                    plot_values.layout.disable_legend_click=plot.config.disable_legend_click;                                                 
+                                                    plot_values.layout.disable_default_legend_click=plot.config.disable_default_legend_click;                                                 
                                                     break;
                                                 default:
                                                     for(var i = 0; i < trace.y_col.length;i++) {
@@ -1318,7 +1318,7 @@
                                                                     }
                                                             }
                                                         console.log(data)
-                                                        if(data.layout.hasOwnProperty("disable_legend_click") && data.layout.disable_legend_click==true)
+                                                        if(data.layout.hasOwnProperty("disable_default_legend_click") && data.layout.disable_default_legend_click==true)
                                                             return false;
 
                                                     }
