@@ -691,36 +691,49 @@
                                                     data.forEach(function (row) {
                                                         if(label) {
                                                             var traceLabel=row[trace.legend_col];
-
+                                                            //Changes related to adding markdown templating pattern to legends in pie
                                                             if(trace.hasOwnProperty("legend_markdown_pattern") && trace.legend_markdown_pattern){
+                                                                // Check if the ? is present in the markdown pattern if yes add & else add ?
                                                                 var qCharacter = /\((.*?)\)/ig.exec(trace.legend_markdown_pattern)[1] !== -1 ? "&" : "?";
-                                                                $rootScope.templateParams= {
-                                                                    Schema_Table: row['Schema_Table'],
-                                                                    Data_Type_Filter: ERMrest.encodeFacet(row['Data_Type_Filter']),
-                                                                    Title: traceLabel,
-                                                                    Context_Params: qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid
-                                                                };
-                                                                traceLabel=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(trace.legend_markdown_pattern,$rootScope.templateParams),true);
-                                                                var matchs =/<a\b.+href="([^\n\r]*)"\s/ig.exec(traceLabel);
-                                                                values.legend_markdown_pattern.push(matchs[1]);
+                                                                $rootScope.templateParams = {
+                                                                    $traces: {
+                                                                        data: data,
+                                                                    },
+                                                                    $self:{
+                                                                        data: row
+                                                                    }
+                                                                }
+                                                                // $rootScope.templateParams= {
+                                                                //     Schema_Table: row['Schema_Table'],
+                                                                //     Data_Type_Filter: ERMrest.encodeFacet(row['Data_Type_Filter']),
+                                                                //     Title: traceLabel,
+                                                                //     Context_Params: qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid
+                                                                // };
+                                                                try{
+                                                                    traceLabel=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(trace.legend_markdown_pattern,$rootScope.templateParams),true);
+                                                                    //Defined regex pattern to extract the url in markdown pattern
+                                                                    var matchs =/<a\b.+href="([^\n\r]*)"\s/ig.exec(traceLabel);
+                                                                    values.legend_markdown_pattern.push(matchs[1]+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid);
+                                                                }catch(error){
+                                                                    console.log(error)
+                                                                }
                                                                 delete $rootScope.templateParams;
                                                             }
                                                             values.labels.push(traceLabel);
+                                                            //Added the legend column names to text variable so that the tooltip name does not contain a link if the legends contains a link
                                                             values.text.push(row[trace.legend_col]);
-                                                            console.log(values.text)
                                                         }
                                                         values.values.push(formatData(row[trace.data_col], plot.config ? plot.config.format_data : false, "pie"));
                                                     
                                                     });
                                                     plot_values.data.push(values);
-                                                    if(plot.config.hasOwnProperty("title_hyperlink_pattern")){
-                                                        var qCharacter = /\((.*?)\)/ig.exec(plot.config.title_hyperlink_pattern)[1].indexOf("?") !== -1 ? "&" : "?";
-                                                        console.log(qCharacter)
+                                                    if(plot.config.hasOwnProperty("title_markdown_pattern")){
+                                                        var qCharacter = /\((.*?)\)/ig.exec(plot.config.title_markdown_pattern)[1].indexOf("?") !== -1 ? "&" : "?";
                                                         $rootScope.templateParams= {
                                                             Title: layout.title,
                                                             Context_Params: qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid
                                                         };
-                                                        layout.title=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(plot.config.title_hyperlink_pattern,$rootScope.templateParams),true);
+                                                        layout.title=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(plot.config.title_markdown_pattern,$rootScope.templateParams),true);
                                                         delete  $rootScope.templateParams;
                                                     }
                                                     plot_values.layout = layout;
@@ -827,33 +840,33 @@
                                                         }
                                                     }
                                                     delete  $rootScope.templateParams;
-                                                    //If title_hyperlink_pattern is present in the config file in title or xaxis title, make them as hyperlinks as well
-                                                    if(plot.config.hasOwnProperty("title_hyperlink_pattern")){
+                                                    //If title_markdown_pattern is present in the config file in title or xaxis title, make them as hyperlinks as well
+                                                    if(plot.config.hasOwnProperty("title_markdown_pattern")){
                                                         var qCharacter = /\((.*?)\)/ig.exec(plot_values.layout.title)[1].indexOf("?") !== -1 ? "&" : "?";
                                                         $rootScope.templateParams= {
                                                             Title: layout.title,
                                                             Context_Params: qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid
                                                         };
-                                                        plot_values.layout.title=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(plot.config.title_hyperlink_pattern,$rootScope.templateParams),true);
+                                                        plot_values.layout.title=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(plot.config.title_markdown_pattern,$rootScope.templateParams),true);
                                                         delete  $rootScope.templateParams;
                                                     }
-                                                    if(plot.config.hasOwnProperty("xaxis") &&  plot.config.xaxis.hasOwnProperty("title_hyperlink_pattern")){
+                                                    if(plot.config.hasOwnProperty("xaxis") &&  plot.config.xaxis.hasOwnProperty("title_markdown_pattern")){
                                                         var qCharacter = /\((.*?)\)/ig.exec(plot_values.layout.xaxis.title)[1].indexOf("?") !== -1 ? "&" : "?";
                                                         $rootScope.templateParams= {
                                                             Title: layout.xaxis.title,
                                                             Context_Params: qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid
                                                         };
-                                                        plot_values.layout.xaxis.title=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(plot.config.xaxis.title_hyperlink_pattern,$rootScope.templateParams),true);
+                                                        plot_values.layout.xaxis.title=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(plot.config.xaxis.title_markdown_pattern,$rootScope.templateParams),true);
                                                         delete  $rootScope.templateParams;
             
                                                     }
-                                                    if(plot.config.hasOwnProperty("yaxis") && plot.config.yaxis.hasOwnProperty("title_hyperlink_pattern")){
+                                                    if(plot.config.hasOwnProperty("yaxis") && plot.config.yaxis.hasOwnProperty("title_markdown_pattern")){
                                                         var qCharacter = /\((.*?)\)/ig.exec(plot_values.layout.yaxis.title)[1].indexOf("?") !== -1 ? "&" : "?";
                                                         $rootScope.templateParams= {
                                                             Title: layout.yaxis.title,
                                                             Context_Params: qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid
                                                         };
-                                                        plot_values.layout.yaxis.title=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(plot.config.yaxis.title_hyperlink_pattern,$rootScope.templateParams),true);
+                                                        plot_values.layout.yaxis.title=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(plot.config.yaxis.title_markdown_pattern,$rootScope.templateParams),true);
                                                         delete  $rootScope.templateParams;
                                                     }   
                                                     plot_values.layout.disable_default_legend_click=plot.config.disable_default_legend_click;                                                 
@@ -1285,7 +1298,6 @@
                                                     if(data.hasOwnProperty("points") && data.points[0].data.hasOwnProperty("legend_markdown_pattern")){
                                                         var idx=data.points[0].data.labels.indexOf(data.points[0].label.toString());
                                                         if( data.points[0].data.legend_markdown_pattern[idx]!=false && data.points[0].data.legend_markdown_pattern[idx]!=undefined){
-                                                            console.log(data.points[0].data.legend_markdown_pattern[idx])
                                                             var url=data.points[0].data.legend_markdown_pattern[idx];
                                                             window.open(url,'_blank');
                                                         }
@@ -1294,26 +1306,23 @@
                                                 element[0].on('plotly_legendclick', function(data){
                                                     // var contextUrlParams=ConfigUtils.getContextHeaderParams();
                                                     if(data.hasOwnProperty("data")){
-                                                        console.log(data.data)
                                                             if(data.data[0].hasOwnProperty("legend_markdown_pattern") ){
                                                                 var idx=data.data[0].labels.indexOf(data.label.toString());
                                                                 if(data.data[0].legend_markdown_pattern[idx]!=false && data.data[0].legend_markdown_pattern[idx]!=undefined){
+                                                                    window.open(data.data[0].legend_markdown_pattern[0],'_blank');
                                                                     return false;
                                                                 }
-
                                                             }
 
                                                             if(data.data[0].hasOwnProperty("data_legend_pattern")){
 
                                                                 if(data.data[0].data_legend_pattern[0]!=false && data.data[0].data_legend_pattern[0]!=undefined){
-                                                                    // var qCharacter = data.data[0].data_legend_pattern[0].indexOf("?") !== -1 ? "&" : "?";
-                                                                    // var url=data.data[0].data_legend_pattern[0]+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid;
-                                                                    // console.log(url)
-                                                                    // window.open(url,'_blank');
+                                                                    //var qCharacter = data.data[0].legend_markdown_pattern[idx].indexOf("?") !== -1 ? "&" : "?";
+                                                                    var url=data.data[0].legend_markdown_pattern[idx];//+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid;
+                                                                    window.open(url,'_blank');
                                                                     return false;
                                                                 }
                                                             }
-                                                        console.log(data)
                                                         if(data.layout.hasOwnProperty("disable_default_legend_click") && data.layout.disable_default_legend_click==true)
                                                             return false;
 
