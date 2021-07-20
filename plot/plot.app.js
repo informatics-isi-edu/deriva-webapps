@@ -707,7 +707,6 @@
                                                                 //     Schema_Table: row['Schema_Table'],
                                                                 //     Data_Type_Filter: ERMrest.encodeFacet(row['Data_Type_Filter']),
                                                                 //     Title: traceLabel,
-                                                                //     Context_Params: qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid
                                                                 // };
                                                                 try{
                                                                     traceLabel=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(trace.legend_markdown_pattern,$rootScope.templateParams),true);
@@ -728,12 +727,15 @@
                                                     });
                                                     plot_values.data.push(values);
                                                     if(plot.config.hasOwnProperty("title_markdown_pattern")){
-                                                        var qCharacter = /\((.*?)\)/ig.exec(plot.config.title_markdown_pattern)[1].indexOf("?") !== -1 ? "&" : "?";
+                                                        var link=/\((.*?)\)/ig.exec(plot.config.title_markdown_pattern)[1];
+                                                        var qCharacter = link.indexOf("?") !== -1 ? "&" : "?";
                                                         $rootScope.templateParams= {
                                                             Title: layout.title,
-                                                            Context_Params: qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid
                                                         };
+                                                        //Appending pcid and ppid to the URL request
+                                                        plot.config.title_markdown_pattern.replace(/\((.*?)\)/ig.exec(plot.config.title_markdown_pattern)[1],link+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid)
                                                         layout.title=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(plot.config.title_markdown_pattern,$rootScope.templateParams),true);
+                                                        layout.title.replace(/\((.*?)\)/ig.exec(layout.title)[1],link+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid)
                                                         delete  $rootScope.templateParams;
                                                     }
                                                     plot_values.layout = layout;
@@ -845,8 +847,9 @@
                                                         var qCharacter = /\((.*?)\)/ig.exec(plot_values.layout.title)[1].indexOf("?") !== -1 ? "&" : "?";
                                                         $rootScope.templateParams= {
                                                             Title: layout.title,
-                                                            Context_Params: qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid
                                                         };
+                                                        //Appending pcid and ppid to the URL request
+                                                        plot.config.title_markdown_pattern.replace(/\((.*?)\)/ig.exec(plot.config.title_markdown_pattern)[1],link+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid)
                                                         plot_values.layout.title=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(plot.config.title_markdown_pattern,$rootScope.templateParams),true);
                                                         delete  $rootScope.templateParams;
                                                     }
@@ -854,8 +857,9 @@
                                                         var qCharacter = /\((.*?)\)/ig.exec(plot_values.layout.xaxis.title)[1].indexOf("?") !== -1 ? "&" : "?";
                                                         $rootScope.templateParams= {
                                                             Title: layout.xaxis.title,
-                                                            Context_Params: qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid
                                                         };
+                                                        //Appending pcid and ppid to the URL request
+                                                        plot_values.layout.xaxis.title.replace(/\((.*?)\)/ig.exec(plot_values.layout.xaxis.title)[1],link+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid)
                                                         plot_values.layout.xaxis.title=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(plot.config.xaxis.title_markdown_pattern,$rootScope.templateParams),true);
                                                         delete  $rootScope.templateParams;
             
@@ -864,8 +868,9 @@
                                                         var qCharacter = /\((.*?)\)/ig.exec(plot_values.layout.yaxis.title)[1].indexOf("?") !== -1 ? "&" : "?";
                                                         $rootScope.templateParams= {
                                                             Title: layout.yaxis.title,
-                                                            Context_Params: qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid
                                                         };
+                                                        //Appending pcid and ppid to the URL request
+                                                        plot_values.layout.yaxis.title.replace(/\((.*?)\)/ig.exec(plot_values.layout.yaxis.title)[1],link+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid)
                                                         plot_values.layout.yaxis.title=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(plot.config.yaxis.title_markdown_pattern,$rootScope.templateParams),true);
                                                         delete  $rootScope.templateParams;
                                                     }   
