@@ -672,6 +672,11 @@
                                         try {
                                             var layout = getPlotlyLayout(plot);
                                             var data = response.data;
+                                            $rootScope.templateParams = {
+                                                $traces: {
+                                                    data: data,
+                                                },
+                                            }
                                             var contextUrlParams=ConfigUtils.getContextHeaderParams();
                                             switch (plot.plot_type) {
                                                 case "pie":
@@ -689,38 +694,34 @@
                                                     }
 
                                                     data.forEach(function (row) {
+                                                        $rootScope.templateParams.$self = {
+                                                            data: row
+                                                        }
                                                         if(label) {
                                                             var traceLabel=row[trace.legend_col];
                                                             //Changes related to adding markdown templating pattern to legends in pie
                                                             if(trace.hasOwnProperty("legend_markdown_pattern") && trace.legend_markdown_pattern){
                                                                 // Check if the ? is present in the markdown pattern if yes add & else add ?
                                                                 var qCharacter = /\((.*?)\)/ig.exec(trace.legend_markdown_pattern)[1] !== -1 ? "&" : "?";
-                                                                $rootScope.templateParams = {
-                                                                    $traces: {
-                                                                        data: data,
-                                                                    },
-                                                                    $self:{
-                                                                        data: row
-                                                                    }
-                                                                }
-                                                                // $rootScope.templateParams= {
-                                                                //     Schema_Table: row['Schema_Table'],
-                                                                //     Data_Type_Filter: ERMrest.encodeFacet(row['Data_Type_Filter']),
-                                                                //     Title: traceLabel,
-                                                                // };
                                                                 try{
                                                                     traceLabel=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(trace.legend_markdown_pattern,$rootScope.templateParams),true);
                                                                     //Defined regex pattern to extract the url in markdown pattern
-                                                                    var matchs =/<a\b.+href="([^\n\r]*)"\s/ig.exec(traceLabel);
-                                                                    values.legend_markdown_pattern.push(matchs[1]+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid);
+                                                                    //Example : traceLabel: <a href="/chaise/recordset/#2/Gene_Expression:Specimen/*::facets::N4IghgdgJiBcDaoDOB7ArgJwMYFM6JHQBcAjdafEAQQiIEsyoBPEAGmtoZWYH0AVHEiJIeAYRQRUGemgC2PAGYBrHCwC6AX3YAlAJIAREGvZYAFijq4klAIoBaAMwBpAKwA2I1uTpseBKGIyNAoEDnpGFnYacO4mfkFhMUwwegkeAGUiFLQRZVVPHQMjE3NLQVs7AE03AEYAWU9NIA&pcid=plotApp&ppid=2oio1qej2i6m2bv62ox21h1q" target="_blank">Imaging: Histology</a>
+                                                                    // extractedLink = /chaise/recordset/#2/Gene_Expression:Specimen/*::facets::N4IghgdgJiBcDaoDOB7ArgJwMYFM6JHQBcAjdafEAQQiIEsyoBPEAGmtoZWYH0AVHEiJIeAYRQRUGemgC2PAGYBrHCwC6AX3YAlAJIAREGvZYAFijq4klAIoBaAMwBpAKwA2I1uTpseBKGIyNAoEDnpGFnYacO4mfkFhMUwwegkeAGUiFLQRZVVPHQMjE3NLQVs7AE03AEYAWU9NIA&pcid=plotApp&ppid=2oio1qej2i6m2bv62ox21h1q
+                                                                    var extractedLink=/<a\b.+href="([^\n\r]*)"\s/ig.exec(traceLabel)[1];
+                                                                    var linkWithContextParams =extractedLink+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid;
+                                                                    values.legend_markdown_pattern.push(linkWithContextParams);
+                                                                    traceLabel=traceLabel.replace(extractedLink,linkWithContextParams)
                                                                 }catch(error){
-                                                                    console.log(error)
+                                                                    traceLabel=row[trace.legend_col];
                                                                 }
-                                                                delete $rootScope.templateParams;
+                                                                //delete $rootScope.templateParams;
                                                             }
                                                             values.labels.push(traceLabel);
                                                             //Added the legend column names to text variable so that the tooltip name does not contain a link if the legends contains a link
-                                                            values.text.push(row[trace.legend_col]);
+                                                            var tooltip=trace.hovertemplate_display_pattern ? ERMrest.renderHandlebarsTemplate(trace.hovertemplate_display_pattern, $rootScope.templateParams) : row[trace.legend_col];
+                                                            values.text.push(tooltip);
+                                                            delete $rootScope.templateParams.$self;
                                                         }
                                                         values.values.push(formatData(row[trace.data_col], plot.config ? plot.config.format_data : false, "pie"));
                                                     
@@ -729,18 +730,16 @@
                                                     if(plot.config.hasOwnProperty("title_markdown_pattern")){
                                                         var link=/\((.*?)\)/ig.exec(plot.config.title_markdown_pattern)[1];
                                                         var qCharacter = link.indexOf("?") !== -1 ? "&" : "?";
-                                                        $rootScope.templateParams= {
-                                                            Title: layout.title,
-                                                        };
+                                                        $rootScope.templateParams.$layout=layout
                                                         //Appending pcid and ppid to the URL request
-                                                        plot.config.title_markdown_pattern.replace(/\((.*?)\)/ig.exec(plot.config.title_markdown_pattern)[1],link+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid)
-                                                        layout.title=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(plot.config.title_markdown_pattern,$rootScope.templateParams),true);
-                                                        layout.title.replace(/\((.*?)\)/ig.exec(layout.title)[1],link+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid)
-                                                        delete  $rootScope.templateParams;
+                                                        let title_markdown_pattern=plot.config.title_markdown_pattern.replace(/\((.*?)\)/ig.exec(plot.config.title_markdown_pattern)[1],link+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid)
+                                                        layout.title=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(title_markdown_pattern,$rootScope.templateParams),true);
+                                                        delete $rootScope.templateParams.$layout;
                                                     }
                                                     plot_values.layout = layout;
                                                     plot_values.config = config;
                                                     plot_values.layout.disable_default_legend_click=plot.config.disable_default_legend_click;
+                                                    delete $rootScope.templateParams;
                                                     break;
                                                 case "histogram-horizontal":
                                                     var values = getValues(plot.plot_type, trace.legend);
@@ -844,37 +843,39 @@
                                                     delete  $rootScope.templateParams;
                                                     //If title_markdown_pattern is present in the config file in title or xaxis title, make them as hyperlinks as well
                                                     if(plot.config.hasOwnProperty("title_markdown_pattern")){
-                                                        var qCharacter = /\((.*?)\)/ig.exec(plot_values.layout.title)[1].indexOf("?") !== -1 ? "&" : "?";
+                                                        var qCharacter = /\((.*?)\)/ig.exec(plot_values.layout.title_markdown_pattern)[1].indexOf("?") !== -1 ? "&" : "?";
                                                         $rootScope.templateParams= {
                                                             Title: layout.title,
                                                         };
+
                                                         //Appending pcid and ppid to the URL request
                                                         plot.config.title_markdown_pattern.replace(/\((.*?)\)/ig.exec(plot.config.title_markdown_pattern)[1],link+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid)
                                                         plot_values.layout.title=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(plot.config.title_markdown_pattern,$rootScope.templateParams),true);
-                                                        delete  $rootScope.templateParams;
+                                                        //delete  $rootScope.templateParams;
                                                     }
                                                     if(plot.config.hasOwnProperty("xaxis") &&  plot.config.xaxis.hasOwnProperty("title_markdown_pattern")){
-                                                        var qCharacter = /\((.*?)\)/ig.exec(plot_values.layout.xaxis.title)[1].indexOf("?") !== -1 ? "&" : "?";
+                                                        var qCharacter = /\((.*?)\)/ig.exec(plot_values.layout.xaxis.title_markdown_pattern)[1].indexOf("?") !== -1 ? "&" : "?";
                                                         $rootScope.templateParams= {
                                                             Title: layout.xaxis.title,
                                                         };
                                                         //Appending pcid and ppid to the URL request
-                                                        plot_values.layout.xaxis.title.replace(/\((.*?)\)/ig.exec(plot_values.layout.xaxis.title)[1],link+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid)
+                                                        plot_values.layout.xaxis.title.replace(/\((.*?)\)/ig.exec(plot_values.layout.xaxis.title_markdown_pattern)[1],link+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid)
                                                         plot_values.layout.xaxis.title=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(plot.config.xaxis.title_markdown_pattern,$rootScope.templateParams),true);
-                                                        delete  $rootScope.templateParams;
+                                                        //delete  $rootScope.templateParams;
             
                                                     }
                                                     if(plot.config.hasOwnProperty("yaxis") && plot.config.yaxis.hasOwnProperty("title_markdown_pattern")){
-                                                        var qCharacter = /\((.*?)\)/ig.exec(plot_values.layout.yaxis.title)[1].indexOf("?") !== -1 ? "&" : "?";
+                                                        var qCharacter = /\((.*?)\)/ig.exec(plot_values.layout.yaxis.title_markdown_pattern)[1].indexOf("?") !== -1 ? "&" : "?";
                                                         $rootScope.templateParams= {
                                                             Title: layout.yaxis.title,
                                                         };
                                                         //Appending pcid and ppid to the URL request
-                                                        plot_values.layout.yaxis.title.replace(/\((.*?)\)/ig.exec(plot_values.layout.yaxis.title)[1],link+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid)
+                                                        plot_values.layout.yaxis.title_markdown_pattern.replace(/\((.*?)\)/ig.exec(plot_values.layout.yaxis.title_markdown_pattern)[1],link+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid)
                                                         plot_values.layout.yaxis.title=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(plot.config.yaxis.title_markdown_pattern,$rootScope.templateParams),true);
-                                                        delete  $rootScope.templateParams;
+                                                        //delete  $rootScope.templateParams;
                                                     }   
                                                     plot_values.layout.disable_default_legend_click=plot.config.disable_default_legend_click;                                                 
+                                                    delete $rootScope.templateParams;
                                                     break;
                                                 default:
                                                     for(var i = 0; i < trace.y_col.length;i++) {
@@ -888,6 +889,7 @@
                                                         plot_values.layout = layout;
                                                         plot_values.config = config;
                                                     }
+                                                    delete $rootScope.templateParams;
                                                     break;
                                             }
 
