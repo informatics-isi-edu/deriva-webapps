@@ -722,15 +722,14 @@
                                                             //Added the legend column names to text variable so that the tooltip name does not contain a link if the legends contains a link
                                                             var tooltip=trace.hovertemplate_display_pattern ? ERMrest.renderHandlebarsTemplate(trace.hovertemplate_display_pattern, $rootScope.templateParams) : row[trace.legend_col];
                                                             values.text.push(tooltip);
-                                                            delete $rootScope.templateParams.$self;
                                                         }
                                                         values.values.push(formatData(row[trace.data_col], plot.config ? plot.config.format_data : false, "pie"));
                                                         if(trace.hasOwnProperty("graphic_link_pattern")){
                                                             var qCharacter = trace.graphic_link_pattern.indexOf("?") !== -1 ? "&" : "?";
                                                             let graphic_link=trace.graphic_link_pattern+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid;
                                                             values.graphic_link_pattern.push(ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(graphic_link,$rootScope.templateParams),true));
-                                                            delete $rootScope.templateParams.$self;
                                                         }
+                                                        delete $rootScope.templateParams.$self;
                                                     });
                                                     plot_values.data.push(values);
                                                     if(plot.config.hasOwnProperty("title_display_markdown_pattern")){
