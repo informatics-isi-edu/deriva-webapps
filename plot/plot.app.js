@@ -105,13 +105,19 @@
                       values = {
                         type: "pie",
                         labels: [],
-                        values: []
+                        values: [],
+                        legend_markdown_pattern: [],
+                        text:[],
+                        hoverinfo: 'text+value+percent',
+                        graphic_link_pattern: [],
                       };
                       return values;
                     case "bar":
                       values = {
                           x: [],
                           y: [],
+                          y_col_hyperlink_pattern: [],
+                          data_legend_pattern:[],
                           text:[],
                           textposition: 'outside',
                           type: getType(type),
@@ -173,12 +179,12 @@
                     var configLayout = {},
                         layout = {};
 
-                    // layout object from plot.plotly.layout or plot.plotly_config
-                    // NOTE: plotly_config will be deprecated eventually so prefer plotly.layout
+                    // layout object from plot.plotly.layout or plot.config
+                    // NOTE: config will be deprecated eventually so prefer plotly.layout
                     if (plot.plotly && plot.plotly.layout) {
                         configLayout = plot.plotly.layout;
-                    } else if (plot.plotly_config) {
-                        configLayout = plot.plotly_config;
+                    } else if (plot.config) {
+                        configLayout = plot.config;
                     }
 
                      // NOTE: does not support templating (violin overrides outside of function with templating)
@@ -217,7 +223,7 @@
                     }
 
                     // apply plotly.layout properties one at a time
-                    // NOTE: applies plotly_config as well but will be deprecated in future
+                    // NOTE: applies config as well but will be deprecated in future
                     // NOTE: this does not recursively apply object key/value pairs, it will only go one level deep and override
                     Object.keys(configLayout).forEach(function (key) {
                         layout[key] = configLayout[key];
@@ -667,6 +673,12 @@
                                         try {
                                             var layout = getPlotlyLayout(plot);
                                             var data = response.data;
+                                            $rootScope.templateParams = {
+                                                $traces: {
+                                                    data: data,
+                                                },
+                                            }
+                                            var contextUrlParams=ConfigUtils.getContextHeaderParams();
                                             switch (plot.plot_type) {
                                                 case "pie":
                                                     var values = getValues(plot.plot_type, '',  '');
@@ -683,14 +695,56 @@
                                                     }
 
                                                     data.forEach(function (row) {
+                                                        $rootScope.templateParams.$self = {
+                                                            data: row
+                                                        }
                                                         if(label) {
-                                                            values.labels.push(row[trace.legend_col]);
+                                                            var traceLabel=row[trace.legend_col];
+                                                            //Changes related to adding markdown templating pattern to legends in pie
+                                                            if(trace.hasOwnProperty("legend_markdown_pattern") && trace.legend_markdown_pattern){
+                                                                // Check if the ? is present in the markdown pattern if yes add & else add ?
+                                                                var qCharacter = /\((.*?)\)/ig.exec(trace.legend_markdown_pattern)[1] !== -1 ? "&" : "?";
+                                                                try{
+                                                                    traceLabel=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(trace.legend_markdown_pattern,$rootScope.templateParams),true);
+                                                                    //Defined regex pattern to extract the url in markdown pattern
+                                                                    //Example : traceLabel: <a href="/chaise/recordset/#2/Gene_Expression:Specimen/*::facets::N4IghgdgJiBcDaoDOB7ArgJwMYFM6JHQBcAjdafEAQQiIEsyoBPEAGmtoZWYH0AVHEiJIeAYRQRUGemgC2PAGYBrHCwC6AX3YAlAJIAREGvZYAFijq4klAIoBaAMwBpAKwA2I1uTpseBKGIyNAoEDnpGFnYacO4mfkFhMUwwegkeAGUiFLQRZVVPHQMjE3NLQVs7AE03AEYAWU9NIA&pcid=plotApp&ppid=2oio1qej2i6m2bv62ox21h1q" target="_blank">Imaging: Histology</a>
+                                                                    // extractedLink = /chaise/recordset/#2/Gene_Expression:Specimen/*::facets::N4IghgdgJiBcDaoDOB7ArgJwMYFM6JHQBcAjdafEAQQiIEsyoBPEAGmtoZWYH0AVHEiJIeAYRQRUGemgC2PAGYBrHCwC6AX3YAlAJIAREGvZYAFijq4klAIoBaAMwBpAKwA2I1uTpseBKGIyNAoEDnpGFnYacO4mfkFhMUwwegkeAGUiFLQRZVVPHQMjE3NLQVs7AE03AEYAWU9NIA&pcid=plotApp&ppid=2oio1qej2i6m2bv62ox21h1q
+                                                                    var extractedLink=/<a\b.+href="([^\n\r]*)"\s/ig.exec(traceLabel)[1];
+                                                                    var linkWithContextParams =extractedLink+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid;
+                                                                    values.legend_markdown_pattern.push(linkWithContextParams);
+                                                                    traceLabel=traceLabel.replace(extractedLink,linkWithContextParams)
+                                                                }catch(error){
+                                                                    traceLabel=row[trace.legend_col];
+                                                                }
+                                                                //delete $rootScope.templateParams;
+                                                            }
+                                                            values.labels.push(traceLabel);
+                                                            //Added the legend column names to text variable so that the tooltip name does not contain a link if the legends contains a link
+                                                            var tooltip=trace.hovertemplate_display_pattern ? ERMrest.renderHandlebarsTemplate(trace.hovertemplate_display_pattern, $rootScope.templateParams) : row[trace.legend_col];
+                                                            values.text.push(tooltip);
                                                         }
                                                         values.values.push(formatData(row[trace.data_col], plot.config ? plot.config.format_data : false, "pie"));
+                                                        if(trace.hasOwnProperty("graphic_link_pattern")){
+                                                            var qCharacter = trace.graphic_link_pattern.indexOf("?") !== -1 ? "&" : "?";
+                                                            let graphic_link=trace.graphic_link_pattern+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid;
+                                                            values.graphic_link_pattern.push(ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(graphic_link,$rootScope.templateParams),true));
+                                                        }
+                                                        delete $rootScope.templateParams.$self;
                                                     });
                                                     plot_values.data.push(values);
+                                                    if(plot.config.hasOwnProperty("title_display_markdown_pattern")){
+                                                        var link=/\((.*?)\)/ig.exec(plot.config.title_display_markdown_pattern)[1];
+                                                        var qCharacter = link.indexOf("?") !== -1 ? "&" : "?";
+                                                        $rootScope.templateParams.$layout=layout
+                                                        //Appending pcid and ppid to the URL request
+                                                        let title_display_markdown_pattern=plot.config.title_display_markdown_pattern.replace(/\((.*?)\)/ig.exec(plot.config.title_display_markdown_pattern)[1],link+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid)
+                                                        layout.title=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(title_display_markdown_pattern,$rootScope.templateParams),true);
+                                                        delete $rootScope.templateParams.$layout;
+                                                    }
                                                     plot_values.layout = layout;
                                                     plot_values.config = config;
+                                                    plot_values.layout.disable_default_legend_click=plot.config.disable_default_legend_click;
+                                                    delete $rootScope.templateParams;
                                                     break;
                                                 case "histogram-horizontal":
                                                     var values = getValues(plot.plot_type, trace.legend);
@@ -704,7 +758,7 @@
                                                 case "histogram-vertical":
                                                     var values = getValues(plot.plot_type, trace.legend);
                                                     data.forEach(function (row) {
-                                                        values.y.push(formatData(row[trace.data_col], plot.config ? plot.config.format_data : false));
+                                                        values.y.push(formatData(row[trace.data_col], plot.plotly.config ? plot.plotly.config.format_data : false));
                                                     });
                                                     plot_values.data.push(values);
                                                     plot_values.layout = layout;
@@ -723,7 +777,14 @@
                                                         }
 
                                                         for(var i = 0; i < trace.x_col.length;i++) {
-                                                            var values = getValues(plot.plot_type, trace.legend ? trace.legend[i]: '',  trace.orientation);
+                                                            var trace_legend=trace.legend ? trace.legend[i]: '';
+                                                            if(trace.hasOwnProperty("legend_patterns")){
+                                                                trace_legend="<a>"+trace_legend+"</a>";
+                                                            }
+                                                            var values = getValues(plot.plot_type, trace_legend,  trace.orientation);
+                                                            if(trace.hasOwnProperty("legend_patterns")){
+                                                                values.data_legend_pattern.push(trace.legend_patterns[i]);
+                                                            }
                                                             if (trace.textangle) {
                                                                 values.textangle = trace.textangle;
                                                             }
@@ -731,8 +792,23 @@
                                                                 values.textfont = trace.textfont;
                                                             }
                                                             data.forEach(function (row) {
+                                                                $rootScope.templateParams= {
+                                                                    Schema_Table: row['Schema_Table'],
+                                                                    Data_Type_Filter: ERMrest.encodeFacet(row['Data_Type_Filter'])
+                                                                };
+                                                                var y_col=row[trace.y_col];
+                                                                //Checking if y_col_hyperlink_pattern is available in plot_config file if yes, then make the y axis labels as hyperlinks.
+                                                                if(trace.hasOwnProperty("y_col_hyperlink_pattern") && trace.y_col_hyperlink_pattern){
+                                                                    var patternLink=ERMrest.renderHandlebarsTemplate(trace.y_col_hyperlink_pattern,$rootScope.templateParams);
+                                                                    values.y_col_hyperlink_pattern.push(patternLink);
+                                                                    var qCharacter = patternLink.indexOf("?") !== -1 ? "&" : "?";
+                                                                    y_col="<a href='"+patternLink+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid+"'>"+row[trace.y_col]+"</a>"
+                                                                }
+                                                                else{
+                                                                    values.y_col_hyperlink_pattern.push(false);
+                                                                }
                                                                 values.x.push(formatData(row[trace.x_col[i]], plot.config ? plot.config.format_data_x : false));
-                                                                values.y.push(formatData(row[trace.y_col], plot.config ? plot.config.format_data_y : false));
+                                                                values.y.push(formatData(y_col, plot.config ? plot.config.format_data_y : false));
                                                                 values.text.push(formatData(row[trace.x_col[i]], plot.config ? plot.config.format_data_x : false))
                                                             });
                                                             values.hoverinfo = 'text'
@@ -744,7 +820,22 @@
                                                         for(var i = 0; i < trace.y_col.length;i++) {
                                                             var values = getValues(plot.plot_type, trace.legend ? trace.legend[i]: '',  trace.orientation);
                                                             data.forEach(function (row) {
-                                                                values.x.push(formatData(row[trace.x_col], plot.config ? plot.config.format_data_x : false));
+                                                                $rootScope.templateParams= {
+                                                                    Schema_Table: row['Schema_Table'],
+                                                                    Data_Type_Filter: ERMrest.encodeFacet(row['Data_Type_Filter'])
+                                                                };
+                                                                var x_col=row[trace.x_col];
+                                                                //Checking if x_col_hyperlink_pattern is available in plot_config file if yes, then make the x axis labels as hyperlinks.
+                                                                if(trace.hasOwnProperty("x_col_hyperlink_pattern") && trace.x_col_hyperlink_pattern){
+                                                                    var patternLink=ERMrest.renderHandlebarsTemplate(trace.x_col_hyperlink_pattern,$rootScope.templateParams);
+                                                                    values.x_col_hyperlink_pattern.push(patternLink);
+                                                                    var qCharacter = patternLink.indexOf("?") !== -1 ? "&" : "?";
+                                                                    x_col="<a href='"+patternLink+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid;"'>"+row[trace.x_col]+"</a>"
+                                                                }
+                                                                else{
+                                                                    values.x_col_hyperlink_pattern.push(false);
+                                                                }
+                                                                values.x.push(formatData(x_col, plot.config ? plot.config.format_data_x : false));
                                                                 values.y.push(formatData(row[trace.y_col[i]], plot.config ? plot.config.format_data_y : false));
                                                                 values.text.push(formatData(row[trace.y_col[i]], plot.config ? plot.config.format_data_y : false));
                                                             });
@@ -754,6 +845,42 @@
                                                             plot_values.config = config;
                                                         }
                                                     }
+                                                    delete  $rootScope.templateParams;
+                                                    //If title_display_markdown_pattern is present in the config file in title or xaxis title, make them as hyperlinks as well
+                                                    if(plot.config.hasOwnProperty("title_display_markdown_pattern")){
+                                                        var qCharacter = /\((.*?)\)/ig.exec(plot_values.layout.title_display_markdown_pattern)[1].indexOf("?") !== -1 ? "&" : "?";
+                                                        $rootScope.templateParams= {
+                                                            Title: layout.title,
+                                                        };
+
+                                                        //Appending pcid and ppid to the URL request
+                                                        plot.config.title_display_markdown_pattern.replace(/\((.*?)\)/ig.exec(plot.config.title_display_markdown_pattern)[1],link+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid)
+                                                        plot_values.layout.title=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(plot.config.title_display_markdown_pattern,$rootScope.templateParams),true);
+                                                        //delete  $rootScope.templateParams;
+                                                    }
+                                                    if(plot.config.hasOwnProperty("xaxis") &&  plot.config.xaxis.hasOwnProperty("title_display_markdown_pattern")){
+                                                        var qCharacter = /\((.*?)\)/ig.exec(plot_values.layout.xaxis.title_display_markdown_pattern)[1].indexOf("?") !== -1 ? "&" : "?";
+                                                        $rootScope.templateParams= {
+                                                            Title: layout.xaxis.title,
+                                                        };
+                                                        //Appending pcid and ppid to the URL request
+                                                        plot_values.layout.xaxis.title.replace(/\((.*?)\)/ig.exec(plot_values.layout.xaxis.title_display_markdown_pattern)[1],link+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid)
+                                                        plot_values.layout.xaxis.title=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(plot.config.xaxis.title_display_markdown_pattern,$rootScope.templateParams),true);
+                                                        //delete  $rootScope.templateParams;
+            
+                                                    }
+                                                    if(plot.config.hasOwnProperty("yaxis") && plot.config.yaxis.hasOwnProperty("title_display_markdown_pattern")){
+                                                        var qCharacter = /\((.*?)\)/ig.exec(plot_values.layout.yaxis.title_display_markdown_pattern)[1].indexOf("?") !== -1 ? "&" : "?";
+                                                        $rootScope.templateParams= {
+                                                            Title: layout.yaxis.title,
+                                                        };
+                                                        //Appending pcid and ppid to the URL request
+                                                        plot_values.layout.yaxis.title_display_markdown_pattern.replace(/\((.*?)\)/ig.exec(plot_values.layout.yaxis.title_display_markdown_pattern)[1],link+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid)
+                                                        plot_values.layout.yaxis.title=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(plot.config.yaxis.title_display_markdown_pattern,$rootScope.templateParams),true);
+                                                        //delete  $rootScope.templateParams;
+                                                    }   
+                                                    plot_values.layout.disable_default_legend_click=plot.config.disable_default_legend_click;                                                 
+                                                    delete $rootScope.templateParams;
                                                     break;
                                                 default:
                                                     for(var i = 0; i < trace.y_col.length;i++) {
@@ -767,6 +894,7 @@
                                                         plot_values.layout = layout;
                                                         plot_values.config = config;
                                                     }
+                                                    delete $rootScope.templateParams;
                                                     break;
                                             }
 
@@ -1157,8 +1285,8 @@
                     if (newValue) vm.groups = newValue;
                 });
             }])
-            .directive('plot', ['$rootScope', '$timeout', function ($rootScope, $timeout) {
-
+            .directive('plot', ['$rootScope', '$timeout','ConfigUtils', function ($rootScope, $timeout,ConfigUtils) {
+                
                 return {
                     link: function (scope, element) {
                         scope.$watch('plots', function (plots) {
@@ -1166,7 +1294,56 @@
                                 $timeout(function() {
                                     for (var i = 0; i < plots.length; i++) {
                                         if (plots[i].id == element[0].attributes['plot-id'].nodeValue) {
-                                            Plotly.newPlot(element[0], plots[i].plot_values.data, plots[i].plot_values.layout, plots[i].plot_values.config).then(function () {
+                                            Plotly.newPlot(element[0], plots[i].plot_values.data, plots[i].plot_values.layout, plots[i].plot_values.config)
+                                            .then(
+                                                element[0].on('plotly_click',function(data){
+                                                    var contextUrlParams=ConfigUtils.getContextHeaderParams();
+
+                                                    if(data.hasOwnProperty("points") && data.points[0].data.hasOwnProperty("y_col_hyperlink_pattern")){
+                                                        var idx=data.points[0].data.x.indexOf(data.points[0].x.toString())
+                                                        if(data.points[0].data.y_col_hyperlink_pattern[idx]!=false && data.points[0].data.y_col_hyperlink_pattern[idx]!=undefined){
+                                                            var qCharacter = data.points[0].data.y_col_hyperlink_pattern[idx].indexOf("?") !== -1 ? "&" : "?";
+                                                            var url=data.points[0].data.y_col_hyperlink_pattern[idx]+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid;
+                                                            window.open(url,'_blank');
+                                                        }
+                                                    }
+                                                    if(data.hasOwnProperty("points") && data.points[0].data.hasOwnProperty("graphic_link_pattern")){
+                                                        var idx=data.points[0].data.labels.indexOf(data.points[0].label.toString());
+                                                        if( data.points[0].data.graphic_link_pattern[idx]!=false && data.points[0].data.graphic_link_pattern[idx]!=undefined){
+                                                            var url=data.points[0].data.graphic_link_pattern[idx];
+                                                            window.open(url,'_blank');
+                                                        }
+                                                    }
+                                                }),
+                                                element[0].on('plotly_legendclick', function(data){
+                                                    // var contextUrlParams=ConfigUtils.getContextHeaderParams();
+                                                    if(data.hasOwnProperty("data")){
+                                                            if(data.data[0].hasOwnProperty("legend_markdown_pattern") ){
+                                                                var idx=data.data[0].labels.indexOf(data.label.toString());
+                                                                if(data.data[0].legend_markdown_pattern[idx]!=false && data.data[0].legend_markdown_pattern[idx]!=undefined){
+                                                                    window.open(data.data[0].legend_markdown_pattern[0],'_blank');
+                                                                    return false;
+                                                                }
+                                                            }
+
+                                                            if(data.data[0].hasOwnProperty("data_legend_pattern")){
+
+                                                                if(data.data[0].data_legend_pattern[0]!=false && data.data[0].data_legend_pattern[0]!=undefined){
+                                                                    //var qCharacter = data.data[0].legend_markdown_pattern[idx].indexOf("?") !== -1 ? "&" : "?";
+                                                                    var url=data.data[0].legend_markdown_pattern[idx];//+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid;
+                                                                    window.open(url,'_blank');
+                                                                    return false;
+                                                                }
+                                                            }
+                                                        if(data.layout.hasOwnProperty("disable_default_legend_click") && data.layout.disable_default_legend_click==true)
+                                                            return false;
+
+                                                    }
+                
+                                                  }
+                                                )
+                                            )
+                                            .then(function () {
                                                 scope.showPlot();
                                             }.bind(plots.length));
                                         }
