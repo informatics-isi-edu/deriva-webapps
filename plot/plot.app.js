@@ -108,7 +108,8 @@
                         values: [],
                         legend_markdown_pattern: [],
                         text:[],
-                        hoverinfo: 'text+value+percent'
+                        hoverinfo: 'text+value+percent',
+                        graphic_link_pattern: [],
                       };
                       return values;
                     case "bar":
@@ -724,16 +725,21 @@
                                                             delete $rootScope.templateParams.$self;
                                                         }
                                                         values.values.push(formatData(row[trace.data_col], plot.config ? plot.config.format_data : false, "pie"));
-                                                    
+                                                        if(trace.hasOwnProperty("graphic_link_pattern")){
+                                                            var qCharacter = trace.graphic_link_pattern.indexOf("?") !== -1 ? "&" : "?";
+                                                            let graphic_link=trace.graphic_link_pattern+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid;
+                                                            values.graphic_link_pattern.push(ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(graphic_link,$rootScope.templateParams),true));
+                                                            delete $rootScope.templateParams.$self;
+                                                        }
                                                     });
                                                     plot_values.data.push(values);
-                                                    if(plot.config.hasOwnProperty("title_markdown_pattern")){
-                                                        var link=/\((.*?)\)/ig.exec(plot.config.title_markdown_pattern)[1];
+                                                    if(plot.config.hasOwnProperty("title_display_markdown_pattern")){
+                                                        var link=/\((.*?)\)/ig.exec(plot.config.title_display_markdown_pattern)[1];
                                                         var qCharacter = link.indexOf("?") !== -1 ? "&" : "?";
                                                         $rootScope.templateParams.$layout=layout
                                                         //Appending pcid and ppid to the URL request
-                                                        let title_markdown_pattern=plot.config.title_markdown_pattern.replace(/\((.*?)\)/ig.exec(plot.config.title_markdown_pattern)[1],link+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid)
-                                                        layout.title=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(title_markdown_pattern,$rootScope.templateParams),true);
+                                                        let title_display_markdown_pattern=plot.config.title_display_markdown_pattern.replace(/\((.*?)\)/ig.exec(plot.config.title_display_markdown_pattern)[1],link+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid)
+                                                        layout.title=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(title_display_markdown_pattern,$rootScope.templateParams),true);
                                                         delete $rootScope.templateParams.$layout;
                                                     }
                                                     plot_values.layout = layout;
@@ -841,37 +847,37 @@
                                                         }
                                                     }
                                                     delete  $rootScope.templateParams;
-                                                    //If title_markdown_pattern is present in the config file in title or xaxis title, make them as hyperlinks as well
-                                                    if(plot.config.hasOwnProperty("title_markdown_pattern")){
-                                                        var qCharacter = /\((.*?)\)/ig.exec(plot_values.layout.title_markdown_pattern)[1].indexOf("?") !== -1 ? "&" : "?";
+                                                    //If title_display_markdown_pattern is present in the config file in title or xaxis title, make them as hyperlinks as well
+                                                    if(plot.config.hasOwnProperty("title_display_markdown_pattern")){
+                                                        var qCharacter = /\((.*?)\)/ig.exec(plot_values.layout.title_display_markdown_pattern)[1].indexOf("?") !== -1 ? "&" : "?";
                                                         $rootScope.templateParams= {
                                                             Title: layout.title,
                                                         };
 
                                                         //Appending pcid and ppid to the URL request
-                                                        plot.config.title_markdown_pattern.replace(/\((.*?)\)/ig.exec(plot.config.title_markdown_pattern)[1],link+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid)
-                                                        plot_values.layout.title=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(plot.config.title_markdown_pattern,$rootScope.templateParams),true);
+                                                        plot.config.title_display_markdown_pattern.replace(/\((.*?)\)/ig.exec(plot.config.title_display_markdown_pattern)[1],link+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid)
+                                                        plot_values.layout.title=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(plot.config.title_display_markdown_pattern,$rootScope.templateParams),true);
                                                         //delete  $rootScope.templateParams;
                                                     }
-                                                    if(plot.config.hasOwnProperty("xaxis") &&  plot.config.xaxis.hasOwnProperty("title_markdown_pattern")){
-                                                        var qCharacter = /\((.*?)\)/ig.exec(plot_values.layout.xaxis.title_markdown_pattern)[1].indexOf("?") !== -1 ? "&" : "?";
+                                                    if(plot.config.hasOwnProperty("xaxis") &&  plot.config.xaxis.hasOwnProperty("title_display_markdown_pattern")){
+                                                        var qCharacter = /\((.*?)\)/ig.exec(plot_values.layout.xaxis.title_display_markdown_pattern)[1].indexOf("?") !== -1 ? "&" : "?";
                                                         $rootScope.templateParams= {
                                                             Title: layout.xaxis.title,
                                                         };
                                                         //Appending pcid and ppid to the URL request
-                                                        plot_values.layout.xaxis.title.replace(/\((.*?)\)/ig.exec(plot_values.layout.xaxis.title_markdown_pattern)[1],link+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid)
-                                                        plot_values.layout.xaxis.title=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(plot.config.xaxis.title_markdown_pattern,$rootScope.templateParams),true);
+                                                        plot_values.layout.xaxis.title.replace(/\((.*?)\)/ig.exec(plot_values.layout.xaxis.title_display_markdown_pattern)[1],link+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid)
+                                                        plot_values.layout.xaxis.title=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(plot.config.xaxis.title_display_markdown_pattern,$rootScope.templateParams),true);
                                                         //delete  $rootScope.templateParams;
             
                                                     }
-                                                    if(plot.config.hasOwnProperty("yaxis") && plot.config.yaxis.hasOwnProperty("title_markdown_pattern")){
-                                                        var qCharacter = /\((.*?)\)/ig.exec(plot_values.layout.yaxis.title_markdown_pattern)[1].indexOf("?") !== -1 ? "&" : "?";
+                                                    if(plot.config.hasOwnProperty("yaxis") && plot.config.yaxis.hasOwnProperty("title_display_markdown_pattern")){
+                                                        var qCharacter = /\((.*?)\)/ig.exec(plot_values.layout.yaxis.title_display_markdown_pattern)[1].indexOf("?") !== -1 ? "&" : "?";
                                                         $rootScope.templateParams= {
                                                             Title: layout.yaxis.title,
                                                         };
                                                         //Appending pcid and ppid to the URL request
-                                                        plot_values.layout.yaxis.title_markdown_pattern.replace(/\((.*?)\)/ig.exec(plot_values.layout.yaxis.title_markdown_pattern)[1],link+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid)
-                                                        plot_values.layout.yaxis.title=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(plot.config.yaxis.title_markdown_pattern,$rootScope.templateParams),true);
+                                                        plot_values.layout.yaxis.title_display_markdown_pattern.replace(/\((.*?)\)/ig.exec(plot_values.layout.yaxis.title_display_markdown_pattern)[1],link+qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid)
+                                                        plot_values.layout.yaxis.title=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(plot.config.yaxis.title_display_markdown_pattern,$rootScope.templateParams),true);
                                                         //delete  $rootScope.templateParams;
                                                     }   
                                                     plot_values.layout.disable_default_legend_click=plot.config.disable_default_legend_click;                                                 
@@ -1302,10 +1308,10 @@
                                                             window.open(url,'_blank');
                                                         }
                                                     }
-                                                    if(data.hasOwnProperty("points") && data.points[0].data.hasOwnProperty("legend_markdown_pattern")){
+                                                    if(data.hasOwnProperty("points") && data.points[0].data.hasOwnProperty("graphic_link_pattern")){
                                                         var idx=data.points[0].data.labels.indexOf(data.points[0].label.toString());
-                                                        if( data.points[0].data.legend_markdown_pattern[idx]!=false && data.points[0].data.legend_markdown_pattern[idx]!=undefined){
-                                                            var url=data.points[0].data.legend_markdown_pattern[idx];
+                                                        if( data.points[0].data.graphic_link_pattern[idx]!=false && data.points[0].data.graphic_link_pattern[idx]!=undefined){
+                                                            var url=data.points[0].data.graphic_link_pattern[idx];
                                                             window.open(url,'_blank');
                                                         }
                                                     }
