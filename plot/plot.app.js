@@ -109,7 +109,7 @@
                         legend_clickable_links: [],
                         text:[],
                         hoverinfo: 'text+value+percent',
-                        graphic_link_pattern: [],
+                        graphic_clickable_links: [],
                       };
                       return values;
                     case "bar":
@@ -124,7 +124,7 @@
                           // mode: getMode(type),
                           orientation: orientation,
                           hoverinfo: 'text',
-                          graphic_link_pattern: [],
+                          graphic_clickable_links: [],
                       }
                       return values;
                     case "histogram-horizontal":
@@ -236,7 +236,7 @@
                   return data.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
                 }
 
-                function checkQCharacter(link){
+                function getUrlJoinCharacter(link){
                     // Check if the link already has a "?" if yes append "&" else append "?" to add the parameters to the link
                     return link.indexOf("?") !== -1 ? "&" : "?"
                 }
@@ -244,27 +244,35 @@
                 function appendContextParameters(link){
                     let contextUrlParams=ConfigUtils.getContextHeaderParams();
                     // Extracts the link and checks if ? is present in the link, if yes it adds "&" else it appends "?"
-                    let qCharacter = checkQCharacter(link);
+                    let qCharacter = getUrlJoinCharacter(link);
                     //Return pcid and ppid to URL request
                     return qCharacter+"pcid="+contextUrlParams.cid+"&ppid="+contextUrlParams.pid;
                 }
 
                 function extractLink(pattern){
                     //Defined regex to extract url from the pattern defined in the configuration file
-                    //Example: [{{{ $layout.title }}}](https://dev.isrd.isi.edu/chaise/search){target=_blank}
-                    // extractedLink=https://dev.isrd.isi.edu/chaise/search
-                    return /\((.*?)\)/ig.exec(pattern)[1]
+                    //Example: [{{{ Number of records }}}](/deriva-webapps/plot/?config=gudmap-todate-pie){target=_blank}
+                    // extractedLink=/deriva-webapps/plot/?config=gudmap-todate-pie
+                    // Regex explaination: It extracts all the characters placed between "( )".
+                    // "." : matches any character and "*?" :  matches the previous token between zero and unlimited times
+                    // "i" modifier :  insensitive. Case insensitive match (ignores case of [a-zA-Z])
+                    // "g" modifier :  global. All matches.
+                    // Checking if the pattern contains link if yes then extract the link directly else   
+                    let extractedLink;
+                    if(pattern.includes("(") && pattern.includes(")")){
+                        let regex=/\((.*?)\)/ig;
+                        extractedLink=regex.exec(pattern)[1];
+                    }else{
+                        extractedLink=pattern;
+                    }
+                    return extractedLink
                 }
 
-                function configureTitleDisplayMarkdownPattern(layout,pattern){
+                function configureTitleDisplayMarkdownPattern(pattern){
                     let link=extractLink(pattern);
-                    //Creating layout object in template variable to extract the title property present in layout object
-                    //Example: [{{{ $layout.title }}}](https://dev.isrd.isi.edu/chaise/search){target=_blank}
-                    $rootScope.templateParams.$layout=layout
                     //Appending pcid and ppid to the URL request
-                    let title_display_markdown_pattern=pattern.replace(link,link+appendContextParameters(extractLink(pattern)));
+                    let title_display_markdown_pattern=pattern.replace(link,link+appendContextParameters(link));
                     let new_title=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(title_display_markdown_pattern,$rootScope.templateParams),true);
-                    delete $rootScope.templateParams.$layout;
                     return new_title;
                 }
 
@@ -332,11 +340,9 @@
 
                     $rootScope.hideStudySelector = false;
                     $rootScope.disableGeneSelector = false;
-                    $rootScope.templateParams = {
-                        $url_parameters: {
+                    $rootScope.templateParams.$url_parameters={
                             NCBI_GeneID: geneId || null,
                             Study: []
-                        }
                     }
 
                     // trick to verify if this config app is running inside of an iframe as part of another app
@@ -646,7 +652,9 @@
                                 responsive: true
                             };
                             var tracesComplete = 0;
-
+                            $rootScope.templateParams={
+                                $url_parameters:{}
+                            }
                             // violin plot has it's own case outside of the switch condition below since it relies on reference api for the gene selector
                             if (plot.plot_type == "violin") {
                                 // TODO: assumes only 1 plot
@@ -704,10 +712,8 @@
                                         try {
                                             var layout = getPlotlyLayout(plot);
                                             var data = response.data;
-                                            $rootScope.templateParams = {
-                                                $traces: {
-                                                    data: data,
-                                                },
+                                            $rootScope.templateParams.$traces = {
+                                                data: data
                                             }
                                             switch (plot.plot_type) {
                                                 case "pie":
@@ -749,25 +755,27 @@
                                                             values.labels.push(traceLabel);
                                                             // // Override the legend name displayed in the tooltip on traces by hovertemplate_display_pattern defined in configuration file
                                                             // var tooltip=trace.hovertemplate_display_pattern ? ERMrest.renderHandlebarsTemplate(trace.hovertemplate_display_pattern, $rootScope.templateParams) : row[trace.legend_col];
+                                                            // values.text.push(tooltip)
                                                             //  //Added the legend column names to text variable so that the tooltip name does not contain a link if the legends contains a link
                                                             values.text.push(row[trace.legend_col]);
                                                         }
                                                         values.values.push(formatData(row[trace.data_col], plot.config ? plot.config.format_data : false, "pie"));
                                                         // Configure links for individual traces 
+                                                        // For Configuring links we are only going to render the templating pattern as the link would not contain any of html content in it, it would be plain link like,
+                                                        //graphic_link_pattern: "/chaise/recordset/#2/{{{ $self.data.Schema_Table }}}/*::facets::{{#encodeFacet}}{{{ $self.data.Data_Type_Filter }}}{{/encodeFacet}}"
                                                         if(trace.hasOwnProperty("graphic_link_pattern")){
                                                             let graphic_link=trace.graphic_link_pattern+appendContextParameters(trace.graphic_link_pattern);
-                                                            values.graphic_link_pattern.push(ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(graphic_link,$rootScope.templateParams),true));
+                                                            values.graphic_clickable_links.push(ERMrest.renderHandlebarsTemplate(graphic_link,$rootScope.templateParams));
                                                         }
                                                         delete $rootScope.templateParams.$self;
                                                     });
                                                     plot_values.data.push(values);
                                                     if(plot.config.hasOwnProperty("title_display_markdown_pattern")){
-                                                        layout.title=configureTitleDisplayMarkdownPattern(layout,plot.config.title_display_markdown_pattern);
+                                                        layout.title=configureTitleDisplayMarkdownPattern(plot.config.title_display_markdown_pattern);
                                                     }
                                                     plot_values.layout = layout;
                                                     plot_values.config = config;
                                                     plot_values.layout.disable_default_legend_click=plot.config.disable_default_legend_click;
-                                                    delete $rootScope.templateParams;
                                                     break;
                                                 case "histogram-horizontal":
                                                     var values = getValues(plot.plot_type, trace.legend);
@@ -814,6 +822,7 @@
                                                                     data: row
                                                                 }
                                                                 var y_col=row[trace.y_col];
+                                                                //Checking for yaxis because the orientation is horizontal and therefore y axis will have labels and x axis will have values
                                                                 //Checking if tick_display_markdown_pattern is available in yaxis if yes, then make the y axis labels as hyperlinks.
                                                                 if(plot.config.hasOwnProperty("yaxis") && plot.config.yaxis.hasOwnProperty("tick_display_markdown_pattern")){
                                                                     var patternLink=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(plot.config.yaxis.tick_display_markdown_pattern,$rootScope.templateParams),true);
@@ -823,11 +832,16 @@
                                                                 }
                                                                 values.x.push(formatData(row[trace.x_col[i]], plot.config ? plot.config.format_data_x : false));
                                                                 values.y.push(formatData(y_col, plot.config ? plot.config.format_data_y : false));
+                                                                // // Override the legend name displayed in the tooltip on traces by hovertemplate_display_pattern defined in configuration file
+                                                                // var tooltip=trace.hovertemplate_display_pattern ? ERMrest.renderHandlebarsTemplate(trace.hovertemplate_display_pattern, $rootScope.templateParams) :formatData(row[trace.x_col[i]], plot.config ? plot.config.format_data_x : false);
+                                                                // values.text.push(tooltip)
                                                                 values.text.push(formatData(row[trace.x_col[i]], plot.config ? plot.config.format_data_x : false))
-                                                                                                                                // Configure links for individual traces 
+                                                                // Configure links for individual traces 
+                                                                // For Configuring links we are only going to render the templating pattern as the link would not contain any of html content in it, it would be plain link like,
+                                                                //graphic_link_pattern: "/chaise/recordset/#2/{{{ $self.data.Schema_Table }}}/*::facets::{{#encodeFacet}}{{{ $self.data.Data_Type_Filter }}}{{/encodeFacet}}"
                                                                 if(trace.hasOwnProperty("graphic_link_pattern")){
                                                                     let graphic_link=trace.graphic_link_pattern+appendContextParameters(trace.graphic_link_pattern);
-                                                                    values.graphic_link_pattern.push(ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(graphic_link,$rootScope.templateParams),true));
+                                                                    values.graphic_clickable_links.push(ERMrest.renderHandlebarsTemplate(graphic_link,$rootScope.templateParams));
                                                                 }
                                                                 delete $rootScope.templateParams.$self;
                                                             });
@@ -842,7 +856,8 @@
                                                                     data: row
                                                                 }
                                                                 var x_col=row[trace.x_col];
-                                                                //Checking if tick_display_markdown_pattern is available in xaxis if yes, then make the y axis labels as hyperlinks.
+                                                                //Checking for xaxis because the orientation is vertical and therefore x axis will have labels and y axis will have values
+                                                                //Checking if tick_display_markdown_pattern is available in yaxis if yes, then make the x axis labels as hyperlinks.
                                                                 if(plot.config.hasOwnProperty("xaxis") && plot.config.xaxis.hasOwnProperty("tick_display_markdown_pattern")){
                                                                     var patternLink=ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(plot.config.xaxis.tick_display_markdown_pattern,$rootScope.templateParams),true);
                                                                     var extractedLink=extractLink(plot.config.xaxis.tick_display_markdown_pattern);
@@ -851,15 +866,18 @@
                                                                 }
                                                                 values.x.push(formatData(x_col, plot.config ? plot.config.format_data_x : false));
                                                                 values.y.push(formatData(row[trace.y_col[i]], plot.config ? plot.config.format_data_y : false));
-                                                                var tooltip=trace.hovertemplate_display_pattern ? ERMrest.renderHandlebarsTemplate(trace.hovertemplate_display_pattern, $rootScope.templateParams) : formatData(row[trace.y_col[i]], plot.config ? plot.config.format_data_y : false);
-                                                                //Added the legend column names to text variable so that the tooltip name does not contain a link if the legends contains a link
-                                                                values.text.push(tooltip)
-
+                                                                // var tooltip=trace.hovertemplate_display_pattern ? ERMrest.renderHandlebarsTemplate(trace.hovertemplate_display_pattern, $rootScope.templateParams) : formatData(row[trace.y_col[i]], plot.config ? plot.config.format_data_y : false);
+                                                                // //Added the legend column names to text variable so that the tooltip name does not contain a link if the legends contains a link
+                                                                // values.text.push(tooltip)
+                                                                values.text.push(formatData(row[trace.y_col[i]], plot.config ? plot.config.format_data_y : false))
                                                                 // Configure links for individual traces 
+                                                                // For Configuring links we are only going to render the templating pattern as the link would not contain any of html content in it, it would be plain link like,
+                                                                //graphic_link_pattern: "/chaise/recordset/#2/{{{ $self.data.Schema_Table }}}/*::facets::{{#encodeFacet}}{{{ $self.data.Data_Type_Filter }}}{{/encodeFacet}}"
                                                                 if(trace.hasOwnProperty("graphic_link_pattern")){
                                                                     let graphic_link=trace.graphic_link_pattern+appendContextParameters(trace.graphic_link_pattern);
-                                                                    values.graphic_link_pattern.push(ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(graphic_link,$rootScope.templateParams),true));
+                                                                    values.graphic_clickable_links.push(ERMrest.renderHandlebarsTemplate(graphic_link,$rootScope.templateParams));
                                                                 }
+                                                                delete $rootScope.templateParams.$self;
                                                             });
                                                             values.hoverinfo = 'text'
                                                             plot_values.data.push(values);
@@ -867,24 +885,17 @@
                                                     }
                                                     //If title_display_markdown_pattern is present in the config file in title or xaxis title, make them as hyperlinks as well
                                                     if(plot.config.hasOwnProperty("title_display_markdown_pattern")){
-                                                        layout.title=configureTitleDisplayMarkdownPattern(layout,plot.config.title_display_markdown_pattern);
+                                                        layout.title=configureTitleDisplayMarkdownPattern(plot.config.title_display_markdown_pattern);
                                                     }
                                                     if(plot.config.hasOwnProperty("xaxis") &&  plot.config.xaxis.hasOwnProperty("title_display_markdown_pattern")){
-                                                        layout.xaxis.title=configureTitleDisplayMarkdownPattern(layout,plot.config.xaxis.title_display_markdown_pattern);
+                                                        layout.xaxis.title=configureTitleDisplayMarkdownPattern(plot.config.xaxis.title_display_markdown_pattern);
                                                     }
                                                     if(plot.config.hasOwnProperty("yaxis") && plot.config.yaxis.hasOwnProperty("title_display_markdown_pattern")){
-                                                        layout.yaxis.title=configureTitleDisplayMarkdownPattern(layout,plot.config.yaxis.title_display_markdown_pattern);
+                                                        layout.yaxis.title=configureTitleDisplayMarkdownPattern(plot.config.yaxis.title_display_markdown_pattern);
                                                     } 
-                                                    // if(plot.config.hasOwnProperty("xaxis") &&  plot.config.xaxis.hasOwnProperty("tick_display_markdown_pattern")){                                                                // use template if available/defined, else use value for column
-                                                    //     var value = xGroupKey.tick_display_pattern ? ERMrest.renderHandlebarsTemplate(xGroupKey.tick_display_pattern, $rootScope.templateParams) : obj[xGroupKey.column_name];
-                                                    // }
-                                                    // if(plot.config.hasOwnProperty("xaxis") &&  plot.config.xaxis.hasOwnProperty("tick_display_markdown_pattern")){                                                                // use template if available/defined, else use value for column
-                                                    //     var value = xGroupKey.tick_display_pattern ? ERMrest.renderHandlebarsTemplate(xGroupKey.tick_display_pattern, $rootScope.templateParams) : obj[xGroupKey.column_name];
-                                                    // }
                                                     plot_values.layout = layout;
                                                     plot_values.config = config;  
                                                     plot_values.layout.disable_default_legend_click=plot.config.disable_default_legend_click;                                                 
-                                                    delete $rootScope.templateParams;
                                                     break;
                                                 default:
                                                     for(var i = 0; i < trace.y_col.length;i++) {
@@ -898,10 +909,8 @@
                                                         plot_values.layout = layout;
                                                         plot_values.config = config;
                                                     }
-                                                    delete $rootScope.templateParams;
                                                     break;
                                             }
-
                                             tracesComplete++;
                                             plots[plot_values.id].plot_values = plot_values;
                                             plots[plot_values.id].loaded = true;
@@ -916,11 +925,10 @@
                                             if (allLoaded) {
                                                 $rootScope.plots = plots;
                                             }
-
+                                            delete  $rootScope.templateParams.$traces;
                                         } catch (error) {
                                             console.log(error);
                                         }
-
                                     }).catch(function (err) {
                                         if (err.status == 401) {
                                             if (!$rootScope.loginShown) {
@@ -1300,14 +1308,15 @@
                                     for (var i = 0; i < plots.length; i++) {
                                         if (plots[i].id == element[0].attributes['plot-id'].nodeValue) {
                                             Plotly.newPlot(element[0], plots[i].plot_values.data, plots[i].plot_values.layout, plots[i].plot_values.config)
-                                            .then(                                          
-                                                element[0].on('plotly_hover', function(data){
+                                            .then(
+
+                                                element[0].on('plotly_hover', function(){
                                                     //On hover of the individual traces(Slices) of the pie change the cursor to pointer
                                                     var dragLayer = document.getElementsByClassName('pielayer')[0];
                                                     dragLayer.style.cursor = 'pointer';
                                                 }),
 
-                                                element[0].on('plotly_unhover', function(data){
+                                                element[0].on('plotly_unhover', function(){
                                                     //on unhover change the cursor to default icon
                                                     var dragLayer = document.getElementsByClassName('pielayer')[0];
                                                     dragLayer.style.cursor = '';
@@ -1323,7 +1332,7 @@
                                                             0:{
                                                                 data:{
                                                                     labels:[ //array of labels in pie chart],
-                                                                    graphic_link_pattern: // array of links which are used to make chart clickable
+                                                                    graphic_clickable_links: // array of links which are used to make chart clickable
                                                                 },
                                                                 fullData:{
                                                                     // Data with default parameters used by plotly
@@ -1345,7 +1354,7 @@
                                                                 data:{
                                                                     x:[ //array of labels in bar chart xaxis],
                                                                     y: [ //array of labels in bar chart yaxis ]
-                                                                    graphic_link_pattern: // array of links which are used to make chart clickable
+                                                                    graphic_clickable_links: // array of links which are used to make chart clickable
                                                                 },
                                                                 fullData:{
                                                                     // Data with default parameters used by plotly
@@ -1362,33 +1371,62 @@
                                                     
                                                     
                                                     */
-
-                                                    if(data.hasOwnProperty("points") && data.points[0].data.hasOwnProperty("graphic_link_pattern")){
+                                                    if(data.hasOwnProperty("points") && data.points[0].data.hasOwnProperty("graphic_clickable_links")){
                                                         var idx="";
+                                                        // For Pie, data.point[0].label is the label of the slice on which click event took place and data.points[0].data.labels is a list of all the labels of the traces, so we are trying to find out on what index of the label, the click event took place.
+                                                        // After we retrive the index we will fetch the link present at that label in graphic_clickable_links and redirect the page to that link
+                                                        // For Bar chart, we are doing the same this, only difference is based on the orientation we need to check the label is present on xaxis or yaxis
+                                                        //Note: length(data.points[0].data.labels) | length(data.points[0].data.y) | length(data.points[0].data.x)  == length(data.points[0].data.graphic_clickable_links)
                                                         switch(data.points[0].data.type){
                                                             case "pie":
                                                                 idx=data.points[0].data.labels.indexOf(data.points[0].label.toString());
                                                                 break;
                                                             case "bar":
+                                                                // if the orientation is horizontal then the labels will be present on y axis else the labels will be present of xaxis
                                                                 if(data.points[0].data.orientation=="h")
                                                                     idx=data.points[0].data.y.indexOf(data.points[0].y.toString());
                                                                 else
                                                                     idx=data.points[0].data.x.indexOf(data.points[0].x.toString());
                                                                 break;
                                                         }
-                                                        if( data.points[0].data.graphic_link_pattern[idx]!=false && data.points[0].data.graphic_link_pattern[idx]!=undefined){
-                                                            var url=data.points[0].data.graphic_link_pattern[idx];
+                                                        if( data.points[0].data.graphic_clickable_links[idx]!=false && data.points[0].data.graphic_clickable_links[idx]!=undefined){
+                                                            var url=data.points[0].data.graphic_clickable_links[idx];
                                                             window.open(url,'_blank');
                                                         }
                                                     }
                                                 }),
                                                 element[0].on('plotly_legendclick', function(data){
+
+                                                    /*
+                                                    Data recived on plotly legend click event
+                                                    // For Pie Chart
+                                                    data:{
+                                                            config: {staticPlot: false, plotlyServerURL: "", editable: false, edits: {…}, autosizable: false, …}
+                                                            curveNumber: 0
+                                                            data: Array(1)
+                                                            0: {type: "pie", labels: Array(8), values: Array(8), legend_clickable_links: Array(8), text: Array(8), …}
+                                                            length: 1
+                                                            [[Prototype]]: Array(0)
+                                                            event: MouseEvent {isTrusted: true, screenX: 597, screenY: 261, clientX: 597, clientY: 190, …}
+                                                            expandedIndex: 0
+                                                            frames: []
+                                                            fullData: Array(1)
+                                                            0: {type: "pie", _template: null, uid: "b7d954", visible: true, name: "trace 0", …}
+                                                            length: 1
+                                                            [[Prototype]]: Array(0)
+                                                            fullLayout: {_dfltTitle: {…}, _traceWord: "trace", _mapboxAccessToken: null, font: {…}, title: {…}, …}
+                                                            label: "<a href=\"/chaise/recordset/#2/Gene_Expression:Specimen/*::facets::?pcid=plotApp&ppid=2pm62p3i1ffo1n7b1wzc2o7e\" target=\"_blank\">Imaging: ISH</a>"
+                                                            layout: {title: {…}, showlegend: true, disable_default_legend_click: true}
+                                                    }
+
+                                                    */
+                                                   
                                                     //This event occurs on click of legend
                                                     if(data.hasOwnProperty("data")){
                                                             if(data.data[0].hasOwnProperty("legend_clickable_links") ){
                                                                 var idx=data.data[0].labels.indexOf(data.label.toString());
                                                                 if(data.data[0].legend_clickable_links[idx]!=false && data.data[0].legend_clickable_links[idx]!=undefined){
-                                                                    window.open(data.data[0].legend_clickable_links[0],'_blank');
+                                                                    window.open(data.data[0].legend_clickable_links[idx],'_blank');
                                                                     return false;
                                                                 }
                                                             }
