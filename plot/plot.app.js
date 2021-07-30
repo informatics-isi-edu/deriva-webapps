@@ -260,7 +260,7 @@
                     // Checking if the pattern contains link if yes then extract the link directly else   
                     let extractedLink;
                     if(pattern.includes("(") && pattern.includes(")")){
-                        let regex=/\((.*?)\)/ig;
+                        let regex=/]\((.*?)\)/ig;
                         extractedLink=regex.exec(pattern)[1];
                     }else{
                         extractedLink=pattern;
@@ -1312,13 +1312,21 @@
 
                                                 element[0].on('plotly_hover', function(){
                                                     //On hover of the individual traces(Slices) of the pie change the cursor to pointer
+                                                    // For Pie chart, the area of the pie is pielayer
                                                     var dragLayer = document.getElementsByClassName('pielayer')[0];
+                                                    dragLayer.style.cursor = 'pointer';
+                                                    // For bar chart, the area of the pie is nsewdrag
+                                                    var dragLayer = document.getElementsByClassName('nsewdrag')[0];
                                                     dragLayer.style.cursor = 'pointer';
                                                 }),
 
                                                 element[0].on('plotly_unhover', function(){
                                                     //on unhover change the cursor to default icon
+                                                    // For Pie chart, the area of the pie is pielayer
                                                     var dragLayer = document.getElementsByClassName('pielayer')[0];
+                                                    dragLayer.style.cursor = '';
+                                                    // For bar chart, the area of the pie is nsewdrag
+                                                    var dragLayer = document.getElementsByClassName('nsewdrag')[0];
                                                     dragLayer.style.cursor = '';
                                                 }),
 
