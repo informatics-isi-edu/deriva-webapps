@@ -124,7 +124,7 @@
                       return values;
                     case "histogram-horizontal":
                       values = {
-                          x: [],
+                          y: [],
                           name: legend || '',
                           type: "histogram",
                           orientation: orientation
@@ -132,7 +132,7 @@
                       return values;
                     case "histogram-vertical":
                         values = {
-                            y: [],
+                            x: [],
                             name: legend || '',
                             type: "histogram",
                             orientation: orientation
@@ -247,7 +247,7 @@
                       return data;
                     }
                   } else {
-                    if (type == "pie") {
+                    if (type == "pie" || typeof data != "number") {
                       return data;
                     }
                     return addComma(data)
@@ -433,7 +433,7 @@
                         headers[ERMrest.contextHeaderName].pcid=UriUtils.getQueryParams($window.location.href).pcid;
                     if(UriUtils.getQueryParams($window.location.href).ppid)
                         headers[ERMrest.contextHeaderName].ppid=UriUtils.getQueryParams($window.location.href).ppid;
-                    headers[ERMrest.contextHeaderName]=ERMrest._certifyContextHeader(headers[ERMrest.contextHeaderName]); 
+                    headers[ERMrest.contextHeaderName]=ERMrest._certifyContextHeader(headers[ERMrest.contextHeaderName]);
                     server.http.get(uri,{ headers: headers}).then(function(response) {
                         var data = response.data;
 
@@ -605,7 +605,7 @@
                             };
                             var config = {
                                 displaylogo: false,
-                                modeBarButtonsToRemove: plot.plotlyDefaultButtonsToRemove,
+                                modeBarButtonsToRemove: plot.plotlyDefaultButtonsToRemove || [],
                                 responsive: true
                             };
                             var tracesComplete = 0;
@@ -662,7 +662,7 @@
                                         headers[ERMrest.contextHeaderName].pcid=UriUtils.getQueryParams($window.location.href).pcid;
                                     if(UriUtils.getQueryParams($window.location.href).ppid)
                                         headers[ERMrest.contextHeaderName].ppid=UriUtils.getQueryParams($window.location.href).ppid;
-                                    headers[ERMrest.contextHeaderName]=ERMrest._certifyContextHeader(headers[ERMrest.contextHeaderName]); 
+                                    headers[ERMrest.contextHeaderName]=ERMrest._certifyContextHeader(headers[ERMrest.contextHeaderName]);
                                     server.http.get(uri,{ headers: headers }).then(function(response) {
                                         try {
                                             var layout = getPlotlyLayout(plot);
@@ -695,8 +695,9 @@
                                                 case "histogram-horizontal":
                                                     var values = getValues(plot.plot_type, trace.legend);
                                                     data.forEach(function (row) {
-                                                        values.x.push(formatData(row[trace.data_col], plot.config ? plot.config.format_data : false));
+                                                        values.y.push(formatData(row[trace.data_col], plot.config ? plot.config.format_data : false));
                                                     });
+                                                    values.nbinsy = plot.config.ybins;
                                                     plot_values.data.push(values);
                                                     plot_values.layout = layout;
                                                     plot_values.config = config;
@@ -704,8 +705,9 @@
                                                 case "histogram-vertical":
                                                     var values = getValues(plot.plot_type, trace.legend);
                                                     data.forEach(function (row) {
-                                                        values.y.push(formatData(row[trace.data_col], plot.config ? plot.config.format_data : false));
+                                                        values.x.push(formatData(row[trace.data_col], plot.config ? plot.config.format_data : false));
                                                     });
+                                                    values.nbinsx = plot.config.xbins;
                                                     plot_values.data.push(values);
                                                     plot_values.layout = layout;
                                                     plot_values.config = config;
@@ -760,7 +762,7 @@
                                                         var values = getValues(plot.plot_type, trace.legend ? trace.legend[i]: '',  trace.orientation);
 
                                                         data.forEach(function (row) {
-                                                            values.x.push(formatData(row[trace.x_col], plot.config ? plot.config.format_data_x : false));
+                                                            values.x.push(formatData(row[trace.x_col[0]], plot.config ? plot.config.format_data_x : false));
                                                             values.y.push(formatData(row[trace.y_col[i]], plot.config ? plot.config.format_data_y : false));
                                                         });
                                                         plot_values.data.push(values);
