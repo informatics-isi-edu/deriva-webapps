@@ -120,6 +120,7 @@
                           textposition: 'outside',
                           type: getType(type),
                           name: legend,
+                          legend_clickable_links: [],
                           // fill: type == 'area' ? 'tozeroy':'',
                           // mode: getMode(type),
                           orientation: orientation,
@@ -203,6 +204,7 @@
                             layout.yaxis = { zeroline: false };
                             layout.hovermode = "closest";
                             layout.dragmode = "pan";
+                            layout.disable_default_legend_click=plot.config.disable_default_legend_click;  
                             break;
                         default:
                             layout.xaxis = {
@@ -250,6 +252,9 @@
                 }
 
                 function extractLink(pattern){
+                    // Checking if the pattern contains link if yes then extract the link directly else   
+                    let extractedLink;
+                    if(pattern.includes("(") && pattern.includes(")")){
                     //Defined regex to extract url from the pattern defined in the configuration file
                     //Example: [{{{ Number of records }}}](/deriva-webapps/plot/?config=gudmap-todate-pie){target=_blank}
                     // extractedLink=/deriva-webapps/plot/?config=gudmap-todate-pie
@@ -257,10 +262,15 @@
                     // "." : matches any character and "*?" :  matches the previous token between zero and unlimited times
                     // "i" modifier :  insensitive. Case insensitive match (ignores case of [a-zA-Z])
                     // "g" modifier :  global. All matches.
-                    // Checking if the pattern contains link if yes then extract the link directly else   
-                    let extractedLink;
-                    if(pattern.includes("(") && pattern.includes(")")){
                         let regex=/]\((.*?)\)/ig;
+                        extractedLink=regex.exec(pattern)[1];
+                    }else if(pattern.includes("href")){
+                        // Extracts a link from the anchor tag using regex
+                        // "/s" : matches a space character
+                        // ^\n\r : matches a string that does not have new line or carriage return
+                        //Example: <a href="(/deriva-webapps/plot/?config=gudmap-todate-pie" target="_blank">prostate gland</a>
+                        // extractedLink=/deriva-webapps/plot/?config=gudmap-todate-pie
+                        let regex=/<a\b.+href="([^\n\r]*)"\s/ig;
                         extractedLink=regex.exec(pattern)[1];
                     }else{
                         extractedLink=pattern;
@@ -484,6 +494,25 @@
                         // xData used for graph x data AND xaxis grouping
                         var xData = data.map(function (obj) {
                             var value = obj[xGroupKey.column_name];
+
+                            //Check if the legends are defined in the configuration file
+                            if(value !== null && value !== undefined) {
+                                //Changes related to adding markdown templating pattern to legends in violin
+                                if(dataParams.trace.hasOwnProperty("legend_markdown_pattern") && dataParams.trace.legend_markdown_pattern){
+                                    
+                                    try{
+                                        var pattern=ERMrest.renderHandlebarsTemplate(dataParams.trace.legend_markdown_pattern,$rootScope.templateParams);
+                                        value=ERMrest.renderMarkdown(pattern,true);
+                                        var extractedLink=extractLink(pattern);
+                                        var linkWithContextParams =extractedLink+appendContextParameters(extractLink(dataParams.trace.legend_markdown_pattern));
+                                        // values.legend_clickable_links.push(linkWithContextParams);
+                                        // Add Context Parameters to link
+                                        value=value.replace(extractedLink,linkWithContextParams)
+                                    }catch(error){
+                                        value =  obj[xGroupKey.column_name];
+                                    }
+                                }
+                            }
                             return (value !== null && value !== undefined) ? value : "N/A"
                         });
 
@@ -493,9 +522,8 @@
                             // add row of data to templating environment
                             $rootScope.templateParams.$row = obj;
 
-                            // use template if available/defined, else use value for column
-                            var value = xGroupKey.tick_display_pattern ? ERMrest.renderHandlebarsTemplate(xGroupKey.tick_display_pattern, $rootScope.templateParams) : obj[xGroupKey.column_name];
-
+                            // use markdown template/template if available/defined, else use value for column
+                            var value = xGroupKey.tick_display_markdown_pattern ? ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(xGroupKey.tick_display_markdown_pattern, $rootScope.templateParams),true) : obj[xGroupKey.column_name];
                             // remove row after using it for templating
                             delete $rootScope.templateParams.$row;
                             return (value !== null && value !== undefined) ? value : "N/A"
@@ -506,9 +534,8 @@
                             // add row of data to templating environment
                             $rootScope.templateParams.$row = obj;
 
-                            // use template if available/defined, else use value for column
-                            var value = config.yaxis.tick_display_pattern ? ERMrest.renderHandlebarsTemplate(config.yaxis.tick_display_pattern, $rootScope.templateParams) : obj[config.yaxis.group_key];
-
+                            // use markdown template/template if available/defined, else use value for column
+                            var value = config.yaxis.tick_display_pattern ? ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(config.yaxis.tick_display_pattern, $rootScope.templateParams),true) : obj[config.yaxis.group_key];
                             // remove row after using it for templating
                             delete $rootScope.templateParams.$row;
                             return value;
@@ -551,6 +578,7 @@
                                     groups: xData,
                                     styles: groupStyles
                                 }],
+                                graphic_clickable_links:[]
                             }],
                             // passed directly to plotly (plotly.layout)
                             layout: getPlotlyLayout(plot)
@@ -563,17 +591,31 @@
 
                         // TODO: should plotTitlePattern be required? if no, should "TPM Expression" remain the default
                         plotlyConfig.layout.title = (config.title_display_pattern ? ERMrest.renderHandlebarsTemplate(config.title_display_pattern, $rootScope.templateParams) : "TPM Expression");
+                        // Checking if markdown template is available for title, if yes use that else use the plot title
+                        plotlyConfig.layout.title = (config.title_display_markdown_pattern? configureTitleDisplayMarkdownPattern(plot.config.title_display_markdown_pattern) :  plotlyConfig.layout.title);
 
                         // xaxis
                         // use title pattern OR column_name if pattern doesn't exist
                         plotlyConfig.layout.xaxis.title.text = (xGroupKey.title_display_pattern ? ERMrest.renderHandlebarsTemplate(xGroupKey.title_display_pattern, $rootScope.templateParams) : xGroupKey.column_name);
+                                                // Checking if markdown template is available for title, if yes use that else use the xaxis plot title
+                        plotlyConfig.layout.xaxis.title.text = (xGroupKey.title_display_markdown_pattern? configureTitleDisplayMarkdownPattern(xGroupKey.title_display_markdown_pattern) :  plotlyConfig.layout.xaxis.title.text);
                         plotlyConfig.layout.xaxis.tickvals = xData;
                         plotlyConfig.layout.xaxis.ticktext = xDataTicks;
 
                         // yaxis
                         // use title pattern OR group_key if pattern doesn't exist
                         plotlyConfig.layout.yaxis.title = config.yaxis.title_pattern ? ERMrest.renderHandlebarsTemplate(config.yaxis.title_pattern, $rootScope.templateParams) : config.yaxis.group_key;
+                        // Checking if markdown template is available for title, if yes use that else use the yaxis plot title
+                        plotlyConfig.layout.yaxis.title = (config.title_display_markdown_pattern? configureTitleDisplayMarkdownPattern(plot.config.yaxis.title_display_markdown_pattern) :  plotlyConfig.layout.yaxis.title);
                         plotlyConfig.layout.yaxis.type = $rootScope.yAxisScale;
+                        // Add graphic links to the violin chart and append context parameters to the link
+                        if(dataParams.trace.hasOwnProperty("graphic_link_pattern")){
+                            let graphic_link=dataParams.trace.graphic_link_pattern;
+                            if(Array.isArray(dataParams.trace.graphic_link_pattern))
+                                graphic_link=dataParams.trace.graphic_link_pattern[0];
+                            graphic_link=graphic_link+appendContextParameters(graphic_link);
+                            plotlyConfig.data[0].graphic_clickable_links.push(ERMrest.renderHandlebarsTemplate(graphic_link,$rootScope.templateParams));
+                        }
 
                         // attach configuration and data for plot
                         plot_values.data = plotlyConfig.data;
@@ -764,7 +806,11 @@
                                                         // For Configuring links we are only going to render the templating pattern as the link would not contain any of html content in it, it would be plain link like,
                                                         //graphic_link_pattern: "/chaise/recordset/#2/{{{ $self.data.Schema_Table }}}/*::facets::{{#encodeFacet}}{{{ $self.data.Data_Type_Filter }}}{{/encodeFacet}}"
                                                         if(trace.hasOwnProperty("graphic_link_pattern")){
-                                                            let graphic_link=trace.graphic_link_pattern+appendContextParameters(trace.graphic_link_pattern);
+                                                            let graphic_link=trace.graphic_link_pattern;
+                                                            // Added code to support graphic_link_pattern as a String or an array, if it is an array only pick up 0th element
+                                                            if(Array.isArray(trace.graphic_link_pattern))
+                                                                graphic_link=trace.graphic_link_pattern[0];
+                                                            graphic_link=graphic_link+appendContextParameters(graphic_link);
                                                             values.graphic_clickable_links.push(ERMrest.renderHandlebarsTemplate(graphic_link,$rootScope.templateParams));
                                                         }
                                                         delete $rootScope.templateParams.$self;
@@ -809,8 +855,19 @@
                                                         for(var i = 0; i < trace.x_col.length;i++) {
                                                             // $self object will point to the the current row from the data that is fetched from URI
                                                             var trace_legend=trace.legend ? trace.legend[i]: '';
+                                                            // Add links to the legends
+                                                            var trace_legend_link=trace.legend_markdown_pattern ? trace.legend_markdown_pattern[i]:'';
+                                                            if(trace_legend_link!=''){
+                                                                trace_legend_link=ERMrest.renderMarkdown(trace_legend_link,true);
+                                                                var extractedLink=extractLink(trace.legend_markdown_pattern[i]);
+                                                                var linkWithContextParams =extractedLink+appendContextParameters(extractLink(trace.legend_markdown_pattern[i]));
+                                                                // Add Context Parameters to link
+                                                                trace_legend=trace_legend_link.replace(extractedLink,linkWithContextParams)
+                                                            }
                                                             var values = getValues(plot.plot_type, trace_legend,  trace.orientation);
-
+                                                            if(values.trace_legend!=''){
+                                                                values.legend_clickable_links.push(linkWithContextParams);
+                                                            }
                                                             if (trace.textangle) {
                                                                 values.textangle = trace.textangle;
                                                             }
@@ -840,7 +897,12 @@
                                                                 // For Configuring links we are only going to render the templating pattern as the link would not contain any of html content in it, it would be plain link like,
                                                                 //graphic_link_pattern: "/chaise/recordset/#2/{{{ $self.data.Schema_Table }}}/*::facets::{{#encodeFacet}}{{{ $self.data.Data_Type_Filter }}}{{/encodeFacet}}"
                                                                 if(trace.hasOwnProperty("graphic_link_pattern")){
-                                                                    let graphic_link=trace.graphic_link_pattern+appendContextParameters(trace.graphic_link_pattern);
+                                                                    // Added code to support graphic_link_pattern as a String or an array, if it is an array only pick up 0th element
+                                                                    let graphic_link=trace.graphic_link_pattern;
+                                                                    if(Array.isArray(trace.graphic_link_pattern)){
+                                                                        graphic_link=trace.graphic_link_pattern[0];
+                                                                    }
+                                                                    graphic_link=graphic_link+appendContextParameters(graphic_link);
                                                                     values.graphic_clickable_links.push(ERMrest.renderHandlebarsTemplate(graphic_link,$rootScope.templateParams));
                                                                 }
                                                                 delete $rootScope.templateParams.$self;
@@ -874,7 +936,12 @@
                                                                 // For Configuring links we are only going to render the templating pattern as the link would not contain any of html content in it, it would be plain link like,
                                                                 //graphic_link_pattern: "/chaise/recordset/#2/{{{ $self.data.Schema_Table }}}/*::facets::{{#encodeFacet}}{{{ $self.data.Data_Type_Filter }}}{{/encodeFacet}}"
                                                                 if(trace.hasOwnProperty("graphic_link_pattern")){
-                                                                    let graphic_link=trace.graphic_link_pattern+appendContextParameters(trace.graphic_link_pattern);
+                                                                    // Added code to support graphic_link_pattern as a String or an array, if it is an array only pick up 0th element
+                                                                    let graphic_link=trace.graphic_link_pattern;
+                                                                    if(Array.isArray(trace.graphic_link_pattern)){
+                                                                        graphic_link=trace.graphic_link_pattern[0];
+                                                                    }
+                                                                    graphic_link=graphic_link+appendContextParameters(graphic_link);
                                                                     values.graphic_clickable_links.push(ERMrest.renderHandlebarsTemplate(graphic_link,$rootScope.templateParams));
                                                                 }
                                                                 delete $rootScope.templateParams.$self;
@@ -1309,24 +1376,50 @@
                                         if (plots[i].id == element[0].attributes['plot-id'].nodeValue) {
                                             Plotly.newPlot(element[0], plots[i].plot_values.data, plots[i].plot_values.layout, plots[i].plot_values.config)
                                             .then(
+                                                // Data recived for plotly_hover and plotly_unhover events:
+                                                /*data:{
+                                                   event:{
+                                                       isTrusted:True,
+                                                       ..
+                                                   },
+                                                   points:{
+                                                       0:{
+                                                           data:{
+                                                               type:"pie",
+                                                               hoverinfo:"text+value+percent",
+                                                               text:"Imaging:IHC",
+                                                           }
+                                                       }
+                                                   }
+                                                }*/
 
-                                                element[0].on('plotly_hover', function(){
+                                                element[0].on('plotly_hover', function(data){
                                                     //On hover of the individual traces(Slices) of the pie change the cursor to pointer
-                                                    // For Pie chart, the area of the pie is pielayer
-                                                    var dragLayer = document.getElementsByClassName('pielayer')[0];
-                                                    dragLayer.style.cursor = 'pointer';
-                                                    // For bar chart, the area of the pie is nsewdrag
-                                                    var dragLayer = document.getElementsByClassName('nsewdrag')[0];
+                                                    // Need to check the type of the plot as area occupied by the graph has different names based on graphs
+                                                    switch(data.points[0].data.type){
+                                                        case "pie":
+                                                             // For Pie chart, the area of the pie is pielayer
+                                                            var dragLayer = document.getElementsByClassName('pielayer')[0];
+                                                            break;
+                                                        default :
+                                                            // For bar,violin chart, the area of the chart is nsewdrag
+                                                            var dragLayer = document.getElementsByClassName('nsewdrag')[0];
+                                                    }
                                                     dragLayer.style.cursor = 'pointer';
                                                 }),
 
-                                                element[0].on('plotly_unhover', function(){
+                                                element[0].on('plotly_unhover', function(data){
                                                     //on unhover change the cursor to default icon
-                                                    // For Pie chart, the area of the pie is pielayer
-                                                    var dragLayer = document.getElementsByClassName('pielayer')[0];
-                                                    dragLayer.style.cursor = '';
-                                                    // For bar chart, the area of the pie is nsewdrag
-                                                    var dragLayer = document.getElementsByClassName('nsewdrag')[0];
+                                                    switch(data.points[0].data.type){
+                                                        case "pie":
+                                                             // For Pie chart, the area of the pie is pielayer
+                                                            var dragLayer = document.getElementsByClassName('pielayer')[0];
+                                                            break;
+                                                        default :
+                                                            // For bar,violin chart, the area of the chart is nsewdrag
+                                                            var dragLayer = document.getElementsByClassName('nsewdrag')[0];
+                                                            break;
+                                                    }
                                                     dragLayer.style.cursor = '';
                                                 }),
 
@@ -1391,11 +1484,15 @@
                                                                 break;
                                                             case "bar":
                                                                 // if the orientation is horizontal then the labels will be present on y axis else the labels will be present of xaxis
+                                                                // For a grouped bar chart, plotly does not have a separate property which can help detect which one of the multiple bar chart on one xaxis/yaxis label was clicked.
+                                                                // Therefore, as of now, for grouped bar chart as well, the graphic_clickable link will correspond to the labels on the axis.
                                                                 if(data.points[0].data.orientation=="h")
                                                                     idx=data.points[0].data.y.indexOf(data.points[0].y.toString());
                                                                 else
                                                                     idx=data.points[0].data.x.indexOf(data.points[0].x.toString());
                                                                 break;
+                                                            case "violin":
+                                                                idx=data.points[0].data.x.indexOf(data.points[0].x.toString());
                                                         }
                                                         if( data.points[0].data.graphic_clickable_links[idx]!=false && data.points[0].data.graphic_clickable_links[idx]!=undefined){
                                                             var url=data.points[0].data.graphic_clickable_links[idx];
@@ -1428,11 +1525,21 @@
                                                     }
 
                                                     */
-                                                   
+                                                   var idx=""
                                                     //This event occurs on click of legend
                                                     if(data.hasOwnProperty("data")){
+                                                            switch(data.data[0].type){
+                                                                case "pie":
+                                                                    idx=data.data[0].labels.indexOf(data.data[0].label.toString());
+                                                                    break;
+                                                                case "bar":
+                                                                    let regex=/<a\b.+href="([^\n\r]*?)"+\s/ig;
+                                                                    var extractedLink=regex.exec(data.data[0].name)[1];
+                                                                    idx=data.data[0].legend_clickable_links.indexOf(extractedLink);
+                                                                    break;
+                                                            }
                                                             if(data.data[0].hasOwnProperty("legend_clickable_links") ){
-                                                                var idx=data.data[0].labels.indexOf(data.label.toString());
+                                                                //var idx=data.data[0].labels.indexOf(data.label.toString());
                                                                 if(data.data[0].legend_clickable_links[idx]!=false && data.data[0].legend_clickable_links[idx]!=undefined){
                                                                     window.open(data.data[0].legend_clickable_links[idx],'_blank');
                                                                     return false;
