@@ -106,9 +106,11 @@
                         type: "pie",
                         labels: [],
                         values: [],
+                        // An array which will hold all the links required for legends
                         legend_clickable_links: [],
                         text:[],
                         hoverinfo: 'text+value+percent',
+                        // An array which will hold all the links required for on click event of graph
                         graphic_clickable_links: [],
                       };
                       return values;
@@ -120,11 +122,13 @@
                           textposition: 'outside',
                           type: getType(type),
                           name: legend,
+                          // An array which will hold all the links required for legends
                           legend_clickable_links: [],
                           // fill: type == 'area' ? 'tozeroy':'',
                           // mode: getMode(type),
                           orientation: orientation,
                           hoverinfo: 'text',
+                          // An array which will hold all the links required for on click event of graph
                           graphic_clickable_links: [],
                       }
                       return values;
@@ -264,15 +268,17 @@
                     // "g" modifier :  global. All matches.
                         let regex=/]\((.*?)\)/ig;
                         extractedLink=regex.exec(pattern)[1];
-                    }else if(pattern.includes("href")){
-                        // Extracts a link from the anchor tag using regex
-                        // "/s" : matches a space character
-                        // ^\n\r : matches a string that does not have new line or carriage return
-                        //Example: <a href="(/deriva-webapps/plot/?config=gudmap-todate-pie" target="_blank">prostate gland</a>
-                        // extractedLink=/deriva-webapps/plot/?config=gudmap-todate-pie
-                        let regex=/<a\b.+href="([^\n\r]*)"\s/ig;
-                        extractedLink=regex.exec(pattern)[1];
-                    }else{
+                    }
+                    // else if(pattern.includes("href")){
+                    //     // Extracts a link from the anchor tag using regex
+                    //     // "/s" : matches a space character
+                    //     // ^\n\r : matches a string that does not have new line or carriage return
+                    //     //Example: <a href="(/deriva-webapps/plot/?config=gudmap-todate-pie" target="_blank">prostate gland</a>
+                    //     // extractedLink=/deriva-webapps/plot/?config=gudmap-todate-pie
+                    //     let regex=/<a\b.+href="([^\n\r]*)"\s/ig;
+                    //     extractedLink=regex.exec(pattern)[1];
+                    // }
+                    else{
                         extractedLink=pattern;
                     }
                     return extractedLink
@@ -489,28 +495,27 @@
                     headers[ERMrest.contextHeaderName]=ERMrest._certifyContextHeader(headers[ERMrest.contextHeaderName]); 
                     server.http.get(uri,{ headers: headers}).then(function(response) {
                         var data = response.data;
-
                         // transform x data based on groupKey
                         // xData used for graph x data AND xaxis grouping
                         var xData = data.map(function (obj) {
                             var value = obj[xGroupKey.column_name];
-
                             //Check if the legends are defined in the configuration file
                             if(value !== null && value !== undefined) {
                                 //Changes related to adding markdown templating pattern to legends in violin
-                                if(dataParams.trace.hasOwnProperty("legend_markdown_pattern") && dataParams.trace.legend_markdown_pattern){
-                                    
+                                if(xGroupKey.hasOwnProperty("legend_markdown_pattern") && xGroupKey.legend_markdown_pattern){
+                                    // Add the value extracted to the template variable as it can be used in the link provided by the configuration file
+                                    $rootScope.templateParams.value=obj[xGroupKey.column_name];
                                     try{
-                                        var pattern=ERMrest.renderHandlebarsTemplate(dataParams.trace.legend_markdown_pattern,$rootScope.templateParams);
+                                        var pattern=ERMrest.renderHandlebarsTemplate(xGroupKey.legend_markdown_pattern[0],$rootScope.templateParams);
                                         value=ERMrest.renderMarkdown(pattern,true);
                                         var extractedLink=extractLink(pattern);
-                                        var linkWithContextParams =extractedLink+appendContextParameters(extractLink(dataParams.trace.legend_markdown_pattern));
-                                        // values.legend_clickable_links.push(linkWithContextParams);
+                                        var linkWithContextParams =extractedLink+appendContextParameters(extractLink(xGroupKey.legend_markdown_pattern[0]));
                                         // Add Context Parameters to link
                                         value=value.replace(extractedLink,linkWithContextParams)
                                     }catch(error){
                                         value =  obj[xGroupKey.column_name];
                                     }
+                                    delete $rootScope.templateParams.value;
                                 }
                             }
                             return (value !== null && value !== undefined) ? value : "N/A"
@@ -578,7 +583,8 @@
                                     groups: xData,
                                     styles: groupStyles
                                 }],
-                                graphic_clickable_links:[]
+                                // An array which will contain all the links that can be used in on click event of the violin chart
+                                graphic_clickable_links:[],
                             }],
                             // passed directly to plotly (plotly.layout)
                             layout: getPlotlyLayout(plot)
@@ -601,7 +607,8 @@
                         plotlyConfig.layout.xaxis.title.text = (xGroupKey.title_display_markdown_pattern? configureTitleDisplayMarkdownPattern(xGroupKey.title_display_markdown_pattern) :  plotlyConfig.layout.xaxis.title.text);
                         plotlyConfig.layout.xaxis.tickvals = xData;
                         plotlyConfig.layout.xaxis.ticktext = xDataTicks;
-
+                        // set the legend_clickable_links variable to true of the legends in the violin graph have links in them else set it undefined
+                        plotlyConfig.data[0].legend_clickable_links=(xGroupKey.legend_markdown_pattern?true:undefined);
                         // yaxis
                         // use title pattern OR group_key if pattern doesn't exist
                         plotlyConfig.layout.yaxis.title = config.yaxis.title_pattern ? ERMrest.renderHandlebarsTemplate(config.yaxis.title_pattern, $rootScope.templateParams) : config.yaxis.group_key;
@@ -609,10 +616,11 @@
                         plotlyConfig.layout.yaxis.title = (config.title_display_markdown_pattern? configureTitleDisplayMarkdownPattern(plot.config.yaxis.title_display_markdown_pattern) :  plotlyConfig.layout.yaxis.title);
                         plotlyConfig.layout.yaxis.type = $rootScope.yAxisScale;
                         // Add graphic links to the violin chart and append context parameters to the link
-                        if(dataParams.trace.hasOwnProperty("graphic_link_pattern")){
-                            let graphic_link=dataParams.trace.graphic_link_pattern;
-                            if(Array.isArray(dataParams.trace.graphic_link_pattern))
-                                graphic_link=dataParams.trace.graphic_link_pattern[0];
+                        // Supports both graphic links as a string or as an array
+                        if(xGroupKey.hasOwnProperty("graphic_link_pattern")){
+                            let graphic_link=xGroupKey.graphic_link_pattern;
+                            if(Array.isArray(xGroupKey.graphic_link_pattern))
+                                graphic_link=xGroupKey.graphic_link_pattern[0];
                             graphic_link=graphic_link+appendContextParameters(graphic_link);
                             plotlyConfig.data[0].graphic_clickable_links.push(ERMrest.renderHandlebarsTemplate(graphic_link,$rootScope.templateParams));
                         }
@@ -1469,7 +1477,25 @@
                                                             }
                                                         }
                                                     }
-                                                    
+
+                                                    //data for violin chart
+                                                    data:{
+                                                        event:{..},
+                                                        points:{
+                                                            0:{
+                                                                data:{
+                                                                    type:violin,
+                                                                    graphic_clickable_links:["/deriva-webapps/plot/?config=gudmap-todate-pie&pcid=plotApp&ppid=1rqa2mfb1lyn2lr82bow1fce"],
+                                                                    legend_clickable_links:true
+                                                                },
+                                                                fullData:{
+
+                                                                },
+                                                                transform[0].groups:"<a href="/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=plotApp&ppid=1rqa2mfb1lyn2lr82bow1fce">prostate gland</a>"
+                                                                x:"<a href="/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=plotApp&ppid=1rqa2mfb1lyn2lr82bow1fce">prostate gland</a>"
+                                                            }
+                                                        }
+                                                    }
                                                     
                                                     */
                                                     if(data.hasOwnProperty("points") && data.points[0].data.hasOwnProperty("graphic_clickable_links")){
@@ -1492,7 +1518,8 @@
                                                                     idx=data.points[0].data.x.indexOf(data.points[0].x.toString());
                                                                 break;
                                                             case "violin":
-                                                                idx=data.points[0].data.x.indexOf(data.points[0].x.toString());
+                                                                // The index is 0 because in violin chart the event capture the data of a specific xGroupKey and so it will have link on 0th index
+                                                                idx=0;
                                                         }
                                                         if( data.points[0].data.graphic_clickable_links[idx]!=false && data.points[0].data.graphic_clickable_links[idx]!=undefined){
                                                             var url=data.points[0].data.graphic_clickable_links[idx];
@@ -1523,11 +1550,22 @@
                                                             label: "<a href=\"/chaise/recordset/#2/Gene_Expression:Specimen/*::facets::?pcid=plotApp&ppid=2pm62p3i1ffo1n7b1wzc2o7e\" target=\"_blank\">Imaging: ISH</a>"
                                                             layout: {title: {…}, showlegend: true, disable_default_legend_click: true}
                                                     }
-
+                                                    // For violin chart
                                                     */
                                                    var idx=""
+                                                    console.log(data)
                                                     //This event occurs on click of legend
                                                     if(data.hasOwnProperty("data")){
+                                                        // The case for violin chart is handled differently as we need to extract the link from the group attribute in the data which is not the case for pie chart and bar chart
+                                                        if(data.data[0].type=="violin"){
+                                                            if(data.data[0].legend_clickable_links==true){
+                                                                //Checking if the regex mataches, if yes extract the link
+                                                                let regex=/<a\shref="([^\n\r]*?)"/ig;
+                                                                var extractedLink=regex.exec(data.group)[1];
+                                                                window.open(extractedLink,'_blank');
+                                                                return false;
+                                                            }
+                                                        }else{
                                                             switch(data.data[0].type){
                                                                 case "pie":
                                                                     idx=data.data[0].labels.indexOf(data.data[0].label.toString());
@@ -1537,6 +1575,9 @@
                                                                     var extractedLink=regex.exec(data.data[0].name)[1];
                                                                     idx=data.data[0].legend_clickable_links.indexOf(extractedLink);
                                                                     break;
+                                                                // case "violin":
+                                                                    // let regex=/<a\b.+href="([^\n\r]*?)"+\s/ig;
+                                                                    // var extractedLink=regex.exec(data.data)
                                                             }
                                                             if(data.data[0].hasOwnProperty("legend_clickable_links") ){
                                                                 //var idx=data.data[0].labels.indexOf(data.label.toString());
@@ -1545,7 +1586,7 @@
                                                                     return false;
                                                                 }
                                                             }
-
+                                                        }
                                                             // if(data.data[0].hasOwnProperty("data_legend_pattern")){
 
                                                             //     if(data.data[0].data_legend_pattern[0]!=false && data.data[0].data_legend_pattern[0]!=undefined){
