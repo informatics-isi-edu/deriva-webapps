@@ -269,15 +269,15 @@
                         let regex=/]\((.*?)\)/ig;
                         extractedLink=regex.exec(pattern)[1];
                     }
-                    // else if(pattern.includes("href")){
-                    //     // Extracts a link from the anchor tag using regex
-                    //     // "/s" : matches a space character
-                    //     // ^\n\r : matches a string that does not have new line or carriage return
-                    //     //Example: <a href="(/deriva-webapps/plot/?config=gudmap-todate-pie" target="_blank">prostate gland</a>
-                    //     // extractedLink=/deriva-webapps/plot/?config=gudmap-todate-pie
-                    //     let regex=/<a\b.+href="([^\n\r]*)"\s/ig;
-                    //     extractedLink=regex.exec(pattern)[1];
-                    // }
+                    else if(pattern.includes("href")){
+                        // Extracts a link from the anchor tag using regex
+                        // "/s" : matches a space character
+                        // ^\n\r : matches a string that does not have new line or carriage return
+                        //Example: <a href="(/deriva-webapps/plot/?config=gudmap-todate-pie" target="_blank">prostate gland</a>
+                        // extractedLink=/deriva-webapps/plot/?config=gudmap-todate-pie
+                        let regex=/<a\shref="([^\n\r]*?)"/ig;
+                        extractedLink=regex.exec(pattern)[1];
+                    }
                     else{
                         extractedLink=pattern;
                     }
@@ -1024,7 +1024,8 @@
                             }
                         });
                     },
-                    getViolinData: getViolinData
+                    getViolinData: getViolinData,
+                    extractLink: extractLink
                 }
             }])
             .controller('plotController', ['AlertsService', 'ConfigUtils', 'dataFormats', 'dataParams', 'modalUtils', 'PlotUtils', 'UriUtils', '$rootScope', '$scope', '$timeout', '$window', function plotController(AlertsService, ConfigUtils, dataFormats, dataParams, modalUtils, PlotUtils, UriUtils, $rootScope, $scope, $timeout, $window) {
@@ -1372,7 +1373,7 @@
                     if (newValue) vm.groups = newValue;
                 });
             }])
-            .directive('plot', ['$rootScope', '$timeout','ConfigUtils', function ($rootScope, $timeout,ConfigUtils) {
+            .directive('plot', ['$rootScope', '$timeout','ConfigUtils','PlotUtils', function ($rootScope, $timeout,ConfigUtils,PlotUtils) {
                 
                 return {
                     link: function (scope, element) {
@@ -1560,9 +1561,7 @@
                                                         if(data.data[0].type=="violin"){
                                                             if(data.data[0].legend_clickable_links==true){
                                                                 //Checking if the regex mataches, if yes extract the link
-                                                                let regex=/<a\shref="([^\n\r]*?)"/ig;
-                                                                var extractedLink=regex.exec(data.group)[1];
-                                                                window.open(extractedLink,'_blank');
+                                                                window.open(PlotUtils.extractLink(data.group),'_blank');
                                                                 return false;
                                                             }
                                                         }else{
@@ -1571,13 +1570,8 @@
                                                                     idx=data.data[0].labels.indexOf(data.data[0].label.toString());
                                                                     break;
                                                                 case "bar":
-                                                                    let regex=/<a\b.+href="([^\n\r]*?)"+\s/ig;
-                                                                    var extractedLink=regex.exec(data.data[0].name)[1];
-                                                                    idx=data.data[0].legend_clickable_links.indexOf(extractedLink);
+                                                                    idx=data.data[0].legend_clickable_links.indexOf(PlotUtils.extractLink(data.data[0].name));
                                                                     break;
-                                                                // case "violin":
-                                                                    // let regex=/<a\b.+href="([^\n\r]*?)"+\s/ig;
-                                                                    // var extractedLink=regex.exec(data.data)
                                                             }
                                                             if(data.data[0].hasOwnProperty("legend_clickable_links") ){
                                                                 //var idx=data.data[0].labels.indexOf(data.label.toString());
