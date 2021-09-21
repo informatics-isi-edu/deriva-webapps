@@ -81,6 +81,7 @@
                       return "lines";
                     case "bar":
                       return "";
+                    case "scatter":
                     case "dot":
                       return "markers";
                     case "dot-lines":
@@ -105,9 +106,15 @@
                       values = {
                         type: "pie",
                         labels: [],
-                        values: []
+                        values: [],
+                        // An array which will hold all the links required for legends
+                        legend_clickable_links: [],
+                        text:[],
+                        hoverinfo: 'text+value+percent',
+                        // An array which will hold all the links required for on click event of graph
+                        graphic_clickable_links: []
                       };
-                      return values;
+                      break;
                     case "bar":
                       values = {
                           x: [],
@@ -116,12 +123,16 @@
                           textposition: 'outside',
                           type: getType(type),
                           name: legend,
+                          // An array which will hold all the links required for legends
+                          legend_clickable_links: [],
                           // fill: type == 'area' ? 'tozeroy':'',
                           // mode: getMode(type),
                           orientation: orientation,
-                          hoverinfo: 'text'
+                          hoverinfo: 'text',
+                          // An array which will hold all the links required for on click event of graph
+                          graphic_clickable_links: []
                       }
-                      return values;
+                      break;
                     case "histogram-horizontal":
                       values = {
                           y: [],
@@ -129,7 +140,7 @@
                           type: "histogram",
                           orientation: orientation
                       }
-                      return values;
+                      break;
                     case "histogram-vertical":
                         values = {
                             x: [],
@@ -137,25 +148,39 @@
                             type: "histogram",
                             orientation: orientation
                         }
-                        return values;
+                        break;
                     case "violin":
                         values = {
                           x: [],
                           y: [],
                           name: legend
                         }
-                        return values;
+                        break;
+                    case "scatter":
+                        values = {
+                            x: [],
+                            y: [],
+                            text: [],
+                            labels: [],
+                            legend_clickable_links: [],
+                            type: getType(type),
+                            // name of the trace
+                            // name: legend || '',
+                            mode: getMode(type)
+                        }
+                        break;
                     default:
                       values = {
                           x: [],
                           y: [],
+                          text: [],
                           type: getType(type),
                           name: legend,
                           fill: type == 'area' ? 'tozeroy':'',
                           mode: getMode(type)
                       }
-                      return values;
                   }
+                  return values;
                 }
 
                 function getPlotlyConfig(plot) {
@@ -173,16 +198,13 @@
                     var configLayout = {},
                         layout = {};
 
-                    // layout object from plot.plotly.layout or plot.plotly_config
-                    // NOTE: plotly_config will be deprecated eventually so prefer plotly.layout
+                    // layout object from plot.plotly.layout or plot.config
+                    // NOTE: plotly_config will be deprecated eventually
                     if (plot.plotly && plot.plotly.layout) {
                         configLayout = plot.plotly.layout;
-                    } else if (plot.plotly_config) {
-                        configLayout = plot.plotly_config;
+                    } else if (plot.config) {
+                        configLayout = plot.config;
                     }
-
-                     // NOTE: does not support templating (violin overrides outside of function with templating)
-                    layout.title = plot.plot_title;
 
                     // configuration overrides
                     var tempConfig = plot.config;
@@ -191,7 +213,7 @@
                             break;
                         case "histogram-horizontal":
                         case "histogram-vertical":
-                            layout.bargap = tempConfig.bargap;
+                            if (tempConfig.bargap != undefined) layout.bargap = tempConfig.bargap;
                             break;
                         case "violin":
                             layout.xaxis = { automargin: true, title: { standoff: 20 } };
@@ -223,12 +245,70 @@
                         layout[key] = configLayout[key];
                     });
 
+                    // plot.config object to override layout properties
+                    // (not plot.plotly.config)
+                    if (tempConfig.title_display_markdown_pattern) layout.title = configureTitleDisplayMarkdownPattern(tempConfig.title_display_markdown_pattern);
+                    if (tempConfig.hasOwnProperty("xaxis") && tempConfig.xaxis.hasOwnProperty("title_display_markdown_pattern")) layout.xaxis.title = configureTitleDisplayMarkdownPattern(tempConfig.xaxis.title_display_markdown_pattern);
+                    if (tempConfig.hasOwnProperty("yaxis") && tempConfig.yaxis.hasOwnProperty("title_display_markdown_pattern")) layout.yaxis.title = configureTitleDisplayMarkdownPattern(tempConfig.yaxis.title_display_markdown_pattern);
+                    if (tempConfig.disable_default_legend_click != undefined) layout.disable_default_legend_click = tempConfig.disable_default_legend_click;
+
                     return layout;
                 };
 
                 function addComma(data) {
                   // this regex is used to add a thousand separator in the number if possible
                   return data.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
+                }
+
+                function getQueryParamCharacter(link) {
+                    // Check if the link already has a "?" if yes append "&" else append "?" to add the parameters to the link
+                    return link.indexOf("?") !== -1 ? "&" : "?"
+                }
+
+                function appendContextParameters(link) {
+                    let contextUrlParams = ConfigUtils.getContextHeaderParams();
+                    // Extracts the link and checks if ? is present in the link, if yes it adds "&" else it appends "?"
+                    let qCharacter = getQueryParamCharacter(link);
+                    //Return pcid and ppid to URL request
+                    return qCharacter + "pcid=" + contextUrlParams.cid + "&ppid=" + contextUrlParams.pid;
+                }
+
+                function extractLink(pattern){
+                    // Checking if the pattern contains link if yes then extract the link directly else
+                    let extractedLink = false;
+                    if (pattern.includes("(") && pattern.includes(")")) {
+                        // Defined regex to extract url from the pattern defined in the configuration file
+                        // Example: [{{{ Number of records }}}](/deriva-webapps/plot/?config=gudmap-todate-pie){target=_blank}
+                        // extractedLink = /deriva-webapps/plot/?config=gudmap-todate-pie
+                        // Extracts all the characters placed between "( )".
+                        // "]/(" : find a ']' bracket followed by '('
+                        // "." : matches any character and
+                        // "*?" : matches the previous token between zero and unlimited times
+                        // "i" modifier :  insensitive. Case insensitive match (ignores case of [a-zA-Z])
+                        // "g" modifier :  global. All matches.
+                        let markdownUrlRegex = /]\((.*?)\)/ig;
+                        extractedLink = markdownUrlRegex.exec(pattern)[1];
+                    } else if (pattern.includes("href")) {
+                        // Defined regex to extract url from the generated html element with href attribute
+                        // Example: <a href="(/deriva-webapps/plot/?config=gudmap-todate-pie" target="_blank">prostate gland</a>
+                        // extractedLink = /deriva-webapps/plot/?config=gudmap-todate-pie
+                        // Extracts a link from the anchor tag
+                        // "\s" : matches a space character
+                        // ^\n\r : matches a string that does not have new line or carriage return
+                        let htmlUrlRegex = /<a\shref="([^\n\r]*?)"/ig;
+                        extractedLink = htmlUrlRegex.exec(pattern)[1];
+                    }
+
+                    // return false if no extracted link
+                    return extractedLink;
+                }
+
+                function configureTitleDisplayMarkdownPattern(pattern){
+                    let link = extractLink(pattern);
+                    // Replace the link in the pattern and append pcid and ppid
+                    let patternWParams = pattern.replace(link, link + appendContextParameters(link));
+                    let title = ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(patternWParams, $rootScope.templateParams), true);
+                    return title;
                 }
 
                 function formatData(data, format, type) {
@@ -295,11 +375,10 @@
 
                     $rootScope.hideStudySelector = false;
                     $rootScope.disableGeneSelector = false;
-                    $rootScope.templateParams = {
-                        $url_parameters: {
+                    // templateParams created before this function is called
+                    $rootScope.templateParams.$url_parameters = {
                             NCBI_GeneID: geneId || null,
                             Study: []
-                        }
                     }
 
                     // trick to verify if this config app is running inside of an iframe as part of another app
@@ -336,12 +415,12 @@
                         if ($rootScope.templateParams.$url_parameters.NCBI_GeneID) {
                             var specificGeneUri = geneUri + "/NCBI_GeneID=" + $rootScope.templateParams.$url_parameters.NCBI_GeneID;
                             var headers = {};
-                            var uriParams=specificGeneUri.split("/")
-                            headers[ERMrest.contextHeaderName]=ConfigUtils.getContextHeaderParams();
+                            var uriParams = specificGeneUri.split("/")
+                            headers[ERMrest.contextHeaderName] = ConfigUtils.getContextHeaderParams();
                             // URI looks like "/ermrest/catalog/2/entity/RNASeq:Replicate_Expression/(NCBI_GeneID)=(Common:Gene:NCBI_GeneID)/NCBI_GeneID="
-                            headers[ERMrest.contextHeaderName].schema_table=uriParams[uriParams.indexOf("entity")+1];
-                            headers[ERMrest.contextHeaderName].catalog=uriParams[uriParams.indexOf("catalog")+1];
-                            ERMrest.resolve(specificGeneUri, {headers : headers}).then(function (ref) {
+                            headers[ERMrest.contextHeaderName].schema_table = uriParams[uriParams.indexOf("entity") + 1];
+                            headers[ERMrest.contextHeaderName].catalog = uriParams[uriParams.indexOf("catalog") + 1];
+                            ERMrest.resolve(specificGeneUri, {headers: headers}).then(function (ref) {
                                 return ref.contextualize.compactSelect.read(1);
                             }).then(function (page) {
                                 return innerDefer.resolve(page);
@@ -363,13 +442,13 @@
                     }
 
                     var headers = {};
-                    var uriParams=geneUri.split("/")
-                    headers[ERMrest.contextHeaderName]=ConfigUtils.getContextHeaderParams();
+                    var uriParams = geneUri.split("/")
+                    headers[ERMrest.contextHeaderName] = ConfigUtils.getContextHeaderParams();
                     // URI looks like "/ermrest/catalog/2/entity/RNASeq:Replicate_Expression/(NCBI_GeneID)=(Common:Gene:NCBI_GeneID)"
-                    headers[ERMrest.contextHeaderName].schema_table=uriParams[uriParams.indexOf("entity")+1];
-                    headers[ERMrest.contextHeaderName].catalog=uriParams[uriParams.indexOf("catalog")+1]
+                    headers[ERMrest.contextHeaderName].schema_table = uriParams[uriParams.indexOf("entity") + 1];
+                    headers[ERMrest.contextHeaderName].catalog = uriParams[uriParams.indexOf("catalog") + 1]
                     // for gene popup
-                    ERMrest.resolve(geneUri, {headers : headers}).then(function (ref) {
+                    ERMrest.resolve(geneUri, {headers: headers}).then(function (ref) {
                         $rootScope.geneReference = ref.contextualize.compactSelect;
 
                         return generalOrSpecificGene($rootScope.geneReference);
@@ -421,26 +500,43 @@
                         defer.resolve(plot_values);// TODO: figure out how to return an error to catch clause without breaking code
                         return defer.promise;
                     }
-                    var headers = {};
-                    headers[ERMrest.contextHeaderName]=ConfigUtils.getContextHeaderParams();
-                    // URI looks like "/ermrest/catalog/2/attributegroup/M:=RNASeq:Replicate_Expression/{{#if (gt $url_parameters.Study.length 0)}}({{#each $url_parameters.Study}}Study={{{this.data.RID}}}{{#unless @last}};{{/unless}}{{/each}})&{{/if}}NCBI_GeneID={{{$url_parameters.NCBI_GeneID}}}/exp:=(Experiment)=(RNASeq:Experiment:RID)/$M/Anatomical_Source,Experiment,Experiment_Internal_ID:=exp:Internal_ID,NCBI_GeneID,Replicate,Sex,Species,Specimen,Specimen_Type,Stage,TPM"
-                    var schema_table=uriParams[uriParams.indexOf("attributegroup")+1]
-                    if(schema_table.includes(":="))
-                        schema_table=schema_table.split(":=")[1]
-                    headers[ERMrest.contextHeaderName].schema_table=schema_table;
-                    headers[ERMrest.contextHeaderName].catalog=uriParams[uriParams.indexOf("catalog")+1]
-                    if(UriUtils.getQueryParams($window.location.href).pcid)
-                        headers[ERMrest.contextHeaderName].pcid=UriUtils.getQueryParams($window.location.href).pcid;
-                    if(UriUtils.getQueryParams($window.location.href).ppid)
-                        headers[ERMrest.contextHeaderName].ppid=UriUtils.getQueryParams($window.location.href).ppid;
-                    headers[ERMrest.contextHeaderName]=ERMrest._certifyContextHeader(headers[ERMrest.contextHeaderName]);
-                    server.http.get(uri,{ headers: headers}).then(function(response) {
-                        var data = response.data;
 
+                    var headers = {};
+                    headers[ERMrest.contextHeaderName] = ConfigUtils.getContextHeaderParams();
+                    // URI looks like "/ermrest/catalog/2/attributegroup/M:=RNASeq:Replicate_Expression/{{#if (gt $url_parameters.Study.length 0)}}({{#each $url_parameters.Study}}Study={{{this.data.RID}}}{{#unless @last}};{{/unless}}{{/each}})&{{/if}}NCBI_GeneID={{{$url_parameters.NCBI_GeneID}}}/exp:=(Experiment)=(RNASeq:Experiment:RID)/$M/Anatomical_Source,Experiment,Experiment_Internal_ID:=exp:Internal_ID,NCBI_GeneID,Replicate,Sex,Species,Specimen,Specimen_Type,Stage,TPM"
+                    var schema_table = uriParams[uriParams.indexOf("attributegroup") + 1]
+                    if (schema_table.includes(":=")) schema_table = schema_table.split(":=")[1]
+                    headers[ERMrest.contextHeaderName].schema_table = schema_table;
+                    headers[ERMrest.contextHeaderName].catalog = uriParams[uriParams.indexOf("catalog") + 1]
+                    if (UriUtils.getQueryParams($window.location.href).pcid) headers[ERMrest.contextHeaderName].pcid = UriUtils.getQueryParams($window.location.href).pcid;
+                    if (UriUtils.getQueryParams($window.location.href).ppid) headers[ERMrest.contextHeaderName].ppid = UriUtils.getQueryParams($window.location.href).ppid;
+                    headers[ERMrest.contextHeaderName] = ERMrest._certifyContextHeader(headers[ERMrest.contextHeaderName]);
+
+                    server.http.get(uri, {headers: headers}).then(function(response) {
+                        var data = response.data;
                         // transform x data based on groupKey
                         // xData used for graph x data AND xaxis grouping
                         var xData = data.map(function (obj) {
                             var value = obj[xGroupKey.column_name];
+                            // Check if the legends are defined in the configuration file
+                            if (value !== null && value !== undefined) {
+                                //Changes related to adding markdown templating pattern to legends in violin
+                                if (xGroupKey.hasOwnProperty("legend_markdown_pattern") && xGroupKey.legend_markdown_pattern) {
+                                    // Add the value extracted to the template variable as it can be used in the link provided by the configuration file
+                                    $rootScope.templateParams.value = obj[xGroupKey.column_name];
+                                    try {
+                                        var pattern = ERMrest.renderHandlebarsTemplate(xGroupKey.legend_markdown_pattern[0], $rootScope.templateParams);
+                                        value = ERMrest.renderMarkdown(pattern, true);
+                                        var extractedLink = extractLink(pattern);
+                                        var linkWithContextParams = extractedLink + appendContextParameters(extractLink(xGroupKey.legend_markdown_pattern[0]));
+                                        // Add Context Parameters to link
+                                        value = value.replace(extractedLink, linkWithContextParams)
+                                    } catch(error) {
+                                        value = obj[xGroupKey.column_name];
+                                    }
+                                    delete $rootScope.templateParams.value;
+                                }
+                            }
                             return (value !== null && value !== undefined) ? value : "N/A"
                         });
 
@@ -450,9 +546,8 @@
                             // add row of data to templating environment
                             $rootScope.templateParams.$row = obj;
 
-                            // use template if available/defined, else use value for column
-                            var value = xGroupKey.tick_display_pattern ? ERMrest.renderHandlebarsTemplate(xGroupKey.tick_display_pattern, $rootScope.templateParams) : obj[xGroupKey.column_name];
-
+                            // use markdown template/template if available/defined, else use value for column
+                            var value = xGroupKey.tick_display_markdown_pattern ? ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(xGroupKey.tick_display_markdown_pattern, $rootScope.templateParams), true) : obj[xGroupKey.column_name];
                             // remove row after using it for templating
                             delete $rootScope.templateParams.$row;
                             return (value !== null && value !== undefined) ? value : "N/A"
@@ -463,9 +558,8 @@
                             // add row of data to templating environment
                             $rootScope.templateParams.$row = obj;
 
-                            // use template if available/defined, else use value for column
-                            var value = config.yaxis.tick_display_pattern ? ERMrest.renderHandlebarsTemplate(config.yaxis.tick_display_pattern, $rootScope.templateParams) : obj[config.yaxis.group_key];
-
+                            // use markdown template/template if available/defined, else use value for column
+                            var value = config.yaxis.tick_display_markdown_pattern ? ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(config.yaxis.tick_display_markdown_pattern, $rootScope.templateParams), true) : obj[config.yaxis.group_key];
                             // remove row after using it for templating
                             delete $rootScope.templateParams.$row;
                             return value;
@@ -496,7 +590,6 @@
                                 x: xData,
                                 y: yData,
                                 points: 'all',
-                                showlegend: false,
                                 box: {
                                     visible: true
                                 },
@@ -508,6 +601,8 @@
                                     groups: xData,
                                     styles: groupStyles
                                 }],
+                                // An array which will contain all the links that can be used in on click event of the violin chart
+                                graphic_clickable_links: []
                             }],
                             // passed directly to plotly (plotly.layout)
                             layout: getPlotlyLayout(plot)
@@ -518,19 +613,27 @@
                         // plotly.data values that probably should NOT be overwritten:
                         //   - [type, x, y, transforms[].groups]
 
-                        // TODO: should plotTitlePattern be required? if no, should "TPM Expression" remain the default
-                        plotlyConfig.layout.title = (config.title_display_pattern ? ERMrest.renderHandlebarsTemplate(config.title_display_pattern, $rootScope.templateParams) : "TPM Expression");
-
                         // xaxis
-                        // use title pattern OR column_name if pattern doesn't exist
-                        plotlyConfig.layout.xaxis.title.text = (xGroupKey.title_display_pattern ? ERMrest.renderHandlebarsTemplate(xGroupKey.title_display_pattern, $rootScope.templateParams) : xGroupKey.column_name);
+                        // Checking if markdown template is available for title, if yes use that else use the column name for the current group key
+                        plotlyConfig.layout.xaxis.title.text = (xGroupKey.title_display_markdown_pattern ? configureTitleDisplayMarkdownPattern(xGroupKey.title_display_markdown_pattern) : (xGroupKey.title_display_pattern ? xGroupKey.title_display_pattern : xGroupKey.column_name) );
                         plotlyConfig.layout.xaxis.tickvals = xData;
                         plotlyConfig.layout.xaxis.ticktext = xDataTicks;
+                        // set the legend_clickable_links variable to true of the legends in the violin graph have links in them else set it undefined
+                        plotlyConfig.data[0].legend_clickable_links = (xGroupKey.legend_markdown_pattern ? true : undefined);
 
                         // yaxis
-                        // use title pattern OR group_key if pattern doesn't exist
-                        plotlyConfig.layout.yaxis.title = config.yaxis.title_pattern ? ERMrest.renderHandlebarsTemplate(config.yaxis.title_pattern, $rootScope.templateParams) : config.yaxis.group_key;
+                        // NOTE: if markdown template available, pattern set in getPlotlyLayout function
+                        // if not available use the yaxis groupkey
+                        if (!config.yaxis || !config.yaxis.title_display_markdown_pattern) plotlyConfig.layout.yaxis.title = config.yaxis.group_key;
                         plotlyConfig.layout.yaxis.type = $rootScope.yAxisScale;
+
+                        // Add graphic links to the violin chart and append context parameters to the link
+                        // Supports both graphic links as a string or as an array
+                        if (xGroupKey.hasOwnProperty("graphic_link_pattern")) {
+                            let graphic_link = Array.isArray(xGroupKey.graphic_link_pattern) ? xGroupKey.graphic_link_pattern[0] : xGroupKey.graphic_link_pattern;
+                            graphic_link = graphic_link + appendContextParameters(graphic_link);
+                            plotlyConfig.data[0].graphic_clickable_links.push(ERMrest.renderHandlebarsTemplate(graphic_link, $rootScope.templateParams));
+                        }
 
                         // attach configuration and data for plot
                         plot_values.data = plotlyConfig.data;
@@ -601,15 +704,17 @@
                         plotConfig.plots.forEach(function(plot, index) {
                             var plot_values = {
                                 id: index,
-                                data: [],
+                                data: []
                             };
-                            var config = {
-                                displaylogo: false,
-                                modeBarButtonsToRemove: plot.plotlyDefaultButtonsToRemove || [],
-                                responsive: true
-                            };
-                            var tracesComplete = 0;
 
+                            var config = getPlotlyConfig(plot);
+                            // TODO: this is for backwards compatibility. remove when deprecated
+                            if (!config.modeBarButtonsToRemove && plot.plotlyDefaultButtonsToRemove) config.modeBarButtonsToRemove = plot.plotlyDefaultButtonsToRemove
+
+                            var tracesComplete = 0;
+                            $rootScope.templateParams = {
+                                $url_parameters: {}
+                            }
                             // violin plot has it's own case outside of the switch condition below since it relies on reference api for the gene selector
                             if (plot.plot_type == "violin") {
                                 // TODO: assumes only 1 plot
@@ -650,23 +755,23 @@
                                 plot.traces.forEach(function (trace) {
                                     var uri = trace.uri;
                                     var headers = {};
-                                    var uriParams=uri.split("/");
-                                    headers[ERMrest.contextHeaderName]=ConfigUtils.getContextHeaderParams();
+                                    var uriParams = uri.split("/");
+                                    headers[ERMrest.contextHeaderName] = ConfigUtils.getContextHeaderParams();
                                     //URI looks like "/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23_Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26"
-                                    var schema_table=uriParams[uriParams.indexOf("entity")+1]
-                                    if(schema_table.includes(":="))
-                                        schema_table=schema_table.split(":=")[1]
-                                    headers[ERMrest.contextHeaderName].schema_table=schema_table;
-                                    headers[ERMrest.contextHeaderName].catalog=uriParams[uriParams.indexOf("catalog")+1]
-                                    if(UriUtils.getQueryParams($window.location.href).pcid)
-                                        headers[ERMrest.contextHeaderName].pcid=UriUtils.getQueryParams($window.location.href).pcid;
-                                    if(UriUtils.getQueryParams($window.location.href).ppid)
-                                        headers[ERMrest.contextHeaderName].ppid=UriUtils.getQueryParams($window.location.href).ppid;
-                                    headers[ERMrest.contextHeaderName]=ERMrest._certifyContextHeader(headers[ERMrest.contextHeaderName]);
-                                    server.http.get(uri,{ headers: headers }).then(function(response) {
+                                    var schema_table = uriParams[uriParams.indexOf("entity") + 1]
+                                    if (schema_table.includes(":=")) schema_table = schema_table.split(":=")[1]
+                                    headers[ERMrest.contextHeaderName].schema_table = schema_table;
+                                    headers[ERMrest.contextHeaderName].catalog = uriParams[uriParams.indexOf("catalog") + 1]
+                                    if (UriUtils.getQueryParams($window.location.href).pcid) headers[ERMrest.contextHeaderName].pcid = UriUtils.getQueryParams($window.location.href).pcid;
+                                    if (UriUtils.getQueryParams($window.location.href).ppid) headers[ERMrest.contextHeaderName].ppid = UriUtils.getQueryParams($window.location.href).ppid;
+                                    headers[ERMrest.contextHeaderName] = ERMrest._certifyContextHeader(headers[ERMrest.contextHeaderName]);
+                                    server.http.get(uri, {headers: headers}).then(function(response) {
                                         try {
                                             var layout = getPlotlyLayout(plot);
                                             var data = response.data;
+                                            $rootScope.templateParams.$traces = {
+                                                data: data
+                                            }
                                             switch (plot.plot_type) {
                                                 case "pie":
                                                     var values = getValues(plot.plot_type, '',  '');
@@ -677,27 +782,53 @@
                                                     }
 
                                                     var label = true;
-                                                    if(trace.legend != undefined) {
+                                                    if (trace.legend != undefined) {
                                                         values.labels = trace.legend;
                                                         label = false;
                                                     }
 
                                                     data.forEach(function (row) {
-                                                        if(label) {
-                                                            values.labels.push(row[trace.legend_col]);
+                                                        // $self object will point to the the current row from the data that is fetched from URI
+                                                        $rootScope.templateParams.$self = {
+                                                            data: row
+                                                        }
+                                                        // Check if the legends are defined in the configuration file
+                                                        if (label) {
+                                                            var traceLabel = row[trace.legend_col];
+                                                            //Changes related to adding markdown templating pattern to legends in pie
+                                                            if (trace.hasOwnProperty("legend_markdown_pattern") && trace.legend_markdown_pattern) {
+                                                                try {
+                                                                    var pattern = ERMrest.renderHandlebarsTemplate(trace.legend_markdown_pattern, $rootScope.templateParams);
+                                                                    traceLabel = ERMrest.renderMarkdown(pattern,true);
+                                                                    var extractedLink = extractLink(pattern);
+                                                                    var linkWithContextParams = extractedLink + appendContextParameters(extractLink(trace.legend_markdown_pattern));
+                                                                    values.legend_clickable_links.push(linkWithContextParams);
+                                                                    // Add Context Parameters to link
+                                                                    traceLabel = traceLabel.replace(extractedLink, linkWithContextParams)
+                                                                } catch(error) {
+                                                                    traceLabel = row[trace.legend_col];
+                                                                }
+                                                            }
+                                                            values.labels.push(traceLabel);
+                                                            // Added the legend column names to text variable so that the tooltip name does not contain a link if the legends contains a link
+                                                            values.text.push(row[trace.legend_col]);
+                                                            // Override the legend name displayed in the tooltip on traces by hovertemplate_display_pattern defined in configuration file
+                                                            // var tooltip=trace.hovertemplate_display_pattern ? ERMrest.renderHandlebarsTemplate(trace.hovertemplate_display_pattern, $rootScope.templateParams) : row[trace.legend_col];
+                                                            // values.text.push(tooltip)
                                                         }
                                                         values.values.push(formatData(row[trace.data_col], plot.config ? plot.config.format_data : false, "pie"));
+                                                        // Configure links for individual traces
+                                                        // For Configuring links we are only going to render the templating pattern as the link would not contain any of html content in it, it would be plain link like,
+                                                        // graphic_link_pattern: "/chaise/recordset/#2/{{{ $self.data.Schema_Table }}}/*::facets::{{#encodeFacet}}{{{ $self.data.Data_Type_Filter }}}{{/encodeFacet}}"
+                                                        if (trace.hasOwnProperty("graphic_link_pattern")) {
+                                                            let graphic_link = Array.isArray(trace.graphic_link_pattern) ? trace.graphic_link_pattern[0] : trace.graphic_link_pattern;
+                                                            // Added code to support graphic_link_pattern as a String or an array, if it is an array only pick up 0th element
+                                                            graphic_link = graphic_link + appendContextParameters(graphic_link);
+                                                            values.graphic_clickable_links.push(ERMrest.renderHandlebarsTemplate(graphic_link, $rootScope.templateParams));
+                                                        }
+                                                        delete $rootScope.templateParams.$self;
                                                     });
-                                                    plot_values.data.push(values);
-                                                    plot_values.layout = layout;
-                                                    plot_values.config = config;
-                                                    break;
-                                                case "histogram-horizontal":
-                                                    var values = getValues(plot.plot_type, trace.legend);
-                                                    data.forEach(function (row) {
-                                                        values.y.push(formatData(row[trace.data_col], plot.config ? plot.config.format_data : false));
-                                                    });
-                                                    values.nbinsy = plot.config.ybins;
+
                                                     plot_values.data.push(values);
                                                     plot_values.layout = layout;
                                                     plot_values.config = config;
@@ -708,13 +839,24 @@
                                                         values.x.push(formatData(row[trace.data_col], plot.config ? plot.config.format_data : false));
                                                     });
                                                     values.nbinsx = plot.config.xbins;
+
                                                     plot_values.data.push(values);
                                                     plot_values.layout = layout;
                                                     plot_values.config = config;
                                                     break;
+                                                case "histogram-horizontal":
+                                                    var values = getValues(plot.plot_type, trace.legend);
+                                                    data.forEach(function (row) {
+                                                        values.y.push(formatData(row[trace.data_col], plot.config ? plot.config.format_data : false));
+                                                    });
+                                                    values.nbinsy = plot.config.ybins;
 
+                                                    plot_values.data.push(values);
+                                                    plot_values.layout = layout;
+                                                    plot_values.config = config;
+                                                    break;
                                                 case "bar":
-                                                    if(trace.orientation == "h") {
+                                                    if (trace.orientation == "h") {
                                                         var suffix = "  ";
                                                         if (!layout.yaxis) {
                                                             layout.yaxis = {
@@ -723,9 +865,22 @@
                                                         } else if (!layout.yaxis.ticksuffix) {
                                                             layout.yaxis.ticksuffix = suffix;
                                                         }
-
-                                                        for(var i = 0; i < trace.x_col.length;i++) {
-                                                            var values = getValues(plot.plot_type, trace.legend ? trace.legend[i]: '',  trace.orientation);
+                                                        for (var i = 0; i < trace.x_col.length;i++) {
+                                                            // $self object will point to the the current row from the data that is fetched from URI
+                                                            var trace_legend = trace.legend ? trace.legend[i] : '';
+                                                            // Add links to the legends
+                                                            var trace_legend_link = trace.legend_markdown_pattern ? trace.legend_markdown_pattern[i] :'';
+                                                            if (trace_legend_link != '') {
+                                                                trace_legend_link = ERMrest.renderMarkdown(trace_legend_link, true);
+                                                                var extractedLink = extractLink(trace.legend_markdown_pattern[i]);
+                                                                var linkWithContextParams = extractedLink + appendContextParameters(extractLink(trace.legend_markdown_pattern[i]));
+                                                                // Add Context Parameters to link
+                                                                trace_legend = trace_legend_link.replace(extractedLink, linkWithContextParams)
+                                                            }
+                                                            var values = getValues(plot.plot_type, trace_legend, trace.orientation);
+                                                            if (values.trace_legend != '') {
+                                                                values.legend_clickable_links.push(linkWithContextParams);
+                                                            }
                                                             if (trace.textangle) {
                                                                 values.textangle = trace.textangle;
                                                             }
@@ -733,46 +888,156 @@
                                                                 values.textfont = trace.textfont;
                                                             }
                                                             data.forEach(function (row) {
+                                                                $rootScope.templateParams.$self = {
+                                                                    data: row
+                                                                }
+                                                                var y_col = row[trace.y_col];
+                                                                // Checking for yaxis because the orientation is horizontal and therefore y axis will have labels and x axis will have values
+                                                                // Checking if tick_display_markdown_pattern is available in yaxis if yes, then make the y axis labels as hyperlinks.
+                                                                if (plot.config.hasOwnProperty("yaxis") && plot.config.yaxis.hasOwnProperty("tick_display_markdown_pattern")) {
+                                                                    var patternLink = ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(plot.config.yaxis.tick_display_markdown_pattern, $rootScope.templateParams), true);
+                                                                    var extractedLink = extractLink(plot.config.yaxis.tick_display_markdown_pattern);
+                                                                    var linkWithContextParams = extractedLink + appendContextParameters(extractLink(plot.config.yaxis.tick_display_markdown_pattern));
+                                                                    y_col = patternLink.replace(extractedLink,linkWithContextParams);
+                                                                }
                                                                 values.x.push(formatData(row[trace.x_col[i]], plot.config ? plot.config.format_data_x : false));
-                                                                values.y.push(formatData(row[trace.y_col], plot.config ? plot.config.format_data_y : false));
+                                                                values.y.push(formatData(y_col, plot.config ? plot.config.format_data_y : false));
+                                                                // Override the legend name displayed in the tooltip on traces by hovertemplate_display_pattern defined in configuration file
+                                                                // var tooltip=trace.hovertemplate_display_pattern ? ERMrest.renderHandlebarsTemplate(trace.hovertemplate_display_pattern, $rootScope.templateParams) :formatData(row[trace.x_col[i]], plot.config ? plot.config.format_data_x : false);
+                                                                // values.text.push(tooltip)
                                                                 values.text.push(formatData(row[trace.x_col[i]], plot.config ? plot.config.format_data_x : false))
+                                                                // Configure links for individual traces
+                                                                // For Configuring links we are only going to render the templating pattern as the link would not contain any of html content in it, it would be plain link like,
+                                                                // graphic_link_pattern: "/chaise/recordset/#2/{{{ $self.data.Schema_Table }}}/*::facets::{{#encodeFacet}}{{{ $self.data.Data_Type_Filter }}}{{/encodeFacet}}"
+                                                                if (trace.hasOwnProperty("graphic_link_pattern")) {
+                                                                    // Added code to support graphic_link_pattern as a String or an array, if it is an array only pick up 0th element
+                                                                    let graphic_link = Array.isArray(trace.graphic_link_pattern) ? trace.graphic_link_pattern[0] : trace.graphic_link_pattern;
+                                                                    graphic_link = graphic_link + appendContextParameters(graphic_link);
+                                                                    values.graphic_clickable_links.push(ERMrest.renderHandlebarsTemplate(graphic_link,$rootScope.templateParams));
+                                                                }
+                                                                delete $rootScope.templateParams.$self;
                                                             });
                                                             values.hoverinfo = 'text'
                                                             plot_values.data.push(values);
-                                                            plot_values.layout = layout;
-                                                            plot_values.config = config;
                                                         }
                                                     } else {
                                                         for(var i = 0; i < trace.y_col.length;i++) {
-                                                            var values = getValues(plot.plot_type, trace.legend ? trace.legend[i]: '',  trace.orientation);
+                                                            var values = getValues(plot.plot_type, trace.legend ? trace.legend[i] : '',  trace.orientation);
                                                             data.forEach(function (row) {
-                                                                values.x.push(formatData(row[trace.x_col], plot.config ? plot.config.format_data_x : false));
+                                                                $rootScope.templateParams.$self = {
+                                                                    data: row
+                                                                }
+                                                                var x_col = row[trace.x_col];
+                                                                //Checking for xaxis because the orientation is vertical and therefore x axis will have labels and y axis will have values
+                                                                //Checking if tick_display_markdown_pattern is available in yaxis if yes, then make the x axis labels as hyperlinks.
+                                                                if (plot.config.hasOwnProperty("xaxis") && plot.config.xaxis.hasOwnProperty("tick_display_markdown_pattern")) {
+                                                                    var patternLink = ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(plot.config.xaxis.tick_display_markdown_pattern, $rootScope.templateParams), true);
+                                                                    var extractedLink = extractLink(plot.config.xaxis.tick_display_markdown_pattern);
+                                                                    var linkWithContextParams = extractedLink + appendContextParameters(extractLink(plot.config.xaxis.tick_display_markdown_pattern));
+                                                                    x_col = patternLink.replace(extractedLink,linkWithContextParams);
+                                                                }
+                                                                values.x.push(formatData(x_col, plot.config ? plot.config.format_data_x : false));
                                                                 values.y.push(formatData(row[trace.y_col[i]], plot.config ? plot.config.format_data_y : false));
-                                                                values.text.push(formatData(row[trace.y_col[i]], plot.config ? plot.config.format_data_y : false));
+                                                                // var tooltip=trace.hovertemplate_display_pattern ? ERMrest.renderHandlebarsTemplate(trace.hovertemplate_display_pattern, $rootScope.templateParams) : formatData(row[trace.y_col[i]], plot.config ? plot.config.format_data_y : false);
+                                                                // Added the legend column names to text variable so that the tooltip name does not contain a link if the legends contains a link
+                                                                // values.text.push(tooltip)
+                                                                values.text.push(formatData(row[trace.y_col[i]], plot.config ? plot.config.format_data_y : false))
+                                                                // Configure links for individual traces
+                                                                // For Configuring links we are only going to render the templating pattern as the link would not contain any of html content in it, it would be plain link like,
+                                                                // graphic_link_pattern: "/chaise/recordset/#2/{{{ $self.data.Schema_Table }}}/*::facets::{{#encodeFacet}}{{{ $self.data.Data_Type_Filter }}}{{/encodeFacet}}"
+                                                                if (trace.hasOwnProperty("graphic_link_pattern")) {
+                                                                    // Added code to support graphic_link_pattern as a String or an array, if it is an array only pick up 0th element
+                                                                    let graphic_link = Array.isArray(trace.graphic_link_pattern) ? trace.graphic_link_pattern[0] : trace.graphic_link_pattern;
+                                                                    graphic_link = graphic_link + appendContextParameters(graphic_link);
+                                                                    values.graphic_clickable_links.push(ERMrest.renderHandlebarsTemplate(graphic_link, $rootScope.templateParams));
+                                                                }
+                                                                delete $rootScope.templateParams.$self;
                                                             });
                                                             values.hoverinfo = 'text'
                                                             plot_values.data.push(values);
-                                                            plot_values.layout = layout;
-                                                            plot_values.config = config;
                                                         }
+                                                    }
+
+                                                    plot_values.layout = layout;
+                                                    plot_values.config = config;
+                                                    break;
+                                                case "scatter":
+                                                    for(var i = 0; i < trace.y_col.length; i++) {
+                                                        var values = getValues(plot.plot_type, trace.legend ? trace.legend[i] : '', null);
+
+                                                        data.forEach(function (row) {
+                                                            $rootScope.templateParams.$self = {
+                                                                data: row
+                                                            }
+
+                                                            var x_col = row[trace.x_col[0]];
+                                                            if (plot.config.hasOwnProperty("xaxis") && plot.config.xaxis.hasOwnProperty("tick_display_markdown_pattern")) {
+                                                                var patternLink = ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(plot.config.xaxis.tick_display_markdown_pattern, $rootScope.templateParams), true);
+                                                                var extractedLink = extractLink(plot.config.xaxis.tick_display_markdown_pattern);
+                                                                var linkWithContextParams = extractedLink + appendContextParameters(extractLink(plot.config.xaxis.tick_display_markdown_pattern));
+                                                                x_col = patternLink.replace(extractedLink, linkWithContextParams);
+                                                            }
+
+                                                            var y_col = row[trace.y_col[i]];
+                                                            if (plot.config.hasOwnProperty("yaxis") && plot.config.yaxis.hasOwnProperty("tick_display_markdown_pattern")) {
+                                                                var patternLink = ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(plot.config.yaxis.tick_display_markdown_pattern, $rootScope.templateParams), true);
+                                                                var extractedLink = extractLink(plot.config.yaxis.tick_display_markdown_pattern);
+                                                                var linkWithContextParams = extractedLink + appendContextParameters(extractLink(plot.config.yaxis.tick_display_markdown_pattern));
+                                                                y_col = patternLink.replace(extractedLink, linkWithContextParams);
+                                                            }
+
+                                                            if (x_col != null && y_col != null) {
+                                                                values.x.push(formatData(x_col, plot.config ? plot.config.format_data_x : false));
+                                                                values.y.push(formatData(y_col, plot.config ? plot.config.format_data_y : false));
+                                                            }
+
+                                                            delete $rootScope.templateParams.$self;
+                                                        });
+
+                                                        plot_values.data.push(values);
+                                                        plot_values.layout = layout;
+                                                        plot_values.config = config;
                                                     }
                                                     break;
                                                 default:
-                                                    for(var i = 0; i < trace.y_col.length;i++) {
-                                                        var values = getValues(plot.plot_type, trace.legend ? trace.legend[i]: '',  trace.orientation);
-
+                                                    // changes for the generic cases not handled above
+                                                    for(var i = 0; i < trace.y_col.length; i++) {
+                                                        var values = getValues(plot.plot_type, trace.legend, trace.orientation);
                                                         data.forEach(function (row) {
-                                                            values.x.push(formatData(row[trace.x_col[0]], plot.config ? plot.config.format_data_x : false));
-                                                            values.y.push(formatData(row[trace.y_col[i]], plot.config ? plot.config.format_data_y : false));
+                                                            $rootScope.templateParams.$self = {
+                                                                data: row
+                                                            }
+
+                                                            var x_col = row[trace.x_col[0]];
+                                                            if (plot.config.hasOwnProperty("xaxis") && plot.config.xaxis.hasOwnProperty("tick_display_markdown_pattern")) {
+                                                                var patternLink = ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(plot.config.xaxis.tick_display_markdown_pattern, $rootScope.templateParams), true);
+                                                                var extractedLink = extractLink(plot.config.xaxis.tick_display_markdown_pattern);
+                                                                var linkWithContextParams = extractedLink + appendContextParameters(extractLink(plot.config.xaxis.tick_display_markdown_pattern));
+                                                                x_col = patternLink.replace(extractedLink, linkWithContextParams);
+                                                            }
+
+                                                            var y_col = row[trace.y_col[i]];
+                                                            if (plot.config.hasOwnProperty("yaxis") && plot.config.yaxis.hasOwnProperty("tick_display_markdown_pattern")) {
+                                                                var patternLink = ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(plot.config.yaxis.tick_display_markdown_pattern, $rootScope.templateParams), true);
+                                                                var extractedLink = extractLink(plot.config.yaxis.tick_display_markdown_pattern);
+                                                                var linkWithContextParams = extractedLink + appendContextParameters(extractLink(plot.config.yaxis.tick_display_markdown_pattern));
+                                                                y_col = patternLink.replace(extractedLink, linkWithContextParams);
+                                                            }
+
+                                                            values.x.push(formatData(x_col, plot.config ? plot.config.format_data_x : false));
+                                                            values.y.push(formatData(y_col, plot.config ? plot.config.format_data_y : false));
+
+                                                            delete $rootScope.templateParams.$self;
                                                         });
+
                                                         plot_values.data.push(values);
                                                         plot_values.layout = layout;
                                                         plot_values.config = config;
                                                     }
                                                     break;
                                             }
-
                                             tracesComplete++;
+                                            console.log(plot_values);
                                             plots[plot_values.id].plot_values = plot_values;
                                             plots[plot_values.id].loaded = true;
                                             plots[plot_values.id].plot_type = plot.plot_type;
@@ -786,11 +1051,10 @@
                                             if (allLoaded) {
                                                 $rootScope.plots = plots;
                                             }
-
+                                            delete $rootScope.templateParams.$traces;
                                         } catch (error) {
                                             console.log(error);
                                         }
-
                                     }).catch(function (err) {
                                         if (err.status == 401) {
                                             if (!$rootScope.loginShown) {
@@ -811,7 +1075,8 @@
                             }
                         });
                     },
-                    getViolinData: getViolinData
+                    getViolinData: getViolinData,
+                    extractLink: extractLink
                 }
             }])
             .controller('plotController', ['AlertsService', 'ConfigUtils', 'dataFormats', 'dataParams', 'modalUtils', 'PlotUtils', 'UriUtils', '$rootScope', '$scope', '$timeout', '$window', function plotController(AlertsService, ConfigUtils, dataFormats, dataParams, modalUtils, PlotUtils, UriUtils, $rootScope, $scope, $timeout, $window) {
@@ -916,17 +1181,16 @@
                     // TODO: configure title
 
                     var geneUri = ERMrest.renderHandlebarsTemplate($rootScope.plot.gene_uri_pattern, $rootScope.templateParams);
-                    var uriParams=geneUri.split("/")
-                    var headers={}
+                    var uriParams = geneUri.split("/")
+                    var headers = {}
 
-                    headers[ERMrest.contextHeaderName]=ConfigUtils.getContextHeaderParams();
+                    headers[ERMrest.contextHeaderName] = ConfigUtils.getContextHeaderParams();
                     //URI looks like "/ermrest/catalog/2/entity/RNASeq:Replicate_Expression/{{#if (gt $url_parameters.Study.length 0)}}{{#each $url_parameters.Study}}Study={{{this.data.RID}}}{{#unless @last}};{{/unless}}{{/each}}/{{/if}}(NCBI_GeneID)=(Common:Gene:NCBI_GeneID)"
-                    var schema_table=uriParams[uriParams.indexOf("entity")+1]
-                    if(schema_table.includes(":="))
-                        schema_table=schema_table.split(":=")[1]
-                    headers[ERMrest.contextHeaderName].schema_table=schema_table;
-                    headers[ERMrest.contextHeaderName].catalog=uriParams[uriParams.indexOf("catalog")+1]
-                    ERMrest.resolve(geneUri,{headers : headers}).then(function (ref) {
+                    var schema_table = uriParams[uriParams.indexOf("entity") + 1]
+                    if (schema_table.includes(":=")) schema_table = schema_table.split(":=")[1]
+                    headers[ERMrest.contextHeaderName].schema_table = schema_table;
+                    headers[ERMrest.contextHeaderName].catalog = uriParams[uriParams.indexOf("catalog") + 1]
+                    ERMrest.resolve(geneUri, {headers: headers}).then(function (ref) {
                         params.reference = ref.contextualize.compactSelect;
                         params.reference.session = $rootScope.session;
                         params.selectMode = "single-select";
@@ -954,7 +1218,7 @@
                                 params: params
                             },
                             size: modalUtils.getSearchPopupSize(params),
-                            templateUrl:  UriUtils.chaiseDeploymentPath() + "common/templates/searchPopup.modal.html"
+                            templateUrl: UriUtils.chaiseDeploymentPath() + "common/templates/searchPopup.modal.html"
                         }, function (res) {
                             $rootScope.gene = res;
                             $rootScope.geneId = $rootScope.templateParams.$url_parameters.NCBI_GeneID = $rootScope.gene.data["NCBI_GeneID"];
@@ -982,17 +1246,16 @@
                     // TODO: configure title?
 
                     var studyUri = ERMrest.renderHandlebarsTemplate($rootScope.plot.study_uri_pattern, $rootScope.templateParams);
-                    var headers={}
-                    headers[ERMrest.contextHeaderName]=ConfigUtils.getContextHeaderParams();
-                    var uriParams=studyUri.split("/")
+                    var headers = {}
+                    headers[ERMrest.contextHeaderName] = ConfigUtils.getContextHeaderParams();
+                    var uriParams = studyUri.split("/")
                     //URI looks like "/ermrest/catalog/2/entity/RNASeq:Replicate_Expression/NCBI_GeneID={{{$url_parameters.NCBI_GeneID}}}/(Study)=(RNASeq:Study:RID)"
-                    var schema_table=uriParams[uriParams.indexOf("entity")+1]
-                    if(schema_table.includes(":="))
-                        schema_table=schema_table.split(":=")[1]
-                    headers[ERMrest.contextHeaderName].schema_table=schema_table;
-                    headers[ERMrest.contextHeaderName].catalog=uriParams[uriParams.indexOf("catalog")+1]
+                    var schema_table = uriParams[uriParams.indexOf("entity") + 1]
+                    if (schema_table.includes(":=")) schema_table = schema_table.split(":=")[1]
+                    headers[ERMrest.contextHeaderName].schema_table = schema_table;
+                    headers[ERMrest.contextHeaderName].catalog = uriParams[uriParams.indexOf("catalog") + 1]
 
-                    ERMrest.resolve(studyUri, { headers : headers}).then(function (ref) {
+                    ERMrest.resolve(studyUri, {headers: headers}).then(function (ref) {
                         params.reference = ref.contextualize.compactSelect;
                         params.reference.session = $rootScope.session;
                         params.selectMode = "multi-select";
@@ -1159,16 +1422,221 @@
                     if (newValue) vm.groups = newValue;
                 });
             }])
-            .directive('plot', ['$rootScope', '$timeout', function ($rootScope, $timeout) {
+            .directive('plot', ['$rootScope', '$timeout', 'ConfigUtils', 'PlotUtils', function ($rootScope, $timeout, ConfigUtils, PlotUtils) {
 
                 return {
                     link: function (scope, element) {
                         scope.$watch('plots', function (plots) {
                             if (plots) {
                                 $timeout(function() {
+
                                     for (var i = 0; i < plots.length; i++) {
                                         if (plots[i].id == element[0].attributes['plot-id'].nodeValue) {
-                                            Plotly.newPlot(element[0], plots[i].plot_values.data, plots[i].plot_values.layout, plots[i].plot_values.config).then(function () {
+                                            Plotly.newPlot(element[0], plots[i].plot_values.data, plots[i].plot_values.layout, plots[i].plot_values.config)
+                                            /* Data recived for plotly_hover and plotly_unhover events:
+                                             data: {
+                                               event: {
+                                                   isTrusted: true,
+                                                   ..
+                                               },
+                                               points: {
+                                                   0: {
+                                                       data: {
+                                                           type: "pie",
+                                                           hoverinfo: "text+value+percent",
+                                                           text: "Imaging:IHC",
+                                                       }
+                                                   }
+                                               }
+                                             }
+                                            */
+                                            .then(element[0].on('plotly_hover', function(data) {
+                                                    // On hover of the individual traces(Slices) of the pie change the cursor to pointer
+                                                    // Need to check the type of the plot as area occupied by the graph has different names based on graphs
+                                                    switch(data.points[0].data.type) {
+                                                        case "pie":
+                                                             // For Pie chart, the area of the pie is pielayer
+                                                            var dragLayer = document.getElementsByClassName('pielayer')[0];
+                                                            break;
+                                                        default:
+                                                            // For bar,violin chart, the area of the chart is nsewdrag
+                                                            var dragLayer = document.getElementsByClassName('nsewdrag')[0];
+                                                    }
+                                                    dragLayer.style.cursor = 'pointer';
+                                                }), // end plotly_hover callback
+
+                                                element[0].on('plotly_unhover', function(data) {
+                                                    //on unhover change the cursor to default icon
+                                                    switch(data.points[0].data.type) {
+                                                        case "pie":
+                                                             // For Pie chart, the area of the pie is pielayer
+                                                            var dragLayer = document.getElementsByClassName('pielayer')[0];
+                                                            break;
+                                                        default:
+                                                            // For bar,violin chart, the area of the chart is nsewdrag
+                                                            var dragLayer = document.getElementsByClassName('nsewdrag')[0];
+                                                            break;
+                                                    }
+                                                    dragLayer.style.cursor = '';
+                                                }), // end pltoly_unhover
+
+                                                element[0].on('plotly_click', function(data) {
+                                                    // here data is the event object that is recieved on click of the plot
+                                                    /* Data Recieved:
+                                                    // For Pie
+                                                    data:{
+                                                        event: {..}
+                                                        points: {
+                                                            0: {
+                                                                data: {
+                                                                    labels: // array of labels in pie chart,
+                                                                    graphic_clickable_links: // array of links which are used to make chart clickable
+                                                                },
+                                                                fullData: {
+                                                                    // Data with default parameters used by plotly
+                                                                    automargin: false,
+                                                                    direction: "counterClockwise",
+                                                                    labels: []
+                                                                }
+                                                                label: // label on which click event took place
+                                                                text: ""
+                                                            }
+                                                        }
+                                                    }
+                                                    // For bar chart
+
+                                                    data: {
+                                                        event: {..}
+                                                        points: {
+                                                            0: {
+                                                                data: {
+                                                                    x: //array of labels in bar chart xaxis,
+                                                                    y: //array of labels in bar chart yaxis,
+                                                                    graphic_clickable_links: // array of links which are used to make chart clickable
+                                                                },
+                                                                fullData: {
+                                                                    // Data with default parameters used by plotly
+                                                                    alignmentgroup: "",
+                                                                    cliponxaxis: true,
+                                                                    x: [],
+                                                                    y: []
+                                                                }
+                                                                label: //label on which click event took place
+                                                                text: ""
+                                                            }
+                                                        }
+                                                    }
+
+                                                    // data for violin chart
+                                                    data: {
+                                                        event: {..},
+                                                        points: {
+                                                            0: {
+                                                                data: {
+                                                                    type: violin,
+                                                                    graphic_clickable_links: ["/deriva-webapps/plot/?config=gudmap-todate-pie&pcid=plotApp&ppid=1rqa2mfb1lyn2lr82bow1fce"],
+                                                                    legend_clickable_links: true
+                                                                },
+                                                                fullData: {
+                                                                  ...
+                                                                },
+                                                                transform[0].groups: "<a href="/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=plotApp&ppid=1rqa2mfb1lyn2lr82bow1fce">prostate gland</a>"
+                                                                x: "<a href="/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=plotApp&ppid=1rqa2mfb1lyn2lr82bow1fce">prostate gland</a>"
+                                                            }
+                                                        }
+                                                    }
+
+                                                    */
+                                                    if (data.hasOwnProperty("points") && data.points[0].data.hasOwnProperty("graphic_clickable_links")) {
+                                                        var idx = "";
+                                                        // For Pie, data.point[0].label is the label of the slice on which click event took place and data.points[0].data.labels is a list of all the labels of the traces, so we are trying to find out on what index of the label, the click event took place.
+                                                        // After we retrive the index we will fetch the link present at that label in graphic_clickable_links and redirect the page to that link
+                                                        // For Bar chart, we are doing the same this, only difference is based on the orientation we need to check the label is present on xaxis or yaxis
+                                                        //Note: length(data.points[0].data.labels) | length(data.points[0].data.y) | length(data.points[0].data.x)  == length(data.points[0].data.graphic_clickable_links)
+                                                        switch(data.points[0].data.type) {
+                                                            case "pie":
+                                                                idx = data.points[0].data.labels.indexOf(data.points[0].label.toString());
+                                                                break;
+                                                            case "bar":
+                                                                // if the orientation is horizontal then the labels will be present on y axis else the labels will be present of xaxis
+                                                                // For a grouped bar chart, plotly does not have a separate property which can help detect which one of the multiple bar chart on one xaxis/yaxis label was clicked.
+                                                                // Therefore, as of now, for grouped bar chart as well, the graphic_clickable link will correspond to the labels on the axis.
+                                                                if (data.points[0].data.orientation=="h") {
+                                                                    idx = data.points[0].data.y.indexOf(data.points[0].y.toString());
+                                                                } else {
+                                                                    idx = data.points[0].data.x.indexOf(data.points[0].x.toString());
+                                                                }
+                                                                break;
+                                                            case "violin":
+                                                                // The index is 0 because in violin chart the event capture the data of a specific xGroupKey and so it will have link on 0th index
+                                                                idx = 0;
+                                                        }
+                                                        if (data.points[0].data.graphic_clickable_links[idx] != false && data.points[0].data.graphic_clickable_links[idx] != undefined) {
+                                                            var url = data.points[0].data.graphic_clickable_links[idx];
+                                                            window.open(url,'_blank');
+                                                        }
+                                                    }
+                                                }), // end plotly_click
+                                                element[0].on('plotly_legendclick', function(data) {
+
+                                                    /*
+                                                    Data recived on plotly legend click event
+                                                    // For Pie Chart
+                                                    data: {
+                                                            config: {staticPlot: false, plotlyServerURL: "", editable: false, edits: {…}, autosizable: false, …}
+                                                            curveNumber: 0
+                                                            data: {
+                                                              0: {type: "pie", labels: Array(8), values: Array(8), legend_clickable_links: Array(8), text: Array(8), …}
+                                                            }
+                                                            length: 1
+                                                            event: MouseEvent {isTrusted: true, screenX: 597, screenY: 261, clientX: 597, clientY: 190, …}
+                                                            expandedIndex: 0
+                                                            frames: []
+                                                            fullData: {
+                                                              0: {type: "pie", _template: null, uid: "b7d954", visible: true, name: "trace 0", …}
+                                                            }
+                                                            length: 1
+                                                            fullLayout: {_dfltTitle: {…}, _traceWord: "trace", _mapboxAccessToken: null, font: {…}, title: {…}, …}
+                                                            label: "<a href=\"/chaise/recordset/#2/Gene_Expression:Specimen/*::facets::?pcid=plotApp&ppid=2pm62p3i1ffo1n7b1wzc2o7e\" target=\"_blank\">Imaging: ISH</a>"
+                                                            layout: {title: {…}, showlegend: true, disable_default_legend_click: true}
+                                                    }
+                                                    // For violin chart
+                                                    */
+                                                    var idx = "";
+                                                    var disableClickReturn = (data.layout.hasOwnProperty("disable_default_legend_click") && data.layout.disable_default_legend_click == true) ? false : true;
+                                                    // This event occurs on click of legend
+                                                    if (data.hasOwnProperty("data")) {
+                                                        switch(data.data[0].type) {
+                                                            case "violin":
+                                                                if (data.data[0].legend_clickable_links == true) {
+                                                                    // Checking if the regex matches, if yes extract the link
+                                                                    window.open(PlotUtils.extractLink(data.group), '_blank');
+                                                                    return disableClickReturn;
+                                                                }
+                                                                break;
+                                                            case "pie":
+                                                                idx = data.data[0].labels.indexOf(data.label.toString());
+                                                                break;
+                                                            // case "scatter":
+                                                            //     idx = data.data[0].legend_clickable_links.indexOf(PlotUtils.extractLink(data.data[0].));
+                                                            //     break;
+                                                            case "bar":
+                                                                idx = data.data[0].legend_clickable_links.indexOf(PlotUtils.extractLink(data.data[0].name));
+                                                                break;
+                                                            default:
+                                                                return disableClickReturn;
+                                                                // idx = data.data[0].labels.indexOf(data.label.toString());
+                                                        }
+                                                        if (data.data[0].hasOwnProperty("legend_clickable_links")) {
+                                                            if (data.data[0].legend_clickable_links[idx] != false && data.data[0].legend_clickable_links[idx] != undefined){
+                                                                window.open(data.data[0].legend_clickable_links[idx], '_blank');
+                                                                return disableClickReturn;
+                                                            }
+                                                        }
+                                                    }
+                                                    return disableClickReturn;
+                                                })
+                                            ).then(function () {
                                                 scope.showPlot();
                                             }.bind(plots.length));
                                         }

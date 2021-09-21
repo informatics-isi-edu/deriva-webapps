@@ -19,6 +19,13 @@
     height: 88vh;
 }
 
+/* To change the text in the tooltip to remove the link if present*/
+svg.main-svg .hoverlayer .hovertext a{
+    text-decoration: none;
+    pointer-events: none;
+    fill: white !important; /* plotly uses fill instead of color*/
+} 
+
 .chaise-iframe .violin-plot.extended-violin-plot-controls .js-plotly-plot {
     height: 78vh;
 }
