@@ -135,7 +135,7 @@
                       break;
                     case "histogram-horizontal":
                       values = {
-                          x: [],
+                          y: [],
                           name: legend || '',
                           type: "histogram",
                           orientation: orientation
@@ -143,7 +143,7 @@
                       break;
                     case "histogram-vertical":
                         values = {
-                            y: [],
+                            x: [],
                             name: legend || '',
                             type: "histogram",
                             orientation: orientation
@@ -839,9 +839,9 @@
                                                 case "histogram-horizontal":
                                                     var values = getValues(plot.plot_type, trace.legend);
                                                     data.forEach(function (row) {
-                                                        values.x.push(formatData(row[trace.data_col], plot.config ? plot.config.format_data : false));
+                                                        values.y.push(formatData(row[trace.data_col], plot.config ? plot.config.format_data : false));
                                                     });
-                                                    plot_values.data.nbinsy = plot.config.ybins;
+                                                    values.nbinsy = plot.config.ybins;
                                                     plot_values.data.push(values);
                                                     plot_values.layout = layout;
                                                     plot_values.config = config;
@@ -849,9 +849,9 @@
                                                 case "histogram-vertical":
                                                     var values = getValues(plot.plot_type, trace.legend);
                                                     data.forEach(function (row) {
-                                                        values.y.push(formatData(row[trace.data_col], plot.plotly.config ? plot.plotly.config.format_data : false));
+                                                        values.x.push(formatData(row[trace.data_col], plot.config ? plot.config.format_data : false));
                                                     });
-                                                    plot_values.data.nbinsy = plot.config.xbins;
+                                                    values.nbinsx = plot.config.xbins;
                                                     plot_values.data.push(values);
                                                     plot_values.layout = layout;
                                                     plot_values.config = config;
