@@ -206,12 +206,8 @@
                         configLayout = plot.config;
                     }
 
-                     // NOTE: does not support templating (violin overrides outside of function with templating)
-                    layout.title = plot.plot_title;
-
                     // configuration overrides
                     var tempConfig = plot.config;
-                    if (layout.disable_default_legend_click != undefined) layout.disable_default_legend_click = tempConfig.disable_default_legend_click;
                     switch (plot.plot_type) {
                         case "pie":
                             break;
@@ -248,6 +244,13 @@
                     Object.keys(configLayout).forEach(function (key) {
                         layout[key] = configLayout[key];
                     });
+
+                    // plot.config object to override layout properties
+                    // (not plot.plotly.config)
+                    if (tempConfig.title_display_markdown_pattern) layout.title = configureTitleDisplayMarkdownPattern(tempConfig.title_display_markdown_pattern);
+                    if (tempConfig.hasOwnProperty("xaxis") && tempConfig.xaxis.hasOwnProperty("title_display_markdown_pattern")) layout.xaxis.title = configureTitleDisplayMarkdownPattern(tempConfig.xaxis.title_display_markdown_pattern);
+                    if (tempConfig.hasOwnProperty("yaxis") && tempConfig.yaxis.hasOwnProperty("title_display_markdown_pattern")) layout.yaxis.title = configureTitleDisplayMarkdownPattern(tempConfig.yaxis.title_display_markdown_pattern);
+                    if (tempConfig.disable_default_legend_click != undefined) layout.disable_default_legend_click = tempConfig.disable_default_legend_click;
 
                     return layout;
                 };
@@ -610,9 +613,6 @@
                         // plotly.data values that probably should NOT be overwritten:
                         //   - [type, x, y, transforms[].groups]
 
-                        // Checking if markdown template is available for title, if yes use that else use the plot title
-                        plotlyConfig.layout.title = (config.title_display_markdown_pattern ? configureTitleDisplayMarkdownPattern(plot.config.title_display_markdown_pattern) :  plotlyConfig.layout.title);
-
                         // xaxis
                         // Checking if markdown template is available for title, if yes use that else use the column name for the current group key
                         plotlyConfig.layout.xaxis.title.text = (xGroupKey.title_display_markdown_pattern ? configureTitleDisplayMarkdownPattern(xGroupKey.title_display_markdown_pattern) : xGroupKey.column_name);
@@ -622,8 +622,9 @@
                         plotlyConfig.data[0].legend_clickable_links = (xGroupKey.legend_markdown_pattern ? true : undefined);
 
                         // yaxis
-                        // Checking if markdown template is available for title, if yes use that else use the yaxis groupkey
-                        plotlyConfig.layout.yaxis.title = (config.title_display_markdown_pattern ? configureTitleDisplayMarkdownPattern(plot.config.yaxis.title_display_markdown_pattern) : config.yaxis.group_key);
+                        // NOTE: if markdown template available, pattern set in getPlotlyLayout function
+                        // if not available use the yaxis groupkey
+                        if (!config.yaxis || !config.yaxis.title_display_markdown_pattern) plotlyConfig.layout.yaxis.title = config.yaxis.group_key;
                         plotlyConfig.layout.yaxis.type = $rootScope.yAxisScale;
 
                         // Add graphic links to the violin chart and append context parameters to the link
@@ -828,9 +829,16 @@
                                                         delete $rootScope.templateParams.$self;
                                                     });
 
-                                                    if (plot.config.hasOwnProperty("title_display_markdown_pattern")) {
-                                                        layout.title = configureTitleDisplayMarkdownPattern(plot.config.title_display_markdown_pattern);
-                                                    }
+                                                    plot_values.data.push(values);
+                                                    plot_values.layout = layout;
+                                                    plot_values.config = config;
+                                                    break;
+                                                case "histogram-vertical":
+                                                    var values = getValues(plot.plot_type, trace.legend);
+                                                    data.forEach(function (row) {
+                                                        values.x.push(formatData(row[trace.data_col], plot.config ? plot.config.format_data : false));
+                                                    });
+                                                    values.nbinsx = plot.config.xbins;
 
                                                     plot_values.data.push(values);
                                                     plot_values.layout = layout;
@@ -842,16 +850,7 @@
                                                         values.y.push(formatData(row[trace.data_col], plot.config ? plot.config.format_data : false));
                                                     });
                                                     values.nbinsy = plot.config.ybins;
-                                                    plot_values.data.push(values);
-                                                    plot_values.layout = layout;
-                                                    plot_values.config = config;
-                                                    break;
-                                                case "histogram-vertical":
-                                                    var values = getValues(plot.plot_type, trace.legend);
-                                                    data.forEach(function (row) {
-                                                        values.x.push(formatData(row[trace.data_col], plot.config ? plot.config.format_data : false));
-                                                    });
-                                                    values.nbinsx = plot.config.xbins;
+
                                                     plot_values.data.push(values);
                                                     plot_values.layout = layout;
                                                     plot_values.config = config;
@@ -958,16 +957,6 @@
                                                             plot_values.data.push(values);
                                                         }
                                                     }
-                                                    // If title_display_markdown_pattern is present in the config file in title or xaxis title, make them as hyperlinks as well
-                                                    if (plot.config.hasOwnProperty("title_display_markdown_pattern")) {
-                                                        layout.title = configureTitleDisplayMarkdownPattern(plot.config.title_display_markdown_pattern);
-                                                    }
-                                                    if (plot.config.hasOwnProperty("xaxis") &&  plot.config.xaxis.hasOwnProperty("title_display_markdown_pattern")) {
-                                                        layout.xaxis.title = configureTitleDisplayMarkdownPattern(plot.config.xaxis.title_display_markdown_pattern);
-                                                    }
-                                                    if (plot.config.hasOwnProperty("yaxis") && plot.config.yaxis.hasOwnProperty("title_display_markdown_pattern")) {
-                                                        layout.yaxis.title = configureTitleDisplayMarkdownPattern(plot.config.yaxis.title_display_markdown_pattern);
-                                                    }
 
                                                     plot_values.layout = layout;
                                                     plot_values.config = config;
@@ -1005,19 +994,6 @@
                                                             delete $rootScope.templateParams.$self;
                                                         });
 
-
-                                                        if (plot.config.hasOwnProperty("title_display_markdown_pattern")) {
-                                                            layout.title = configureTitleDisplayMarkdownPattern(plot.config.title_display_markdown_pattern);
-                                                        }
-                                                        if (plot.config.hasOwnProperty("xaxis") &&  plot.config.xaxis.hasOwnProperty("title_display_markdown_pattern")) {
-                                                            layout.xaxis.title = configureTitleDisplayMarkdownPattern(plot.config.xaxis.title_display_markdown_pattern);
-                                                        }
-                                                        if (plot.config.hasOwnProperty("yaxis") && plot.config.yaxis.hasOwnProperty("title_display_markdown_pattern")) {
-                                                            layout.yaxis.title = configureTitleDisplayMarkdownPattern(plot.config.yaxis.title_display_markdown_pattern);
-                                                        }
-
-                                                        console.log(values)
-                                                        values.hovertemplate = "%{x} %{y}<extra></extra>";
                                                         plot_values.data.push(values);
                                                         plot_values.layout = layout;
                                                         plot_values.config = config;
@@ -1053,16 +1029,6 @@
 
                                                             delete $rootScope.templateParams.$self;
                                                         });
-
-                                                        if (plot.config.hasOwnProperty("title_display_markdown_pattern")) {
-                                                            layout.title = configureTitleDisplayMarkdownPattern(plot.config.title_display_markdown_pattern);
-                                                        }
-                                                        if (plot.config.hasOwnProperty("xaxis") &&  plot.config.xaxis.hasOwnProperty("title_display_markdown_pattern")) {
-                                                            layout.xaxis.title = configureTitleDisplayMarkdownPattern(plot.config.xaxis.title_display_markdown_pattern);
-                                                        }
-                                                        if (plot.config.hasOwnProperty("yaxis") && plot.config.yaxis.hasOwnProperty("title_display_markdown_pattern")) {
-                                                            layout.yaxis.title = configureTitleDisplayMarkdownPattern(plot.config.yaxis.title_display_markdown_pattern);
-                                                        }
 
                                                         plot_values.data.push(values);
                                                         plot_values.layout = layout;
