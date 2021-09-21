@@ -615,7 +615,7 @@
 
                         // xaxis
                         // Checking if markdown template is available for title, if yes use that else use the column name for the current group key
-                        plotlyConfig.layout.xaxis.title.text = (xGroupKey.title_display_markdown_pattern ? configureTitleDisplayMarkdownPattern(xGroupKey.title_display_markdown_pattern) : xGroupKey.column_name);
+                        plotlyConfig.layout.xaxis.title.text = (xGroupKey.title_display_markdown_pattern ? configureTitleDisplayMarkdownPattern(xGroupKey.title_display_markdown_pattern) : (xGroupKey.title_display_pattern ? xGroupKey.title_display_pattern : xGroupKey.column_name) );
                         plotlyConfig.layout.xaxis.tickvals = xData;
                         plotlyConfig.layout.xaxis.ticktext = xDataTicks;
                         // set the legend_clickable_links variable to true of the legends in the violin graph have links in them else set it undefined
