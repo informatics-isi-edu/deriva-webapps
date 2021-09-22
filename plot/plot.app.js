@@ -184,10 +184,15 @@
                 }
 
                 function getPlotlyConfig(plot) {
+                    var config = {};
                     // use config from plot.plotly.config if exists
-                    if (plot.plotly && plot.plotly.config) return plot.plotly.config;
+                    if (plot.plotly && plot.plotly.config) {
+                        config = plot.plotly.config;
+                    }
 
-                    return { displaylogo: false, responsive: true }
+                    if (config.displaylogo == undefined) config.displaylogo = false;
+                    if (config.responsive == undefined) config.responsive = true;
+                    return config;
                 }
 
                 /**
@@ -247,7 +252,7 @@
 
                     // plot.config object to override layout properties
                     // (not plot.plotly.config)
-                    if (tempConfig.title_display_markdown_pattern) layout.title = configureTitleDisplayMarkdownPattern(tempConfig.title_display_markdown_pattern);
+                    if (tempConfig.title_display_markdown_pattern || tempConfig.title_display_pattern) layout.title = configureTitleDisplayMarkdownPattern(tempConfig.title_display_markdown_pattern || tempConfig.title_display_pattern);
                     if (tempConfig.hasOwnProperty("xaxis") && tempConfig.xaxis.hasOwnProperty("title_display_markdown_pattern")) layout.xaxis.title = configureTitleDisplayMarkdownPattern(tempConfig.xaxis.title_display_markdown_pattern);
                     if (tempConfig.hasOwnProperty("yaxis") && tempConfig.yaxis.hasOwnProperty("title_display_markdown_pattern")) layout.yaxis.title = configureTitleDisplayMarkdownPattern(tempConfig.yaxis.title_display_markdown_pattern);
                     if (tempConfig.disable_default_legend_click != undefined) layout.disable_default_legend_click = tempConfig.disable_default_legend_click;
@@ -276,6 +281,7 @@
                 function extractLink(pattern){
                     // Checking if the pattern contains link if yes then extract the link directly else
                     let extractedLink = false;
+                    let match = null;
                     if (pattern.includes("(") && pattern.includes(")")) {
                         // Defined regex to extract url from the pattern defined in the configuration file
                         // Example: [{{{ Number of records }}}](/deriva-webapps/plot/?config=gudmap-todate-pie){target=_blank}
@@ -287,7 +293,8 @@
                         // "i" modifier :  insensitive. Case insensitive match (ignores case of [a-zA-Z])
                         // "g" modifier :  global. All matches.
                         let markdownUrlRegex = /]\((.*?)\)/ig;
-                        extractedLink = markdownUrlRegex.exec(pattern)[1];
+                        match = markdownUrlRegex.exec(pattern);
+                        extractedLink = match ? match[1] : false;
                     } else if (pattern.includes("href")) {
                         // Defined regex to extract url from the generated html element with href attribute
                         // Example: <a href="(/deriva-webapps/plot/?config=gudmap-todate-pie" target="_blank">prostate gland</a>
@@ -296,7 +303,8 @@
                         // "\s" : matches a space character
                         // ^\n\r : matches a string that does not have new line or carriage return
                         let htmlUrlRegex = /<a\shref="([^\n\r]*?)"/ig;
-                        extractedLink = htmlUrlRegex.exec(pattern)[1];
+                        match = htmlUrlRegex.exec(pattern);
+                        extractedLink = match ? match[1] : false;
                     }
 
                     // return false if no extracted link
@@ -616,7 +624,9 @@
                         // xaxis
                         // set default xaxis values
                         if (plotlyConfig.layout.xaxis.automargin == undefined) plotlyConfig.layout.xaxis.automargin = true;
-                        plotlyConfig.layout.xaxis.title = { standoff: 20 };
+                        // could be defined as a value in configuration file, if not create as an object for title.standoff
+                        if (plotlyConfig.layout.xaxis.title == undefined) plotlyConfig.layout.xaxis.title = {};
+                        if (typeof plotlyConfig.layout.xaxis.title === "object" && plotlyConfig.layout.xaxis.title.standoff == undefined) plotlyConfig.layout.xaxis.title = { standoff: 20 };
                         // Checking if markdown template is available for title, if yes use that else use the column name for the current group key
                         plotlyConfig.layout.xaxis.title.text = (xGroupKey.title_display_markdown_pattern ? configureTitleDisplayMarkdownPattern(xGroupKey.title_display_markdown_pattern) : (xGroupKey.title_display_pattern ? xGroupKey.title_display_pattern : xGroupKey.column_name) );
                         plotlyConfig.layout.xaxis.tickvals = xData;
@@ -1042,7 +1052,6 @@
                                                     break;
                                             }
                                             tracesComplete++;
-                                            console.log(plot_values);
                                             plots[plot_values.id].plot_values = plot_values;
                                             plots[plot_values.id].loaded = true;
                                             plots[plot_values.id].plot_type = plot.plot_type;
