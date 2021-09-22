@@ -216,8 +216,8 @@
                             if (tempConfig.bargap != undefined) layout.bargap = tempConfig.bargap;
                             break;
                         case "violin":
-                            layout.xaxis = { automargin: true, title: { standoff: 20 } };
-                            layout.yaxis = { zeroline: false };
+                            layout.xaxis = {};
+                            layout.yaxis = {};
                             layout.hovermode = "closest";
                             layout.dragmode = "pan";
                             break;
@@ -306,7 +306,7 @@
                 function configureTitleDisplayMarkdownPattern(pattern){
                     let link = extractLink(pattern);
                     // Replace the link in the pattern and append pcid and ppid
-                    let patternWParams = pattern.replace(link, link + appendContextParameters(link));
+                    let patternWParams = link ? pattern.replace(link, link + appendContextParameters(link)) : pattern;
                     let title = ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(patternWParams, $rootScope.templateParams), true);
                     return title;
                 }
@@ -614,6 +614,9 @@
                         //   - [type, x, y, transforms[].groups]
 
                         // xaxis
+                        // set default xaxis values
+                        if (plotlyConfig.layout.xaxis.automargin == undefined) plotlyConfig.layout.xaxis.automargin = true;
+                        plotlyConfig.layout.xaxis.title = { standoff: 20 };
                         // Checking if markdown template is available for title, if yes use that else use the column name for the current group key
                         plotlyConfig.layout.xaxis.title.text = (xGroupKey.title_display_markdown_pattern ? configureTitleDisplayMarkdownPattern(xGroupKey.title_display_markdown_pattern) : (xGroupKey.title_display_pattern ? xGroupKey.title_display_pattern : xGroupKey.column_name) );
                         plotlyConfig.layout.xaxis.tickvals = xData;
@@ -625,6 +628,8 @@
                         // NOTE: if markdown template available, pattern set in getPlotlyLayout function
                         // if not available use the yaxis groupkey
                         if (!config.yaxis || !config.yaxis.title_display_markdown_pattern) plotlyConfig.layout.yaxis.title = config.yaxis.group_key;
+                        // set default yaxis value
+                        if (plotlyConfig.layout.yaxis.zeroline == undefined) plotlyConfig.layout.yaxis.zeroline = false;
                         plotlyConfig.layout.yaxis.type = $rootScope.yAxisScale;
 
                         // Add graphic links to the violin chart and append context parameters to the link
@@ -1037,7 +1042,6 @@
                                                     break;
                                             }
                                             tracesComplete++;
-                                            console.log(plot_values);
                                             plots[plot_values.id].plot_values = plot_values;
                                             plots[plot_values.id].loaded = true;
                                             plots[plot_values.id].plot_type = plot.plot_type;
