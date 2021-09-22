@@ -207,6 +207,8 @@
                     // NOTE: plotly_config will be deprecated eventually
                     if (plot.plotly && plot.plotly.layout) {
                         configLayout = plot.plotly.layout;
+                    } else if (plot.plotly_config) {
+                        configLayout = plot.plotly_config;
                     } else if (plot.config) {
                         configLayout = plot.config;
                     }
