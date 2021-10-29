@@ -259,6 +259,9 @@
                     if (tempConfig.hasOwnProperty("yaxis") && tempConfig.yaxis.hasOwnProperty("title_display_markdown_pattern")) layout.yaxis.title = configureTitleDisplayMarkdownPattern(tempConfig.yaxis.title_display_markdown_pattern);
                     if (tempConfig.disable_default_legend_click != undefined) layout.disable_default_legend_click = tempConfig.disable_default_legend_click;
 
+                    // check for set width, if set remove "fullscreen-width" class
+                    if (layout.width) $rootScope.fullscreenWidth = false;
+
                     return layout;
                 };
 
@@ -459,6 +462,7 @@
                     headers[ERMrest.contextHeaderName].catalog = uriParams[uriParams.indexOf("catalog") + 1]
                     // for gene popup
                     ERMrest.resolve(geneUri, {headers: headers}).then(function (ref) {
+                        $rootScope.savedQuery = ConfigUtils.initializeSavingQueries(ref);
                         $rootScope.geneReference = ref.contextualize.compactSelect;
 
                         return generalOrSpecificGene($rootScope.geneReference);
@@ -1667,12 +1671,14 @@
             function runApp(ERMrest, FunctionUtils, PlotUtils, messageMap, Session, UriUtils, $rootScope, $window, headInjector) {
                 try {
                     $rootScope.loginShown = false;
+                    $rootScope.fullscreenWidth = true;
                     $rootScope.config = UriUtils.getQueryParam($window.location.href, "config");
                     $rootScope.headTitle=$window.plotConfigs[$rootScope.config].headTitle;
                     FunctionUtils.registerErmrestCallbacks();
                     var subId = Session.subscribeOnChange(function () {
                         Session.unsubscribeOnChange(subId);
                         var session = Session.getSessionValue();
+                        ERMrest.setClientSession(session);
                         if ($rootScope.headTitle)
                             headInjector.updateHeadTitle($rootScope.headTitle);
                         // if (!session) {

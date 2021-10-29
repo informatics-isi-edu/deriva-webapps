@@ -19,9 +19,14 @@
     height: 88vh;
 }
 
-.chaise-iframe .violin-plot .plot-container,
+/* .chaise-iframe .violin-plot .plot-container,
 .chaise-iframe .violin-plot .js-plotly-plot {
     width: unset;
+} */
+
+/* this class is set for the standalone app when no width value is present */
+.fullscreen-width {
+  width: 80vw;
 }
 
 /* To change the text in the tooltip to remove the link if present*/
