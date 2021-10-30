@@ -260,7 +260,7 @@
                     if (tempConfig.disable_default_legend_click != undefined) layout.disable_default_legend_click = tempConfig.disable_default_legend_click;
 
                     // check for set width, if set remove "fullscreen-width" class
-                    if (layout.width) $rootScope.fullscreenWidth = false;
+                    if ($rootScope.inIframe || layout.width) $rootScope.fullscreenWidth = false;
 
                     return layout;
                 };
@@ -395,7 +395,7 @@
                     }
 
                     // trick to verify if this config app is running inside of an iframe as part of another app
-                    var inIframe = $window.self !== $window.parent;
+                    var inIframe = $rootScope.inIframe = $window.self !== $window.parent;
 
                     // TODO: generalize as part of version 1.3
                     if (studyId) {
