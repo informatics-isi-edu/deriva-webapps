@@ -9,20 +9,15 @@
 
 /* no navbar */
 .chaise-iframe .js-plotly-plot,  /* assumes no other controls present, just plot */
-.chaise-iframe .plot-container {
+.chaise-iframe .plot-container.plotly {
     height: 100vh;
-    width: 100vw;
+    width: 95vw;
 }
 
- /* violin control present */
+ /* 1 row of violin controls present */
 .chaise-iframe .violin-plot .js-plotly-plot {
     height: 88vh;
 }
-
-/* .chaise-iframe .violin-plot .plot-container,
-.chaise-iframe .violin-plot .js-plotly-plot {
-    width: unset;
-} */
 
 /* this class is set for the standalone app when no width value is present */
 .fullscreen-width.js-plotly-plot {
@@ -34,10 +29,6 @@ svg.main-svg .hoverlayer .hovertext a{
     text-decoration: none;
     pointer-events: none;
     fill: white !important; /* plotly uses fill instead of color*/
-}
-
-.chaise-iframe .violin-plot.extended-violin-plot-controls .js-plotly-plot {
-    height: 78vh;
 }
 
 .plot-container {
@@ -61,7 +52,7 @@ svg.main-svg .hoverlayer .hovertext a{
 }
 
 .chaise-iframe .violin-controls.single-select-group {
-    margin-top: 20px;
+    margin-top: 35px;
 }
 
 .violin-controls.study-group {

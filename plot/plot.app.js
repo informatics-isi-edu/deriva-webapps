@@ -1313,7 +1313,19 @@
                             templateUrl:  UriUtils.chaiseDeploymentPath() + "common/templates/searchPopup.modal.html"
                         }, function (res) {
                             vm.selectAll = $rootScope.selectAll = false;
-                            $rootScope.studySet = $rootScope.templateParams.$url_parameters.Study = vm.studySet = res.rows;
+
+                            $rootScope.studySet = vm.studySet = res.rows;
+
+                            // attaching "Tuple" to the templating environment causes handlebars to complain about accessing prototypes
+                            var resultsForTemplating = []
+                            res.rows.forEach(function (tuple) {
+                              resultsForTemplating.push({
+                                "uniqueId": tuple.uniqueId,
+                                "data": tuple.data
+                              });
+                            });
+
+                            $rootScope.templateParams.$url_parameters.Study = resultsForTemplating;
 
                             // the study has changed, fetch new plot data for new study info
                             // Can't close popup without returning study info
