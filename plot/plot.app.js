@@ -261,6 +261,7 @@
 
                     // check for set width, if set remove "fullscreen-width" class
                     if ($rootScope.inIframe || layout.width) $rootScope.fullscreenWidth = false;
+                    if ($rootScope.inIframe || layout.height) $rootScope.fullscreenHeight = false;
 
                     return layout;
                 };
@@ -1684,6 +1685,7 @@
                 try {
                     $rootScope.loginShown = false;
                     $rootScope.fullscreenWidth = true;
+                    $rootScope.fullscreenHeight = true;
                     $rootScope.config = UriUtils.getQueryParam($window.location.href, "config");
                     $rootScope.headTitle=$window.plotConfigs[$rootScope.config].headTitle;
                     FunctionUtils.registerErmrestCallbacks();

@@ -24,6 +24,11 @@
   width: 80vw;
 }
 
+/* this class is set for the standalone app when no height value is present */
+.fullscreen-height.js-plotly-plot {
+  height: 70vh;
+}
+
 /* To change the text in the tooltip to remove the link if present*/
 svg.main-svg .hoverlayer .hovertext a{
     text-decoration: none;
