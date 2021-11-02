@@ -407,7 +407,7 @@
                     // in iframe and study means embedded on study page, hide study selector
                     // OR if only one of geneId or studyId, assume we fullscreened from iframe
                     // NOTE: this may change in future but is a requirement for now
-                    if ( inIframe || ((geneId && !studyId) || (!geneId && studyId)) ) {
+                    if ( $rootScope.inIframe || ((geneId && !studyId) || (!geneId && studyId)) ) {
                         $rootScope.disableGeneSelector = geneId ? true : false;
                         $rootScope.hideStudySelector = studyId ? true : false;
                     }
@@ -743,7 +743,7 @@
                             $rootScope.disableGeneSelector = false;
 
                             // trick to verify if this config app is running inside of an iframe as part of another app
-                            var inIframe = $rootScope.inIframe = $window.self !== $window.parent;
+                            $rootScope.inIframe = $window.self !== $window.parent;
 
                             // violin plot has it's own case outside of the switch condition below since it relies on reference api for the gene selector
                             if (plot.plot_type == "violin") {
