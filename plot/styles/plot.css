@@ -8,15 +8,18 @@
 }
 
 /* no navbar */
-.chaise-iframe .js-plotly-plot,  /* assumes no other controls present, just plot */
-.chaise-iframe .plot-container.plotly {
+.chaise-iframe .js-plotly-plot {
     height: 100vh;
-    width: 95vw;
+    width: 98vw;
 }
 
  /* 1 row of violin controls present */
 .chaise-iframe .violin-plot .js-plotly-plot {
     height: 88vh;
+}
+
+.chaise-iframe .violin-plot.extended-violin-plot-controls .js-plotly-plot {
+    height: 78vh;
 }
 
 /* this class is set for the standalone app when no width value is present */
@@ -27,6 +30,8 @@
 /* this class is set for the standalone app when no height value is present */
 .fullscreen-height.js-plotly-plot {
   height: 70vh;
+  min-height: 550px;
+  max-height: 1200px;
 }
 
 /* To change the text in the tooltip to remove the link if present*/
@@ -36,7 +41,7 @@ svg.main-svg .hoverlayer .hovertext a{
     fill: white !important; /* plotly uses fill instead of color*/
 }
 
-.plot-container {
+.chaise-plot-container {
     display: block;
 }
 

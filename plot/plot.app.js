@@ -387,16 +387,11 @@
                     var studyId = UriUtils.getQueryParam($window.location.href, "Study");
                     var geneId = UriUtils.getQueryParam($window.location.href, "NCBI_GeneID");
 
-                    $rootScope.hideStudySelector = false;
-                    $rootScope.disableGeneSelector = false;
                     // templateParams created before this function is called
                     $rootScope.templateParams.$url_parameters = {
                             NCBI_GeneID: geneId || null,
                             Study: []
                     }
-
-                    // trick to verify if this config app is running inside of an iframe as part of another app
-                    var inIframe = $rootScope.inIframe = $window.self !== $window.parent;
 
                     // TODO: generalize as part of version 1.3
                     if (studyId) {
@@ -416,10 +411,6 @@
                         $rootScope.disableGeneSelector = geneId ? true : false;
                         $rootScope.hideStudySelector = studyId ? true : false;
                     }
-
-                    // both booleans imply we are in an iframe
-                    var skipStudy = $rootScope.hideStudySelector;
-                    var skipGene = $rootScope.disableGeneSelector;
 
                     var geneUri = ERMrest.renderHandlebarsTemplate(plot.gene_uri_pattern, $rootScope.templateParams);
                     // relies on geneUri not passed as param
@@ -475,19 +466,29 @@
                             $rootScope.templateParams.$url_parameters.NCBI_GeneID = $rootScope.gene.data["NCBI_GeneID"];
                         }
 
-                        if (!skipStudy && $rootScope.templateParams.$url_parameters.Study.length > 0) {
-                            // get study information for 1 study
-                            var singleStudyUri = ERMrest.renderHandlebarsTemplate(plot.study_uri_pattern, $rootScope.templateParams);
-                            singleStudyUri += "/RID=" + $rootScope.templateParams.$url_parameters.Study[0].uniqueId;
-                            ERMrest.resolve(singleStudyUri, ConfigUtils.getContextHeaderParams()).then(function (singleStudyRef) {
-
-                                return singleStudyRef.read(1);
-                            }).then(function (page) {
-                                $rootScope.templateParams.$url_parameters.Study = $rootScope.studySet = [page.tuples[0]];
-                            }).catch(function (err) {
-                                console.log(err);
-                            });
+                        var studyUri = ERMrest.renderHandlebarsTemplate(plot.study_uri_pattern, $rootScope.templateParams);
+                        if ($rootScope.templateParams.$url_parameters.Study.length > 0) {
+                            // get study information for study from url parameters
+                            studyUri += "/RID=" + $rootScope.templateParams.$url_parameters.Study[0].uniqueId;
                         }
+
+                        return ERMrest.resolve(studyUri, ConfigUtils.getContextHeaderParams());
+                    }).then(function (singleStudyRef) {
+
+                        return singleStudyRef.read(1);
+                    }).then(function (page) {
+                        $rootScope.studySet = page.tuples;
+
+                        // attaching "Tuple" to the templating environment causes handlebars to complain about accessing prototypes
+                        var resultsForTemplating = []
+                        page.tuples.forEach(function (tuple) {
+                            resultsForTemplating.push({
+                                "uniqueId": tuple.uniqueId,
+                                "data": tuple.data
+                            });
+                        });
+
+                        $rootScope.templateParams.$url_parameters.Study = resultsForTemplating;
 
                         return defer.resolve();
                     }).catch(function (err) {
@@ -737,6 +738,13 @@
                             $rootScope.templateParams = {
                                 $url_parameters: {}
                             }
+
+                            $rootScope.hideStudySelector = false;
+                            $rootScope.disableGeneSelector = false;
+
+                            // trick to verify if this config app is running inside of an iframe as part of another app
+                            var inIframe = $rootScope.inIframe = $window.self !== $window.parent;
+
                             // violin plot has it's own case outside of the switch condition below since it relies on reference api for the gene selector
                             if (plot.plot_type == "violin") {
                                 // TODO: assumes only 1 plot
@@ -752,13 +760,6 @@
 
                                         // no default was set, use first group
                                         if (!$rootScope.groupKey) $rootScope.groupKey = $rootScope.groups[0];
-
-                                        // we have no study info at the start, default to group set for "all studies"
-                                        if ($rootScope.templateParams.$url_parameters.Study.length == 0) {
-                                            $rootScope.groupKey = $rootScope.groups.filter(function (obj) {
-                                                return obj.column_name == plot.config.xaxis.default_all_studies_group;
-                                            })[0];
-                                        }
 
                                         // set dataParams to be used later for refetching violin data
                                         dataParams.trace = trace;
@@ -1270,7 +1271,7 @@
                     var headers = {}
                     headers[ERMrest.contextHeaderName] = ConfigUtils.getContextHeaderParams();
                     var uriParams = studyUri.split("/")
-                    //URI looks like "/ermrest/catalog/2/entity/RNASeq:Replicate_Expression/NCBI_GeneID={{{$url_parameters.NCBI_GeneID}}}/(Study)=(RNASeq:Study:RID)"
+                    // URI looks like "/ermrest/catalog/2/entity/RNASeq:Replicate_Expression/NCBI_GeneID={{{$url_parameters.NCBI_GeneID}}}/(Study)=(RNASeq:Study:RID)"
                     var schema_table = uriParams[uriParams.indexOf("entity") + 1]
                     if (schema_table.includes(":=")) schema_table = schema_table.split(":=")[1]
                     headers[ERMrest.contextHeaderName].schema_table = schema_table;
