@@ -13,15 +13,6 @@
     width: 98vw;
 }
 
- /* 1 row of violin controls present */
-.chaise-iframe .violin-plot .js-plotly-plot {
-    height: 88vh;
-}
-
-.chaise-iframe .violin-plot.extended-violin-plot-controls .js-plotly-plot {
-    height: 78vh;
-}
-
 /* this class is set for the standalone app when no width value is present */
 .fullscreen-width.js-plotly-plot {
   width: 80vw;
@@ -58,15 +49,15 @@ svg.main-svg .hoverlayer .hovertext a{
 
 .violin-controls.single-select-group {
     display: flex;
-    margin-top: 50px;
+    padding-top: 50px;
 }
 
 .chaise-iframe .violin-controls.single-select-group {
-    margin-top: 35px;
+    padding-top: 35px;
 }
 
 .violin-controls.study-group {
-    margin-top: 25px;
+    padding-top: 25px;
 }
 
 .violin-controls.study-group .truncate-chiclets {

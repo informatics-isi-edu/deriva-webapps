@@ -64,7 +64,7 @@
                             <div style="margin-top: 15px;">Loading...</div>
                         </div>
                         <div ng-show="plotsLoaded" class="plots-wrapper" ng-repeat="plot in plots">
-                            <div ng-if="ctrl.showViolinControls(plot.plot_type)">
+                            <div ng-if="ctrl.showViolinControls(plot.plot_type)" class="plot-controls-group">
                                 <div class="violin-controls single-select-group">
                                     <!-- modal single select popup input -->
                                     <div class="chaise-input-group modal-popup gene-selector-group">
@@ -154,7 +154,7 @@
                                 </div>
                             </div>
                             <div class="plot" ng-class="{'{{plot.plot_type}}-plot': true, 'extended-violin-plot-controls': !hideStudySelector}">
-                                <plot plot-id="{{plot.id}}" ng-class="{'fullscreen-width': fullscreenWidth, 'fullscreen-height': fullscreenHeight}"></plot>
+                                <plot plot-id="{{plot.id}}" ng-class="{'fullscreen-width': fullscreenWidth, 'fullscreen-height': fullscreenHeight}" ng-style="ctrl.setPlotHeight()"></plot>
                             </div>
                         </div>
                     </div>

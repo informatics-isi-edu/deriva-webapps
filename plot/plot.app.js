@@ -1412,6 +1412,18 @@
                     });
                 }
 
+                // set a height on the plot directive if in iframe and plot controls are visible
+                vm.setPlotHeight = function () {
+                    if (!$rootScope.inIframe) return;
+
+                    var controls = document.getElementsByClassName('plot-controls-group');
+                    if (controls.length == 0) return;
+
+                    // calculate height
+                    // -20 to add a "margin" for bototm of the iframe
+                    return {'height': $window.self.innerHeight - controls[0].offsetHeight - 20 + "px"}
+                }
+
                 // callback for scale selector
                 vm.toggleScale = function (scale) {
                     $rootScope.yAxisScale = scale;
