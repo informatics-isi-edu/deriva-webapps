@@ -22,7 +22,7 @@ Each plot will have the following parameters:
     3. `height`: Height of the plot - DEPRECATED, define in `plotly.layout.height` instead
     4. `width`: width of the plot - DEPRECATED, use `plotly.layout.width` instead
     5. `slice_label`: label to be shown on slice of a pie - only for pie chart // Default: "none", Available: "percent" or "value"
-    6. `x_axis_type`: type to be used for x_axis - DEPRECATED, use `plotly.layout.xaxis.type`instead
+    6. `x_axis_type`: type to be used for x_axis - DEPRECATED, use `plotly.layout.xaxis.type` instead
     7. `y_axis_type`: type to be used for y_axis - DEPRECATED, use `plotly.layout.yaxis.type` instead
     8. `margin`: have l as an attribute which specifies left margin, similarly "r","t" and "b" for right, top and bottom - DEPRECATED, define in plotly.layout
     9. `x_axis_thousands_separator`: to separate number by , after 4 digits // bool : true or false
