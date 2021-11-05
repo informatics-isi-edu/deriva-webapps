@@ -6,32 +6,32 @@ This document is a summary of code changes in Deriva Webapps. This is the vocabu
   - `[Changed]`: modifications to existing features.
   - `[Fixed]`: bug fixes.
 
-# 11/2/21
+# 11/02/21
   - [Improved] Plot: responsiveness when in iframe and on standalone page
   - [Changed] Plot: always choose first study instead of all studies
 
-# 9/22/21
+# 09/22/21
  - [Improved] Plot: allow for text links in title and axis labels [PR #117](https://github.com/informatics-isi-edu/deriva-webapps/pull/117)
  - [Changed] Plot: configuration language updated to version 1.3. Deprecated properties and improved the configuration language for more consistency. See "plot/README.md" for more details. Most notably, deprecated plotly_config in favor of plotly.config.
 
-# 6/21/21
+# 06/21/21
  - [Added] Plot: basic logging support
 
-# 6/2/21
+# 06/02/21
  - [Added] General: headTitle support added to webapp configurations
 
-# 12/1/20
+# 12/01/20
  - [Improved] Plot: responsiveness of all plot types
  - [Fixed] Plot: pie chart comma separated values not showing properly, page title flashing.
 
-# 11/5/20
+# 11/05/20
  - [Changed] Plot: configuration language updated to version 1.2
  - [Added] Plot: study multi picker support
 
-# 10/8/20
+# 10/08/20
  - [Changed] Plot: configuration language updated to version 1.1.1. Templating for axis labels
  - [Added] Plot: faceting in gene picker
  - [Fixed] Treeview: print display problems
 
-# 8/28/20
+# 08/28/20
  - [Added] Plot: initial violin plot support
