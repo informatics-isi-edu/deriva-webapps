@@ -7,8 +7,10 @@ The plot-config.js file has the following parameters which can be modified when 
 The config file specify the parameters for a particular key i.e. `rbk-config`
 
 ### Data parameters
-1. page_title(optional): Title of the plot app.
-2. plots: An array of the plots to be shown.
+1. page_title(optional): Title of the plot app. DEPRECATED, use `headTitle` instead
+2. headTitle: Title of the plot app.
+3. top_right_link_text: text to show for the link in top right corner to show plot with all controls. Only supported for violin plot Currently
+4. plots: An array of the plots to be shown.
 
 Each plot will have the following parameters:
 
