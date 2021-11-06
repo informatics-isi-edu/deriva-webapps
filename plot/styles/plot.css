@@ -7,6 +7,19 @@
     margin: unset;
 }
 
+.subnav-link {
+  height: 25px;
+}
+
+.subnav-link a {
+  padding-right: 15px;
+  padding-top: 5px;
+}
+
+.chaise-iframe .subnav-link a{
+  padding-right: 10px;
+}
+
 /* no navbar */
 .chaise-iframe .js-plotly-plot {
     height: 100vh;
@@ -49,11 +62,11 @@ svg.main-svg .hoverlayer .hovertext a{
 
 .violin-controls.single-select-group {
     display: flex;
-    padding-top: 50px;
+    padding-top: 25px;
 }
 
 .chaise-iframe .violin-controls.single-select-group {
-    padding-top: 35px;
+    padding-top: 10px;
 }
 
 .violin-controls.study-group {

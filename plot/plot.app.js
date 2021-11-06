@@ -567,6 +567,7 @@
                                     delete $rootScope.templateParams.value;
                                 }
                             }
+                            // TODO: if "", set value as 'Empty'
                             return (value !== null && value !== undefined) ? value : "N/A"
                         });
 
@@ -746,6 +747,7 @@
 
                             // violin plot has it's own case outside of the switch condition below since it relies on reference api for the gene selector
                             if (plot.plot_type == "violin") {
+                                if (plotConfig.top_right_link_text) $rootScope.subnavbarLinkText = plotConfig.top_right_link_text;
                                 // TODO: assumes only 1 plot
                                 $rootScope.plot = plot;
                                 plot.traces.forEach(function (trace) {
@@ -1242,12 +1244,13 @@
                             size: modalUtils.getSearchPopupSize(params),
                             templateUrl: UriUtils.chaiseDeploymentPath() + "common/templates/searchPopup.modal.html"
                         }, function (res) {
+                            $rootScope.dataChanged = true;
                             $rootScope.gene = res;
                             $rootScope.geneId = $rootScope.templateParams.$url_parameters.NCBI_GeneID = $rootScope.gene.data["NCBI_GeneID"];
 
                             // the gene has changed, fetch new plot data for new gene
                             PlotUtils.getViolinData(vm.studySet.length == 0 && !vm.selectAll).then(function (values) {
-                                // TODO: checkPlotsLoaded()
+                                $rootScope.dataChanged = false;
                             }).catch(function (err) {
                                 console.log(err);
                             });
@@ -1306,6 +1309,7 @@
                             size: modalUtils.getSearchPopupSize(params),
                             templateUrl:  UriUtils.chaiseDeploymentPath() + "common/templates/searchPopup.modal.html"
                         }, function (res) {
+                            $rootScope.dataChanged = true;
                             vm.selectAll = $rootScope.selectAll = false;
 
                             $rootScope.studySet = vm.studySet = res.rows;
@@ -1324,7 +1328,7 @@
                             // the study has changed, fetch new plot data for new study info
                             // Can't close popup without returning study info
                             PlotUtils.getViolinData().then(function (values) {
-                                // TODO: checkPlotsLoaded()
+                                $rootScope.dataChanged = false;
                             }).catch(function (err) {
                                 console.log(err);
                             });
@@ -1339,11 +1343,12 @@
                 }
 
                 vm.selectAllStudy = function () {
+                    $rootScope.dataChanged = true;
                     // empty the studySet
                     $rootScope.studySet = $rootScope.templateParams.$url_parameters.Study = vm.studySet = [];
                     PlotUtils.getViolinData().then(function (values) {
                         vm.selectAll = $rootScope.selectAll = true;
-                        // TODO: checkPlotsLoaded()
+                        $rootScope.dataChanged = false;
                     }).catch(function (err) {
                         console.log(err);
                     });
@@ -1356,6 +1361,7 @@
                 }
 
                 vm.removeStudyPill = function (studyId, $event) {
+                    $rootScope.dataChanged = true;
                     vm.selectAll = $rootScope.selectAll = false;
                     var index = vm.studySet.findIndex(function (obj) {
                         return obj.uniqueId == studyId;
@@ -1369,23 +1375,25 @@
                     }
 
                     vm.studySet.splice(index, 1)[0];
+                    $rootScope.templateParams.$url_parameters.Study.splice(index, 1)[0];
                     $rootScope.studySet = vm.studySet;
 
                     // the study has changed, fetch new plot data for new study info
                     PlotUtils.getViolinData(vm.studySet.length == 0).then(function (values) {
-                        // TODO: checkPlotsLoaded()
+                        $rootScope.dataChanged = false;
                     }).catch(function (err) {
                         console.log(err);
                     });
                 }
 
                 vm.removeAllStudy = function () {
+                    $rootScope.dataChanged = true;
                     vm.selectAll = $rootScope.selectAll = false;
                     $rootScope.studySet = vm.studySet = [];
 
                     // all studies removed, call getViolinData with true to call case when we want to remove data from plot
                     PlotUtils.getViolinData(true).then(function (values) {
-                        // TODO: checkPlotsLoaded()
+                        $rootScope.dataChanged = false;
                     }).catch(function (err) {
                         console.log(err);
                     });
@@ -1393,12 +1401,13 @@
 
                 // callback for group by selector
                 vm.setGroup = function (group) {
+                    $rootScope.dataChanged = true;
                     $rootScope.groupKey = group;
 
                     // Request to fetch data doesn't need to be made, currently should return 304 not modified and make very little difference
                     // TODO: change settings for plotly and reapply to plot instead of trying to fetch data first
                     PlotUtils.getViolinData(vm.studySet.length == 0 && !vm.selectAll).then(function (values) {
-                        // TODO: checkPlotsLoaded()
+                        $rootScope.dataChanged = false;
                     }).catch(function (err) {
                         console.log(err);
                     });
@@ -1418,12 +1427,13 @@
 
                 // callback for scale selector
                 vm.toggleScale = function (scale) {
+                    $rootScope.dataChanged = true;
                     $rootScope.yAxisScale = scale;
 
                     // Request to fetch data doesn't need to be made, currently should return 304 not modified and make very little difference
                     // TODO: change settings for plotly and reapply to plot instead of trying to fetch data first
                     PlotUtils.getViolinData(vm.studySet.length == 0 && !vm.selectAll).then(function (values) {
-                        // TODO: checkPlotsLoaded()
+                        $rootScope.dataChanged = false;
                     }).catch(function (err) {
                         console.log(err);
                     });
@@ -1691,7 +1701,7 @@
                     $rootScope.fullscreenWidth = true;
                     $rootScope.fullscreenHeight = true;
                     $rootScope.config = UriUtils.getQueryParam($window.location.href, "config");
-                    $rootScope.headTitle=$window.plotConfigs[$rootScope.config].headTitle;
+                    $rootScope.headTitle = $window.plotConfigs[$rootScope.config].headTitle;
                     FunctionUtils.registerErmrestCallbacks();
                     var subId = Session.subscribeOnChange(function () {
                         Session.unsubscribeOnChange(subId);
