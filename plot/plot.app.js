@@ -530,6 +530,20 @@
 
                     server.http.get(uri, {headers: headers}).then(function(response) {
                         var data = response.data;
+
+                        // sort data by xGroupKey.column_name
+                        data.sort(function(a, b) {
+                            if (a[xGroupKey.column_name] && b[xGroupKey.column_name]) {
+                                return a[xGroupKey.column_name].localeCompare(b[xGroupKey.column_name]);
+                            } else if (a[xGroupKey.column_name] == null) {
+                                return -1;
+                            } else if (b[xGroupKey.column_name] == null) {
+                                return 1;
+                            } else {
+                                return 0;
+                            }
+                        });
+
                         // transform x data based on groupKey
                         // xData used for graph x data AND xaxis grouping
                         var xData = data.map(function (obj) {
@@ -581,20 +595,6 @@
                             return value;
                         });
 
-                        var groupStyles = [];
-                        var colors = ["blue", "orange", "green", "red", "yellow"]; // note: samples I tested only had 5 differentiating values
-                        // get unique x values and assign colors for each group key (x value)
-                        var uniqueX = xData.filter(function (key, index, self) {
-                            return self.indexOf(key) === index;
-                        });
-
-                        uniqueX.forEach(function (x, index) {
-                            groupStyles.push({
-                                target: x,
-                                value: {line: {color: colors[index%colors.length]}}
-                            });
-                        });
-
                         // set base violin plot config
                         // NOTE: getPlotlyConfig and getViolinLayout (TODO: rename to getPlotlyLayout) fetch from plot-config.js plot object or use default
                         var plotlyConfig = {
@@ -614,8 +614,7 @@
                                 },
                                 transforms: [{
                                     type: 'groupby',
-                                    groups: xData,
-                                    styles: groupStyles
+                                    groups: xData
                                 }],
                                 // An array which will contain all the links that can be used in on click event of the violin chart
                                 graphic_clickable_links: []
@@ -1111,6 +1110,7 @@
                 vm.scales = ["linear", "log"];
                 vm.showMore = true;
                 vm.selectAll = $rootScope.selectAll = false;
+                vm.studySet = [];
                 $rootScope.yAxisScale = "linear";
                 vm.changeSelection = function(value) { // Not yet used for the selection of plot type
                   var plotsData = $rootScope.plots.data;
@@ -1290,15 +1290,7 @@
                         params.displayMode = "popup";
                         params.editable = false;
 
-                        // should be triggered once to remove fake tuple objects from array used for default display
-                        if (vm.studySelectorOpened == false) {
-                            params.selectedRows = [];
-                            vm.studySelectorOpened == true;
-                        } else {
-                            params.selectedRows = $rootScope.studySet ? $rootScope.studySet : [];
-                        };
-
-                        // TODO: preselect rows that are already selected
+                        params.selectedRows = $rootScope.studySet ? $rootScope.studySet : [];
 
                         // modal properties
                         var windowClass = "search-popup study-selector-popup";
@@ -1452,15 +1444,13 @@
 
                 }
 
-                $scope.$watch(function () {
+                var setUpStudy = $scope.$watch(function () {
                     return ($rootScope.templateParams ? $rootScope.templateParams.$url_parameters.Study : null)
                 }, function (newValue, oldValue) {
-                    // execute once study parameter is digested (or setup from reference default when embedded on gene page.. in future)
-                    if (newValue) {
-                        // if no study set, select "All Studies" so we have graph data to show
-                        vm.selectAll = $rootScope.selectAll = $rootScope.templateParams.$url_parameters.Study.length == 0
-                        vm.studySelectorOpened = false;
-                        $rootScope.studySet = vm.studySet = newValue;
+                    // execute only once, when study parameter is digested (or setup from reference default when embedded on gene page.. in future)
+                    if (newValue && newValue.length > 0) {
+                        vm.studySet = newValue;
+                        setUpStudy();
                     }
                 });
 
@@ -1657,8 +1647,9 @@
                                                                 if (data.data[0].legend_clickable_links == true) {
                                                                     // Checking if the regex matches, if yes extract the link
                                                                     window.open(PlotUtils.extractLink(data.group), '_blank');
-                                                                    return disableClickReturn;
                                                                 }
+
+                                                                return disableClickReturn;
                                                                 break;
                                                             case "pie":
                                                                 idx = data.data[0].labels.indexOf(data.label.toString());
@@ -1673,7 +1664,7 @@
                                                                 return disableClickReturn;
                                                                 // idx = data.data[0].labels.indexOf(data.label.toString());
                                                         }
-                                                        if (data.data[0].hasOwnProperty("legend_clickable_links")) {
+                                                        if (data.data[0].hasOwnProperty("legend_clickable_links") && idx != "") {
                                                             if (data.data[0].legend_clickable_links[idx] != false && data.data[0].legend_clickable_links[idx] != undefined){
                                                                 window.open(data.data[0].legend_clickable_links[idx], '_blank');
                                                                 return disableClickReturn;

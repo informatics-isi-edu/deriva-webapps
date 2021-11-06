@@ -35,3 +35,6 @@ This document is a summary of code changes in Deriva Webapps. This is the vocabu
 
 # 08/28/20
  - [Added] Plot: initial violin plot support
+ - [Existing Features] ...
+
+// end of history
