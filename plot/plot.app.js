@@ -1459,8 +1459,8 @@
                 }, function (newValue, oldValue) {
                     // execute only once, when study parameter is digested (or setup from reference default when embedded on gene page.. in future)
                     if (newValue && newValue.length > 0) {
-                        vm.studySet = newValue;
-                        setUpStudy();
+                        vm.studySet = $rootScope.studySet;
+                        setUpStudy(); // remove this watch statement
                     }
                 });
 
