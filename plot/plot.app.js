@@ -386,6 +386,7 @@
                     // TODO: only fetches one study ID, support multiple
                     var studyId = UriUtils.getQueryParam($window.location.href, "Study");
                     var geneId = UriUtils.getQueryParam($window.location.href, "NCBI_GeneID");
+                    $rootScope.noIdParams = !studyId && !geneId;
 
                     // templateParams created before this function is called
                     $rootScope.templateParams.$url_parameters = {
@@ -1327,7 +1328,7 @@
 
                             // the study has changed, fetch new plot data for new study info
                             // Can't close popup without returning study info
-                            PlotUtils.getViolinData().then(function (values) {
+                            PlotUtils.getViolinData(vm.studySet.length == 0).then(function (values) {
                                 $rootScope.dataChanged = false;
                             }).catch(function (err) {
                                 console.log(err);
@@ -1390,6 +1391,7 @@
                     $rootScope.dataChanged = true;
                     vm.selectAll = $rootScope.selectAll = false;
                     $rootScope.studySet = vm.studySet = [];
+                    $rootScope.templateParams.$url_parameters.Study = [];
 
                     // all studies removed, call getViolinData with true to call case when we want to remove data from plot
                     PlotUtils.getViolinData(true).then(function (values) {

@@ -65,7 +65,7 @@
                         </div>
                         <div ng-show="plotsLoaded" class="plots-wrapper" ng-repeat="plot in plots">
                             <div ng-if="ctrl.showViolinControls(plot.plot_type)" class="plot-controls-group">
-                                <div ng-if="subnavbarLinkText" class="subnav-link"><a class="pull-right" href="/deriva-webapps/plot/?config=study-violin" target="inIframe ? '_blank' : 'self'">{{subnavbarLinkText}}</a></div>
+                                <div ng-if="subnavbarLinkText && !noIdParams" class="subnav-link"><a class="pull-right" href="/deriva-webapps/plot/?config=study-violin" target="{{inIframe ? '_blank' : '_self'}}">{{subnavbarLinkText}}</a></div>
                                 <div class="violin-controls single-select-group">
                                     <!-- modal single select popup input -->
                                     <div class="chaise-input-group modal-popup gene-selector-group">
