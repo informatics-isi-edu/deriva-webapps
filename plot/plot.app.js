@@ -394,16 +394,6 @@
                             Study: []
                     }
 
-                    // TODO: generalize as part of version 1.3
-                    if (studyId) {
-                        $rootScope.templateParams.$url_parameters.Study.push({
-                            "uniqueId": studyId,
-                            "data": {
-                                "RID": studyId
-                            }
-                        });
-                    }
-
                     // in iframe and gene means embedded on gene page, disable gene selector
                     // in iframe and study means embedded on study page, hide study selector
                     // OR if only one of geneId or studyId, assume we fullscreened from iframe
@@ -468,10 +458,8 @@
                         }
 
                         var studyUri = ERMrest.renderHandlebarsTemplate(plot.study_uri_pattern, $rootScope.templateParams);
-                        if ($rootScope.templateParams.$url_parameters.Study.length > 0) {
-                            // get study information for study from url parameters
-                            studyUri += "/RID=" + $rootScope.templateParams.$url_parameters.Study[0].uniqueId;
-                        }
+                        // get study information for study from url parameters
+                        if (studyId) studyUri += "/RID=" + studyId;
 
                         return ERMrest.resolve(studyUri, ConfigUtils.getContextHeaderParams());
                     }).then(function (singleStudyRef) {
@@ -1457,7 +1445,7 @@
 
                 }
 
-                // NOTE: when studySet is changed, extract the template data for the templating environment here instead of in 4-5 different
+                // NOTE|TODO: when studySet is changed, extract the template data for the templating environment here instead of in 4-5 different
                 // NOTE: have a notion to differentiate ALL STUDIES and NO STUDIES
 
                 // intialize vm.studySet based on the rows returned from the study url parameters
@@ -1465,7 +1453,7 @@
                     return ($rootScope.templateParams ? $rootScope.templateParams.$url_parameters.Study : null)
                 }, function (newValue, oldValue) {
                     // execute only once, when study parameter is digested (or setup from reference default when embedded on gene page.. in future)
-                    if (newValue && newValue.length > 0) {
+                    if (newValue && newValue.length > 0 && $rootScope.studySet.length > 0) {
                         vm.studySet = $rootScope.studySet;
                         setUpStudy(); // remove this watch statement
                     }
