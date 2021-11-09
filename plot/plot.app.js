@@ -514,6 +514,7 @@
                     if (!uri || removeData) {
                         // empty the plot of data but keep the configuration
                         plot_values.data = [];
+                        plot_values.layout.title = "No Data";
                         defer.resolve(plot_values);// TODO: figure out how to return an error to catch clause without breaking code
                         return defer.promise;
                     }
@@ -1456,6 +1457,10 @@
 
                 }
 
+                // NOTE: when studySet is changed, extract the template data for the templating environment here instead of in 4-5 different
+                // NOTE: have a notion to differentiate ALL STUDIES and NO STUDIES
+
+                // intialize vm.studySet based on the rows returned from the study url parameters
                 var setUpStudy = $scope.$watch(function () {
                     return ($rootScope.templateParams ? $rootScope.templateParams.$url_parameters.Study : null)
                 }, function (newValue, oldValue) {
