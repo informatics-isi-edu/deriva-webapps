@@ -1463,6 +1463,7 @@
                 var setUpStudy = $scope.$watch('selectorsSetup', function (newValue, oldValue) {
                     // execute only once, when study parameter is digested (or setup from reference default when embedded on gene page.. in future)
                     if (newValue) {
+                        vm.studySet = $rootScope.studySet;
                         setUpStudy(); // remove this watch statement
                     }
                 });
