@@ -394,6 +394,16 @@
                             Study: []
                     }
 
+                    // for templating gene request
+                    if (studyId) {
+                        $rootScope.templateParams.$url_parameters.Study.push({
+                            "uniqueId": studyId,
+                            "data": {
+                                "RID": studyId
+                            }
+                        });
+                    }
+
                     // in iframe and gene means embedded on gene page, disable gene selector
                     // in iframe and study means embedded on study page, hide study selector
                     // OR if only one of geneId or studyId, assume we fullscreened from iframe
@@ -478,6 +488,7 @@
                         });
 
                         $rootScope.templateParams.$url_parameters.Study = resultsForTemplating;
+                        $rootScope.selectorsSetup = true;
 
                         return defer.resolve();
                     }).catch(function (err) {
@@ -1449,12 +1460,9 @@
                 // NOTE: have a notion to differentiate ALL STUDIES and NO STUDIES
 
                 // intialize vm.studySet based on the rows returned from the study url parameters
-                var setUpStudy = $scope.$watch(function () {
-                    return ($rootScope.templateParams ? $rootScope.templateParams.$url_parameters.Study : null)
-                }, function (newValue, oldValue) {
+                var setUpStudy = $scope.$watch('selectorsSetup', function (newValue, oldValue) {
                     // execute only once, when study parameter is digested (or setup from reference default when embedded on gene page.. in future)
-                    if (newValue && newValue.length > 0 && $rootScope.studySet.length > 0) {
-                        vm.studySet = $rootScope.studySet;
+                    if (newValue) {
                         setUpStudy(); // remove this watch statement
                     }
                 });
