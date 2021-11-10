@@ -388,16 +388,18 @@
                     var geneId = UriUtils.getQueryParam($window.location.href, "NCBI_GeneID");
                     $rootScope.noIdParams = !studyId && !geneId;
 
-                    // templateParams created before this function is called
                     $rootScope.templateParams.$url_parameters = {
-                            NCBI_GeneID: geneId || null,
-                            Study: []
+                        Gene: {
+                            "data": {
+                                "NCBI_GeneID": geneId || null
+                            }
+                        },
+                        Study: []
                     }
 
                     // for templating gene request
                     if (studyId) {
                         $rootScope.templateParams.$url_parameters.Study.push({
-                            "uniqueId": studyId,
                             "data": {
                                 "RID": studyId
                             }
@@ -418,8 +420,8 @@
                     function generalOrSpecificGene(reference) {
                         var innerDefer = $q.defer();
                         // if we need a specific gene as default
-                        if ($rootScope.templateParams.$url_parameters.NCBI_GeneID) {
-                            var specificGeneUri = geneUri + "/NCBI_GeneID=" + $rootScope.templateParams.$url_parameters.NCBI_GeneID;
+                        if (geneId) {
+                            var specificGeneUri = geneUri + "/NCBI_GeneID=" + geneId
                             var headers = {};
                             var uriParams = specificGeneUri.split("/")
                             headers[ERMrest.contextHeaderName] = ConfigUtils.getContextHeaderParams();
@@ -460,11 +462,14 @@
 
                         return generalOrSpecificGene($rootScope.geneReference);
                     }).then(function (page) {
-                        $rootScope.gene = page.tuples[0];
+                        var geneTuple = page.tuples[0];
+                        $rootScope.gene = geneTuple;
 
                         if (!geneId) {
                             // use first returned from set if no default was defined
-                            $rootScope.templateParams.$url_parameters.NCBI_GeneID = $rootScope.gene.data["NCBI_GeneID"];
+                            $rootScope.templateParams.$url_parameters.Gene = {
+                                "data": geneTuple.data
+                            }
                         }
 
                         var studyUri = ERMrest.renderHandlebarsTemplate(plot.study_uri_pattern, $rootScope.templateParams);
@@ -482,7 +487,6 @@
                         var resultsForTemplating = []
                         page.tuples.forEach(function (tuple) {
                             resultsForTemplating.push({
-                                "uniqueId": tuple.uniqueId,
                                 "data": tuple.data
                             });
                         });
@@ -520,7 +524,7 @@
 
                     var headers = {};
                     headers[ERMrest.contextHeaderName] = ConfigUtils.getContextHeaderParams();
-                    // URI looks like "/ermrest/catalog/2/attributegroup/M:=RNASeq:Replicate_Expression/{{#if (gt $url_parameters.Study.length 0)}}({{#each $url_parameters.Study}}Study={{{this.data.RID}}}{{#unless @last}};{{/unless}}{{/each}})&{{/if}}NCBI_GeneID={{{$url_parameters.NCBI_GeneID}}}/exp:=(Experiment)=(RNASeq:Experiment:RID)/$M/Anatomical_Source,Experiment,Experiment_Internal_ID:=exp:Internal_ID,NCBI_GeneID,Replicate,Sex,Species,Specimen,Specimen_Type,Stage,TPM"
+                    // URI looks like "/ermrest/catalog/2/attributegroup/M:=RNASeq:Replicate_Expression/(Study=xx-xxxx;Study=xx-xxxx)&NCBI_GeneID=xxxx/exp:=(Experiment)=(RNASeq:Experiment:RID)/$M/Anatomical_Source,Experiment,Experiment_Internal_ID:=exp:Internal_ID,NCBI_GeneID,Replicate,Sex,Species,Specimen,Specimen_Type,Stage,TPM"
                     var schema_table = uriParams[uriParams.indexOf("attributegroup") + 1]
                     if (schema_table.includes(":=")) schema_table = schema_table.split(":=")[1]
                     headers[ERMrest.contextHeaderName].schema_table = schema_table;
@@ -1247,7 +1251,8 @@
                         }, function (res) {
                             $rootScope.dataChanged = true;
                             $rootScope.gene = res;
-                            $rootScope.geneId = $rootScope.templateParams.$url_parameters.NCBI_GeneID = $rootScope.gene.data["NCBI_GeneID"];
+                            $rootScope.templateParams.$url_parameters.Gene.data = res.data;
+                            $rootScope.geneId = res.data["NCBI_GeneID"];
 
                             // the gene has changed, fetch new plot data for new gene
                             PlotUtils.getViolinData(vm.studySet.length == 0 && !vm.selectAll).then(function (values) {
@@ -1275,7 +1280,7 @@
                     var headers = {}
                     headers[ERMrest.contextHeaderName] = ConfigUtils.getContextHeaderParams();
                     var uriParams = studyUri.split("/")
-                    // URI looks like "/ermrest/catalog/2/entity/RNASeq:Replicate_Expression/NCBI_GeneID={{{$url_parameters.NCBI_GeneID}}}/(Study)=(RNASeq:Study:RID)"
+                    // URI looks like "/ermrest/catalog/2/entity/RNASeq:Replicate_Expression/NCBI_GeneID={{{$url_parameters.Gene.data.NCBI_GeneID}}}/(Study)=(RNASeq:Study:RID)"
                     var schema_table = uriParams[uriParams.indexOf("entity") + 1]
                     if (schema_table.includes(":=")) schema_table = schema_table.split(":=")[1]
                     headers[ERMrest.contextHeaderName].schema_table = schema_table;
@@ -1319,7 +1324,6 @@
                             var resultsForTemplating = []
                             res.rows.forEach(function (tuple) {
                               resultsForTemplating.push({
-                                "uniqueId": tuple.uniqueId,
                                 "data": tuple.data
                               });
                             });

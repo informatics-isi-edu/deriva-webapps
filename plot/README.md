@@ -98,10 +98,8 @@ violin template parameters:
 ```
 templateParams: {
     $url_parameters: {
-        Study: ""
-    },
-    $filters: {
-        NCBI_GeneID: ""
+        Study: [{data: Tuple.data}, ...],
+        Gene: {data: Tuple.data}
     },
     // each row of data for graph added before templating each time
     $row: response.data[index]
