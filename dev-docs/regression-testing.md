@@ -12,6 +12,8 @@ Go to [this page](https://staging.gudmap.org/deriva-webapps/plot/?config=study-v
  3. Click the "Gene" selector and select the "Ccna1" gene and make sure the plot updates.
  4. Click the link in the top right corner, this should bring you to a page with url "https://staging.gudmap.org/deriva-webapps/plot/?config=study-violin".
 
+For the case of iframes, go to [this page](https://staging.gudmap.org/chaise/record/#2/RNASeq:Study/RID=16-2CNW) on gudmap-staging and redo steps 1-4 above.
+
 ##### Only a NCBI_GeneID url parameter
 
 Go to [this page](https://staging.gudmap.org/deriva-webapps/plot/?config=study-violin&NCBI_GeneID=20472) on gudmap-staging and do the following:
@@ -26,6 +28,8 @@ Go to [this page](https://staging.gudmap.org/deriva-webapps/plot/?config=study-v
  9. Click "Select All". Plot should show data with "All Studies" in the title.
  10. Click "Clear All Studies". Plot should have no data shown and title "No Data".
  11. Click the link in the top right corner, this should bring you to a page with url "https://staging.gudmap.org/deriva-webapps/plot/?config=study-violin".
+
+For the case of iframes, go to [this page](https://staging.gudmap.org/chaise/record/#2/Common:Gene/RID=Q-4FTJ) on gudmap-staging and redo steps 1-11 above.
 
 ##### Both parameters
 
