@@ -465,12 +465,8 @@
                         var geneTuple = page.tuples[0];
                         $rootScope.gene = geneTuple;
 
-                        if (!geneId) {
-                            // use first returned from set if no default was defined
-                            $rootScope.templateParams.$url_parameters.Gene = {
-                                "data": geneTuple.data
-                            }
-                        }
+                        // use first returned from set if no default was defined
+                        $rootScope.templateParams.$url_parameters.Gene.data = geneTuple.data;
 
                         var studyUri = ERMrest.renderHandlebarsTemplate(plot.study_uri_pattern, $rootScope.templateParams);
                         // get study information for study from url parameters
