@@ -256,7 +256,13 @@
                     // (not plot.plotly.config)
                     if (tempConfig.title_display_markdown_pattern || tempConfig.title_display_pattern) layout.title = configureTitleDisplayMarkdownPattern(tempConfig.title_display_markdown_pattern || tempConfig.title_display_pattern);
                     if (tempConfig.hasOwnProperty("xaxis") && tempConfig.xaxis.hasOwnProperty("title_display_markdown_pattern")) layout.xaxis.title = configureTitleDisplayMarkdownPattern(tempConfig.xaxis.title_display_markdown_pattern);
-                    if (tempConfig.hasOwnProperty("yaxis") && tempConfig.yaxis.hasOwnProperty("title_display_markdown_pattern")) layout.yaxis.title = configureTitleDisplayMarkdownPattern(tempConfig.yaxis.title_display_markdown_pattern);
+                    if (plot.plot_type == "violin" && $rootScope.yAxisScale == "log") {
+                        // NOTE: in the case of violin plot with log scale, change the title to communicate the automatic scaling the code applies
+                        layout.yaxis.title = "log(TPM+1)";
+                    } else if (tempConfig.hasOwnProperty("yaxis") && tempConfig.yaxis.hasOwnProperty("title_display_markdown_pattern")) {
+                        layout.yaxis.title = configureTitleDisplayMarkdownPattern(tempConfig.yaxis.title_display_markdown_pattern);
+                    }
+
                     if (tempConfig.disable_default_legend_click != undefined) layout.disable_default_legend_click = tempConfig.disable_default_legend_click;
 
                     // check for set width, if set remove "fullscreen-width" class
@@ -590,8 +596,15 @@
                             // add row of data to templating environment
                             $rootScope.templateParams.$row = obj;
 
-                            // use markdown template/template if available/defined, else use value for column
-                            var value = config.yaxis.tick_display_markdown_pattern ? ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(config.yaxis.tick_display_markdown_pattern, $rootScope.templateParams), true) : obj[config.yaxis.group_key];
+                            // special case to incase TPM data by 1
+                            if ($rootScope.yAxisScale == "log") {
+                                // increment TPM by 1 for log scale
+                                var value = obj[config.yaxis.group_key] + 1;
+                            } else {
+                                // use markdown template/template if available/defined, else use value for column
+                                var value = config.yaxis.tick_display_markdown_pattern ? ERMrest.renderMarkdown(ERMrest.renderHandlebarsTemplate(config.yaxis.tick_display_markdown_pattern, $rootScope.templateParams), true) : obj[config.yaxis.group_key];
+                            }
+
                             // remove row after using it for templating
                             delete $rootScope.templateParams.$row;
                             return value;
