@@ -9,10 +9,10 @@ The config file specify the parameters for a particular key i.e. `rbk-config`
 ### Data parameters
 1. page_title(optional): Title of the plot app. DEPRECATED, use `headTitle` instead
 2. headTitle: Title of the plot app.
-3. top_right_link_text: text to show for the link in top right corner to show plot with all controls. Only supported for violin plot Currently
+3. top_right_link_text: text to show for the link in top right corner to show plot with all controls. Only supported for violin plot currently
 4. plots: An array of the plots to be shown.
 
-Each plot will have the following parameters:
+Each object in the `plots` array can have the following parameters:
 
 1. `plot_title`: Title to be displayed above the line plot. DEPRECATED, use `plotly.layout.title` instead
 2. `x_axis_label`: Label to be displayed along the x-axis. DEPRECATED, use `plotly.layout.xaxis.title` instead
@@ -63,40 +63,48 @@ Each plot will have the following parameters:
 6. `plotly.config`: the config is ignored if plotly.config is provided. For available options, see the documentation [here](https://plotly.com/javascript/configuration-options/)
     1. avoid using `plotly_config`, this property will be DEPRECATED in the future
 7. `plotly.layout`: the `layout` object passed directly to plotly when provided. For available options, see the documentation [here](https://plotly.com/javascript/configuration-options/)
-8. traces: Contains the information about each each trace.
+8. `gene_uri_pattern`: For violin plot only. The url from which the gene data is fetched after applying handlebars templating. This parameter is required to fetch the data for the gene selector and initialize the plot.
+9. `study_uri_pattern`: For violin plot only. The url from which the study data is fetched after applying handlebars templating. This parameter is required to fetch the data for the study selector and display and to initialize the plot.
+10. `traces`: Contains the information about each each trace.
     1. Properties available to most plot types:
-        1. uri : The url from which the data has to be fetched.
-        2. legend: The value of legend to be shown for this trace.
-        3. x_col: The column name for the x values
-        4. y_col: An array of column name for the y values
-        5. orientation: Optional parameter for displaying the bar chart horizontally // default: 'h'
-        6. textfont: It will work till the bar size can accommodate the font size
+        1. `uri`: The url from which the data has to be fetched.
+        2. `legend`: The value of legend to be shown for this trace.
+        3. `x_col`: The column name for the x values
+        4. `y_col`: An array of column name for the y values
+        5. `orientation`: Optional parameter for displaying the bar chart horizontally // default: 'h'
+        6. `textfont`: It will work till the bar size can accommodate the font size
     2. Extra properties for pie and histogram charts:
-        1. data_col: The column name for the data aggregation. used instead of x_col or y_xol
-        2. legend_col: The column name to use for display in the legend column
+        1. `data_col`: The column name for the data aggregation. used instead of x_col or y_xol
+        2. `legend_col`: The column name to use for display in the legend column
     3. Extra properties for pie and bar charts:
-        1. legend_markdown_pattern: Display value to be used instead of legend_col.name.
-        2. graphic_link_pattern: Link to use to navigate user when clicking on pie slice
+        1. `legend_markdown_pattern`: Display value to be used instead of legend_col.name.
+        2. `graphic_link_pattern`: Link to use to navigate user when clicking on pie slice
     4. For violin plot:
-        1. queryPattern: The url from which the data has to be fetched after applying handlebars templating
+        1. `queryPattern`: The url from which the data has to be fetched after applying handlebars templating
     5. 1d plot has very similar properties. Keeping separate to preserve old documentation:
-        1. uri : The url from which the data has to be fetched.
-        2. legend: The value of legend to be shown for this trace.
-        3. data_col: The column name for the values
-        4. legend_col: An array of column name for the legend to be shown for the respective values
-        5. show_percentage: To show the percentage or not on slices
-9. plotlyButtonsToRemove: The button to be removed shown by plotly by defualt. DEPRECATED, use `plotly.config.modeBarButtonsToRemove` instead
+        1. `uri`: The url from which the data has to be fetched.
+        2. `legend`: The value of legend to be shown for this trace.
+        3. `data_col`: The column name for the values
+        4. `legend_col`: An array of column name for the legend to be shown for the respective values
+        5. `show_percentage`: To show the percentage or not on slices
+11. `plotlyButtonsToRemove`: The button to be removed shown by plotly by defualt. DEPRECATED, use `plotly.config.modeBarButtonsToRemove` instead
 
 #### Note
 If any of the above (Presentation or data) values is not mentioned, the app will throw an error. If you don't want to set a value, set it to `null`.
 
-`legend_markdown_pattern`, `graphic_link_pattern`, `tick_display_markdown_pattern` can access data relative to `$self`. All markdown pattern can access data relative to the `$trace`.
+`tick_display_markdown_pattern`, `legend_markdown_pattern`, and `graphic_link_pattern` can access data relative to `$row` or `$self`. All markdown patterns can access data relative to the `$trace` (not supported for violin plots).
 
-TODO: Explain templateParams object.
+### Template parameters
+
+Below is the structure of the template parameters object that the `ermrestJS` templating environment uses.
+
+For `violin` type plots, 2 url parameters can be provided to initialize the app's content, `Study` and `NCBI_GeneID`. Using these supplied parameters, Study and Gene information is fetched and added to the templating environment as `$url_parameters.Study` and `$url_parameters.Gene`. This is specific to the data in RBK/Gudmap. When setting the `tick_display_markdown_pattern`, `legend_markdown_pattern`, and `graphic_link_pattern`, the current row of data is added to the template environment as `$row`.
+
+For all other plot types, the data returned from the `uri` in the `trace` object is added to the template environment as `$traces`. When setting the `tick_display_markdown_pattern`, `legend_markdown_pattern`, and `graphic_link_pattern`, the current row of data is added to the template environment as `$self`. Note, this is the same concept as violin plots but has a different name.
 
 violin template parameters:
 ```
-templateParams: {
+{
     $url_parameters: {
         Study: [{data: Tuple.data}, ...],
         Gene: {data: Tuple.data}
@@ -108,100 +116,15 @@ templateParams: {
 
 default template parameters:
 ```
-templateParams: {
-    $traces: [data], // array of data returned from trace.uri fetch (response.data)
+{
+    $traces: data, // array of data returned from trace.uri fetch (response.data)
     // each row of data for graph added before templating each time
     $self: response.data[index]
 }
 ```
 
 ### Sample plot-config.js (also included in the repo)
-
-#### 2-D Plot config
-```javascript
-var plotConfig = {
-    title: "2dPlot",                                                            // Title of the page
-    plots: [{                                                                   // Array of object plots to be shown on the page
-      plot_title: "Subject Plot",                                               // plot title
-      x_axis_label: "month",                                                    // plot x axis label
-      y_axis_label: "value",                                                    // plot y axis label
-      plot_type: "line",                                                        // Values can be from : "line", "bar", "dot", "area", "dot+lines"
-      config: {
-        bargap: 0,                                                              // the distance between the bins in the histogram - only for histogram
-        showlegend: false,                                                      // to show the legend or not
-      },
-      plotly_config:{                                                 // config is ignored if plotly_config is provided
-        title: "Plot",                                               // plot title
-        height: 700,
-        width: 1200,
-        legend:{
-          traceorder: "reversed"                                      // order of the legend is reversed
-        },
-        xaxis: {
-          title: "value",                                            // plot x_axis label
-          // tickformat: ',d',                                         // format for the ticks. For more formatting types, see: https://github.com/d3/d3-format/blob/master/README.md#locale_format
-          type: 'log',                                                 // optional value: tickformat should compatible with type
-        },
-        yaxis: {
-          title: "Resource",                                          // plot y_axis label
-        }
-      },
-      traces: [
-          {
-              uri: "/ermrest/catalog/65361/entity/product:lineplot",            // The request url that has to be used to fetch the data.
-              legend: ["Browser All Events", "Browser Read Events"],            // name of traces in legend
-              x_col: "requests",                                                // column name to use for x values
-              y_col: ["viewer", "browser_readevents"],                          // array of column names to use for y values
-          },
-          {
-              uri: "/ermrest/catalog/65361/entity/product:lineplot",
-              legend: ["#Pseudo_id"],
-              x_col: "requests",
-              y_col: ["pseudo_id"],
-          },
-
-      ],
-      plotlyDefaultButtonsToRemove: ["scrollZoom", "zoom2d","sendDataToCloud","autoScale2d", "lasso2d", "select2d", "hoverClosestCartesian", "hoverCompareCartesian", "toggleSpikelines"]
-      // Plotly defualt buttons/actions to be removed
-    }],
-};
-
-if (typeof module === 'object' && module.exports && typeof require === 'function') {
-    exports.config = plotConfig;
-}
-```
-
-#### 1-D Plot
-```javascript
-var plotConfig = {
-    title: "1dPlot",                                                            // Title of the page
-    plots: [{                                                                   // Array of object plots to be shown on the page
-      plot_title: "Subject Plot",                                               // plot title
-      x_axis_label: "month",                                                    // plot x axis label
-      y_axis_label: "value",                                                    // plot y axis label
-      plot_type: "line",                                                        // Values can be from :"pie",  "histogram-horizontal", "histogram-verical"
-      config: {
-        bargap: 0,                                                              // the distance between the bins in the histogram - only for histogram
-        showlegend: false,                                                      // to show the legend or not
-      },
-      traces: [
-          {
-              uri: "/ermrest/catalog/65361/entity/product:lineplot",            // The request url that has to be used to fetch the data.
-              legend: ["Browser All Events", "Browser Read Events"],            // OPTIONAL: custom name of legend in the traces
-              data_col: "requests",                                                // name of the attribute of the data column
-              legend_col: "viewer",                                              // name of the attribute of the legend column
-
-          },
-      ],
-      plotlyDefaultButtonsToRemove: ["scrollZoom", "zoom2d","sendDataToCloud","autoScale2d", "lasso2d", "select2d", "hoverClosestCartesian", "hoverCompareCartesian", "toggleSpikelines"]
-      // Plotly defualt buttons/actions to be removed
-    }],
-};
-
-if (typeof module === 'object' && module.exports && typeof require === 'function') {
-    exports.config = plotConfig;
-}
-```
+The file [plot-config-sample.js](plot-config-sample.js) contains examples for different plot types, including `violin`, `pie`, `bar`, `histogram`, and `scatter`. More examples can be found in the division repo recipes for rbk dev/staging/production.
 
 ## Installation
 

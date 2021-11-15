@@ -1,19 +1,19 @@
 /**
  * Please Note
  * This is a sample configuration file. Copy the contents to `plot-config.js` and run `make install_w_configs` to use this configuration
+ * Even more examples can be found in division repo recipes for rbk dev/staging/production
  */
  var plotConfigs = {
      "study-violin": {
-         // templateVariables: {
-         //     $url_parameters: {
-         //         Study: ""
-         //     },
-         //     $filters: {
-         //         NCBI_GeneID: ""
-         //     },
-         //     // each row of data for graph added before templating each time
-         //     $row: response.data[index]
-         // }
+       // templateVariables: {
+       //     $url_parameters: {
+       //         Study: [{data: {}}],
+       //         Gene: {data: {}}
+       //     },
+       //     // each row of data for graph added before templating each time
+       //     // only available for the tick_display_markdown_pattern
+       //     $row: response.data[index]
+       // }
          headTitle: "Study Violin Plot",
          top_right_link_text: "Enable gene, study selectors",
          plots: [
@@ -39,7 +39,7 @@
                  },
                  // configuration options used to override plotly definitions
                  config: {
-                     title_display_markdown_pattern: "TPM Expression: {{#if (gt $url_parameters.Study.length 0)}}{{#if (lt $url_parameters.Study.length 6)}}{{#if (eq $url_parameters.Study.length 1)}}Study {{else}}Studies {{/if}}{{#each $url_parameters.Study}}[{{this.data.RID}}](/chaise/record/#{{$catalog.id}}/RNASeq:Study/RID={{this.data.RID}}){target=_blank}{{#unless @last}}, {{/unless}}{{/each}}{{else}}{{$url_parameters.Study.length}} Studies{{/if}}{{else}}All Studies{{/if}}",
+                     title_display_markdown_pattern: "[{{{$url_parameters.Gene.data.NCBI_Symbol}}}](/chaise/record/#{{$catalog.id}}/Common:Gene/NCBI_GeneID={{$url_parameters.Gene.data.NCBI_GeneID}}) Expression: {{#if (gt $url_parameters.Study.length 0)}}{{#if (lt $url_parameters.Study.length 6)}}{{#if (eq $url_parameters.Study.length 1)}}Study {{else}}Studies {{/if}}{{#each $url_parameters.Study}}[{{this.data.RID}}](/chaise/record/#{{$catalog.id}}/RNASeq:Study/RID={{this.data.RID}}){target=_blank}{{#unless @last}}, {{/unless}}{{/each}}{{else}}{{$url_parameters.Study.length}} Studies{{/if}}{{else}}All Studies{{/if}}",
                      xaxis: {
                          // list of column names for "RNASeq:Replicate_Expression" to group data by
                          //   - column_name              - name of column in model
@@ -88,9 +88,8 @@
                          default_all_studies_group: "Anatomical_Source"
                      },
                      yaxis: {
-                         title_display_markdown_pattern: "TPM",
-                         group_key: "TPM",
-                         tick_display_pattern: "{{add $row.TPM 1}}" // increment every TPM value by 1 to adjust for log scaling
+                         title_display_markdown_pattern: "TPM (transcripts per kilobase million)",
+                         group_key: "TPM"
                      }
                  },
                  traces: [
@@ -111,7 +110,7 @@
          // Array of object plots to be shown on the page
          plots: [
              {
-                 // ValuesValues can be from : "line", "bar", "dot", "area", "dot-lines", "pie", "histogram-horizontal", "histogram-verical"
+                 // Values can be from : "line", "bar", "dot", "area", "dot-lines", "pie", "histogram-horizontal", "histogram-verical"
                  plot_type: "pie",
                  plotly: {
                      config: {
@@ -125,10 +124,9 @@
                      }
                  },
                  config: {
-                     title_display_markdown_pattern: "[ Number of GUDMAP resources released to-date](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}",
+                     title_display_markdown_pattern: "Number of GUDMAP resources released to-date",
                      slice_label: "value",       // what to show on the slice of pie chart - value or "percent
-                     format_data: true,          // - to use hack or not for formatting
-                     disable_default_legend_click: false
+                     format_data: true          // - to use hack or not for formatting
                  },
                  traces: [
                      {
@@ -136,9 +134,7 @@
                          uri: "/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23_Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26",
                          // legend: ["Browser All Events 1","Browser All Events 2"],   // name of traces in legend
                          data_col: "#_Released",     // name of the attribute of the data column
-                         legend_col: "Data_Type",     // name of the attribute of the legend column
-                         legend_markdown_pattern: "[{{$self.data.Data_Type}}](/chaise/recordset/#2/{{{$self.data.Schema_Table}}}/*::facets::{{#encodeFacet}}{{{$self.data.Data_Type_Filter}}}{{/encodeFacet}}){target=_blank}",
-                         graphic_link_pattern: ["/chaise/recordset/#2/{{{$self.data.Schema_Table}}}/*::facets::{{#encodeFacet}}{{{$self.data.Data_Type_Filter}}}{{/encodeFacet}}"]
+                         legend_col: "Data_Type"     // name of the attribute of the legend column
                      }
                  ]
              }
@@ -166,7 +162,7 @@
                              type: 'log',             // optional value: tickformat should compatible with type
                          },
                          yaxis: {
-                             // title: "Data_Types",       // plot y_axis label
+                             title: "Data_Types",       // plot y_axis label
                          },
                          margin: {
                              t: 30,
@@ -178,27 +174,17 @@
                      }
                  },
                  config:{
-                     title_display_markdown_pattern: "[Number of GUDMAP resources released to date (log scale)](https://dev.isrd.isi.edu/chaise/search){target=_blank}",
-                     format_data_x: true,   // defualt : false - to use hack or not
-                     xaxis: {
-                         title_display_markdown_pattern: "[Number of Records](https://dev.isrd.isi.edu/chaise/search){target=_blank}",
-                     },
-                     yaxis: {
-                         tick_display_markdown_pattern:"[{{$self.data.Data_Type}}](/chaise/recordset/#2/{{{$self.data.Schema_Table}}}){target=_blank}",
-                     },
-                     disable_default_legend_click: true
+                     title_display_markdown_pattern: "Number of GUDMAP resources released to date (log scale)",
+                     format_data_x: true   // defualt : false - to use hack or not
                  },
                  traces: [
                      {
                          // The request url that has to be used to fetch the data.
                          uri: "/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23_Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26",
                          legend: ["#_Released"],   // name of traces in legend
-                         legend_markdown_pattern: ["[#Released](/chaise/recordset/#2/Antibody:Antibody_Tests/){target=_blank}"],
                          x_col: ["#_Released"],    // column name to use for x values
                          y_col: ["Data_Type"],                   // array of column names to use for y values
                          orientation: "h",                      // Optional parameter for displaying the bar chart horizontally
-                         // hovertemplate: ',d',
-                         graphic_link_pattern:"/chaise/recordset/#2/{{{ $self.data.Schema_Table }}}/*::facets::{{#encodeFacet}}{{{ $self.data.Data_Type_Filter }}}{{/encodeFacet}}",
                          textfont: {
                              size: 10                           // It will work till the bar size can accomodate the font size
                          },
@@ -225,7 +211,7 @@
                          width: 800,
                          showlegend: true,
                          xaxis: {
-                             // title: "Data_Types",       // plot y_axis label
+                             title: "Data_Types",       // plot y_axis label
                          },
                          yaxis: {
                              title: "Number of Records",          // plot x_axis label
@@ -241,27 +227,17 @@
                      }
                  },
                  config:{
-                     title_display_markdown_pattern: "[Number of GUDMAP resources released to date (log scale)](https://dev.isrd.isi.edu/chaise/search){target=_blank}",
-                     format_data_x: true,   // defualt : false - to use hack or not
-                     xaxis: {
-                         tick_display_markdown_pattern:"[{{$self.data.Data_Type}}](/chaise/recordset/#2/{{{$self.data.Schema_Table}}}){target=_blank}",
-                     },
-                     yaxis: {
-                         title_display_markdown_pattern: "[Number of Records](https://dev.isrd.isi.edu/chaise/search){target=_blank}",
-                     },
-                     disable_default_legend_click: false
+                     title_display_markdown_pattern: "Number of GUDMAP resources released to date (log scale)",
+                     format_data_x: true   // defualt : false - to use hack or not
                  },
                  traces: [
                      {
                          // The request url that has to be used to fetch the data.
                          uri: "/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23_Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26",
                          legend: ["#_Released"],   // name of traces in legend
-                         legend_markdown_pattern: ["[#Released](/chaise/recordset/#2/Antibody:Antibody_Tests/){target=_blank}"],
                          x_col: ["Data_Type"],    // column name to use for x values
                          y_col: ["#_Released"],                   // array of column names to use for y values
                          orientation: "v",                      // Optional parameter for displaying the bar chart horizontally
-                         // hovertemplate: ',d',
-                         graphic_link_pattern:"/chaise/recordset/#2/{{{ $self.data.Schema_Table }}}/*::facets::{{#encodeFacet}}{{{ $self.data.Data_Type_Filter }}}{{/encodeFacet}}",
                          textfont: {
                              size: 10                           // It will work till the bar size can accomodate the font size
                          },
@@ -270,61 +246,6 @@
              }
          ]
      },
-     // "gudmap-todate-bar-no-dimensions": {
-     //     headTitle: "GUDMAP Data Summary Dashboard",
-     //     // Array of object plots to be shown on the page
-     //     plots: [
-     //         {
-     //             plot_type: "bar",
-     //             plotly: {
-     //                 config: {
-     //                     modeBarButtonsToRemove: ["scrollZoom", "zoom2d","sendDataToCloud","autoScale2d", "lasso2d", "select2d", "hoverClosestCartesian", "hoverCompareCartesian", "toggleSpikelines"],
-     //                     displaylogo: false,
-     //                     responsive: true
-     //                 },
-     //                 layout: {
-     //                     title: "Number of GUDMAP resources released to date (log scale)",
-     //                     margin: {
-     //                         t: 40,
-     //                         r: 0,
-     //                         b: 35,
-     //                         l: 280  // left margin for lengthy data labels.
-     //                     },
-     //                     legend: {
-     //                         traceorder: "reversed"    // order of the legend is reversed
-     //                     },
-     //                     xaxis: {
-     //                         title: "Number of Records",          // plot x_axis label
-     //                         // tickformat: ',d',     // format for the ticks. For more formatting types, see: https://github.com/d3/d3-format/blob/master/README.md#locale_format
-     //                         type: 'log',              // optional value: tickformat should compatible with type
-     //                         range: [0, 4.6]
-     //                     },
-     //                     yaxis: {
-     //                         ticksuffix: "  "
-     //                         // title: "Data_Types",       // plot y_axis label
-     //                     }
-     //                 }
-     //             },
-     //             config: {
-     //                 format_data_x: true   // defualt : false - to use hack or not
-     //             },
-     //             traces: [
-     //                 {
-     //                     // The request url that has to be used to fetch the data.
-     //                     uri: "/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23_Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26",
-     //                     legend: ["#_Released"],   // name of traces in legend
-     //                     x_col: ["#_Released"],    // column name to use for x values
-     //                     y_col: ["Data_Type"],                   // array of column names to use for y values
-     //                     orientation: "h",                      // Optional parameter for displaying the bar chart horizontally
-     //                     // hovertemplate: ',d',
-     //                     textfont: {
-     //                         size: 10                           // It will work till the bar size can accomodate the font size
-     //                     }
-     //                 }
-     //             ]
-     //         }
-     //     ]
-     // },
      "gudmap-data-summary-responsive": {
          page_title: "GUDMAP Data Summary Dashboard",
          // Array of object plots to be shown on the page
@@ -352,8 +273,8 @@
                          range: [0, 4.6]
                      },
                      yaxis: {
-                         ticksuffix: "  "
-                         // title: "Data_Types",       // plot y_axis label
+                         ticksuffix: "  ",
+                         title: "Data_Types",       // plot y_axis label
                      }
                  },
                  traces: [
@@ -364,7 +285,6 @@
                          x_col: ["#_Released"],    // column name to use for x values
                          y_col: ["Data_Type"],                   // array of column names to use for y values
                          orientation: "h",                      // Optional parameter for displaying the bar chart horizontally
-                         // hovertemplate: ',d',
                          textfont: {
                              size: 10                           // It will work till the bar size can accomodate the font size
                          },
@@ -372,272 +292,6 @@
                  ],
                  // Plotly defualt buttons/actions to be removed
                  plotlyDefaultButtonsToRemove: ["scrollZoom", "zoom2d","sendDataToCloud","autoScale2d", "lasso2d", "select2d", "hoverClosestCartesian", "hoverCompareCartesian", "toggleSpikelines"]
-             }
-         ]
-     },
-
-     "rbk-todate-bar": {
-         headTitle: "GUDMAP Data Summary Dashboard",
-         // Array of object plots to be shown on the page
-         plots: [
-             {
-                 plot_type: "bar",
-                 plotly: {
-                     config: {
-                         modeBarButtonsToRemove: ["scrollZoom", "zoom2d","sendDataToCloud","autoScale2d", "lasso2d", "select2d", "hoverClosestCartesian", "hoverCompareCartesian", "toggleSpikelines"],
-                         displaylogo: false,
-                         responsive: true
-                     },
-                     layout: {
-                         title: "Number of RBK resources released to date (log scale)",
-                         height: 450,
-                         width: 1200,
-                         margin: {
-                             l: 280,  // left margin for lengthy data labels.
-                             //b :50   // bottom margin for lengthy data labels.
-                         },
-                         legend:{
-                             traceorder: "reversed"    // order of the legend is reversed
-                         },
-                         xaxis: {
-                             title: "Number of Records",          // plot x_axis label
-                             // tickformat: ',d',     // format for the ticks. For more formatting types, see: https://github.com/d3/d3-format/blob/master/README.md#locale_format
-                             type: 'log',             // optional value: tickformat should compatible with type
-
-                         },
-                         yaxis: {
-                             // title: "Data_Types",       // plot y_axis label
-                         }
-                     }
-                 },
-                 config: {
-                     format_data_x: true   // defualt : false - to use hack or not
-                 },
-                 traces: [
-                     {
-                         // The request url that has to be used to fetch the data.
-                         uri: "/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=RBK/!(%23_Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26",
-                         legend: ["#_Released"],   // name of traces in legend
-                         x_col: ["#_Released"],    // column name to use for x values
-                         y_col: ["Data_Type"],                   // array of column names to use for y values
-                         orientation: "h",                      // Optional parameter for displaying the bar chart horizontally
-                         // hovertemplate: ',d',
-                         textfont: {
-                             size: 10                           // It will work till the bar size can accomodate the font size
-                         }
-                     }
-                 ]
-             }
-         ]
-     },
-
-     "gudmap-release-all": {
-         headTitle: "GUDMAP Data Summary Dashboard",
-         // Array of object plots to be shown on the page
-         plots: [
-             {
-                 plot_type: "bar",
-                 plotly: {
-                     config: {
-                         modeBarButtonsToRemove: ["scrollZoom", "zoom2d", "sendDataToCloud", "autoScale2d", "lasso2d", "select2d", "hoverClosestCartesian", "hoverCompareCartesian", "toggleSpikelines"],
-                         displaylogo: false,
-                         responsive: true
-                     },
-                     layout: {
-                         title: "Number of GUDMAP resources created and released to date (log scale)",
-                         height: 800,
-                         width: 1200,
-                         margin: {
-                             l: 280,  // left margin for lengthy data labels.
-                             //b :50   // bottom margin for lengthy data labels.
-                         },
-                         legend: {
-                             traceorder: "reversed"    // order of the legend is reversed
-                         },
-                         xaxis: {
-                             title: "Number of Records",          // plot x_axis label
-                             // tickformat: ',d',     // format for the ticks. For more formatting types, see: https://github.com/d3/d3-format/blob/master/README.md#locale_format
-                             type: 'log'             // optional value: tickformat should compatible with type
-                         },
-                         yaxis: {
-                             // title: "Data_Types",       // plot y_axis label
-                         }
-                     }
-                 },
-                 config: {
-                     x_axis_thousands_separator: true,
-                     format_data_x: true   // defualt : false - to use hack or not
-                 },
-                 traces: [
-                     {
-                         // The request url that has to be used to fetch the data.
-                         uri: "/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23_Records=0)/$M@sort(ID::desc::)?limit=26",
-                         legend: ["# Released", "# Created"],   // name of traces in legend
-                         x_col: ["#_Released", "#_Records"],    // column name to use for x values
-                         y_col: ["Data_Type"],                   // array of column names to use for y values
-                         orientation: "h",                      // Optional parameter for displaying the bar chart horizontally
-                         // legend_markdown_pattern: ["[#Released](/chaise/recordset/#2/Antibody:Antibody_Tests/){target=_blank}","[#Created](/chaise/recordset/#2/Antibody:Antibody_Tests/){target=_blank}"],
-                         // graphic_link_pattern:"/chaise/recordset/#2/{{{ $self.data.Schema_Table }}}/*::facets::{{#encodeFacet}}{{{ $self.data.Data_Type_Filter }}}{{/encodeFacet}}",
-                         // hovertemplate: ',d',
-                         textfont: {
-                             size: 10                           // It will work till the bar size can accomodate the font size
-                         }
-                     }
-                 ]
-             },
-             {
-                 plot_type: "bar",
-                 plotly: {
-                     config: {
-                         modeBarButtonsToRemove: ["scrollZoom", "zoom2d", "sendDataToCloud", "autoScale2d", "lasso2d", "select2d", "hoverClosestCartesian", "hoverCompareCartesian", "toggleSpikelines"],
-                         displaylogo: false,
-                         responsive: true
-                     },
-                     layout: {
-                         title: "Number of GUDMAP resources created and released in 2020 (log scale)",
-                         height: 800,
-                         width: 1200,
-                         margin: {
-                             l: 280,  // left margin for lengthy data labels.
-                             //b :50   // bottom margin for lengthy data labels.
-                         },
-                         legend: {
-                             traceorder: "reversed"    // order of the legend is reversed
-                         },
-                         xaxis: {
-                             title: "Number of Records",          // plot x_axis label
-                             // tickformat: ',d',     // format for the ticks. For more formatting types, see: https://github.com/d3/d3-format/blob/master/README.md#locale_format
-                             type: 'log'             // optional value: tickformat should compatible with type
-                         },
-                         yaxis: {
-                             // title: "Data_Types",       // plot y_axis label
-                         }
-                     }
-                 },
-                 config: {
-                     x_axis_thousands_separator: true,
-                     format_data_x: true   // defualt : false - to use hack or not
-                 },
-                 traces: [
-                     {
-                         // The request url that has to be used to fetch the data.
-                         uri: "/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23_Records=0)/$M@sort(ID::desc::)?limit=26",
-                         legend: ["# Released", "# Created"],   // name of traces in legend
-                         x_col: ["#_Released_in_Latest_Year", "#_Created_in_Latest_Year"],    // column name to use for x values
-                         y_col: ["Data_Type"],                   // array of column names to use for y values
-                         orientation: "h",                      // Optional parameter for displaying the bar chart horizontally
-                         // hovertemplate: ',d',
-                         textfont: {
-                             size: 10                           // It will work till the bar size can accomodate the font size
-                         }
-                     }
-                 ]
-             }
-         ]
-     },
-     // "gudmap-releae-all": "*", // doesn't work for either dimension
-     "rbk-release-all": {
-         headTitle: "RBK Data Summary Dashboard",
-         // Array of object plots to be shown on the page
-         plots: [
-             {
-                 plot_type: "bar",
-                 plotly: {
-                     config: {
-                         modeBarButtonsToRemove: ["scrollZoom", "zoom2d", "sendDataToCloud", "autoScale2d", "lasso2d", "select2d", "hoverClosestCartesian", "hoverCompareCartesian", "toggleSpikelines"],
-                         displaylogo: false,
-                         responsive: true
-                     },
-                     layout: {
-                         title: "Number of RBK resources created and released to date (log scale)",
-                         height: 850,
-                         width: 1200,
-                         margin: {
-                             l: 280,  // left margin for lengthy data labels.
-                             //b :50   // bottom margin for lengthy data labels.
-                         },
-                         legend: {
-                             traceorder: "reversed"    // order of the legend is reversed
-                         },
-                         xaxis: {
-                             title: "Number of Records",
-                             // tickformat: ',d',     // format for the ticks. For more formatting types, see: https://github.com/d3/d3-format/blob/master/README.md#locale_format
-                             type: 'log',             // optional value: tickformat should compatible with type
-
-                         },
-                         yaxis: {
-                             // title: "Data_Types",
-                         }
-                     }
-                 },
-                 config: {
-                     x_axis_thousands_separator: true,
-                     format_data_x: true   // defualt : false - to use hack or not
-                 },
-                 traces: [
-                     {
-                         // The request url that has to be used to fetch the data.
-                         uri: "/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=RBK/!(%23_Records=0)/$M@sort(ID::desc::)?limit=26",
-                         legend: ["# Released", "# Created"],   // name of traces in legend
-                         x_col: ["#_Released", "#_Records"],    // column name to use for x values
-                         y_col: ["Data_Type"],                   // array of column names to use for y values
-                         orientation: "h",                      // Optional parameter for displaying the bar chart horizontally
-                         // hovertemplate: ',d',
-                         textfont: {
-                             size: 10                           // It will work till the bar size can accomodate the font size
-                         }
-                     }
-                 ]
-             },
-
-             {
-                 plot_type: "bar",
-                 plotly: {
-                     config: {
-                         modeBarButtonsToRemove: ["scrollZoom", "zoom2d", "sendDataToCloud", "autoScale2d", "lasso2d", "select2d", "hoverClosestCartesian", "hoverCompareCartesian", "toggleSpikelines"],
-                         displaylogo: false,
-                         responsive: true
-                     },
-                     layout: {
-                         title: "Number of RBK resources created and released in 2020 (log scale)",
-                         height: 900,
-                         width: 1200,
-                         margin: {
-                             l: 280,  // left margin for lengthy data labels.
-                             //b :50   // bottom margin for lengthy data labels.
-                         },
-                         legend: {
-                             traceorder: "reversed"    // order of the legend is reversed
-                         },
-                         xaxis: {
-                             title: "Number of Records",          // plot x_axis label
-                             // tickformat: ',d',     // format for the ticks. For more formatting types, see: https://github.com/d3/d3-format/blob/master/README.md#locale_format
-                             type: 'log',             // optional value: tickformat should compatible with type
-
-                         },
-                         yaxis: {
-                             // title: "Data_Types",       // plot y_axis label
-                         }
-                     }
-                 },
-                 config: {
-                     x_axis_thousands_separator: true,
-                     format_data_x: true   // defualt : false - to use hack or not
-                 },
-                 traces: [
-                     {
-                         // The request url that has to be used to fetch the data.
-                         uri: "/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=RBK/!(%23_Records=0)/$M@sort(ID::desc::)?limit=26",
-                         legend: ["# Released", "# Created"],   // name of traces in legend
-                         x_col: ["#_Released_in_Latest_Year", "#_Created_in_Latest_Year"],    // column name to use for x values
-                         y_col: ["Data_Type"],                   // array of column names to use for y values
-                         orientation: "h",                      // Optional parameter for displaying the bar chart horizontally
-                         // hovertemplate: ',d',
-                         textfont: {
-                             size: 10                           // It will work till the bar size can accomodate the font size
-                         }
-                     }
-                 ]
              }
          ]
      },
@@ -667,24 +321,11 @@
                      }
                  }
              },
-             config: {
-                 title_display_markdown_pattern: "[Specimen Stage vs Assay Type](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}",
-                 xaxis: {
-                     title_display_markdown_pattern: "[Assay Type](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}",
-                     tick_display_markdown_pattern:"[{{$self.data.Assay_Type}}](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}",
-                 },
-                 yaxis: {
-                     title_display_markdown_pattern: "[Stage](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}",
-                     tick_display_markdown_pattern:"[{{$self.data.Name}}](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}",
-                 },
-                 disable_default_legend_click: false
-             },
              traces: [
                  {
                      uri: "/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/stage:=left(Stage_ID)=(Vocabulary:Developmental_Stage:ID)/$M/Assay_Type,stage:Name",
                      x_col: ["Assay_Type"],
                      y_col: ["Name"],
-                     // y_col: ["Name", "Name"], // to test legend changes
                      legend: ["Name 1", "Name 2"],
                  }
              ]
@@ -713,18 +354,9 @@
                  }
              },
              config: {
-                 title_display_markdown_pattern: "[Specimen Creation Time](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}",
-                 xaxis: {
-                     title_display_markdown_pattern: "[Creation Date](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}"
-                 },
-                 // disable_default_legend_click: false,
                  xbins: 50
              },
              traces: [
-                 // {
-                 //     uri: "/ermrest/catalog/2/entity/Gene_Expression:Specimen@sort(RCT::desc::)?limit=10000",
-                 //     data_col: "RCT"
-                 // },
                  {
                      uri: "/ermrest/catalog/2/entity/Gene_Expression:Specimen@sort(RCT::desc::)?limit=10000",
                      data_col: "RCT"
@@ -754,11 +386,6 @@
                  }
              },
              config: {
-                 title_display_markdown_pattern: "[Specimen Creation Time](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}",
-                 yaxis: {
-                     title_display_markdown_pattern: "[Creation Date](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}"
-                 },
-                 disable_default_legend_click: false,
                  ybins: 50
              },
              traces: [
@@ -769,7 +396,6 @@
              ]
          }]
      }
-
  };
 
 

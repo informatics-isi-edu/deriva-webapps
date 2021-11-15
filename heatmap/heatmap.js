@@ -157,12 +157,12 @@ heatmapApp.controller('HeatmapController', function HeatmapController($scope, $h
 			}]
 		};
 		var url = window.origin + "/chaise/recordset/" + ERMrest.createPath("2", "Gene_Expression", "Array_Data", facet);
-		window.location = url + "?pcid=" + headerInfo.cid + "&ppid=" + headerInfo.pid;
+    window.open(url + "?pcid=" + headerInfo.cid + "&ppid=" + headerInfo.pid, '_blank');
 	}
 });
 
 heatmapApp.factory('HeatmapUtils', function HeatmapUtils() {
-	/**	 
+	/**
 	 * @param {object} input : Input parameters of heatmap directive
 	 * @param {number} longestXTick : Length of longest X axis label
 	 * @param {number} longestYTick : Length of longest Y axis label
@@ -257,7 +257,7 @@ heatmapApp.factory('HeatmapUtils', function HeatmapUtils() {
  * @param {number} xTickAngle: Inclination of the X axis labels
  * @param {string} tickFontFamily: Font family of the axis labels, both x and y
  * @param {number} tickFontSize: Font size of the axis labels, both x and y
- * @example: 
+ * @example:
  * <heatmap heatmap-id="{{heatmap.id}}">
  * </heatmap>
  */
@@ -317,4 +317,3 @@ heatmapApp.directive('heatmap', ['HeatmapUtils', '$rootScope', function (Heatmap
 		link: linkFunc
 	};
 }]);
-
