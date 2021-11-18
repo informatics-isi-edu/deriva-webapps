@@ -621,6 +621,7 @@
                                 x: xData,
                                 y: yData,
                                 points: 'all',
+                                pointpos: 0,
                                 box: {
                                     visible: true
                                 },
