@@ -625,6 +625,9 @@
                                 box: {
                                     visible: true
                                 },
+                                line: {
+                                  width: 1
+                                },
                                 meanline: {
                                     visible: true
                                 },
