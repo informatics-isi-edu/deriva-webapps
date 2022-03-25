@@ -5,11 +5,11 @@ E2Espec = test/e2e/specs/protractor.conf.js
 #exclude <app>-config.js to not override one on deployment
 .PHONY: install
 install:
-	@rsync -avz --exclude='.*' --exclude='Makefile' --exclude='test' --exclude='/boolean-search/booleansearch-config*' --exclude='/heatmap/heatmap-config*' --exclude='/lineplot/lineplot-config*' --exclude='/plot/plot-config*' --exclude='/treeview/treeview-config*' . $(WEBAPPSDIR)
+	@rsync -avz --exclude='.*' --exclude='Makefile' --exclude='docs' --exclude='test' --exclude='/boolean-search/booleansearch-config*' --exclude='/heatmap/heatmap-config*' --exclude='/lineplot/lineplot-config*' --exclude='/plot/plot-config*' --exclude='/treeview/treeview-config*' . $(WEBAPPSDIR)
 
 .PHONY: install_w_configs
 install_w_configs:
-	@rsync -avz --exclude='.*' --exclude='Makefile' --exclude='test' . $(WEBAPPSDIR)
+	@rsync -avz --exclude='.*' --exclude='Makefile' --exclude='docs' --exclude='test' . $(WEBAPPSDIR)
 
 #This make target for getting the test dependencies only needs to be run once
 .PHONY: testsetup
@@ -29,5 +29,9 @@ test:
 .PHONY: help usage
 help: usage
 usage:
-	@echo "Available 'make' targets:"
-	@echo "    test      		- runs e2e tests"
+	@echo "Usage: make [target]"
+	@echo "Available targets:"
+	@echo "  install                    install all the apps"
+	@echo "  install_w_configs          install all the apps with their existing configs"
+	@echo "  test                       run e2e tests"
+	@echo "  testsetup                  install test dependencies"
