@@ -148,3 +148,107 @@ $(document).ready(function(){
 });
 ```
 
+
+### Customized ERMrest queries
+
+In some cases, you might want to display some data statistics numbers. In the following, we explain the recommended ways of sending the request and show the numbers. 
+<!-- If you're looking for a quick example please refer to [example](#query-example) section. -->
+
+#### Sending the request
+While you can use the object-oriented APIs that ERMrestJS provides, they are mainly tailored around Chaise UI elements and are not very flexible. Therefore we recommend sending direct HTTP requests to ERMrest. To do so, you can either:
+
+
+##### Using ERMrestJS HTTP module (recommended)
+
+This method is recommended since internally will take care of retrying failed requests and other useful features that are built into the HTTP module. The following are steps to using ERMrestJS's HTTP module:
+
+1. **Configuration**: If you're using ERMrestJS on a page where navbar (or any of the other Chaise provided libraries) are included, you can skip this step. Otherwise, you have to do this manually. To configure ERMrestJS, you need to provide an HTTP library and promise library. We recommend using [axios](https://axios-http.com/) and [Q](https://github.com/kriskowal/q). The following is an example of configuring ERMrestJS using these two libraries:
+
+    ```js
+    /**
+    * assuming axios and Q are already included and available:
+    * <script src="path-to/q.min.js"></script> 
+    * <script src="path-to/axios.min.js"></script>
+    */
+    ERMrest.configure(axios, Q);
+    ```
+
+2. **Creating server object**: During configuration, ERMrestJS will add extra features to the HTTP module. To access the HTTP module, you must create a `Server` object first. You have to use the `ERMrest.ermrestFactory.getServer` API to do so. This function accepts two parameters:
+    - `ermrestServiceURI`: URI of the ERMrest service.
+    - `contextHeaderParams`: An optional server header parameter for context logging appended to any request to the server.
+
+    If you didn't manually configure ERMrestJS in the previous step (since the page already has some Chaise-provided libraries), you don't need to provide the `contextHeaderParams`. Otherwise, we recommend passing an object like the following:
+
+
+    ```js
+    var contextHeaderParams = {
+      "cid": "name of the app",
+      "wid": "a unique id given to the window (shared between tabs)",
+      "pid": "a unique id generated for each running instance"
+    }
+    ```
+
+    The following is an example of calling this API:
+
+    ```js
+    // assuming EMrestJS is already configured (either manually or by included chaise libraries)
+    var ermrestServiceURI = "https://example.com/ermrest";
+    var server = ERMrest.ermrestFactory.getServer(ermrestServiceURI, contextHeaderParams);
+    ```
+
+3. **Sending request**: Now that the setup is done and you have the `server` object, you can use it to send HTTP requests. For log purposes, we recommend passing a specific header with each request that captures what the request is trying to do. For example:
+
+    ```js
+    var headers = {};
+    headers[ERMrest.contextHeaderName] = {
+      "catalog": "<catalog-number>",
+      "schema_table": "<schema-name>:<table-name>",
+      "action": "<what-the-request-is-doing>"
+    };
+    server.http.get(ermrestServiceURI + "/path-to-a-resource", {headers: headers}).then(function (response) {
+      var data = response.data;
+      console.log(data);
+    }).catch(function (err) {
+      console.error("failed to send the request");
+      console.error(err);
+    });
+
+    ```
+
+##### Direct Ajax call
+
+As we mentioned, the previous method is recommended, but in case ERMrestJS is not available on your page, or you would rather handle the requests yourself, you can simply use the browser API:
+
+```js
+var url = "https://example.com/ermrest/...";
+var el = document.querySelector("#item-1");
+var xhr = new XMLHttpRequest();
+xhr.open("GET", url, true);
+xhr.onreadystatechange = function() {
+  if(xhr.readyState == 4 && xhr.status == 200) {
+    let data = JSON.parse(xhr.responseText);
+    el.innerHTML = data;
+  }
+}
+```
+
+Or alternatrively, this can be achieved like the following with jQuery:
+
+```js
+var url = "https://example.com/ermrest/...";
+var el = document.querySelector("#item-1");
+$.getJSON(url, function (data) {
+  // use the data
+  el.innerHTML = data;
+}).fail(function (error) {
+  console.log(error);
+  // show the error;
+});
+```
+#### UI
+
+In this section, we will include some guidelines that we think are important in this use case:
+
+1. Since the data will be fetched using a secondary request, we recommend showing a spinner in place of numbers while the request is loading.
+2. You should properly handle the cases where the server is not valid. Either by hiding the statistical data or showing a danger/error icon in place of the number.
+
