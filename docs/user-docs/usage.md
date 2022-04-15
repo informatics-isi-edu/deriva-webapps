@@ -80,7 +80,6 @@ function search (searchText) {
   var catalogID = "<CATALOG_ID>";
   var schemaName = "<SCHEMA_NAME>";
   var tableName = "<TABLE_NAME>";
-  var columnName = "<COLUMN_NAME>";  // e.g. Name
   var ChaiseLocation = "/Chaise/";
   var pcid = "?pcid=static/home/search";
 
@@ -109,7 +108,7 @@ The API will generate the path using ERMrest `ciregexp` filter predicate. While 
 
 #### Option 3: Exact match search on a column
 
-The `ERMrest.createSearchPath` API mentioned above will trigger a regular expression search under the hood. If you would like an exact match instead, you should use the `ERMrest.createPath` API, which allows you to pass a facet object. To do the exact match, you need to ensure you're creating a proper facet object with the `searchText` as one of its `choices`. For example, in the following, we're doing an exact match on a column called `Name` in the table:
+The `ERMrest.createSearchPath` API mentioned above will trigger a regular expression search under the hood. If you would like an exact match instead, you should use the `ERMrest.createPath` API, which allows you to pass a facet object. To do the exact match, you need to ensure you're creating a proper facet object with the `searchText` as one of its `choices`. For example, in the following, we're doing an exact match on a column in the table:
 
 
 ```js
@@ -134,10 +133,10 @@ function exactMatch (searchText) {
   var pcid = "?pcid=static/home/search";
 
   var facets;
-  if (typeof matchingName === "string" && matchingName.length > 0) {
+  if (typeof searchText === "string" && searchText.length > 0) {
     facets = {
       "and": [
-        {"source": "Name", "choices": [matchingName]}
+        {"source": columnName, "choices": [searchText]}
       ]
     };
   }
