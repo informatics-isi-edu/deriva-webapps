@@ -25,11 +25,18 @@ The applications are:
 
 ## Miscellaneous extensions
 
-### Search box
+### Search box on landing pages
 
-To mimic the same behavior as the search box in the recordset app, you need to create a URL that points to the recordset app with proper facets.
+Often, there is a need to provide a general search box on a landing page that automatically direct to corresponding search result of a recordset page. For example, user type in a gene name to get a list of genes. Here are the following options to achieve this:  
 
-ERMrestJS offers an `ERMrest.createSearchPath` API that returns the path used for constructing a URL to the recordset page. The following is an example of using this API:
+#### Option 1: simple regex search 
+To mimic the same behavior as the main search box in the recordset app, you need to create a URL that points to the recordset app with proper facets. Unless configured in the annotation to restrict the text search on a set of columns (e.g. Name, Synonyms), the main search box will do the regular expression search on all columns in the table. 
+
+ERMrestJS offers an `ERMrest.createSearchPath` API that returns the path used for constructing a URL to the recordset page. 
+```
+String ERMrest.createSearchPath(catalogID, schemaName, tableName, searchText)
+```
+The following is an example of using this API:
 
 ```js
 /**
@@ -48,10 +55,11 @@ function search (searchText) {
   var catalogID = "<CATALOG_ID>";
   var schemaName = "<SCHEMA_NAME>";
   var tableName = "<TABLE_NAME>";
+  var columnName = "<COLUMN_NAME>";  // e.g. Name
   var chaiseLocation = "/chaise/";
   var pcid = "?pcid=static/home/search";
 
-  // create a path that chaise understands
+  // create a path that chaise understands using regex 
   var path = ERMrest.createSearchPath(catalogID, schemaName, tableName, searchText);
 
   // open the url
@@ -59,11 +67,12 @@ function search (searchText) {
 }
 ```
 
-#### Custom column searchs
+#### Option2: Custom column searchs
+
+In some cases, the columns you want to search are different from the `search-box` definition on the recordset page. In this case, you need to provide the column names you wish to search using the `ERMrest.createSearchPath` API.
 
 > Doing this is highly discouraged. Instead, you should customize the `search-box` definition and let ERMrestJS/Chaise handle this. This way, you have more options (you can search based on columns in a path and customize the display), and Chaise can also provide a better UI/UX to the users.
 
-In some cases, the columns you want to search are different from the `search-box` definition on the recordset page. In this case, you need to provide the column names you wish to search using the `ERMrest.createSearchPath` API. For example:
 
 ```js
 var columnNames = ["term", "synonyms"];
@@ -72,6 +81,8 @@ var path = ERMrest.createSearchPath(catalogID, schemaName, tableName, searchText
 ```
 
 The API will generate the path using ERMrest `ciregexp` filter predicate. While the recordset can properly show the values when this filter is used, it cannot provide a good UI and will show the raw filter predicate to the users. That's why we highly discourage providing column names.
+
+#### Option 3: Search using exact matches 
 
 #### Example using jQuery
 
@@ -156,10 +167,10 @@ In some cases, you might want to display statistical numbers. Please refer to th
 In this section, we're focused mainly on ERMrest queries. If you want to send a request outside ERMrest, you can do so with the [Direct Ajax call method](#direct-ajax-call).
 
 #### Sending the request
-While you can use the object-oriented APIs that ERMrestJS provides, they are mainly tailored around Chaise UI elements and are not very flexible. Therefore we recommend sending direct HTTP requests to ERMrest. To do so, you can either:
+While you can use the object-oriented APIs that ERMrestJS provides, they are mainly tailored around Chaise UI elements and are not very flexible. Therefore we recommend sending direct HTTP requests to ERMrest. We provide the following options for making ERMrest requests: 
 
 
-##### Using ERMrestJS HTTP module (recommended)
+##### Option 1: Using ERMrestJS HTTP module (recommended)
 
 This method is recommended since internally will take care of retrying failed requests and other useful features built into the HTTP module. The following are steps to using ERMrestJS's HTTP module:
 
@@ -226,7 +237,7 @@ This method is recommended since internally will take care of retrying failed re
 
     ```
 
-##### Direct Ajax call
+##### Option 2: Direct Ajax call
 
 As we mentioned, the previous method is recommended, but in case ERMrestJS is not available on your page, or you would rather handle the requests yourself, you can simply use the browser API:
 
