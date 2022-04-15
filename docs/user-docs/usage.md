@@ -29,7 +29,7 @@ The applications are:
 
 Often, there is a need to provide a general search box on a landing page that automatically direct to corresponding search result of a recordset page. For example, user type in a gene name to get a list of genes. Here are the following options to achieve this:  
 
-#### Option 1: simple regex search 
+#### Option 1: Simple regex search 
 To mimic the same behavior as the main search box in the recordset app, you need to create a URL that points to the recordset app with proper facets. Unless configured in the annotation to restrict the text search on a set of columns (e.g. Name, Synonyms), the main search box will do the regular expression search on all columns in the table. 
 
 ERMrestJS offers an `ERMrest.createSearchPath` API that returns the path used for constructing a URL to the recordset page. 
@@ -67,7 +67,7 @@ function search (searchText) {
 }
 ```
 
-#### Option2: Custom column searchs
+#### Option2: Regex search on custom column set
 
 In some cases, the columns you want to search are different from the `search-box` definition on the recordset page. In this case, you need to provide the column names you wish to search using the `ERMrest.createSearchPath` API.
 
@@ -82,7 +82,7 @@ var path = ERMrest.createSearchPath(catalogID, schemaName, tableName, searchText
 
 The API will generate the path using ERMrest `ciregexp` filter predicate. While the recordset can properly show the values when this filter is used, it cannot provide a good UI and will show the raw filter predicate to the users. That's why we highly discourage providing column names.
 
-#### Option 3: Search using exact matches 
+#### Option 3: Exact matche search on a column set 
 
 #### Example using jQuery
 
