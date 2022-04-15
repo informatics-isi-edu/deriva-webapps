@@ -27,11 +27,11 @@ To ensure consistent UI between Chaise and other clients, we provide the followi
 
 ### Navbar
 
-To ensure static sites are displaying the same navbar as Chaise, we allow injection of Chaise's `navbar` app. For more information please refer to [this document](https://github.com/informatics-isi-edu/Chaise/blob/master/docs/user-docs/navbar-app.md).
+To ensure static sites are displaying the same navbar as Chaise, we allow injection of Chaise's `navbar` app. For more information please refer to [this document](https://github.com/informatics-isi-edu/chaise/blob/master/docs/user-docs/navbar-app.md).
 
 ### Login
 
-If you don't want the full functionality of navbar and only want the authentication module of Chaise, you can use the login app directly. For more information please refer to [this document](https://github.com/informatics-isi-edu/Chaise/blob/master/docs/user-docs/login-app.md).
+If you don't want the full functionality of navbar and only want the authentication module of Chaise, you can use the login app directly. For more information please refer to [this document](https://github.com/informatics-isi-edu/chaise/blob/master/docs/user-docs/login-app.md).
 
 ## Deriva webapps
 
@@ -73,21 +73,21 @@ The following is an example of using this API:
  * - tableName: the name of table, e.g. "dataset"
  *
  * The following are optional variables that you can change:
- * - ChaiseLocation: Where Chaise is installed.
+ * - chaiseLocation: Where Chaise is installed.
  * - pcid: the query parameter used for log purposes.
  */
 function search (searchText) {
   var catalogID = "<CATALOG_ID>";
   var schemaName = "<SCHEMA_NAME>";
   var tableName = "<TABLE_NAME>";
-  var ChaiseLocation = "/Chaise/";
+  var chaiseLocation = "/chaise/";
   var pcid = "?pcid=static/home/search";
 
   // create a path that Chaise understands using regex
   var path = ERMrest.createSearchPath(catalogID, schemaName, tableName, searchText);
 
   // open the url
-  window.open(window.location.origin + ChaiseLocation + "/recordset/" + path + pcid);
+  window.open(window.location.origin + chaiseLocation + "/recordset/" + path + pcid);
 }
 ```
 
@@ -121,7 +121,7 @@ The `ERMrest.createSearchPath` API mentioned above will trigger a regular expres
  * - tableName: the name of table, e.g. "dataset"
  *
  * The following are optional variables that you can change:
- * - ChaiseLocation: Where Chaise is installed.
+ * - chaiseLocation: Where Chaise is installed.
  * - pcid: the query parameter used for log purposes.
  */
 function exactMatch (searchText) {
@@ -129,7 +129,7 @@ function exactMatch (searchText) {
   var schemaName = "<SCHEMA_NAME>";
   var tableName = "<TABLE_NAME>";
   var columnName = "<COLUMN_NAME>";  // e.g. Name
-  var ChaiseLocation = "/Chaise/";
+  var chaiseLocation = "/chaise/";
   var pcid = "?pcid=static/home/search";
 
   var facets;
@@ -145,7 +145,7 @@ function exactMatch (searchText) {
   var path = ERMrest.createPath(catalogID, schemaName, tableName, facets);
 
   // open the url
-  window.open(window.location.origin + ChaiseLocation + "/recordset/" + path + pcid);
+  window.open(window.location.origin + chaiseLocation + "/recordset/" + path + pcid);
 }
 ```
 
@@ -212,7 +212,7 @@ function search(searchParam, searchText) {
   var path = ERMrest.createSearchPath("2", schemaName, tableName, searchText);
 
   // open the url
-  window.open(window.location.origin + ChaiseLocation + "/recordset/" + path + pcid);
+  window.open(window.location.origin + chaiseLocation + "/recordset/" + path + pcid);
 }
 
 $(document).ready(function(){
