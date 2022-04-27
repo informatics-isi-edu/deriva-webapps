@@ -17,7 +17,7 @@ install-boolean-search: dont_install_in_root print-variables
 
 .PHONY: install-boolean-search-w-config
 install-boolean-search-w-config: dont_install_in_root print-variables
-	$(info - deploying boolean-search with existing config file(s))
+	$(info - deploying boolean-search with the existing config file(s))
 	@rsync -avz boolean-search $(WEBAPPSDIR)
 
 .PHONY: install-heatmap
@@ -27,7 +27,7 @@ install-heatmap: dont_install_in_root print-variables
 
 .PHONY: install-heatmap-w-config
 install-heatmap-w-config: dont_install_in_root print-variables
-	$(info - deploying heatmap with existing config file(s))
+	$(info - deploying heatmap with the existing config file(s))
 	@rsync -avz heatmap $(WEBAPPSDIR)
 
 .PHONY: install-lineplot
@@ -37,7 +37,7 @@ install-lineplot: dont_install_in_root print-variables
 
 .PHONY: install-lineplot-w-config
 install-lineplot-w-config: dont_install_in_root print-variables
-	$(info - deploying lineplot with existing config file(s))
+	$(info - deploying lineplot with the existing config file(s))
 	@rsync -avz lineplot $(WEBAPPSDIR)
 
 .PHONY: install-plot
@@ -47,7 +47,7 @@ install-plot: dont_install_in_root print-variables
 
 .PHONY: install-plot-w-config
 install-plot-w-config: dont_install_in_root print-variables
-	$(info - deploying plot with existing config file(s))
+	$(info - deploying plot with the existing config file(s))
 	@rsync -avz plot $(WEBAPPSDIR)
 
 .PHONY: install-treeview
@@ -57,7 +57,7 @@ install-treeview: dont_install_in_root print-variables
 
 .PHONY: install-treeview-w-config
 install-treeview-w-config: dont_install_in_root print-variables
-	$(info - deploying treeview with existing config file(s))
+	$(info - deploying treeview with the existing config file(s))
 	@rsync -avz treeview $(WEBAPPSDIR)
 
 dont_install_in_root:
@@ -70,7 +70,17 @@ print-variables:
 .PHONY: help usage
 help: usage
 usage:
-	echo "Usage: make [target]"
-	echo "Available targets:"
-	echo "  install                    install all the apps"
-	echo "  install-w-config          install all the apps with their existing configs"
+	@echo "Usage: make [target]"
+	@echo "Available targets:"
+	@echo "  install                           install all the apps"
+	@echo "  install-w-config                  install all the apps with the existing configs"
+	@echo "  install-boolean-search            install boolean search app"
+	@echo "  install-boolean-search-w-config   install boolean search app with the existing config file(s)"
+	@echo "  install-heatmap                   install heatmap app"
+	@echo "  install-heatmap-w-config          install heatmap app with the existing config file(s)"
+	@echo "  install-lineplot                  install lineplot app"
+	@echo "  install-lineplot-w-config         install lineplot app with the existing config file(s)"
+	@echo "  install-plot                      install plot app"
+	@echo "  install-plot-w-config             install plot with the existing config file(s)"
+	@echo "  install-treeview                  install treeview app"
+	@echo "  install-treeview-w-config         install treeview app with the existing config file(s)"
