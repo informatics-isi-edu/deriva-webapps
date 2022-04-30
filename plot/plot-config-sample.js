@@ -120,7 +120,11 @@
                      },
                      layout: {
                          title: "Number of GUDMAP resources released to-date",
-                         showLegend: true
+                         showLegend: true,
+                         legend: {
+                             x: 0.2,
+                             y: -0.6
+                         }
                      }
                  },
                  config: {
