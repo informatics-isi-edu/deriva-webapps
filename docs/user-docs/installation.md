@@ -1,6 +1,6 @@
 # Installation
 
-## Depdencencies
+## Dependencies
 
 Deriva webapps use [ERMrestJS](https://github.com/informatics-isi-edu/ermrestjs) and [Chaise](https://github.com/informatics-isi-edu/chaise). So before installation, make sure the dependencies are properly installed.
 
