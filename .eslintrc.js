@@ -65,10 +65,9 @@ module.exports = {
   },
   // ignore the old code
   ignorePatterns: [
-    'common/**/*', 'recordest/**/*', 'record/**/*', 'recordedit/**/*',
-    'viewer/**/*', 'login2/**/*', 'login/**/*', 'help/**/*', 'lib/**/*',
-    'styles/**/*', 'views/**/*',
-    // we might want to remove the following later:
-    'test/**/*'
+    'docs/**/*',
+    'boolean-search/**/*', 'heatmap/**/*', 'lineplot/**/*',
+    'plot/**/*', 'treeview/**/*',
+    'config/**/*'
   ]
 };

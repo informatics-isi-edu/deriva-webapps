@@ -25,3 +25,4 @@ lineplot/lineplot-config.js
 plot/plot-config.js
 plot/test.html
 treeview/treeview-config.js
+config/*-config.js
