@@ -128,5 +128,4 @@ The file [plot-config-sample.js](plot-config-sample.js) contains examples for di
 
 ## Installation
 
-### Installation Path
-Change the installation path by changing the value of INSDIR in Makefile and then execute the `make install` command.
+Refer to [installation guide](../docs/user-docs/installation.md).
