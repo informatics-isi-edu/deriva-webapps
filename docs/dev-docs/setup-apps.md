@@ -2,7 +2,7 @@
 
 ### Installation
 
-To install each webapp follow the information in the readme [found here](https://github.com/informatics-isi-edu/deriva-webapps/#installation).
+To install each webapp follow the information in the readme [found here](../user-docs/installation.md).
 
 #### App configuration
 
