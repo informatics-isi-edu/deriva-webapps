@@ -1,6 +1,6 @@
 /**
  * Please Note
- * This is a sample configuration file. Copy the contents to `plot-config.js` and run `make install_w_configs` to use this configuration
+ * This is a sample configuration file.
  * Even more examples can be found in division repo recipes for rbk dev/staging/production
  */
  var plotConfigs = {

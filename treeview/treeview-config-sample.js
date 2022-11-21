@@ -1,6 +1,6 @@
 /**
  * Please Note
- * This is a sample configuration file. Copy the contents to `treeview-config.js` and run `make install_w_configs` to use this configuration
+ * This is a sample configuration file.
  */
 
 // url paramters (accessed by $url_parameters)

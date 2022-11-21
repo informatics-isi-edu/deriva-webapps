@@ -23,6 +23,6 @@
     "webpack-bundle-analyzer": "^4.5.0"
   },
   "dependencies": {
-    "@isrd-isi-edu/chaise": "^0.0.5"
+    "@isrd-isi-edu/chaise": "^0.0.6"
   }
 }

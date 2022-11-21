@@ -29,9 +29,13 @@ SOURCE=src
 # where created bundles will reside
 DIST=dist
 
+# react bundle location
+DIST_REACT=$(DIST)/react
+REACT_BUNDLES_FOLDERNAME=bundles
+REACT_BUNDLES=$(DIST_REACT)/$(REACT_BUNDLES_FOLDERNAME)
+
 # where config files are defined
 CONFIG=config
-
 
 # version number added to all the assets
 BUILD_VERSION:=$(shell date -u +%Y%m%d%H%M%S)
@@ -56,78 +60,93 @@ lint: $(SOURCE)
 lint-w-warn: $(SOURCE)
 	@npx eslint src --ext .ts,.tsx
 
+# Rule to create the package.
+.PHONY: dist-wo-deps
+dist-wo-deps: print-variables run-webpack
+
+# Rule to install the dependencies and create the pacakge
+$(DIST): deps dist-wo-deps
+
+# run webpack to build react-based bundles
+run-webpack: $(BUILD_VERSION)
+	$(info - creating webpack bundles)
+	@npx webpack --config ./webpack/main.config.js --env BUILD_VARIABLES.BUILD_VERSION=$(BUILD_VERSION) --env BUILD_VARIABLES.WEBAPPS_BASE_PATH=$(WEBAPPS_BASE_PATH) --env BUILD_VARIABLES.CHAISE_BASE_PATH=$(CHAISE_BASE_PATH) --env BUILD_VARIABLES.ERMRESTJS_BASE_PATH=$(ERMRESTJS_BASE_PATH)
+
 #exclude <app>-config.js to not override one on deployment
-.PHONY: install
-install: dont_install_in_root print-variables run-webpack rsync-react install-boolean-search install-heatmap install-lineplot install-plot install-treeview
+.PHONY: deploy
+deploy: dont_deploy_in_root print-variables deploy-boolean-search deploy-heatmap deploy-lineplot deploy-plot deploy-treeview deploy-matrix
 
-.PHONY: install-w-config
-install-w-config:dont_install_in_root print-variables install-boolean-search-w-config install-heatmap-w-config install-lineplot-w-config install-plot-w-config install-treeview-w-config
+.PHONY: deploy-w-config
+deploy-w-config:dont_deploy_in_root print-variables deploy-boolean-search-w-config deploy-heatmap-w-config deploy-lineplot-w-config deploy-plot-w-config deploy-treeview-w-config deploy-matrix-w-config
 
-.PHONY: install-boolean-search
-install-boolean-search: dont_install_in_root print-variables
+.PHONY: deploy-boolean-search
+deploy-boolean-search: dont_deploy_in_root print-variables
 	$(info - deploying boolean-search)
 	@rsync -avz --exclude='/boolean-search/booleansearch-config*' boolean-search $(WEBAPPSDIR)
 
-.PHONY: install-boolean-search-w-config
-install-boolean-search-w-config: dont_install_in_root print-variables
+.PHONY: deploy-boolean-search-w-config
+deploy-boolean-search-w-config: dont_deploy_in_root print-variables
 	$(info - deploying boolean-search with the existing config file(s))
 	@rsync -avz boolean-search $(WEBAPPSDIR)
 
-.PHONY: install-heatmap
-install-heatmap: dont_install_in_root print-variables
+.PHONY: deploy-heatmap
+deploy-heatmap: dont_deploy_in_root print-variables
 	$(info - deploying heatmap)
 	@rsync -avz --exclude='/heatmap/heatmap-config*' heatmap $(WEBAPPSDIR)
 
-.PHONY: install-heatmap-w-config
-install-heatmap-w-config: dont_install_in_root print-variables
+.PHONY: deploy-heatmap-w-config
+deploy-heatmap-w-config: dont_deploy_in_root print-variables
 	$(info - deploying heatmap with the existing config file(s))
 	@rsync -avz heatmap $(WEBAPPSDIR)
 
-.PHONY: install-lineplot
-install-lineplot: dont_install_in_root print-variables
+.PHONY: deploy-lineplot
+deploy-lineplot: dont_deploy_in_root print-variables
 	$(info - deploying lineplot)
 	@rsync -avz --exclude='/lineplot/lineplot-config*' lineplot $(WEBAPPSDIR)
 
-.PHONY: install-lineplot-w-config
-install-lineplot-w-config: dont_install_in_root print-variables
+.PHONY: deploy-lineplot-w-config
+deploy-lineplot-w-config: dont_deploy_in_root print-variables
 	$(info - deploying lineplot with the existing config file(s))
 	@rsync -avz lineplot $(WEBAPPSDIR)
 
-.PHONY: install-plot
-install-plot: dont_install_in_root print-variables
+.PHONY: deploy-plot
+deploy-plot: dont_deploy_in_root print-variables
 	$(info - deploying plot)
 	@rsync -avz --exclude='/plot/plot-config*' plot $(WEBAPPSDIR)
 
-.PHONY: install-plot-w-config
-install-plot-w-config: dont_install_in_root print-variables
+.PHONY: deploy-plot-w-config
+deploy-plot-w-config: dont_deploy_in_root print-variables
 	$(info - deploying plot with the existing config file(s))
 	@rsync -avz plot $(WEBAPPSDIR)
 
-.PHONY: install-treeview
-install-treeview: dont_install_in_root print-variables
+.PHONY: deploy-treeview
+deploy-treeview: dont_deploy_in_root print-variables
 	$(info - deploying treeview)
 	@rsync -avz --exclude='/treeview/treeview-config*' treeview $(WEBAPPSDIR)
 
-.PHONY: install-treeview-w-config
-install-treeview-w-config: dont_install_in_root print-variables
+.PHONY: deploy-treeview-w-config
+deploy-treeview-w-config: dont_deploy_in_root print-variables
 	$(info - deploying treeview with the existing config file(s))
 	@rsync -avz treeview $(WEBAPPSDIR)
 
-.PHONY: install-matrix
-install-matrix: deps install-matrix-wo-deps
+.PHONY: deploy-matrix
+deploy-matrix: dont_deploy_in_root print-variables deploy-bundles
+	$(info - deploying matrix)
+	@rsync -avz $(DIST_REACT)/matrix/ $(WEBAPPSDIR)/matrix/
 
-.PHONY: install-matrix-wo-deps
-install-matrix-wo-deps: dont_install_in_root print-variables run-webpack rsync-react
+.PHONY: deploy-matrix-w-config
+deploy-matrix-w-config: dont_deploy_in_root print-variables deploy-matrix deploy-config-folder
 
-# rsync the built react apps
-.PHONY: rsync-react
-rsync-react:
-	@rsync -avz $(DIST)/react/ $(CONFIG) $(WEBAPPSDIR)
+# rsync the config files used by react apps.
+.PHONY: deploy-config-folder
+deploy-config-folder: dont_deploy_in_root
+	$(info - deploying the config folder)
+	@rsync -avz $(CONFIG) $(WEBAPPSDIR)
 
-# run webpack to build react-based bundles
-.PHONY: run-webpack $(BUILD_VERSION)
-run-webpack:
-	@npx webpack --config ./webpack/main.config.js --env BUILD_VARIABLES.BUILD_VERSION=$(BUILD_VERSION) --env BUILD_VARIABLES.WEBAPPS_BASE_PATH=$(WEBAPPS_BASE_PATH) --env BUILD_VARIABLES.CHAISE_BASE_PATH=$(CHAISE_BASE_PATH) --env BUILD_VARIABLES.ERMRESTJS_BASE_PATH=$(ERMRESTJS_BASE_PATH)
+# deploy the react bundles folder
+deploy-bundles: dont_deploy_in_root
+	$(info - deploying the react bundles)
+	@rsync -avz --delete $(REACT_BUNDLES) $(WEBAPPSDIR)
 
 # check the webapps to ensure it's not the root
 .PHONY: dont_install_in_root
@@ -135,7 +154,14 @@ dont_install_in_root:
 	@echo "$(WEBAPPSDIR)" | egrep -vq "^/$$|.*:/$$"
 
 print-variables:
+  $(info =================)
+	$(info NODE_ENV:=$(NODE_ENV))
+	$(info BUILD_VERSION=$(BUILD_VERSION))
 	$(info building and deploying to: $(WEBAPPSDIR))
+  $(info web apps will be accessed using: $(WEBAPPS_BASE_PATH))
+	$(info Chaise must already be deployed and accesible using: $(CHAISE_BASE_PATH))
+	$(info ERMrestJS must already be deployed and accesible using: $(ERMRESTJS_BASE_PATH))
+	$(info =================)
 
 #Rules for help/usage
 .PHONY: help usage
@@ -143,18 +169,18 @@ help: usage
 usage:
 	@echo "Usage: make [target]"
 	@echo "Available targets:"
-	@echo "  clean                             remove the files and folders created during installation"
-	@echo "  deps                              install npm dependencies (honors NODE_ENV)"
-	@echo "  install                           install all the apps"
-	@echo "  install-w-config                  install all the apps with the existing configs"
-	@echo "  install-boolean-search            install boolean search app"
-	@echo "  install-boolean-search-w-config   install boolean search app with the existing config file(s)"
-	@echo "  install-heatmap                   install heatmap app"
-	@echo "  install-heatmap-w-config          install heatmap app with the existing config file(s)"
-	@echo "  install-lineplot                  install lineplot app"
-	@echo "  install-lineplot-w-config         install lineplot app with the existing config file(s)"
-	@echo "  install-matrix                    install matrix app"
-	@echo "  install-plot                      install plot app"
-	@echo "  install-plot-w-config             install plot with the existing config file(s)"
-	@echo "  install-treeview                  install treeview app"
-	@echo "  install-treeview-w-config         install treeview app with the existing config file(s)"
+	@echo "  clean                            remove the files and folders created during installation"
+	@echo "  deps                             install npm dependencies (honors NODE_ENV)"
+	@echo "  dist                             build all the apps"
+	@echo "  deploy                           deploy all the apps"
+	@echo "  deploy-w-config                  deploy all the apps with the existing configs"
+	@echo "  deploy-boolean-search            deploy boolean search app"
+	@echo "  deploy-boolean-search-w-config   deploy boolean search app with the existing config file(s)"
+	@echo "  deploy-heatmap                   deploy heatmap app"
+	@echo "  deploy-heatmap-w-config          deploy heatmap app with the existing config file(s)"
+	@echo "  deploy-lineplot                  deploy lineplot app"
+	@echo "  deploy-lineplot-w-config         deploy lineplot app with the existing config file(s)"
+	@echo "  deploy-plot                      deploy plot app"
+	@echo "  deploy-plot-w-config             deploy plot with the existing config file(s)"
+	@echo "  deploy-treeview                  deploy treeview app"
+	@echo "  deploy-treeview-w-config         deploy treeview app with the existing config file(s)"

@@ -1,4 +1,6 @@
 *.swp
+.vscode
+node_modules
 .DS_Store*
 .Spotlight-V100
 .Trashes
