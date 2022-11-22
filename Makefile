@@ -144,21 +144,22 @@ deploy-config-folder: dont_deploy_in_root
 	@rsync -avz $(CONFIG) $(WEBAPPSDIR)
 
 # deploy the react bundles folder
+# the --delete falg will make sure the old bundles are removed from the destination.
 deploy-bundles: dont_deploy_in_root
 	$(info - deploying the react bundles)
 	@rsync -avz --delete $(REACT_BUNDLES) $(WEBAPPSDIR)
 
 # check the webapps to ensure it's not the root
-.PHONY: dont_install_in_root
-dont_install_in_root:
+.PHONY: dont_deploy_in_root
+dont_deploy_in_root:
 	@echo "$(WEBAPPSDIR)" | egrep -vq "^/$$|.*:/$$"
 
 print-variables:
-  $(info =================)
+	$(info =================)
 	$(info NODE_ENV:=$(NODE_ENV))
 	$(info BUILD_VERSION=$(BUILD_VERSION))
 	$(info building and deploying to: $(WEBAPPSDIR))
-  $(info web apps will be accessed using: $(WEBAPPS_BASE_PATH))
+	$(info web apps will be accessed using: $(WEBAPPS_BASE_PATH))
 	$(info Chaise must already be deployed and accesible using: $(CHAISE_BASE_PATH))
 	$(info ERMrestJS must already be deployed and accesible using: $(ERMRESTJS_BASE_PATH))
 	$(info =================)

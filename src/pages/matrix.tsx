@@ -1,6 +1,11 @@
+import { createRoot } from 'react-dom/client';
+
+// components
 import AppWrapper from '@isrd-isi-edu/chaise/src/components/app-wrapper';
-import ReactDOM from 'react-dom';
 import Example from '@isrd-isi-edu/deriva-webapps/src/components/example';
+
+// utilities
+import { ID_NAMES } from '@isrd-isi-edu/chaise/src/utils/constants';
 
 const matrixSettings = {
   appName: 'app/matrix',
@@ -10,24 +15,18 @@ const matrixSettings = {
   overrideExternalLinkBehavior: false
 };
 
-const MatrixApp = () : JSX.Element => {
+const MatrixApp = (): JSX.Element => {
   return (
     <>
       <div>Matrix app!</div>
-      <div>{val}</div>
-      <Example/>
+      <Example />
     </>
   )
 };
 
-ReactDOM.render(
-  <AppWrapper
-    appSettings={matrixSettings}
-    includeAlerts={true}
-    includeNavbar={true}
-    displaySpinner={true}
-  >
+const root = createRoot(document.getElementById(ID_NAMES.APP_ROOT) as HTMLElement);
+root.render(
+  <AppWrapper appSettings={matrixSettings} includeNavbar displaySpinner ignoreHashChange>
     <MatrixApp />
-  </AppWrapper>,
-  document.getElementById('chaise-app-root'),
+  </AppWrapper>
 );

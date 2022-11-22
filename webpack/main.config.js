@@ -10,21 +10,21 @@ if (nodeDevs.indexOf(mode) === -1) {
   mode = nodeDevs[0];
 }
 
-const pathPrefix = path.resolve(__dirname, '..');
-const pathAliases = {'@isrd-isi-edu/deriva-webapps': pathPrefix};
-
-// getAppConfig(
-//   'matrix', 'Matrix', mode, env, {
-//   pathPrefix,
-//   pathAliases,
-//   appConfigLocation: `${WEBAPPS_BASE_PATH}config/matrix-config.js`
-// }),
+const rootFolderLocation = path.resolve(__dirname, '..');
+const resolveAliases = { '@isrd-isi-edu/deriva-webapps': rootFolderLocation };
 
 module.exports = (env) => {
   const WEBAPPS_BASE_PATH = env.BUILD_VARIABLES.WEBAPPS_BASE_PATH;
   return getWebPackConfig(
     [
-      
-    ]
-  )
+      {
+        appName: 'matrix',
+        appTitle: 'Matrix',
+        appConfigLocation: `${WEBAPPS_BASE_PATH}config/matrix-config.js`
+      }
+    ],
+    mode,
+    env,
+    { rootFolderLocation, resolveAliases, urlBasePath: WEBAPPS_BASE_PATH }
+  );
 };
