@@ -24,7 +24,18 @@ The current implementation of each app makes different assumption about the loca
 
       - If you're deploying remotely, since we're using this location in `rsync` command, you can use a remote location `username@host:public_html/deriva-webapps` for this variable.
 
-2. After making sure the variable is propertly set, you can run the deploy commands. To deploy all the deriva web apps you can use the `deploy` target:
+2. Build the webapps bundles by running the following command:
+    ```sh
+    make dist
+    ```
+
+    Notes:
+    - Make sure to run this command with the owner of the current folder. If you attempt to run this with a different user, it will complain.
+    - This command will also install the npm packages everytime that is called. You can skip installing npm pacakges by using `make dist-wo-deps` command instead. If you want to install npm modules in a separate command, the following make targets are available:
+      - `deps`: Install the dependencies based on `NODE_ENV` environment variable (it will skip `devDependencies` if `NODE_ENV` is not defined or is "production").
+      - `npm-install-all-modules`: Install all dependencies including `devDependencies` regardless of `NODE_ENV` value.
+
+3. To deploy all the deriva web apps you can use the `deploy` target:
 
     ```
     $ make deploy

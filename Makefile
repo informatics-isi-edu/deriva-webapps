@@ -48,9 +48,20 @@ clean:
 
 # install packages (honors NOD_ENV)
 # using clean-install instead of install to ensure usage of pacakge-lock.json
+.PHONY: npm-install-modules
+npm-install-modules:
+	@npm clean-install
+
+# install packages needed for production and development (including testing)
+# --production=false makes sure to ignore NODE_ENV and install everything
+.PHONY: npm-install-all-modules
+npm-install-all-modules:
+	@npm clean-install --production=false
+
+# install packages (honors NOD_ENV)
+# using clean-install instead of install to ensure usage of pacakge-lock.json
 .PHONY: deps
-deps:
-	npm clean-install
+deps: npm-install-modules
 
 .PHONY: lint
 lint: $(SOURCE)
@@ -181,6 +192,8 @@ usage:
 	@echo "  deploy-heatmap-w-config          deploy heatmap app with the existing config file(s)"
 	@echo "  deploy-lineplot                  deploy lineplot app"
 	@echo "  deploy-lineplot-w-config         deploy lineplot app with the existing config file(s)"
+	@echo "  deploy-matrix                    deploy matrix app"
+	@echo "  deploy-matrix-w-config           deploy matrix with the existing config file(s)"
 	@echo "  deploy-plot                      deploy plot app"
 	@echo "  deploy-plot-w-config             deploy plot with the existing config file(s)"
 	@echo "  deploy-treeview                  deploy treeview app"
