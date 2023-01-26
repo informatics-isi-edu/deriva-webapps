@@ -23,6 +23,9 @@ CHAISE_BASE_PATH:=$(WEB_URL_ROOT)$(CHAISE_REL_PATH)
 ERMRESTJS_BASE_PATH:=$(WEB_URL_ROOT)$(ERMRESTJS_REL_PATH)
 WEBAPPS_BASE_PATH:=$(WEB_URL_ROOT)$(WEBAPPS_REL_PATH)
 
+# Node module dependencies
+MODULES=node_modules
+
 # the source code
 SOURCE=src
 
@@ -37,6 +40,12 @@ REACT_BUNDLES=$(DIST_REACT)/$(REACT_BUNDLES_FOLDERNAME)
 # where config files are defined
 CONFIG=config
 
+# create default app-specific config files
+MATRIX_CONFIG=$(CONFIG)/matrix-config.js
+$(MATRIX_CONFIG): $(CONFIG)/matrix-config-sample.js
+	cp -n $(CONFIG)/matrix-config-sample.js $(CONFIG)/$(MATRIX_CONFIG) || true
+	touch $(MATRIX_CONFIG)
+
 # version number added to all the assets
 BUILD_VERSION:=$(shell date -u +%Y%m%d%H%M%S)
 # build version will change everytime make all or install is called
@@ -45,6 +54,11 @@ $(BUILD_VERSION):
 .PHONY: clean
 clean:
 	@rm -rf $(DIST) || true
+
+# Rule to clean the dependencies too
+.PHONY: distclean
+distclean: clean
+	@rm -rf $(MODULES) || true
 
 # install packages (honors NOD_ENV)
 # using clean-install instead of install to ensure usage of pacakge-lock.json
@@ -150,7 +164,7 @@ deploy-matrix-w-config: dont_deploy_in_root print-variables deploy-matrix deploy
 
 # rsync the config files used by react apps.
 .PHONY: deploy-config-folder
-deploy-config-folder: dont_deploy_in_root
+deploy-config-folder: dont_deploy_in_root $(MATRIX_CONFIG)
 	$(info - deploying the config folder)
 	@rsync -avz $(CONFIG) $(WEBAPPSDIR)
 
@@ -166,6 +180,7 @@ dont_deploy_in_root:
 	@echo "$(WEBAPPSDIR)" | egrep -vq "^/$$|.*:/$$"
 
 print-variables:
+	@mkdir -p $(DIST)
 	$(info =================)
 	$(info NODE_ENV:=$(NODE_ENV))
 	$(info BUILD_VERSION=$(BUILD_VERSION))
