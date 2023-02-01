@@ -19,7 +19,7 @@ const Matrix = ({ matrixData }: MatrixProps): JSX.Element => {
   const MatrixTable = (): JSX.Element => (
     <>
       {rows.length > 0
-        ? rows.map((data: RowProps) => <Row className='matrix-row' key={data.id} {...data} />)
+        ? rows.map((data: RowProps) => <Row className='table-row' key={data.id} {...data} />)
         : null}
     </>
   );

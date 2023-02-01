@@ -12,7 +12,7 @@ export type LegendProps = {
 
 const Legend = ({ cells, header }: LegendProps): JSX.Element => {
   const LegendRow = (): JSX.Element => (
-    <div className='row legend-row'>
+    <div className='matrix-row legend-row'>
       {cells.length > 0
         ? cells.map((data) => <Cell key={data.id} className='legend-cell' {...data} />)
         : null}

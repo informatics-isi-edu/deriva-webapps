@@ -12,7 +12,7 @@ export type RowProps = {
 
 const Row = ({ className, title, link, cells }: RowProps): JSX.Element => {
   return (
-    <div className={`row ${className}`}>
+    <div className={`matrix-row ${className}`}>
       {title ? (
         <div className={'row-header'}>
           <a className='link-text' href={link} title={title}>
@@ -21,7 +21,7 @@ const Row = ({ className, title, link, cells }: RowProps): JSX.Element => {
         </div>
       ) : null}
       {cells.length > 0
-        ? cells.map((data) => <Cell className='matrix-cell' key={data.id} {...data} />)
+        ? cells.map((data) => <Cell className='table-cell' key={data.id} {...data} />)
         : null}
     </div>
   );

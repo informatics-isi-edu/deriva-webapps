@@ -1,6 +1,6 @@
-$matrix-height: 100vh;
-$matrix-cell-size: 25px;
-$row-label-width: 100px;
+$table-height: 100vh;
+$table-cell-size: 25px;
+$row-label-width: 200px;
 $legend-cell-width: 55px;
 $legend-cell-height: 15px;
 
@@ -9,14 +9,14 @@ $legend-cell-height: 15px;
   flex-direction: column;
   overflow-y: scroll;
   overflow-x: scroll;
-  height: $matrix-height;
+  height: $table-height;
 }
 
 .col-headers {
   margin-left: $row-label-width;
 }
 
-.row {
+.matrix-row {
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
@@ -24,6 +24,8 @@ $legend-cell-height: 15px;
   .row-header {
     display: flex;
     flex-shrink: 1;
+    margin: 0px;
+    padding: 0px;
   }
 
   .link-text {
@@ -32,6 +34,7 @@ $legend-cell-height: 15px;
     text-overflow: ellipsis;
   }
 }
+
 .cell {
   flex-wrap: nowrap;
   display: flex;
@@ -51,19 +54,21 @@ $legend-cell-height: 15px;
   }
 }
 
-.matrix-row {
-  min-height: $matrix-cell-size;
+.table-row {
+  min-height: $table-cell-size;
 }
 
-.matrix-cell {
-  width: $matrix-cell-size;
+.table-cell {
+  width: $table-cell-size;
   border: 1px solid #ddd;
 }
 
-.matrix-text-container {
+.table-text-container {
   display: flex;
   flex-wrap: wrap;
-  width: $matrix-cell-size;
+  width: $table-cell-size;
+  margin: 0px;
+  padding: 0px;
 
   .link-text {
     overflow: hidden;
@@ -83,6 +88,8 @@ $legend-cell-height: 15px;
   display: flex;
   flex-wrap: wrap;
   width: $legend-cell-width;
+  margin: 0px;
+  padding: 0px;
 
   .link-text {
     overflow: hidden;

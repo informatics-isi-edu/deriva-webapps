@@ -15,7 +15,7 @@ const HeaderRow = ({ className, headers }: HeaderRowProps): JSX.Element => {
     <>
       {headers?.map(({ id, className, title, link }) => {
         return title ? (
-          <div key={id} className={`${className ? className : 'matrix-text-container'}`}>
+          <div key={id} className={`${className ? className : 'table-text-container'}`}>
             <a className={'link-text'} href={link} title={title}>
               {title}
             </a>
@@ -26,7 +26,7 @@ const HeaderRow = ({ className, headers }: HeaderRowProps): JSX.Element => {
   );
 
   return (
-    <div className={`row ${className ? className : ''}`}>
+    <div className={`matrix-row ${className ? className : ''}`}>
       {headers && headers.length > 0 ? <RowElements /> : null}
     </div>
   );
