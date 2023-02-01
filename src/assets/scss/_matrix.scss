@@ -1,0 +1,91 @@
+$matrix-height: 100vh;
+$matrix-cell-size: 25px;
+$row-label-width: 100px;
+$legend-cell-width: 55px;
+$legend-cell-height: 15px;
+
+.matrix {
+  display: flex;
+  flex-direction: column;
+  overflow-y: scroll;
+  overflow-x: scroll;
+  height: $matrix-height;
+}
+
+.col-headers {
+  margin-left: $row-label-width;
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+
+  .row-header {
+    display: flex;
+    flex-shrink: 1;
+  }
+
+  .link-text {
+    width: $row-label-width;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+.cell {
+  flex-wrap: nowrap;
+  display: flex;
+  flex-direction: row;
+  padding: 0px;
+  margin: 0px;
+
+  .cell-link {
+    display: flex;
+    width: 100%;
+  }
+
+  .color-part {
+    flex: 1;
+    padding: 0px;
+    margin: 0px;
+  }
+}
+
+.matrix-row {
+  min-height: $matrix-cell-size;
+}
+
+.matrix-cell {
+  width: $matrix-cell-size;
+  border: 1px solid #ddd;
+}
+
+.matrix-text-container {
+  display: flex;
+  flex-wrap: wrap;
+  width: $matrix-cell-size;
+
+  .link-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.legend-row {
+  min-height: $legend-cell-height;
+}
+
+.legend-cell {
+  width: $legend-cell-width;
+}
+
+.legend-text-container {
+  display: flex;
+  flex-wrap: wrap;
+  width: $legend-cell-width;
+
+  .link-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
