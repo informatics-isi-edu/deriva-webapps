@@ -38,13 +38,13 @@ const MatrixApp = (): JSX.Element => {
   const { gridData, legendData } = matrixData;
 
   // layout values:
-  const minHorizontalCells = 26;
-  const minVerticalCells = 12;
+  const minHorizontalCells = 30;
+  const minVerticalCells = 20;
   const rowHeaderWidth = 300;
   const columnHeaderHeight = 50;
   const bufferWidth = 20;
-  const cellHeight = 30;
-  const cellWidth = 30;
+  const cellHeight = 25;
+  const cellWidth = 25;
   const widthBufferSpace = 50;
   const heightBufferSpace = 350;
   const gridHeight = Math.min(
@@ -56,7 +56,7 @@ const MatrixApp = (): JSX.Element => {
     rowHeaderWidth + cellWidth * minHorizontalCells
   );
   const legendWidth = gridWidth + rowHeaderWidth;
-  const legendHeight = 200;
+  const legendHeight = 170;
   const legendItemSize = 55;
 
   return (

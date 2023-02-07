@@ -33,7 +33,7 @@ const RowHeaders = (props: RowHeadersProps, ref: ForwardedRef<any>): JSX.Element
 
     const headerContainerStyles: CSSProperties = {
       overflow: 'hidden',
-      height: cellHeight - 2,
+      height: cellHeight,
       width: width,
     };
 

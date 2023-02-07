@@ -1,9 +1,13 @@
-$grid-cell-size: 28px;
+$grid-cell-size: 25px;
 $row-header-width: 300px;
-$legend-container-width: 55px;
-$legend-container-height: 80px;
 $legend-bar-height: 15px;
-$legend-text-width: 200px;
+$legend-bar-width: 55px;
+$legend-text-width: 250px;
+$legend-text-height: 100px;
+
+a {
+  color: black;
+}
 
 .matrix-page {
   display: flex;
@@ -24,7 +28,8 @@ $legend-text-width: 200px;
 .matrix-container {
   display: flex;
   flex-direction: column;
-  margin-left: $grid-cell-size;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .grid-container {
@@ -32,10 +37,10 @@ $legend-text-width: 200px;
   margin-bottom: 4px;
 }
 
-.grid,
+// .grid,
+// .legend-container,
 .grid-row-headers,
-.grid-column-headers,
-.legend-container {
+.grid-column-headers {
   -ms-overflow-style: none; /* Internet Explorer 10+ */
   scrollbar-width: none; /* Firefox */
 
@@ -116,30 +121,46 @@ $legend-text-width: 200px;
   background-color: rgba(0, 0, 0, 0);
 }
 
-legend-container {
-  display: flex;
+.legend-container {
+  flex-direction: column;
+  overflow-x: scroll;
+  overflow-y: visible;
+  height: 400px;
 }
 
-.legend-cell-container {
-  display: flex;
-  flex-direction: column;
-  height: $legend-container-height;
+.legend-bars-container {
+  display: inline-flex;
+  flex-direction: row;
+}
+
+.legend-links-container {
+  display: inline-flex;
+  flex-direction: row;
+  margin-top: 10px;
+  margin-left: 15px;
+}
+
+.legend-bar-div {
+  display: inline-table;
+  height: $legend-bar-height;
+  width: $legend-bar-width;
 }
 
 .legend-bar {
-  flex: 1;
   width: 100%;
-  min-height: $legend-bar-height;
-  max-height: $legend-bar-height;
-  width: $legend-container-width;
+  height: 100%;
+}
+
+.legend-link-div {
+  white-space: nowrap;
+  width: $legend-bar-width;
+  -webkit-transform: translate() rotate(45deg);
+  -ms-transform: rotate(45deg);
+  transform: rotate(45deg);
 }
 
 .legend-link {
-  margin-top: $legend-container-width;
   width: $legend-text-width;
-  -webkit-transform: rotate(395deg);
-  -ms-transform: rotate(395deg);
-  transform: rotate(395deg);
 
   &:hover {
     font-weight: bold;

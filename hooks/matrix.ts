@@ -1,6 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
 
-import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
 import { getConfigObject } from '@isrd-isi-edu/deriva-webapps/src/utils/config';
 
 import useError from '@isrd-isi-edu/chaise/src/hooks/error';
@@ -22,6 +21,7 @@ export const useMatrixData = (matrixConfigs: any) => {
   const { dispatchError, errors } = useError();
   const [matrixData, setMatrixData] = useState<any>(null);
   const setupStarted = useRef<boolean>(false);
+
   useEffect(() => {
     const fetchMatrixData = async (config: any) => {
       // Request data

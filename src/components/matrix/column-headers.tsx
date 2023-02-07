@@ -33,7 +33,7 @@ const ColumnHeaders = (props: ColumnHeadersProps, ref: ForwardedRef<any>): JSX.E
 
     const headerContainerStyles: CSSProperties = {
       height: height,
-      width: cellWidth - 2,
+      width: cellWidth,
     };
 
     const linkClassName = hoveredColIndex === index ? 'hovered-header' : 'unhovered-header';
