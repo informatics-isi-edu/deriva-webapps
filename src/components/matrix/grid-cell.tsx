@@ -1,5 +1,5 @@
-import '@isrd-isi-edu/deriva-webapps/src/assets/scss/_matrix.scss';
 import { memo, CSSProperties } from 'react';
+import { areEqual } from 'react-window';
 
 export type GridCellProps = {
   columnIndex: number;
@@ -9,8 +9,14 @@ export type GridCellProps = {
 };
 
 const GridCell = ({ columnIndex, rowIndex, data, style }: GridCellProps): JSX.Element => {
-  const { hoveredRowIndex, setHoveredRowIndex, hoveredColIndex, setHoveredColIndex, gridData } =
-    data;
+  const {
+    hoveredRowIndex,
+    setHoveredRowIndex,
+    hoveredColIndex,
+    setHoveredColIndex,
+    gridData,
+    colorScale,
+  } = data;
 
   const { colors, link, title } = gridData[rowIndex][columnIndex];
 
@@ -18,14 +24,6 @@ const GridCell = ({ columnIndex, rowIndex, data, style }: GridCellProps): JSX.El
     hoveredRowIndex === rowIndex || hoveredColIndex === columnIndex
       ? 'grid-cell hovered-cell'
       : 'grid-cell unhovered-cell';
-
-  const ColorParts = () => (
-    <>
-      {colors?.map((color: string, i: number) => (
-        <div className='color-part' key={`${color}-${i}`} style={{ backgroundColor: color }} />
-      ))}
-    </>
-  );
 
   return (
     <div
@@ -38,14 +36,41 @@ const GridCell = ({ columnIndex, rowIndex, data, style }: GridCellProps): JSX.El
       <div className={gridCellClassName}>
         {link ? (
           <a role='button' className='cell-link' href={link} title={title ? title : 'unknown'}>
-            <ColorParts />
+            <MemoizedColorParts colorScale={colorScale} colors={colors} />
           </a>
         ) : (
-          <ColorParts />
+          <MemoizedColorParts colorScale={colorScale} colors={colors} />
         )}
       </div>
     </div>
   );
 };
 
-export default memo(GridCell);
+type ColorPartsProps = {
+  colors: Array<number>;
+  colorScale: Array<string>;
+};
+
+const ColorParts = ({ colors, colorScale }: ColorPartsProps): JSX.Element => {
+  return (
+    <>
+      {colors.map((colorIndex, i) => (
+        <MemoizedColor key={i} color={colorScale[colorIndex]} />
+      ))}
+    </>
+  );
+};
+
+const MemoizedColorParts = memo(ColorParts, () => false);
+
+type ColorProps = {
+  color: string;
+};
+
+const Color = ({ color }: ColorProps): JSX.Element => (
+  <div className='color-part' style={{ backgroundColor: color }} />
+);
+
+const MemoizedColor = memo(Color);
+
+export default memo(GridCell, areEqual);

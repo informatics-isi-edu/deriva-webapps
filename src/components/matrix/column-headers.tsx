@@ -9,15 +9,16 @@ type ColumnHeadersProps = {
   itemCount: number;
   itemData?: any;
   left: number;
+  bufferWidth?: number;
   onScroll?: ((props: ListOnScrollProps) => any) | undefined;
 };
 
 const ColumnHeaders = (props: ColumnHeadersProps, ref: ForwardedRef<any>): JSX.Element => {
-  const { left, cellWidth, height, width, itemCount, itemData, onScroll } = props;
+  const { left, cellWidth, height, width, bufferWidth = 0, itemCount, itemData, onScroll } = props;
 
   const columnHeadersStyles: CSSProperties = {
     position: 'absolute',
-    left: left + 'px',
+    left: left,
   };
 
   type HeaderComponentProps = {
@@ -33,7 +34,7 @@ const ColumnHeaders = (props: ColumnHeadersProps, ref: ForwardedRef<any>): JSX.E
 
     const headerContainerStyles: CSSProperties = {
       height: height,
-      width: cellWidth,
+      width: cellWidth + bufferWidth,
     };
 
     const linkClassName = hoveredColIndex === index ? 'hovered-header' : 'unhovered-header';
@@ -58,19 +59,33 @@ const ColumnHeaders = (props: ColumnHeadersProps, ref: ForwardedRef<any>): JSX.E
     <FixedSizeList
       className='grid-column-headers'
       style={columnHeadersStyles}
-      width={width} // width of all column headers + buffer to display rotated text :(
+      width={width + bufferWidth} // width of all column headers + buffer to display rotated text :(
       itemSize={cellWidth} // width of each column header
-      height={height} // height of each column header
+      height={height + 20} // height of each column header
       layout='horizontal'
       itemCount={itemCount}
       onScroll={onScroll}
       itemData={itemData}
       overscanCount={30}
+      innerElementType={innerElementType}
       ref={ref}
     >
       {memo(HeaderComponent)}
     </FixedSizeList>
   );
 };
+
+const PADDING_SIZE = 12;
+
+const innerElementType = forwardRef(({ style, ...rest }, ref) => (
+  <div
+    ref={ref}
+    style={{
+      ...style,
+      paddingRight: PADDING_SIZE,
+    }}
+    {...rest}
+  />
+));
 
 export default memo(forwardRef(ColumnHeaders));

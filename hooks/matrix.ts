@@ -1,6 +1,13 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
+
+import parula from '@isrd-isi-edu/deriva-webapps/src/assets/parula.json';
 
 import { getConfigObject } from '@isrd-isi-edu/deriva-webapps/src/utils/config';
+import {
+  generateRainbowColor,
+  generateScale,
+  getColor,
+} from '@isrd-isi-edu/deriva-webapps/src/utils/colors';
 
 import useError from '@isrd-isi-edu/chaise/src/hooks/error';
 
@@ -17,11 +24,121 @@ type MatrixXYZDatum = {
   zid: Array<string>;
 };
 
+const parseMatrixData = (config: any, response: any): any => {
+  const [{ data: xData }, { data: yData }, { data: zData }, { data: xyzData }] = response;
+
+  // Create XYZ Map
+  const xyzMap: any = {};
+  xyzData.forEach((xyz: MatrixXYZDatum) => {
+    if (!xyzMap[xyz.xid]) {
+      xyzMap[xyz.xid] = {};
+    }
+    const zSet = new Set(xyz.zid);
+    xyzMap[xyz.xid][xyz.yid] = Array.from(zSet)
+      .map((str) => str.toLowerCase())
+      .sort();
+  });
+
+  // Create Color Map and Create Legend Data
+  const colorMap: { [zTitle: string]: number } = {};
+  const legendData: Array<any> = [];
+  zData.forEach((z: MatrixDatum, i: number) => {
+    colorMap[z.title.toLowerCase()] = i;
+
+    legendData.push({
+      id: z.id,
+      colorIndex: i,
+      title: z.title,
+      link: generateLink(config, null, null, z),
+    });
+  });
+
+  // Create Parsed Grid Data
+  const gridData = yData.map((y: MatrixDatum) => {
+    // Parse Rows
+    const yParse = {
+      id: y.id,
+      title: y.title,
+      link: generateLink(config, null, y),
+    };
+
+    return xData.map((x: MatrixDatum) => {
+      // Parse Columns
+      const xParse = {
+        id: x.id,
+        title: x.title,
+        link: generateLink(config, x),
+      };
+
+      let cellLink = '';
+      const cellColors: Array<number> = [];
+      if (xyzMap[x.id] && xyzMap[x.id][y.id]) {
+        const currZ = xyzMap[x.id][y.id];
+        cellLink = generateLink(config, x, y);
+        currZ.forEach((zTitle: string) => {
+          cellColors.push(colorMap[zTitle]);
+        });
+      }
+
+      const cellId = `${x.id} + ${y.id}`;
+      const cellTitle = `${x.title} + ${y.title}`;
+
+      return {
+        row: yParse,
+        column: xParse,
+        id: cellId,
+        title: cellTitle,
+        link: cellLink,
+        colors: cellColors,
+      };
+    });
+  });
+
+  const options: Array<any> = [];
+  const gridDataMap: any = {};
+  yData.forEach((y: MatrixDatum, row: number) => {
+    options.push({ value: y.id, label: y.title });
+    gridDataMap[y.title.toLowerCase()] = { type: 'row', index: row };
+  });
+  xData.forEach((x: MatrixDatum, col: number) => {
+    options.push({ value: x.id, label: x.title });
+    gridDataMap[x.title.toLowerCase()] = { type: 'col', index: col };
+  });
+
+  const parsedData: any = {
+    gridData,
+    legendData,
+    gridDataMap,
+    options,
+  };
+
+  return parsedData;
+};
+
 export const useMatrixData = (matrixConfigs: any) => {
   const { dispatchError, errors } = useError();
+  const [data, setData] = useState<any>(null);
   const [matrixData, setMatrixData] = useState<any>(null);
+  const [colorScaleMap, setColorScaleMap] = useState<any>(null);
+  const [colorBlindOption, setColorBlindOption] = useState<any>(false);
+
   const setupStarted = useRef<boolean>(false);
 
+  const createColorScaleArrayMap = useCallback(
+    (data: any) => {
+      const [, , { data: zData }] = data;
+      const colorScale = generateScale(parula);
+      const result = zData.map((_z: any, i: number) =>
+        !colorBlindOption
+          ? generateRainbowColor(zData.length, i)
+          : getColor(colorScale, zData.length, i)
+      );
+      return result;
+    },
+    [colorBlindOption]
+  );
+
+  // Side Effect for Updating Data
   useEffect(() => {
     const fetchMatrixData = async (config: any) => {
       // Request data
@@ -30,79 +147,8 @@ export const useMatrixData = (matrixConfigs: any) => {
       const zPromise = ConfigService.http.get(config.zURL);
       const xyzPromise = ConfigService.http.get(config.xysURL);
       const data = await Promise.all([xPromise, yPromise, zPromise, xyzPromise]);
-
-      const [{ data: xData }, { data: yData }, { data: zData }, { data: xyzData }] = data;
-
-      // Create XYZ Map
-      const xyzMap: any = {};
-      xyzData.forEach((xyz: MatrixXYZDatum) => {
-        if (!xyzMap[xyz.xid]) {
-          xyzMap[xyz.xid] = {};
-        }
-        const zSet = new Set(xyz.zid);
-        xyzMap[xyz.xid][xyz.yid] = Array.from(zSet)
-          .map((str) => str.toLowerCase())
-          .sort();
-      });
-
-      // Create Color Map and Create Legend Data
-      const colorMap: { [zTitle: string]: string } = {};
-      const legendData: Array<any> = [];
-      zData.forEach((z: MatrixDatum, i: number) => {
-        const currentColor = generateColor(zData.length, i);
-        colorMap[z.title.toLowerCase()] = currentColor;
-
-        legendData.push({
-          id: z.id,
-          color: currentColor,
-          title: z.title,
-          link: generateLink(config, null, null, z),
-        });
-      });
-
-      // Create Parsed Grid Data
-      const gridData = yData.map((y: MatrixDatum) => {
-        // Parse Rows
-        const yParse = {
-          id: y.id,
-          title: y.title,
-          link: generateLink(config, null, y),
-        };
-
-        return xData.map((x: MatrixDatum) => {
-          // Parse Columns
-          const xParse = {
-            id: x.id,
-            title: x.title,
-            link: generateLink(config, x),
-          };
-
-          let cellLink = '';
-          const cellColors: Array<string> = [];
-          if (xyzMap[x.id] && xyzMap[x.id][y.id]) {
-            const currZ = xyzMap[x.id][y.id];
-            cellLink = generateLink(config, x, y);
-            currZ.forEach((zTitle: string) => {
-              cellColors.push(colorMap[zTitle]);
-            });
-          }
-
-          return {
-            row: yParse,
-            column: xParse,
-            id: `${x.id} + ${y.id}`,
-            title: `${x.title} + ${y.title}`,
-            link: cellLink,
-            colors: cellColors,
-          };
-        });
-      });
-
-      const parsedData: any = {
-        gridData,
-        legendData,
-      };
-
+      const parsedData = parseMatrixData(config, data);
+      setData(data);
       setMatrixData(parsedData);
     };
 
@@ -115,23 +161,26 @@ export const useMatrixData = (matrixConfigs: any) => {
     } catch (error: any) {
       dispatchError({ error });
     }
-  }, []);
+  }, [matrixConfigs, dispatchError, createColorScaleArrayMap]);
 
-  return { dispatchError, errors, matrixData, setMatrixData, setupStarted };
-};
+  // Side Effect for Updating Color Scale
+  useEffect(() => {
+    if (data && Array.isArray(data)) {
+      const newColorScaleMap = createColorScaleArrayMap(data);
+      setColorScaleMap(newColorScaleMap);
+    }
+  }, [data, colorBlindOption, createColorScaleArrayMap]);
 
-/**
- * @desc Generates specified number of rainbow colors.
- * from: http://mjijackson.com/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript
- * @param  {integer} len  Number of colors.
- * @return {Array} An Array of colors (string) in the rgb('r','g','b') format
- */
-const generateColor = (len: number, i: number) => {
-  const frequency = 5 / len;
-  const r = Math.floor(Math.sin(frequency * i) * 127 + 128);
-  const g = Math.floor(Math.sin(frequency * i + 2) * 127 + 128);
-  const b = Math.floor(Math.sin(frequency * i + 4) * 127 + 128);
-  return 'rgb(' + r + ', ' + g + ', ' + b + ')';
+  return {
+    dispatchError,
+    errors,
+    matrixData,
+    setMatrixData,
+    setupStarted,
+    colorBlindOption,
+    setColorBlindOption,
+    colorScaleMap,
+  };
 };
 
 /**

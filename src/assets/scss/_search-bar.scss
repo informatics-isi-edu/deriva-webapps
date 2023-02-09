@@ -1,0 +1,18 @@
+.search-bar-container {
+  display: flex;
+  flex-direction: row;
+}
+
+.search-bar-button {
+  height: 38px;
+  border-top-left-radius: 0px;
+  border-bottom-left-radius: 0px;
+  border-color: hsl(0, 0%, 80%) !important;
+  box-sizing: border-box;
+}
+
+.search-input {
+    min-width: 400px;
+    border-top-right-radius: 0px;
+    border-bottom-right-radius: 0px;
+}

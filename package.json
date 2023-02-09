@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "@isrd-isi-edu/chaise": "0.0.8",
+    "react-select": "^5.7.0",
     "react-window": "^1.8.8"
   }
 }
