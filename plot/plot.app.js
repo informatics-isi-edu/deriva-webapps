@@ -52,6 +52,8 @@
             .factory('PlotUtils', ['AlertsService', 'ConfigUtils', 'dataFormats', 'dataParams', 'Errors', 'ErrorService', 'Session', 'UriUtils', '$q', '$rootScope', '$window', function (AlertsService, ConfigUtils, dataFormats, dataParams, Errors, ErrorService,  Session, UriUtils, $q, $rootScope, $window) {
                 var ermrestServiceUrl = ConfigUtils.getConfigJSON().ermrestLocation;
                 var server = ERMrest.ermrestFactory.getServer(ermrestServiceUrl, ConfigUtils.getContextHeaderParams());
+
+                /*=== private helper functions for all plot types ===*/
                 function getType(type) {
                   switch (type) {
                     case "line":
@@ -99,6 +101,7 @@
                   }
                 }
 
+                // initialize the data object for the plot
                 function getValues(type, legend, orientation) {
                   var values = {};
                   switch (type) {
@@ -690,6 +693,14 @@
                     return defer.promise;
                 }
 
+                /**
+                 * 3 helper functions are returned from this factory that are used as part of setup of the plot
+                 *  - getData: reads the configuration passed to the function to initialize the plot layout, config, and data
+                 *          once all plots are loaded, they are attached to the DOM and rendered
+                 *  - getViolinData: fetches and configures the data for the violin plot type
+                 *          is used by controller functions when the user interacts with the selectors
+                 *  - extractLink: takes a template pattern and extracts the link from the template for adding query params and other url criteria
+                 **/
                 return {
                     getData: function (config) {
                         var plots = [];
@@ -1547,6 +1558,10 @@
                                                     dragLayer.style.cursor = '';
                                                 }), // end pltoly_unhover
 
+                                                /**
+                                                 * The `graphic_clickable_links` property is set above while setting up the plot configuration
+                                                 *    this property is used to navigate from the charts to pages in chaise representing that data
+                                                 */
                                                 element[0].on('plotly_click', function(data) {
                                                     // here data is the event object that is recieved on click of the plot
                                                     /* Data Recieved:
@@ -1644,6 +1659,10 @@
                                                         }
                                                     }
                                                 }), // end plotly_click
+                                                /**
+                                                 * similar to `graphic_clickable_links`, the `legend_clickable_links` property is set above while setting up the plot configuration
+                                                 *    this property is used to navigate from the charts to pages in chaise representing that data
+                                                 */
                                                 element[0].on('plotly_legendclick', function(data) {
 
                                                     /*
