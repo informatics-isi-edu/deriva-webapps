@@ -27,6 +27,8 @@ By default, when clicking on an option in the legend, a single click will hide t
 
 We have also extended the functionality of the legend to allow for "html" like displays similar to the plot title and x/y axis titles and tick labels. If this styling creates a link, this doesn't replace the on click events that plotly includes. To disable the default click events from plotly, we added a property called `disable_default_legend_click`. See [README.md](/plot/README.md) for more information.
 
+#### Graph Click
+By default, clicking on a part of the graph will not do anything. We extended the functionality of the plot to allow for clickable links on the graph itself. For instance, clicking a pie slice or a bar can be used to navigate to the defined url in `graphic_clickable_links`. See [README.md](/plot/README.md) for more information.
 
 ### Violin plot
 The following behaviors are currently only available when using plot_type "violin".
