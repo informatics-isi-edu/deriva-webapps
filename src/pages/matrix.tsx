@@ -29,17 +29,19 @@ const matrixSettings = {
 
 const MatrixApp = (): JSX.Element => {
   const { width = 0, height = 0 } = useWindowSize();
-  const { matrixData, colorScaleMap, errors, colorBlindOption, setColorBlindOption } =
+  const { styles, matrixData, colorScaleMap, errors, colorBlindOption, setColorBlindOption } =
     useMatrixData(windowRef.matrixConfigs);
-  const [input, setInput] = useState<string | undefined>();
+  const [input, setInput] = useState<string>('');
+  const [toastMessage, setToastMessage] = useState<string | undefined>();
+
   const gridRef = useRef<any>();
 
   // if there was an error during setup, hide the spinner
-  if ((!matrixData || !colorScaleMap) && errors.length > 0) {
+  if ((!matrixData || !colorScaleMap || !styles) && errors.length > 0) {
     return <></>;
   }
 
-  if (!matrixData || !colorScaleMap) {
+  if (!matrixData || !colorScaleMap || !styles) {
     return <ChaiseSpinner />;
   }
 
@@ -48,26 +50,40 @@ const MatrixApp = (): JSX.Element => {
   const handleChange = (option: any) => {
     if (option) {
       setInput(option.label);
+      scrollToInput(option.label);
+    } else {
+      setInput('');
+      gridRef.current.clearSearch();
     }
   };
 
   const handleInputChange = (value: string, action: InputActionMeta) => {
-    if (action.action === 'input-change') {
+    if (action.action === 'input-change' || action.action === 'set-value') {
       setInput(value);
     }
+  };
+
+  const showNoResults = () => {
+    setToastMessage('no result found');
+    setTimeout(() => setToastMessage(''), 2000);
   };
 
   const handleChangeColor = () => setColorBlindOption((prev: boolean) => !prev);
 
   const scrollToInput = (currInput: string | undefined) => {
-    if (!currInput || !gridDataMap[currInput.toLowerCase()]) {
+    if (!currInput) {
       return;
     }
+    if (!gridDataMap[currInput.toLowerCase()]) {
+      showNoResults();
+      return;
+    }
+
     const selected = gridDataMap[currInput.toLowerCase()];
     if (selected.type === 'row') {
-      gridRef.current.scrollToRow(selected.index);
+      gridRef.current.searchRow(selected.index);
     } else if (selected.type === 'col') {
-      gridRef.current.scrollToCol(selected.index);
+      gridRef.current.searchCol(selected.index);
     }
   };
 
@@ -75,76 +91,91 @@ const MatrixApp = (): JSX.Element => {
     scrollToInput(input);
   };
 
-  const handleKeyDown = (e: any) => {
-    if (e.key === 'Enter') {
-      scrollToInput(input);
-    }
-  };
+  // const handleKeyDown = (e: any) => {
+  //   if (e.key === 'Enter') {
+  //     scrollToInput(input);
+  //   }
+  // };
 
   const numRows = gridData.length;
   const numColumns = gridData[0].length;
 
   // layout values:
-  const minHorizontalCells = 30;
-  const minVerticalCells = 20;
-  const rowHeaderWidth = 300;
-  const columnHeaderHeight = 50;
-  const bufferWidth = 25;
-  const cellHeight = 25;
-  const cellWidth = 25;
+  const maxCols = styles.maxCols;
+  const maxRows = styles.maxRows;
+
+  const rowHeaderWidth = styles.rowHeaderWidth;
+  const colHeaderHeight = styles.colHeaderHeight;
+  const cellHeight = styles.cellHeight;
+  const cellWidth = styles.cellWidth;
+
   const widthBufferSpace = 50;
-  const heightBufferSpace = 450;
+  const heightBufferSpace = 350;
   const gridHeight = Math.min(
     cellHeight * numRows,
-    height - columnHeaderHeight - heightBufferSpace
-    // columnHeaderHeight + cellHeight * minVerticalCells
+    height - colHeaderHeight - heightBufferSpace,
+    colHeaderHeight + cellHeight * maxRows
   );
   const gridWidth = Math.min(
     cellWidth * numColumns,
     width - rowHeaderWidth - widthBufferSpace,
-    rowHeaderWidth + cellWidth * minHorizontalCells
+    rowHeaderWidth + cellWidth * maxCols
   );
+
   const legendWidth = gridWidth + rowHeaderWidth;
-  const legendHeight = 170;
-  const legendItemSize = 55;
+  const legendHeight = styles.legendHeight;
+  const legendItemSize = styles.legendBarWidth;
   const searchItemHeight = 35;
 
   return (
     <div className='matrix-page'>
+      {toastMessage ? (
+        <div
+          className='alert alert-danger'
+          role='alert'
+          style={{
+            position: 'absolute',
+            top: 167,
+            left: width / 2 + 230,
+            padding: '9px 12px',
+          }}
+        >
+          {toastMessage}
+        </div>
+      ) : null}
       <div className='content-container'>
         <div className='title-container'>
           <h1>Mouse Data Summary</h1>
           <p>Click a cell or label to see the related datasets..</p>
         </div>
         <div className='options-container' style={{ width: legendWidth }}>
-          <div style={{ width: 100 }} />
+          <div className='dummy-option' />
           <SearchBar
             autoFocus
             className='search-bar'
             onInputChange={handleInputChange}
             onChange={handleChange}
             onPressButton={handleSubmit}
-            onKeyDown={handleKeyDown}
+            // onKeyDown={handleKeyDown}
             itemHeight={searchItemHeight}
             options={options}
             inputValue={input}
+            value={input ? { value: input, label: input } : undefined}
+            isClearable={Boolean(input)}
             hideDropdownIndicator
             openMenuOnFocus={false}
             openMenuOnClick={false}
-            isClearable
           />
           <div className='color-toggle-container'>
-            <label htmlFor='color-blind-toggle'>Colorblind Option</label>
-            <label className='switch'>
-              {/* https://www.w3schools.com/howto/howto_css_switch.asp */}
-              <input
-                id='color-blind-toggle'
-                type='checkbox'
-                checked={colorBlindOption}
-                onChange={handleChangeColor}
-              />
-              <span className='slider round' />
+            <label htmlFor='color-blind-toggle' className='colorblind-label'>
+              Colorblind Mode
             </label>
+            <input
+              id='color-blind-toggle'
+              type='checkbox'
+              checked={colorBlindOption}
+              onChange={handleChangeColor}
+            />
           </div>
         </div>
         <div className='matrix-container'>
@@ -152,9 +183,8 @@ const MatrixApp = (): JSX.Element => {
             ref={gridRef}
             gridHeight={gridHeight}
             gridWidth={gridWidth}
-            bufferWidth={bufferWidth}
             rowHeaderWidth={rowHeaderWidth}
-            columnHeaderHeight={columnHeaderHeight}
+            columnHeaderHeight={colHeaderHeight}
             cellHeight={cellHeight}
             cellWidth={cellWidth}
             data={gridData}

@@ -1,5 +1,5 @@
 import { forwardRef, memo, ForwardedRef, CSSProperties } from 'react';
-import { FixedSizeList, ListOnScrollProps } from 'react-window';
+import { VariableSizeList as List, ListOnScrollProps } from 'react-window';
 
 type RowHeadersProps = {
   top: number;
@@ -14,6 +14,9 @@ type RowHeadersProps = {
 
 const RowHeaders = (props: RowHeadersProps, ref: ForwardedRef<any>): JSX.Element => {
   const { top, width, cellHeight, height, itemCount, itemData, onScroll } = props;
+  const { listData } = itemData;
+
+  const itemSize = (index: number) => (index < listData.length - 1 ? cellHeight : cellHeight + 3);
 
   const rowHeadersStyles: CSSProperties = {
     position: 'absolute',
@@ -27,9 +30,15 @@ const RowHeaders = (props: RowHeadersProps, ref: ForwardedRef<any>): JSX.Element
   };
 
   const HeaderComponent = ({ index, data, style }: HeaderComponentProps): JSX.Element => {
-    const { hoveredRowIndex, setHoveredRowIndex, setHoveredColIndex, listData } = data;
-    const { row } = listData[index][0];
-    const { link = '', title = '' } = row;
+    const { hoveredRowIndex, setHoveredRowIndex, setHoveredColIndex, searchedRowIndex, listData } =
+      data;
+    let link = '';
+    let title = '';
+    if (index < listData.length) {
+      const rowData = listData[index][0];
+      link = rowData.row.link;
+      title = rowData.row.title;
+    }
 
     const headerContainerStyles: CSSProperties = {
       overflow: 'hidden',
@@ -37,8 +46,17 @@ const RowHeaders = (props: RowHeadersProps, ref: ForwardedRef<any>): JSX.Element
       width: width,
     };
 
-    const containerClassName = hoveredRowIndex === index ? 'hovered-cell' : 'unhovered-cell';
-    const linkClassName = hoveredRowIndex === index ? 'hovered-header' : 'unhovered-header';
+    let containerClassName = hoveredRowIndex === index ? 'hovered-cell' : 'unhovered-cell';
+    let linkClassName = hoveredRowIndex === index ? 'hovered-header' : 'unhovered-header';
+    if (searchedRowIndex === index) {
+      containerClassName += ' searched-cell';
+      linkClassName += ' searched-cell';
+    }
+
+    if (index >= listData.length - 1) {
+      containerClassName = 'row-margin';
+    }
+
     return (
       <div
         style={style}
@@ -51,12 +69,7 @@ const RowHeaders = (props: RowHeadersProps, ref: ForwardedRef<any>): JSX.Element
           className={`row-header header-container ${containerClassName}`}
           style={headerContainerStyles}
         >
-          <a
-            className={`row-header-link ${linkClassName}`}
-            style={{ height: cellHeight, width: width }}
-            href={link}
-            title={title}
-          >
+          <a className={`row-header-link ${linkClassName}`} href={link} title={title}>
             {title}
           </a>
         </div>
@@ -65,20 +78,20 @@ const RowHeaders = (props: RowHeadersProps, ref: ForwardedRef<any>): JSX.Element
   };
 
   return (
-    <FixedSizeList
+    <List
       className='grid-row-headers'
       style={rowHeadersStyles}
       height={height} // overall height
-      itemSize={cellHeight} // each row height
+      itemSize={itemSize} // each row height
       width={width} // each cell width
-      itemCount={itemCount}
+      itemCount={itemCount + 1}
       itemData={itemData}
       onScroll={onScroll}
       overscanCount={30}
       ref={ref}
     >
       {memo(HeaderComponent)}
-    </FixedSizeList>
+    </List>
   );
 };
 

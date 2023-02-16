@@ -54,7 +54,8 @@ const parseMatrixData = (config: any, response: any): any => {
   });
 
   // Create Parsed Grid Data
-  const gridData = yData.map((y: MatrixDatum) => {
+  const gridData: any = [];
+  yData.forEach((y: MatrixDatum, row: number) => {
     // Parse Rows
     const yParse = {
       id: y.id,
@@ -62,7 +63,8 @@ const parseMatrixData = (config: any, response: any): any => {
       link: generateLink(config, null, y),
     };
 
-    return xData.map((x: MatrixDatum) => {
+    const gridRow: any = [];
+    xData.forEach((x: MatrixDatum, col: number) => {
       // Parse Columns
       const xParse = {
         id: x.id,
@@ -83,16 +85,47 @@ const parseMatrixData = (config: any, response: any): any => {
       const cellId = `${x.id} + ${y.id}`;
       const cellTitle = `${x.title} + ${y.title}`;
 
-      return {
+      gridRow.push({
         row: yParse,
         column: xParse,
         id: cellId,
         title: cellTitle,
         link: cellLink,
         colors: cellColors,
-      };
+      });
     });
+
+    // // Add empty column at last of each row as a margin
+    gridRow.push({
+      row: { id: y.id, title: '', link: '' },
+      column: { id: xData.length, title: '', link: '' },
+      id: `${y.id}-${row}-${xData.length}`,
+      title: '',
+      link: '',
+      colors: [],
+    });
+    gridData.push(gridRow);
   });
+
+  // Add empty row as a margin
+  const emptyRow = xData.map((x: any, col: number) => ({
+    row: { id: yData.length, title: '', link: '' },
+    column: { id: x.id, title: '', link: '' },
+    id: `${x.id}-${col}-${yData.length}`,
+    title: '',
+    link: '',
+    colors: [],
+  }));
+  // add last corner cell
+  emptyRow.push({
+    row: { id: yData.length, title: '', link: '' },
+    column: { id: xData.length, title: '', link: '' },
+    id: `${xData.length}-${yData.length}`,
+    title: '',
+    link: '',
+    colors: [],
+  });
+  gridData.push(emptyRow);
 
   const options: Array<any> = [];
   const gridDataMap: any = {};
@@ -117,6 +150,7 @@ const parseMatrixData = (config: any, response: any): any => {
 
 export const useMatrixData = (matrixConfigs: any) => {
   const { dispatchError, errors } = useError();
+  const [styles, setStyles] = useState<any>(null);
   const [data, setData] = useState<any>(null);
   const [matrixData, setMatrixData] = useState<any>(null);
   const [colorScaleMap, setColorScaleMap] = useState<any>(null);
@@ -150,6 +184,7 @@ export const useMatrixData = (matrixConfigs: any) => {
       const parsedData = parseMatrixData(config, data);
       setData(data);
       setMatrixData(parsedData);
+      setStyles(config.styles);
     };
 
     if (setupStarted.current) return;
@@ -180,6 +215,7 @@ export const useMatrixData = (matrixConfigs: any) => {
     colorBlindOption,
     setColorBlindOption,
     colorScaleMap,
+    styles,
   };
 };
 

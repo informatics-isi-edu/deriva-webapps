@@ -9,14 +9,16 @@ type LegendProps = {
 };
 
 const Legend = (props: LegendProps): JSX.Element => {
-  const { width, data, colorScale } = props;
+  const { width, height, data, colorScale } = props;
 
   const legendStyles: CSSProperties = {
+    height: height,
     width: width,
   };
 
   type LegendPartProps = {
     index: number;
+    legendHeight: number;
     colorScale: Array<string>;
   };
 
@@ -31,9 +33,13 @@ const Legend = (props: LegendProps): JSX.Element => {
     );
   };
 
-  const LegendHeader = ({ index }: LegendPartProps) => {
+  const LegendHeader = ({ index, legendHeight }: LegendPartProps) => {
     const { link, title } = data[index];
-    const wrappedTextElements = splitter(title, 45).map((text, i) => <div key={i}>{text}</div>);
+    const wrappedTextElements = splitter(title, 45).map((text, i) => (
+      <div className='split-text' key={i} style={{ width: legendHeight - 25 }}>
+        {text}
+      </div>
+    ));
     return (
       <div className='legend-link-div'>
         <a className='legend-link' href={link} title={title}>
@@ -52,7 +58,12 @@ const Legend = (props: LegendProps): JSX.Element => {
       </div>
       <div className='legend-links-container'>
         {data.map((legendData, index) => (
-          <LegendHeader key={legendData.title} index={index} {...legendData} />
+          <LegendHeader
+            key={legendData.title}
+            index={index}
+            legendHeight={height}
+            {...legendData}
+          />
         ))}
       </div>
     </div>

@@ -14,16 +14,26 @@ const GridCell = ({ columnIndex, rowIndex, data, style }: GridCellProps): JSX.El
     setHoveredRowIndex,
     hoveredColIndex,
     setHoveredColIndex,
+    searchedRowIndex,
+    searchedColIndex,
     gridData,
     colorScale,
   } = data;
 
   const { colors, link, title } = gridData[rowIndex][columnIndex];
 
-  const gridCellClassName =
+  let gridCellClassName =
     hoveredRowIndex === rowIndex || hoveredColIndex === columnIndex
       ? 'grid-cell hovered-cell'
       : 'grid-cell unhovered-cell';
+
+  if (searchedRowIndex === rowIndex || searchedColIndex === columnIndex) {
+    gridCellClassName += ' searched-cell';
+  }
+
+  if (rowIndex === gridData.length - 1 || columnIndex === gridData[0].length - 1) {
+    gridCellClassName = 'margin-cell';
+  }
 
   return (
     <div

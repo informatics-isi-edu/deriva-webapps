@@ -54,10 +54,8 @@ const SearchBar = (props: SearchBarProps): JSX.Element => {
         className='search-input'
         placeholder='Search...'
         blurInputOnSelect={false}
-        controlShouldRenderValue={false}
         hideDropdownIndicator
         isSearchable
-        isClearable
         {...rest}
       />
       {hideButton ? null : <Button />}

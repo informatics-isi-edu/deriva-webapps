@@ -79,7 +79,6 @@ const VirtualizedSelect = (props: VirtualizedSelectProps): JSX.Element => {
   if (hideDropdownIndicator) {
     newComponents['DropdownIndicator'] = () => null;
     newComponents['IndicatorSeparator'] = () => null;
-    newComponents['IndicatorsContainer'] = () => null;
   }
 
   return (
