@@ -16,6 +16,22 @@ button {
   border-width: 0px !important;
 }
 
+.color-theme-container {
+  display: flex;
+  flex-direction: row;
+  align-items: end;
+}
+
+.color-theme-label {
+  display: flex;
+  align-items: center;
+  margin-right: 4px;
+}
+
+.color-theme-select {
+  min-width: 120px;
+}
+
 .matrix-page {
   display: flex;
   flex-direction: column;

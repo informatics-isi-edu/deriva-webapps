@@ -7,6 +7,7 @@ import {
   useImperativeHandle,
   forwardRef,
   CSSProperties,
+  MouseEventHandler
 } from 'react';
 import { FixedSizeGrid } from 'react-window';
 
@@ -222,7 +223,12 @@ const VirtualizedGrid = (
   );
 };
 
-const GridLeftButton = ({ onClick, rowHeaderWidth }: any): JSX.Element => {
+type GridMoveButton = {
+  onClick: MouseEventHandler,
+  rowHeaderWidth: number
+}
+
+const GridLeftButton = ({ onClick, rowHeaderWidth }: GridMoveButton): JSX.Element => {
   return (
     <button
       className='grid-left-btn'
@@ -257,7 +263,7 @@ const GridLeftButton = ({ onClick, rowHeaderWidth }: any): JSX.Element => {
   );
 };
 
-const GridUpButton = ({ onClick, rowHeaderWidth }: any): JSX.Element => {
+const GridUpButton = ({ onClick, rowHeaderWidth }: GridMoveButton): JSX.Element => {
   return (
     <button
       onClick={onClick}
@@ -294,7 +300,7 @@ const GridUpButton = ({ onClick, rowHeaderWidth }: any): JSX.Element => {
   );
 };
 
-const GridRightButton = ({ onClick, rowHeaderWidth }: any): JSX.Element => {
+const GridRightButton = ({ onClick }: GridMoveButton): JSX.Element => {
   return (
     <button
       onClick={onClick}
@@ -329,7 +335,7 @@ const GridRightButton = ({ onClick, rowHeaderWidth }: any): JSX.Element => {
   );
 };
 
-const GridDownButton = ({ onClick, rowHeaderWidth }: any): JSX.Element => {
+const GridDownButton = ({ onClick, rowHeaderWidth }: GridMoveButton): JSX.Element => {
   return (
     <button
       className='grid-down-btn'

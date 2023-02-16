@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 
 import parula from '@isrd-isi-edu/deriva-webapps/src/assets/parula.json';
+import viridis from '@isrd-isi-edu/deriva-webapps/src/assets/viridis.json';
 
 import { getConfigObject } from '@isrd-isi-edu/deriva-webapps/src/utils/config';
 import {
@@ -148,28 +149,44 @@ const parseMatrixData = (config: any, response: any): any => {
   return parsedData;
 };
 
+const colorOptions = [
+  { value: 'default', label: 'Default' },
+  { value: 'parula', label: 'Parula' },
+  { value: 'viridis', label: 'Viridis' },
+];
+
 export const useMatrixData = (matrixConfigs: any) => {
   const { dispatchError, errors } = useError();
   const [styles, setStyles] = useState<any>(null);
   const [data, setData] = useState<any>(null);
   const [matrixData, setMatrixData] = useState<any>(null);
   const [colorScaleMap, setColorScaleMap] = useState<any>(null);
-  const [colorBlindOption, setColorBlindOption] = useState<any>(false);
+  const [colorThemeOption, setColorThemeOption] = useState<any>(colorOptions[0]);
 
   const setupStarted = useRef<boolean>(false);
 
   const createColorScaleArrayMap = useCallback(
     (data: any) => {
       const [, , { data: zData }] = data;
-      const colorScale = generateScale(parula);
-      const result = zData.map((_z: any, i: number) =>
-        !colorBlindOption
-          ? generateRainbowColor(zData.length, i)
-          : getColor(colorScale, zData.length, i)
-      );
+      let colorScale: Array<Array<number>>;
+      if (colorThemeOption.value === 'parula') {
+        colorScale = generateScale(parula);
+      } else if (colorThemeOption.value === 'viridis') {
+        colorScale = generateScale(viridis);
+      } else {
+        colorScale = [];
+      }
+
+      const result = zData.map((_z: any, i: number) => {
+        if (colorThemeOption.value !== 'parula' && colorThemeOption.value !== 'viridis') {
+          return generateRainbowColor(zData.length, i);
+        } else {
+          return getColor(colorScale, zData.length, i);
+        }
+      });
       return result;
     },
-    [colorBlindOption]
+    [colorThemeOption.value]
   );
 
   // Side Effect for Updating Data
@@ -204,7 +221,7 @@ export const useMatrixData = (matrixConfigs: any) => {
       const newColorScaleMap = createColorScaleArrayMap(data);
       setColorScaleMap(newColorScaleMap);
     }
-  }, [data, colorBlindOption, createColorScaleArrayMap]);
+  }, [data, colorThemeOption.value, createColorScaleArrayMap]);
 
   return {
     dispatchError,
@@ -212,8 +229,9 @@ export const useMatrixData = (matrixConfigs: any) => {
     matrixData,
     setMatrixData,
     setupStarted,
-    colorBlindOption,
-    setColorBlindOption,
+    colorOptions,
+    colorThemeOption,
+    setColorThemeOption,
     colorScaleMap,
     styles,
   };

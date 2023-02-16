@@ -1,5 +1,6 @@
 import { createRoot } from 'react-dom/client';
 import { useState, useRef } from 'react';
+import Select from 'react-select';
 
 // components
 import AppWrapper from '@isrd-isi-edu/chaise/src/components/app-wrapper';
@@ -29,8 +30,15 @@ const matrixSettings = {
 
 const MatrixApp = (): JSX.Element => {
   const { width = 0, height = 0 } = useWindowSize();
-  const { styles, matrixData, colorScaleMap, errors, colorBlindOption, setColorBlindOption } =
-    useMatrixData(windowRef.matrixConfigs);
+  const {
+    styles,
+    matrixData,
+    colorScaleMap,
+    errors,
+    colorThemeOption,
+    setColorThemeOption,
+    colorOptions,
+  } = useMatrixData(windowRef.matrixConfigs);
   const [input, setInput] = useState<string>('');
   const [toastMessage, setToastMessage] = useState<string | undefined>();
 
@@ -68,7 +76,7 @@ const MatrixApp = (): JSX.Element => {
     setTimeout(() => setToastMessage(''), 2000);
   };
 
-  const handleChangeColor = () => setColorBlindOption((prev: boolean) => !prev);
+  // const handleChangeColor = () => setColorTheme((prev: boolean) => !prev);
 
   const scrollToInput = (currInput: string | undefined) => {
     if (!currInput) {
@@ -97,6 +105,12 @@ const MatrixApp = (): JSX.Element => {
   //   }
   // };
 
+  const handleChangeTheme = (option: any) => {
+    if (option) {
+      setColorThemeOption(option);
+    }
+  };
+
   const numRows = gridData.length;
   const numColumns = gridData[0].length;
 
@@ -110,7 +124,7 @@ const MatrixApp = (): JSX.Element => {
   const cellWidth = styles.cellWidth;
 
   const widthBufferSpace = 50;
-  const heightBufferSpace = 350;
+  const heightBufferSpace = 375;
   const gridHeight = Math.min(
     cellHeight * numRows,
     height - colHeaderHeight - heightBufferSpace,
@@ -166,15 +180,13 @@ const MatrixApp = (): JSX.Element => {
             openMenuOnFocus={false}
             openMenuOnClick={false}
           />
-          <div className='color-toggle-container'>
-            <label htmlFor='color-blind-toggle' className='colorblind-label'>
-              Colorblind Mode
-            </label>
-            <input
-              id='color-blind-toggle'
-              type='checkbox'
-              checked={colorBlindOption}
-              onChange={handleChangeColor}
+          <div className='color-theme-container'>
+            <label className='color-theme-label'>Color Theme</label>
+            <Select
+              className='color-theme-select'
+              value={colorThemeOption}
+              onChange={handleChangeTheme}
+              options={colorOptions}
             />
           </div>
         </div>
