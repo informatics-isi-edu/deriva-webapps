@@ -19,7 +19,7 @@ button {
 .color-theme-container {
   display: flex;
   flex-direction: row;
-  align-items: end;
+  align-items: center;
 }
 
 .color-theme-label {
@@ -63,7 +63,7 @@ button {
   margin-bottom: 8px;
 
   .dummy-option {
-    width: 150px;
+    width: 220px;
   }
 }
 

@@ -124,15 +124,15 @@ const MatrixApp = (): JSX.Element => {
   const cellWidth = styles.cellWidth;
 
   const widthBufferSpace = 50;
-  const heightBufferSpace = 375;
+  const heightBufferSpace = 370;
   const gridHeight = Math.min(
-    cellHeight * numRows,
-    height - colHeaderHeight - heightBufferSpace,
+    cellHeight * numRows, // can't exceed total grid
+    height - colHeaderHeight - heightBufferSpace, // can't exceed browser height
     colHeaderHeight + cellHeight * maxRows
   );
   const gridWidth = Math.min(
-    cellWidth * numColumns,
-    width - rowHeaderWidth - widthBufferSpace,
+    cellWidth * numColumns, // can't exceed total grid
+    width - rowHeaderWidth - widthBufferSpace, // can't exceed browser width
     rowHeaderWidth + cellWidth * maxCols
   );
 
