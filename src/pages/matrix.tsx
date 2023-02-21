@@ -163,6 +163,18 @@ const MatrixApp = (): JSX.Element => {
   const legendItemSize = styles.legendBarWidth;
   const searchItemHeight = 30;
 
+  const searchBarSelectProps = {
+    autoFocus: true,
+    onInputChange: handleInputChange,
+    onChange: handleChange,
+    options,
+    inputValue: input,
+    value: input ? { value: input, label: input } : undefined,
+    isClearable: Boolean(input),
+    openMenuOnFocus: false,
+    openMenuOnClick: false,
+  };
+
   return (
     <div className='matrix-page'>
       {toastMessage ? (
@@ -187,19 +199,10 @@ const MatrixApp = (): JSX.Element => {
         <div className='options-container' style={{ width: legendWidth }}>
           <div className='dummy-option' />
           <SearchBar
-            autoFocus
             className='search-bar'
-            onInputChange={handleInputChange}
-            onChange={handleChange}
+            selectProps={searchBarSelectProps}
             onPressButton={handleSubmit}
             itemHeight={searchItemHeight}
-            options={options}
-            inputValue={input}
-            value={input ? { value: input, label: input } : undefined}
-            isClearable={Boolean(input)}
-            hideDropdownIndicator
-            openMenuOnFocus={false}
-            openMenuOnClick={false}
           />
           <div className='color-theme-container'>
             <label className='color-theme-label'>Color Theme</label>

@@ -6,11 +6,13 @@ import VirtualizedSelect from '@isrd-isi-edu/deriva-webapps/src/components/virtu
 import '@isrd-isi-edu/deriva-webapps/src/assets/scss/_search-bar.scss';
 import { StylesConfig } from 'react-select';
 
-type SearchBarProps = AsyncProps<any, any, any> & {
+type SearchBarProps = {
+  className?: string;
   hideButton?: boolean;
   itemHeight: number;
   hideDropdownIndicator?: boolean;
   onPressButton?: () => void;
+  selectProps: AsyncProps<any, any, any>;
 };
 
 const controlStyles: CSSProperties = {
@@ -22,6 +24,7 @@ const controlStyles: CSSProperties = {
   padding: '0px 10px',
 };
 
+// Custom styles for Search Bar
 const selectStyles: StylesConfig = {
   control: (base) => ({
     ...base,
@@ -36,7 +39,7 @@ const selectStyles: StylesConfig = {
 };
 
 const SearchBar = (props: SearchBarProps): JSX.Element => {
-  const { hideButton, onPressButton, className, ...rest } = props;
+  const { itemHeight, hideButton, onPressButton, className, selectProps } = props;
 
   const Button = (): JSX.Element => (
     <button
@@ -52,13 +55,14 @@ const SearchBar = (props: SearchBarProps): JSX.Element => {
   return (
     <div className={`${className} search-bar-container`}>
       <VirtualizedSelect
+        itemHeight={itemHeight}
         styles={selectStyles}
         placeholder='Search...'
+        controlShouldRenderValue={false}
         blurInputOnSelect={false}
         hideDropdownIndicator
         isSearchable
-        controlShouldRenderValue={false}
-        {...rest}
+        {...selectProps}
       />
       {hideButton ? null : <Button />}
     </div>
