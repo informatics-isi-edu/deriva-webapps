@@ -16,24 +16,25 @@ import RowHeaders from '@isrd-isi-edu/deriva-webapps/src/components/matrix/row-h
 import ColumnHeaders from '@isrd-isi-edu/deriva-webapps/src/components/matrix/column-headers';
 
 export type VirtualizedGridProps = {
-  gridHeight: number;
-  gridWidth: number;
-  bufferWidth?: number;
-  bufferHeight?: number;
-  columnHeaderHeight: number;
-  rowHeaderWidth: number;
-  cellWidth: number;
-  cellHeight: number;
-  data: Array<Array<any>>;
-  colorScale: Array<string>;
+  gridHeight: number; // height of the entire grid
+  gridWidth: number; // width of the entire grid
+  columnHeaderHeight: number; // height of each column header
+  rowHeaderWidth: number; // width of each row header
+  cellWidth: number; // width of each grid cell
+  cellHeight: number; // height of each grid cell
+  data: Array<Array<any>>; // parsed matrix data that the grid renders
+  colorScale: Array<string>; // the colorscale used for the grid
 };
 
+/**
+ * An optimized grid component that renders cells as they come into scroll from the grid.
+ * Row and Column Headers are also virtualized as seperate scrollable lists and
+ * synchronized based on their  scroll positions.
+ */
 const VirtualizedGrid = (
   {
     gridHeight,
     gridWidth,
-    bufferWidth = 0,
-    bufferHeight = 0,
     columnHeaderHeight,
     rowHeaderWidth,
     cellWidth,
@@ -168,8 +169,8 @@ const VirtualizedGrid = (
 
   const gridContainerStyles: CSSProperties = {
     position: 'relative',
-    height: gridHeight + columnHeaderHeight + bufferHeight,
-    width: gridWidth + rowHeaderWidth + bufferWidth,
+    height: gridHeight + columnHeaderHeight,
+    width: gridWidth + rowHeaderWidth,
   };
 
   // Giving a specific unique key to each grid cells to improve performance
@@ -191,7 +192,7 @@ const VirtualizedGrid = (
         cellWidth={cellWidth}
         width={rowHeaderWidth}
         top={columnHeaderHeight}
-        height={gridHeight + bufferHeight}
+        height={gridHeight}
         itemCount={numRows}
         itemData={rowHeaderData}
         onScroll={handleRowLabelScroll}

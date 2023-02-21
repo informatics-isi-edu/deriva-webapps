@@ -1,15 +1,14 @@
 import { memo, CSSProperties } from 'react';
 
 type LegendProps = {
-  width: number;
-  height: number;
-  data: Array<any>;
-  itemSize: number;
-  colorScale: Array<string>;
+  width: number; // width of the legend
+  height: number; // height of the legend
+  data: Array<any>; // data shown
+  itemSize: number; // width of each color bar
+  colorScale: Array<string>; // color scale to use where index corresponds to ordering of scale shown
 };
 
 const Legend = ({ width, height, data, colorScale }: LegendProps): JSX.Element => {
-
   const legendStyles: CSSProperties = {
     height: height,
     width: width,
@@ -21,6 +20,9 @@ const Legend = ({ width, height, data, colorScale }: LegendProps): JSX.Element =
     colorScale: Array<string>;
   };
 
+  /**
+   * Each colored bar of the Legend
+   */
   const LegendBar = ({ index }: LegendPartProps): JSX.Element => {
     const { colorIndex } = data[index];
     const color = colorScale[colorIndex];
@@ -32,6 +34,9 @@ const Legend = ({ width, height, data, colorScale }: LegendProps): JSX.Element =
     );
   };
 
+  /**
+   * Each header of the Legend
+   */
   const LegendHeader = ({ index, legendHeight }: LegendPartProps) => {
     const { link, title } = data[index];
     const wrappedTextElements = (
@@ -68,6 +73,5 @@ const Legend = ({ width, height, data, colorScale }: LegendProps): JSX.Element =
     </div>
   );
 };
-
 
 export default memo(Legend);

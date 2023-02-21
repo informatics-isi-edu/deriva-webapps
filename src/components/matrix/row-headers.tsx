@@ -2,16 +2,19 @@ import { forwardRef, memo, ForwardedRef, CSSProperties } from 'react';
 import { VariableSizeList as List, ListOnScrollProps } from 'react-window';
 
 type RowHeadersProps = {
-  top: number;
-  cellHeight: number;
-  cellWidth: number;
-  width: number;
-  height: number;
-  itemCount: number;
-  itemData?: any;
+  top: number; // top position of row headers
+  cellHeight: number; // height of grid cell
+  cellWidth: number; // width of grid cell
+  width: number; // each row width
+  height: number; // overall height
+  itemCount: number; // number of items
+  itemData?: any; // data passed to each column
   onScroll?: ((props: ListOnScrollProps) => any) | undefined;
 };
 
+/**
+ * Virtualized row Header that displays headers as they scroll into the given height
+ */
 const RowHeaders = (
   { top, width, cellHeight, height, itemCount, itemData, onScroll }: RowHeadersProps,
   ref: ForwardedRef<any>
@@ -33,11 +36,14 @@ const RowHeaders = (
   };
 
   type HeaderComponentProps = {
-    index: number;
-    data: any;
+    index: number; // index of the row
+    data: any; // data passed from headers
     style: CSSProperties;
   };
 
+  /**
+   * Header component for each row
+   */
   const HeaderComponent = ({ index, data, style }: HeaderComponentProps): JSX.Element => {
     const { hoveredRowIndex, setHoveredRowIndex, setHoveredColIndex, searchedRowIndex, listData } =
       data;
@@ -54,6 +60,7 @@ const RowHeaders = (
       height: cellHeight,
       width: width,
     };
+
 
     let containerClassName = hoveredRowIndex === index ? 'hovered-cell' : 'unhovered-cell';
     let linkClassName = hoveredRowIndex === index ? 'hovered-header' : 'unhovered-header';
@@ -90,9 +97,9 @@ const RowHeaders = (
     <List
       className='grid-row-headers'
       style={rowHeadersStyles}
-      height={height} // overall height
+      height={height}
       itemSize={itemSize} // each row height
-      width={width} // each cell width
+      width={width}
       itemCount={itemCount + 1}
       itemData={itemData}
       onScroll={onScroll}

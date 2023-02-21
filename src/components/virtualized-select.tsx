@@ -5,9 +5,9 @@ import { FixedSizeList } from 'react-window';
 import { SelectComponents } from 'react-select/dist/declarations/src/components';
 
 type VirtualizedSelectProps = AsyncProps<any, any, any> & {
-  itemHeight: number;
-  hideDropdownIndicator?: boolean;
-  useOptimizedOption?: boolean;
+  itemHeight: number; // the height of each menu item
+  hideDropdownIndicator?: boolean; // hide the dropdown indicator (down chevron)
+  useOptimizedOption?: boolean; // use optimized option for each menu item (but disables mouseover effects)
 };
 
 // Define Custom Styles for the Select Component
@@ -22,17 +22,19 @@ export const SelectStyles: StylesConfig = {
   menu: (base) => ({ ...base, marginTop: 0 }),
 };
 
-const VirtualizedSelect = (props: VirtualizedSelectProps): JSX.Element => {
-  const {
-    hideDropdownIndicator,
-    options = [],
-    itemHeight,
-    components,
-    styles,
-    useOptimizedOption,
-    ...restProps
-  } = props;
-
+/**
+ * Faster and more efficient version of react-select made by combining virtualization from react-window into the menu lists
+ * in react-select
+ */
+const VirtualizedSelect = ({
+  hideDropdownIndicator,
+  options = [],
+  itemHeight,
+  components,
+  styles,
+  useOptimizedOption,
+  ...restProps
+}: VirtualizedSelectProps): JSX.Element => {
   // Using a virtualized menulist instead for faster performance
   const MenuList = ({ children, maxHeight, getValue }: MenuListProps): JSX.Element => {
     const [value] = getValue();

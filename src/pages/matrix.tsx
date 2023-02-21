@@ -38,11 +38,11 @@ const MatrixApp = (): JSX.Element => {
     colorThemeOption,
     setColorThemeOption,
     colorOptions,
-  } = useMatrixData(windowRef.matrixConfigs);
-  const [input, setInput] = useState<string>('');
-  const [toastMessage, setToastMessage] = useState<string | undefined>();
+  } = useMatrixData(windowRef.matrixConfigs); // get the data needed to render the grid
+  const [input, setInput] = useState<string>(''); // search input text
+  const [toastMessage, setToastMessage] = useState<string | undefined>(); // message shown on toast
 
-  const gridRef = useRef<any>();
+  const gridRef = useRef<any>(); // reference to the grid
 
   // if there was an error during setup, hide the spinner
   if ((!matrixData || !colorScaleMap || !styles) && errors.length > 0) {

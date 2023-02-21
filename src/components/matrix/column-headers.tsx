@@ -2,17 +2,19 @@ import { memo, forwardRef, ForwardedRef, CSSProperties } from 'react';
 import { VariableSizeList as List, ListOnScrollProps } from 'react-window';
 
 type ColumnHeadersProps = {
-  cellHeight?: number;
-  cellWidth: number;
-  height: number;
-  width: number;
-  itemCount: number;
-  itemData?: any;
-  left: number;
-  bufferWidth?: number;
+  cellHeight?: number; // height of grid cell
+  cellWidth: number; // width of grid cell
+  height: number; // height of each column header
+  width: number; // width of all column headers
+  itemCount: number; // number of items
+  itemData?: any; // data passed to each column
+  left: number; // how much to position the column left by
   onScroll?: ((props: ListOnScrollProps) => any) | undefined;
 };
 
+/**
+ * Virtualized Column Header that displays headers as they scroll into the given width
+ */
 const ColumnHeaders = (
   { left, cellWidth, height, width, itemCount, itemData, onScroll }: ColumnHeadersProps,
   ref: ForwardedRef<any>
@@ -39,6 +41,9 @@ const ColumnHeaders = (
     style: CSSProperties;
   };
 
+  /**
+   * Header component for each column
+   */
   const HeaderComponent = ({ index, data, style }: HeaderComponentProps): JSX.Element => {
     const { hoveredColIndex, setHoveredRowIndex, setHoveredColIndex, searchedColIndex, listData } =
       data;
@@ -75,9 +80,9 @@ const ColumnHeaders = (
     <List
       className='grid-column-headers'
       style={columnHeadersStyles}
-      width={width} // width of all column headers + buffer to display rotated text :(
+      width={width}
       itemSize={itemSize} // width of each column header
-      height={height + 20} // height of each column header
+      height={height + 20}
       layout='horizontal'
       itemCount={itemCount}
       onScroll={onScroll}

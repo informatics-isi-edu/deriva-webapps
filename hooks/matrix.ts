@@ -178,10 +178,10 @@ export const useMatrixData = (matrixConfigs: any) => {
   const [styles, setStyles] = useState<any>(null); // styles from the config object
   const [data, setData] = useState<any>(null); // raw data request from the api
   const [matrixData, setMatrixData] = useState<any>(null); // parsed matrix data that goes into the matrix props
-  const [colorScaleMap, setColorScaleMap] = useState<Array<Array<number>> | null>(null); // colormap scale that maps index to rgb
+  const [colorScaleMap, setColorScaleMap] = useState<Array<string> | null>(null); // colormap scale that maps index to rgb
   const [colorThemeOption, setColorThemeOption] = useState<any>(colorOptions[0]); // selected color theme of grid
 
-  const setupStarted = useRef<boolean>(false); 
+  const setupStarted = useRef<boolean>(false);
 
   /**
    * Creates a color scale array map used to be passed to components where the key is the index
