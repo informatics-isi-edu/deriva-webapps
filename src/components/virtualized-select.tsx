@@ -1,4 +1,4 @@
-import { memo, useState } from 'react';
+import { memo } from 'react';
 import Async, { AsyncProps } from 'react-select/async';
 import { MenuListProps, StylesConfig } from 'react-select';
 import { FixedSizeList } from 'react-window';
@@ -7,11 +7,19 @@ import { SelectComponents } from 'react-select/dist/declarations/src/components'
 type VirtualizedSelectProps = AsyncProps<any, any, any> & {
   itemHeight: number;
   hideDropdownIndicator?: boolean;
+  useOptimizedOption?: boolean;
 };
 
-const SelectStyles: StylesConfig = {
-  input: (base) => ({ ...base, ...{ height: 30, minHeight: 30 } }),
-  menu: (base) => ({ ...base, ...{ marginTop: 0 } }),
+// Define Custom Styles for the Select Component
+export const SelectStyles: StylesConfig = {
+  option: (base) => ({ ...base, ...{ height: 30, padding: '4px 12px' } }),
+  control: (base) => ({ ...base, ...{ height: 30, minHeight: 30, padding: '0px 10px' } }),
+  singleValue: (base) => ({ ...base, padding: 0 }),
+  valueContainer: (base) => ({ ...base, padding: 0 }),
+  indicatorsContainer: (base) => ({ ...base, padding: 0 }),
+  dropdownIndicator: (base) => ({ ...base, paddingTop: 0, paddingBottom: 0 }),
+  clearIndicator: (base) => ({ ...base, padding: 0 }),
+  menu: (base) => ({ ...base, marginTop: 0 }),
 };
 
 const VirtualizedSelect = (props: VirtualizedSelectProps): JSX.Element => {
@@ -21,9 +29,11 @@ const VirtualizedSelect = (props: VirtualizedSelectProps): JSX.Element => {
     itemHeight,
     components,
     styles,
+    useOptimizedOption,
     ...restProps
   } = props;
 
+  // Using a virtualized menulist instead for faster performance
   const MenuList = ({ children, maxHeight, getValue }: MenuListProps): JSX.Element => {
     const [value] = getValue();
     const initialOffset = options.indexOf(value) * itemHeight;
@@ -44,7 +54,7 @@ const VirtualizedSelect = (props: VirtualizedSelectProps): JSX.Element => {
     );
   };
 
-  // TODO: use for extra optimization when needed
+  // Removes the constant mousmove and mouseover props that are causing performance delays from rerenders
   const Option = ({ children, ...props }: any) => {
     const { onMouseMove, onMouseOver, ...rest } = props.innerProps;
     const newProps: any = Object.assign(props, { innerProps: rest });
@@ -53,6 +63,10 @@ const VirtualizedSelect = (props: VirtualizedSelectProps): JSX.Element => {
         ref={newProps.innerRef}
         selected={newProps.isFocused}
         style={{
+          display: 'flex',
+          alignItems: 'center',
+          padding: '0px 10px',
+          height: itemHeight,
           fontWeight: newProps.isSelected ? 600 : 400,
         }}
         {...newProps.innerProps}
@@ -62,6 +76,9 @@ const VirtualizedSelect = (props: VirtualizedSelectProps): JSX.Element => {
     );
   };
 
+  /**
+   * Function to filter based on searched options
+   */
   const loadOptions = (input: string, callback: any) => {
     setTimeout(() => {
       callback(
@@ -72,7 +89,6 @@ const VirtualizedSelect = (props: VirtualizedSelectProps): JSX.Element => {
 
   const newComponents: Partial<SelectComponents<unknown, any, any>> = {
     MenuList: memo(MenuList),
-    //  Option: memo(Option)
     ...components,
   };
 
@@ -80,9 +96,13 @@ const VirtualizedSelect = (props: VirtualizedSelectProps): JSX.Element => {
     newComponents['DropdownIndicator'] = () => null;
     newComponents['IndicatorSeparator'] = () => null;
   }
+  if (useOptimizedOption) {
+    newComponents['Option'] = memo(Option);
+  }
 
   return (
     <Async
+      className='async-select'
       styles={{ ...SelectStyles, ...styles }}
       components={newComponents}
       options={options}

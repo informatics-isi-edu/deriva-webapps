@@ -1,6 +1,6 @@
 import { createRoot } from 'react-dom/client';
 import { useState, useRef } from 'react';
-import Select from 'react-select';
+import { InputActionMeta } from 'react-select';
 
 // components
 import AppWrapper from '@isrd-isi-edu/chaise/src/components/app-wrapper';
@@ -8,6 +8,7 @@ import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
 import Legend from '@isrd-isi-edu/deriva-webapps/src/components/matrix/legend';
 import VirtualizedGrid from '@isrd-isi-edu/deriva-webapps/src/components/matrix/virtualized-grid';
 import SearchBar from '@isrd-isi-edu/deriva-webapps/src/components/search-bar';
+import VirtualizedSelect from '@isrd-isi-edu/deriva-webapps/src/components/virtualized-select';
 
 // hooks
 import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/hooks/window-size';
@@ -18,7 +19,6 @@ import { ID_NAMES } from '@isrd-isi-edu/chaise/src/utils/constants';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
 
 import '@isrd-isi-edu/deriva-webapps/src/assets/scss/_matrix.scss';
-import { InputActionMeta } from 'react-select';
 
 const matrixSettings = {
   appName: 'app/matrix',
@@ -55,6 +55,11 @@ const MatrixApp = (): JSX.Element => {
 
   const { gridDataMap, gridData, legendData, options } = matrixData;
 
+  /**
+   * Handles changes to the search bar
+   *
+   * @param option
+   */
   const handleChange = (option: any) => {
     if (option) {
       setInput(option.label);
@@ -65,19 +70,33 @@ const MatrixApp = (): JSX.Element => {
     }
   };
 
+  /**
+   * Handles input changes to the search bar
+   *
+   * @param value
+   * @param action
+   */
   const handleInputChange = (value: string, action: InputActionMeta) => {
     if (action.action === 'input-change' || action.action === 'set-value') {
       setInput(value);
     }
   };
 
+  /**
+   * Sets a state to show message when no results found from search
+   */
   const showNoResults = () => {
     setToastMessage('no result found');
     setTimeout(() => setToastMessage(''), 2000);
   };
 
-  // const handleChangeColor = () => setColorTheme((prev: boolean) => !prev);
-
+  /**
+   * Scrolls the grid to the given input string if found in the matrix,
+   * otherwise shows a no results message
+   *
+   * @param currInput
+   * @returns
+   */
   const scrollToInput = (currInput: string | undefined) => {
     if (!currInput) {
       return;
@@ -95,16 +114,18 @@ const MatrixApp = (): JSX.Element => {
     }
   };
 
+  /**
+   * Handles when the user clicks the search button
+   */
   const handleSubmit = () => {
     scrollToInput(input);
   };
 
-  // const handleKeyDown = (e: any) => {
-  //   if (e.key === 'Enter') {
-  //     scrollToInput(input);
-  //   }
-  // };
-
+  /**
+   * Handls changes to the Color theme dropdown
+   *
+   * @param option
+   */
   const handleChangeTheme = (option: any) => {
     if (option) {
       setColorThemeOption(option);
@@ -114,7 +135,8 @@ const MatrixApp = (): JSX.Element => {
   const numRows = gridData.length;
   const numColumns = gridData[0].length;
 
-  // layout values:
+  // Calculate Layout of the Grid:
+
   const maxCols = styles.maxCols;
   const maxRows = styles.maxRows;
 
@@ -123,8 +145,8 @@ const MatrixApp = (): JSX.Element => {
   const cellHeight = styles.cellHeight;
   const cellWidth = styles.cellWidth;
 
-  const widthBufferSpace = 50;
-  const heightBufferSpace = 370;
+  const widthBufferSpace = 50; // buffer space for keeping everything in viewport
+  const heightBufferSpace = 330; // buffer space for keeping everything in viewport
   const gridHeight = Math.min(
     cellHeight * numRows, // can't exceed total grid
     height - colHeaderHeight - heightBufferSpace, // can't exceed browser height
@@ -139,7 +161,7 @@ const MatrixApp = (): JSX.Element => {
   const legendWidth = gridWidth + rowHeaderWidth;
   const legendHeight = styles.legendHeight;
   const legendItemSize = styles.legendBarWidth;
-  const searchItemHeight = 35;
+  const searchItemHeight = 30;
 
   return (
     <div className='matrix-page'>
@@ -170,7 +192,6 @@ const MatrixApp = (): JSX.Element => {
             onInputChange={handleInputChange}
             onChange={handleChange}
             onPressButton={handleSubmit}
-            // onKeyDown={handleKeyDown}
             itemHeight={searchItemHeight}
             options={options}
             inputValue={input}
@@ -182,11 +203,14 @@ const MatrixApp = (): JSX.Element => {
           />
           <div className='color-theme-container'>
             <label className='color-theme-label'>Color Theme</label>
-            <Select
+            <VirtualizedSelect
               className='color-theme-select'
               value={colorThemeOption}
               onChange={handleChangeTheme}
               options={colorOptions}
+              defaultOptions={colorOptions}
+              itemHeight={30}
+              isSearchable={false}
             />
           </div>
         </div>

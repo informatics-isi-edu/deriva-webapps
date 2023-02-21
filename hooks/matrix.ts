@@ -14,17 +14,25 @@ import useError from '@isrd-isi-edu/chaise/src/hooks/error';
 
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
 
+// The x, y, or z axis datum to be parsed
 type MatrixDatum = {
   id: string;
   title: string;
 };
 
+// The xyz datum to be parsed
 type MatrixXYZDatum = {
   xid: string;
   yid: string;
   zid: Array<string>;
 };
 
+/**
+ *
+ * @param config the configs for matrices
+ * @param response the response for all data received from the server
+ * @returns parsed data used by matrix visualization component
+ */
 const parseMatrixData = (config: any, response: any): any => {
   const [{ data: xData }, { data: yData }, { data: zData }, { data: xyzData }] = response;
 
@@ -96,7 +104,7 @@ const parseMatrixData = (config: any, response: any): any => {
       });
     });
 
-    // // Add empty column at last of each row as a margin
+    // Add empty column at last of each row as a margin
     gridRow.push({
       row: { id: y.id, title: '', link: '' },
       column: { id: xData.length, title: '', link: '' },
@@ -128,6 +136,7 @@ const parseMatrixData = (config: any, response: any): any => {
   });
   gridData.push(emptyRow);
 
+  // Create the options and datamap used for the matrix search feature
   const options: Array<any> = [];
   const gridDataMap: any = {};
   yData.forEach((y: MatrixDatum, row: number) => {
@@ -149,12 +158,19 @@ const parseMatrixData = (config: any, response: any): any => {
   return parsedData;
 };
 
+// Selectable color options for the matrix
 const colorOptions = [
   { value: 'default', label: 'Default' },
   { value: 'parula', label: 'Parula' },
   { value: 'viridis', label: 'Viridis' },
 ];
 
+/**
+ * Hook function to use matrix data given a config object
+ *
+ * @param matrixConfigs
+ * @returns all data to be used by matrix visualization
+ */
 export const useMatrixData = (matrixConfigs: any) => {
   const { dispatchError, errors } = useError();
   const [styles, setStyles] = useState<any>(null);
@@ -165,6 +181,9 @@ export const useMatrixData = (matrixConfigs: any) => {
 
   const setupStarted = useRef<boolean>(false);
 
+  /**
+   * Creates a color scale array map used to be passed to components where the key is the index
+   */
   const createColorScaleArrayMap = useCallback(
     (data: any) => {
       const [, , { data: zData }] = data;
@@ -192,11 +211,12 @@ export const useMatrixData = (matrixConfigs: any) => {
   // Side Effect for Updating Data
   useEffect(() => {
     const fetchMatrixData = async (config: any) => {
-      // Request data
       const xPromise = ConfigService.http.get(config.xURL);
       const yPromise = ConfigService.http.get(config.yURL);
       const zPromise = ConfigService.http.get(config.zURL);
       const xyzPromise = ConfigService.http.get(config.xysURL);
+
+      // Batch the requests so they can run in parallel:
       const data = await Promise.all([xPromise, yPromise, zPromise, xyzPromise]);
       const parsedData = parseMatrixData(config, data);
       setData(data);

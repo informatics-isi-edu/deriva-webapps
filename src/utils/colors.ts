@@ -1,3 +1,11 @@
+/**
+ * Converts Scalar values from 0-1 to RGB 0-255 scale by multiplying each by 255
+ * Given scale is in the form of a flat array where every 3 numbers correspond to
+ * the Red, Green, and Blue values.
+ *
+ * @param {Array<number>} scale Given scale with values from 0-1
+ * @returns {Array<Array<number>>} rgb values
+ */
 export const generateScale = (scale: Array<number>) => {
   const colorScale = [];
   for (let i = 0; i < scale.length; i += 3) {
@@ -9,6 +17,15 @@ export const generateScale = (scale: Array<number>) => {
   return colorScale;
 };
 
+/**
+ * Gets one color from the given index within the given color scale, for a given desired palette length.
+ * Will fail if the index and/or length is out of range of the given color scale.
+ *
+ * @param {Array<Array<number>>} colorScale
+ * @param {number} length
+ * @param {number} index
+ * @returns {string} the rgb in the form of 'rgb(r,g,b)'
+ */
 export const getColor = (
   colorScale: Array<Array<number>>,
   length: number,

@@ -17,7 +17,9 @@ const controlStyles: CSSProperties = {
   borderTopRightRadius: 0,
   borderBottomRightRadius: 0,
   borderRight: 0,
-  height: 38,
+  height: 30,
+  minHeight: 30,
+  padding: '0px 10px',
 };
 
 const selectStyles: StylesConfig = {
@@ -51,11 +53,11 @@ const SearchBar = (props: SearchBarProps): JSX.Element => {
     <div className={`${className} search-bar-container`}>
       <VirtualizedSelect
         styles={selectStyles}
-        className='search-input'
         placeholder='Search...'
         blurInputOnSelect={false}
         hideDropdownIndicator
         isSearchable
+        controlShouldRenderValue={false}
         {...rest}
       />
       {hideButton ? null : <Button />}

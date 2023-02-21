@@ -6,6 +6,7 @@ export type WindowSize = {
 };
 
 // slightly modified version from the website
+// gets the current window size of the component
 // https://usehooks.com/useWindowSize/
 export const useWindowSize = () => {
   const [windowSize, setWindowSize] = useState<WindowSize>({
@@ -13,6 +14,7 @@ export const useWindowSize = () => {
     height: undefined,
   });
 
+  // Effect for updating width and height when viewport is resized
   useEffect(() => {
     const handleResize = () => {
       setWindowSize({

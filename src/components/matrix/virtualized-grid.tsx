@@ -7,7 +7,7 @@ import {
   useImperativeHandle,
   forwardRef,
   CSSProperties,
-  MouseEventHandler
+  MouseEventHandler,
 } from 'react';
 import { FixedSizeGrid } from 'react-window';
 
@@ -43,12 +43,12 @@ const VirtualizedGrid = (
   }: VirtualizedGridProps,
   ref: any
 ): JSX.Element => {
-  const [scrollX, setScrollX] = useState<number>(0);
-  const [scrollY, setScrollY] = useState<number>(0);
-  const [hoveredRowIndex, setHoveredRowIndex] = useState<number | null>(null);
-  const [hoveredColIndex, setHoveredColIndex] = useState<number | null>(null);
-  const [searchedRowIndex, setSearchedRowIndex] = useState<number | null>(null);
-  const [searchedColIndex, setSearchedColIndex] = useState<number | null>(null);
+  const [scrollX, setScrollX] = useState<number>(0); // scroll x position
+  const [scrollY, setScrollY] = useState<number>(0); // scroll y position
+  const [hoveredRowIndex, setHoveredRowIndex] = useState<number | null>(null); // hovered row state
+  const [hoveredColIndex, setHoveredColIndex] = useState<number | null>(null); // hovered col state
+  const [searchedRowIndex, setSearchedRowIndex] = useState<number | null>(null); // searched row state
+  const [searchedColIndex, setSearchedColIndex] = useState<number | null>(null); // searched col state
 
   const rowLabelRef = useRef<any>(null);
   const columnLabelRef = useRef<any>(null);
@@ -57,57 +57,65 @@ const VirtualizedGrid = (
   const numRows = data.length;
   const numColumns = data[0].length;
 
+  // Create a ref handle for this component
   useImperativeHandle(ref, () => ({
+    // Scrolls to and sets the searched index to the given one
     searchRow: (index: number) => {
       const offset = index * cellHeight - gridHeight / 2 - cellHeight / 2;
       rowLabelRef.current.scrollTo(offset);
       gridRef.current.scrollTo({ scrollTop: offset });
 
       setSearchedRowIndex(index);
+      setSearchedColIndex(null);
     },
+    // Scrolls to and sets the searched index to the given one
     searchCol: (index: number) => {
       const offset = index * cellWidth - gridWidth / 2 - cellWidth / 2;
       columnLabelRef.current.scrollTo(offset);
       gridRef.current.scrollTo({ scrollLeft: offset });
 
+      setSearchedRowIndex(null);
       setSearchedColIndex(index);
     },
+    // Clears the searched indices
     clearSearch: () => {
       setSearchedRowIndex(null);
       setSearchedColIndex(null);
     },
   }));
 
+  // Updates scroll position when grid is scrolled
   const handleGridScroll = useCallback((e: any) => {
     if (e.scrollUpdateWasRequested) return;
     setScrollX(e.scrollLeft);
     setScrollY(e.scrollTop);
   }, []);
+  // Updates scroll position when row is scrolled
   const handleRowLabelScroll = useCallback((e: any) => {
     if (e.scrollUpdateWasRequested) return;
     setScrollY(e.scrollOffset);
   }, []);
+  // Updates scroll position when column is scrolled
   const handleColumnLabelScroll = useCallback((e: any) => {
     if (e.scrollUpdateWasRequested) return;
     setScrollX(e.scrollOffset);
   }, []);
 
+  // Updates scroll by half page when scroll button is clicked
   const pressScrollRight = () => {
     setScrollX((scrollX) => Math.min(scrollX + gridWidth / 2, cellWidth * numColumns));
   };
-
   const pressScrollLeft = () => {
     setScrollX((scrollX) => Math.max(scrollX - gridWidth / 2, 0));
   };
-
   const pressScrollDown = () => {
     setScrollY((scrollY) => Math.min(scrollY + gridHeight / 2, cellHeight * numRows));
   };
-
   const pressScrollUp = () => {
     setScrollY((scrollY) => Math.max(scrollY - gridHeight / 2, 0));
   };
 
+  // Effect for updating scroll position of row, column and grid when it detects scroll changes
   useEffect(() => {
     rowLabelRef.current.scrollTo(scrollY);
     columnLabelRef.current.scrollTo(scrollX);
@@ -117,6 +125,7 @@ const VirtualizedGrid = (
     });
   }, [scrollY, scrollX]);
 
+  // Data to be passed to Row, Column, and Grid Props
   const rowHeaderData = useMemo(
     () => ({
       hoveredRowIndex,
@@ -163,10 +172,12 @@ const VirtualizedGrid = (
     width: gridWidth + rowHeaderWidth + bufferWidth,
   };
 
+  // Giving a specific unique key to each grid cells to improve performance
   const gridItemKey = ({ rowIndex, columnIndex, data: { gridData } }: any) => {
     return gridData[rowIndex][columnIndex].id;
   };
 
+  // Boolean values to indicate whether scroll buttons are shown
   const showRight = scrollX < cellWidth * numColumns - gridWidth;
   const showLeft = scrollX > 0;
   const showUp = scrollY > 0;
@@ -224,20 +235,21 @@ const VirtualizedGrid = (
 };
 
 type GridMoveButton = {
-  onClick: MouseEventHandler,
-  rowHeaderWidth: number
-}
+  onClick: MouseEventHandler;
+  rowHeaderWidth: number;
+};
 
 const GridLeftButton = ({ onClick, rowHeaderWidth }: GridMoveButton): JSX.Element => {
   return (
     <button
+      title='Scroll Left Button'
       className='grid-left-btn'
       onClick={onClick}
       style={{
         display: 'flex',
         alignItems: 'center',
         backgroundColor: 'white',
-        height: 30,
+        height: 20,
         position: 'absolute',
         top: 12,
         left: rowHeaderWidth - 30,
@@ -245,18 +257,19 @@ const GridLeftButton = ({ onClick, rowHeaderWidth }: GridMoveButton): JSX.Elemen
     >
       <svg
         xmlns='http://www.w3.org/2000/svg'
-        width='30'
-        height='30'
+        width='20'
+        height='20'
         fill='#4674a7'
-        className='bi bi-arrow-bar-left'
+        className='bi bi-chevron-double-left'
         viewBox='0 0 16 16'
       >
         <path
           fillRule='evenodd'
-          d={
-            'M12.5 15a.5.5 0 0 1-.5-.5v-13a.5.5 0 0 1 1 0v13a.5.5 0 0 1-.5.5ZM10 8a.5.5 0 0 1-.5.5H3.707l2.147' +
-            ' 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L3.707 7.5H9.5a.5.5 0 0 1 .5.5Z'
-          }
+          d='M8.354 1.646a.5.5 0 0 1 0 .708L2.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z'
+        />
+        <path
+          fillRule='evenodd'
+          d='M12.354 1.646a.5.5 0 0 1 0 .708L6.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z'
         />
       </svg>
     </button>
@@ -265,110 +278,129 @@ const GridLeftButton = ({ onClick, rowHeaderWidth }: GridMoveButton): JSX.Elemen
 
 const GridUpButton = ({ onClick, rowHeaderWidth }: GridMoveButton): JSX.Element => {
   return (
-    <button
-      onClick={onClick}
-      className='grid-up-btn'
+    <div
       style={{
         display: 'flex',
         justifyContent: 'flex-end',
         backgroundColor: 'white',
-        height: 30,
-        width: rowHeaderWidth,
         position: 'absolute',
         top: 25,
-        left: 0,
+        width: rowHeaderWidth,
         paddingRight: 40,
       }}
     >
-      <svg
-        xmlns='http://www.w3.org/2000/svg'
-        width='30'
-        height='30'
-        fill='#4674a7'
-        className='bi bi-arrow-bar-up'
-        viewBox='0 0 16 16'
+      <button
+        title='Scroll Up Button'
+        onClick={onClick}
+        className='grid-up-btn'
+        style={{
+          backgroundColor: 'transparent',
+        }}
       >
-        <path
-          fillRule='evenodd'
-          d={
-            'M8 10a.5.5 0 0 0 .5-.5V3.707l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 ' +
-            '0l-3 3a.5.5 0 1 0 .708.708L7.5 3.707V9.5a.5.5 0 0 0 .5.5zm-7 2.5a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0 1h-13a.5.5 0 0 1-.5-.5z'
-          }
-        />
-      </svg>
-    </button>
+        <svg
+          xmlns='http://www.w3.org/2000/svg'
+          width='20'
+          height='20'
+          fill='#4674a7'
+          className='bi bi-chevron-double-up'
+          viewBox='0 0 16 16'
+        >
+          <path
+            fillRule='evenodd'
+            d='M7.646 2.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 3.707 2.354 9.354a.5.5 0 1 1-.708-.708l6-6z'
+          />
+          <path
+            fillRule='evenodd'
+            d='M7.646 6.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 7.707l-5.646 5.647a.5.5 0 0 1-.708-.708l6-6z'
+          />
+        </svg>
+      </button>
+    </div>
   );
 };
 
 const GridRightButton = ({ onClick }: GridMoveButton): JSX.Element => {
   return (
-    <button
-      onClick={onClick}
-      className='grid-down-btn'
+    <div
       style={{
         display: 'flex',
         alignItems: 'center',
         backgroundColor: 'white',
-        height: 50,
+        height: 45,
         position: 'absolute',
-        top: 0,
+        top: 2,
         right: 0,
       }}
     >
-      <svg
-        xmlns='http://www.w3.org/2000/svg'
-        width='30'
-        height='30'
-        fill='#4674a7'
-        className='bi bi-arrow-bar-right'
-        viewBox='0 0 16 16'
+      <button
+        title='Scroll Right Button'
+        onClick={onClick}
+        className='grid-down-btn'
+        style={{ backgroundColor: 'transparent' }}
       >
-        <path
-          fillRule='evenodd'
-          d={
-            'M6 8a.5.5 0 0 0 .5.5h5.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 ' +
-            '0-.708l-3-3a.5.5 0 0 0-.708.708L12.293 7.5H6.5A.5.5 0 0 0 6 8Zm-2.5 7a.5.5 0 0 1-.5-.5v-13a.5.5 0 0 1 1 0v13a.5.5 0 0 1-.5.5Z'
-          }
-        />
-      </svg>
-    </button>
+        <svg
+          xmlns='http://www.w3.org/2000/svg'
+          width='20'
+          height='20'
+          fill='#4674a7'
+          className='bi bi-chevron-double-right'
+          viewBox='0 0 16 16'
+        >
+          <path
+            fillRule='evenodd'
+            d='M3.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L9.293 8 3.646 2.354a.5.5 0 0 1 0-.708z'
+          />
+          <path
+            fillRule='evenodd'
+            d='M7.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L13.293 8 7.646 2.354a.5.5 0 0 1 0-.708z'
+          />
+        </svg>
+      </button>
+    </div>
   );
 };
 
 const GridDownButton = ({ onClick, rowHeaderWidth }: GridMoveButton): JSX.Element => {
   return (
-    <button
-      className='grid-down-btn'
-      onClick={onClick}
+    <div
       style={{
         display: 'flex',
         justifyContent: 'flex-end',
         backgroundColor: 'white',
-        height: 30,
-        width: rowHeaderWidth,
         position: 'absolute',
         bottom: 0,
         left: 0,
+        width: rowHeaderWidth,
         paddingRight: 40,
       }}
     >
-      <svg
-        xmlns='http://www.w3.org/2000/svg'
-        width='30'
-        height='30'
-        fill='#4674a7'
-        className='bi bi-arrow-bar-down'
-        viewBox='0 0 16 16'
+      <button
+        title='Scroll Down Button'
+        className='grid-down-btn'
+        onClick={onClick}
+        style={{
+          backgroundColor: 'transparent',
+        }}
       >
-        <path
-          fillRule='evenodd'
-          d={
-            'M1 3.5a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0 1h-13a.5.5 0 0 1-.5-.5zM8 6a.5.5 0 0 1 ' +
-            '.5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 0 1 .708-.708L7.5 12.293V6.5A.5.5 0 0 1 8 6z'
-          }
-        />
-      </svg>
-    </button>
+        <svg
+          xmlns='http://www.w3.org/2000/svg'
+          width='20'
+          height='20'
+          fill='#4674a7'
+          className='bi bi-chevron-double-down'
+          viewBox='0 0 16 16'
+        >
+          <path
+            fillRule='evenodd'
+            d='M1.646 6.646a.5.5 0 0 1 .708 0L8 12.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'
+          />
+          <path
+            fillRule='evenodd'
+            d='M1.646 2.646a.5.5 0 0 1 .708 0L8 8.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'
+          />
+        </svg>
+      </button>
+    </div>
   );
 };
 

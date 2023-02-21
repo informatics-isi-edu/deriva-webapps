@@ -35,11 +35,11 @@ const Legend = (props: LegendProps): JSX.Element => {
 
   const LegendHeader = ({ index, legendHeight }: LegendPartProps) => {
     const { link, title } = data[index];
-    const wrappedTextElements = splitter(title, 45).map((text, i) => (
-      <div className='split-text' key={i} style={{ width: legendHeight - 25 }}>
-        {text}
+    const wrappedTextElements = (
+      <div className='split-text' style={{ width: legendHeight - 25 }}>
+        {title}
       </div>
-    ));
+    );
     return (
       <div className='legend-link-div'>
         <a className='legend-link' href={link} title={title}>
@@ -70,19 +70,5 @@ const Legend = (props: LegendProps): JSX.Element => {
   );
 };
 
-// https://stackoverflow.com/questions/7624713/js-splitting-a-long-string-into-strings-with-char-limit-while-avoiding-splittin
-const splitter = (str: string, l: number) => {
-  const strs = [];
-  while (str.length > l) {
-    let pos = str.substring(0, l).lastIndexOf(' ');
-    pos = pos <= 0 ? l : pos;
-    strs.push(str.substring(0, pos));
-    let i = str.indexOf(' ', pos) + 1;
-    if (i < pos || i > pos + l) i = pos;
-    str = str.substring(i);
-  }
-  strs.push(str);
-  return strs;
-};
 
 export default memo(Legend);

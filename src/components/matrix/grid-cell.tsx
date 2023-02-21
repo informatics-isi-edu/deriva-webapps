@@ -22,15 +22,18 @@ const GridCell = ({ columnIndex, rowIndex, data, style }: GridCellProps): JSX.El
 
   const { colors, link, title } = gridData[rowIndex][columnIndex];
 
+  // className changes based on hovered state
   let gridCellClassName =
     hoveredRowIndex === rowIndex || hoveredColIndex === columnIndex
       ? 'grid-cell hovered-cell'
       : 'grid-cell unhovered-cell';
 
+  // className changes based on searched state
   if (searchedRowIndex === rowIndex || searchedColIndex === columnIndex) {
     gridCellClassName += ' searched-cell';
   }
 
+  // className different for the last margin cell
   if (rowIndex === gridData.length - 1 || columnIndex === gridData[0].length - 1) {
     gridCellClassName = 'margin-cell';
   }

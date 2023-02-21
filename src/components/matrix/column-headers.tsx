@@ -14,9 +14,16 @@ type ColumnHeadersProps = {
 };
 
 const ColumnHeaders = (props: ColumnHeadersProps, ref: ForwardedRef<any>): JSX.Element => {
-  const { left, cellWidth, height, width, bufferWidth = 0, itemCount, itemData, onScroll } = props;
+  const { left, cellWidth, height, width, itemCount, itemData, onScroll } = props;
   const { listData } = itemData;
 
+  /**
+   * Gets item size based on given index
+   * Uses a different item size for the last margin column
+   *
+   * @param {number} index
+   * @returns {number} item size
+   */
   const itemSize = (index: number) => (index < listData[0].length - 1 ? cellWidth : cellWidth + 30);
 
   const columnHeadersStyles: CSSProperties = {

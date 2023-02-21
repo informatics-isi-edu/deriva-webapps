@@ -16,6 +16,13 @@ const RowHeaders = (props: RowHeadersProps, ref: ForwardedRef<any>): JSX.Element
   const { top, width, cellHeight, height, itemCount, itemData, onScroll } = props;
   const { listData } = itemData;
 
+  /**
+   * Gets item size based on given index
+   * Uses a different item size for the last margin row
+   *
+   * @param {number} index
+   * @returns {number} item size
+   */
   const itemSize = (index: number) => (index < listData.length - 1 ? cellHeight : cellHeight + 3);
 
   const rowHeadersStyles: CSSProperties = {
