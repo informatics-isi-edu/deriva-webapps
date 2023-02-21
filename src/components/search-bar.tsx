@@ -1,10 +1,10 @@
+import '@isrd-isi-edu/deriva-webapps/src/assets/scss/_search-bar.scss';
+
 import { memo, CSSProperties } from 'react';
 import { StylesConfig } from 'react-select';
 import { AsyncProps } from 'react-select/async';
 
 import VirtualizedSelect from '@isrd-isi-edu/deriva-webapps/src/components/virtualized-select';
-
-import '@isrd-isi-edu/deriva-webapps/src/assets/scss/_search-bar.scss';
 
 type SearchBarProps = {
   className?: string;

@@ -1,3 +1,5 @@
+import '@isrd-isi-edu/deriva-webapps/src/assets/scss/_matrix.scss';
+
 import { createRoot } from 'react-dom/client';
 import { useState, useRef, CSSProperties } from 'react';
 import { InputActionMeta } from 'react-select';
@@ -17,8 +19,6 @@ import { useMatrixData } from '@isrd-isi-edu/deriva-webapps/hooks/matrix';
 // utilities
 import { ID_NAMES } from '@isrd-isi-edu/chaise/src/utils/constants';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
-
-import '@isrd-isi-edu/deriva-webapps/src/assets/scss/_matrix.scss';
 
 const matrixSettings = {
   appName: 'app/matrix',

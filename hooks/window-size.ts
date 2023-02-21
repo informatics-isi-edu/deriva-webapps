@@ -5,9 +5,15 @@ export type WindowSize = {
   height: number | undefined;
 };
 
-// slightly modified version from the website
-// gets the current window size of the component
-// https://usehooks.com/useWindowSize/
+/**
+ * Hook to gets the current window size of the component,
+ * automatically updates on resizing the window/viewport
+ * 
+ * A slightly modified version from this website:
+ * https://usehooks.com/useWindowSize/
+ *
+ * @returns {WindowSize} width and height of the window
+ */
 export const useWindowSize = () => {
   const [windowSize, setWindowSize] = useState<WindowSize>({
     width: undefined,
