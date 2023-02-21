@@ -17,6 +17,7 @@ var matrixConfigs = {
     matrixContainer: '.mousematrix-container',
     styles: {
       title: 'Mouse Data Summary',
+      subtitle: 'See at a glance all experiment types for our mouse data by anatomy and age stage',
       maxCols: 30,
       maxRows: 100,
       cellWidth: 25,

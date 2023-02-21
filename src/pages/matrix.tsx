@@ -38,7 +38,7 @@ const MatrixApp = (): JSX.Element => {
     colorThemeOption,
     setColorThemeOption,
     colorOptions,
-  } = useMatrixData(windowRef.matrixConfigs); // get the data needed to render the grid
+  } = useMatrixData(windowRef.matrixConfigs); // get the data needed to render the gri
   const [input, setInput] = useState<string>(''); // search input text
   const [toastMessage, setToastMessage] = useState<string | undefined>(); // message shown on toast
 
@@ -159,6 +159,7 @@ const MatrixApp = (): JSX.Element => {
   );
 
   const gridTitle = styles.title;
+  const gridSubtitle = styles.subtitle;
 
   const legendWidth = gridWidth + rowHeaderWidth;
   const legendHeight = styles.legendHeight;
@@ -194,6 +195,7 @@ const MatrixApp = (): JSX.Element => {
       <div className='content-container'>
         <div className='title-container'>
           <h1>{gridTitle}</h1>
+          <p>{gridSubtitle}</p>
         </div>
         <div className='options-container' style={{ width: legendWidth }}>
           <div className='dummy-option' />
