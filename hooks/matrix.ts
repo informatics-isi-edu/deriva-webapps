@@ -28,6 +28,8 @@ type MatrixXYZDatum = {
 };
 
 /**
+ * Parses the response data into several parts that will become usable by the Matrix Visualization
+ * Component.
  *
  * @param config the configs for matrices
  * @param response the response for all data received from the server

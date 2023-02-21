@@ -48,10 +48,12 @@ button {
   margin-right: auto;
 }
 
-.title-container {
-  display: flex;
-  width: 100%;
-  text-align: center;
+.matrix-container {
+  .title-container {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 8px;
+  }
 }
 
 .options-container {
@@ -73,7 +75,6 @@ button {
 
 .search-bar-button {
   height: 30px;
-
 }
 
 .matrix-container {

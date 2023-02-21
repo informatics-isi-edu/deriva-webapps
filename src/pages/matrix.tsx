@@ -1,5 +1,5 @@
 import { createRoot } from 'react-dom/client';
-import { useState, useRef } from 'react';
+import { useState, useRef, CSSProperties } from 'react';
 import { InputActionMeta } from 'react-select';
 
 // components
@@ -158,10 +158,19 @@ const MatrixApp = (): JSX.Element => {
     rowHeaderWidth + cellWidth * maxCols
   );
 
+  const gridTitle = styles.title;
+
   const legendWidth = gridWidth + rowHeaderWidth;
   const legendHeight = styles.legendHeight;
   const legendItemSize = styles.legendBarWidth;
   const searchItemHeight = 30;
+
+  const toastStyles: CSSProperties = {
+    position: 'absolute',
+    top: 167,
+    left: width / 2 + 230,
+    padding: '9px 12px',
+  };
 
   const searchBarSelectProps = {
     autoFocus: true,
@@ -178,23 +187,13 @@ const MatrixApp = (): JSX.Element => {
   return (
     <div className='matrix-page'>
       {toastMessage ? (
-        <div
-          className='alert alert-danger'
-          role='alert'
-          style={{
-            position: 'absolute',
-            top: 167,
-            left: width / 2 + 230,
-            padding: '9px 12px',
-          }}
-        >
+        <div className='alert alert-danger' role='alert' style={toastStyles}>
           {toastMessage}
         </div>
       ) : null}
       <div className='content-container'>
         <div className='title-container'>
-          <h1>Mouse Data Summary</h1>
-          <p>Click a cell or label to see the related datasets..</p>
+          <h1>{gridTitle}</h1>
         </div>
         <div className='options-container' style={{ width: legendWidth }}>
           <div className='dummy-option' />

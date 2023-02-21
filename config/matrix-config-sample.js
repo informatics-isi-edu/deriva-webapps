@@ -1,4 +1,5 @@
-var baseUri = '/ermrest/catalog/1/attributegroup/M:=isa:dataset/isa:dataset_species/vocab:species/name=Mus%20musculus/$M/isa:dataset_anatomy/Y:=vocab:anatomy/$M/isa:dataset_stage/X:=vocab:stage/sort_key::geq::0/sort_key::lt::10000/$M/isa:dataset_experiment_type/Z:=vocab:experiment_type';
+var baseUri =
+  '/ermrest/catalog/1/attributegroup/M:=isa:dataset/isa:dataset_species/vocab:species/name=Mus%20musculus/$M/isa:dataset_anatomy/Y:=vocab:anatomy/$M/isa:dataset_stage/X:=vocab:stage/sort_key::geq::0/sort_key::lt::10000/$M/isa:dataset_experiment_type/Z:=vocab:experiment_type';
 
 var matrixConfigs = {
   '*': {
@@ -9,6 +10,11 @@ var matrixConfigs = {
     xFacetColumn: 'id',
     yFacetColumn: 'id',
     zFacetColumn: 'id',
+    catalogId: '1',
+    schemaName: 'isa',
+    tableName: 'dataset',
+    prularDataset: 'datasets',
+    matrixContainer: '.mousematrix-container',
     styles: {
       title: 'Mouse Data Summary',
       maxCols: 30,
