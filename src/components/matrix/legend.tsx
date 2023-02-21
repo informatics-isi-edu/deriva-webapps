@@ -8,8 +8,7 @@ type LegendProps = {
   colorScale: Array<string>;
 };
 
-const Legend = (props: LegendProps): JSX.Element => {
-  const { width, height, data, colorScale } = props;
+const Legend = ({ width, height, data, colorScale }: LegendProps): JSX.Element => {
 
   const legendStyles: CSSProperties = {
     height: height,

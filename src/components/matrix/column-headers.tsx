@@ -13,8 +13,10 @@ type ColumnHeadersProps = {
   onScroll?: ((props: ListOnScrollProps) => any) | undefined;
 };
 
-const ColumnHeaders = (props: ColumnHeadersProps, ref: ForwardedRef<any>): JSX.Element => {
-  const { left, cellWidth, height, width, itemCount, itemData, onScroll } = props;
+const ColumnHeaders = (
+  { left, cellWidth, height, width, itemCount, itemData, onScroll }: ColumnHeadersProps,
+  ref: ForwardedRef<any>
+): JSX.Element => {
   const { listData } = itemData;
 
   /**

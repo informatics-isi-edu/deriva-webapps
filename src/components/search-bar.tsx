@@ -43,12 +43,12 @@ const SearchBar = (props: SearchBarProps): JSX.Element => {
 
   const Button = (): JSX.Element => (
     <button
-      className='chaise-search=>n chaise-btn chaise-btn-primary search-bar-button'
+      className='chaise-btn chaise-btn-primary search-bar-button'
       onClick={onPressButton}
       type='submit'
       role='search'
     >
-      <span className='chaise-=>-icon fa-solid fa-magnifying-glass' />
+      <span className='fa-solid fa-magnifying-glass' />
     </button>
   );
 

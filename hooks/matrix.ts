@@ -1,7 +1,7 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
-
 import parula from '@isrd-isi-edu/deriva-webapps/src/assets/parula.json';
 import viridis from '@isrd-isi-edu/deriva-webapps/src/assets/viridis.json';
+
+import { useEffect, useState, useRef, useCallback } from 'react';
 
 import { getConfigObject } from '@isrd-isi-edu/deriva-webapps/src/utils/config';
 import {
@@ -175,19 +175,20 @@ const colorOptions = [
  */
 export const useMatrixData = (matrixConfigs: any) => {
   const { dispatchError, errors } = useError();
-  const [styles, setStyles] = useState<any>(null);
-  const [data, setData] = useState<any>(null);
-  const [matrixData, setMatrixData] = useState<any>(null);
-  const [colorScaleMap, setColorScaleMap] = useState<any>(null);
-  const [colorThemeOption, setColorThemeOption] = useState<any>(colorOptions[0]);
+  const [styles, setStyles] = useState<any>(null); // styles from the config object
+  const [data, setData] = useState<any>(null); // raw data request from the api
+  const [matrixData, setMatrixData] = useState<any>(null); // parsed matrix data that goes into the matrix props
+  const [colorScaleMap, setColorScaleMap] = useState<Array<Array<number>> | null>(null); // colormap scale that maps index to rgb
+  const [colorThemeOption, setColorThemeOption] = useState<any>(colorOptions[0]); // selected color theme of grid
 
-  const setupStarted = useRef<boolean>(false);
+  const setupStarted = useRef<boolean>(false); 
 
   /**
    * Creates a color scale array map used to be passed to components where the key is the index
    */
   const createColorScaleArrayMap = useCallback(
     (data: any) => {
+      // choose theme color based on state provided
       const [, , { data: zData }] = data;
       let colorScale: Array<Array<number>>;
       if (colorThemeOption.value === 'parula') {
@@ -198,6 +199,7 @@ export const useMatrixData = (matrixConfigs: any) => {
         colorScale = [];
       }
 
+      // create resulting color map
       const result = zData.map((_z: any, i: number) => {
         if (colorThemeOption.value !== 'parula' && colorThemeOption.value !== 'viridis') {
           return generateRainbowColor(zData.length, i);
@@ -218,9 +220,11 @@ export const useMatrixData = (matrixConfigs: any) => {
       const zPromise = ConfigService.http.get(config.zURL);
       const xyzPromise = ConfigService.http.get(config.xysURL);
 
-      // Batch the requests so they can run in parallel:
+      // Batch the requests in Promise.all so they can run in parallel:
       const data = await Promise.all([xPromise, yPromise, zPromise, xyzPromise]);
       const parsedData = parseMatrixData(config, data);
+
+      // Set state after the request completes
       setData(data);
       setMatrixData(parsedData);
       setStyles(config.styles);

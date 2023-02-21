@@ -16,8 +16,8 @@ export type WindowSize = {
  */
 export const useWindowSize = () => {
   const [windowSize, setWindowSize] = useState<WindowSize>({
-    width: undefined,
-    height: undefined,
+    width: undefined, // width of the window
+    height: undefined, // height of the window
   });
 
   // Effect for updating width and height when viewport is resized
