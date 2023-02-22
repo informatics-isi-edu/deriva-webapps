@@ -2,9 +2,21 @@ import { memo, CSSProperties } from 'react';
 import { areEqual } from 'react-window';
 
 export type GridCellProps = {
+  /**
+   * Column index position of the grid cell
+   */
   columnIndex: number;
+  /**
+   * Row index position of the grid cell
+   */
   rowIndex: number;
+  /**
+   * Data passed to each grid cell
+   */
   data: any;
+  /**
+   * Style of the grid cell
+   */
   style: CSSProperties;
 };
 
@@ -40,27 +52,32 @@ const GridCell = ({ columnIndex, rowIndex, data, style }: GridCellProps): JSX.El
 
   return (
     <div
+      className={gridCellClassName}
       style={style}
       onMouseEnter={() => {
         setHoveredColIndex(columnIndex);
         setHoveredRowIndex(rowIndex);
       }}
     >
-      <div className={gridCellClassName}>
-        {link ? (
-          <a role='button' className='cell-link' href={link} title={title ? title : 'unknown'}>
-            <MemoizedColorParts colorScale={colorScale} colors={colors} />
-          </a>
-        ) : (
+      {link ? (
+        <a role='button' className='cell-link' href={link} title={title ? title : 'unknown'}>
           <MemoizedColorParts colorScale={colorScale} colors={colors} />
-        )}
-      </div>
+        </a>
+      ) : (
+        <MemoizedColorParts colorScale={colorScale} colors={colors} />
+      )}
     </div>
   );
 };
 
 type ColorPartsProps = {
+  /**
+   * Colors mapped by index
+   */
   colors: Array<number>;
+  /**
+   * Color scale map
+   */
   colorScale: Array<string>;
 };
 
@@ -77,6 +94,9 @@ const ColorParts = ({ colors, colorScale }: ColorPartsProps): JSX.Element => {
 const MemoizedColorParts = memo(ColorParts, () => false);
 
 type ColorProps = {
+  /**
+   * RGB color
+   */
   color: string;
 };
 

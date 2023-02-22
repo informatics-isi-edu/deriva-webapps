@@ -9,21 +9,47 @@ import {
   CSSProperties,
   MouseEventHandler,
 } from 'react';
-import { FixedSizeGrid } from 'react-window';
+import { FixedSizeGrid as Grid } from 'react-window';
+
+import { ParsedGridCell } from '@isrd-isi-edu/deriva-webapps/hooks/matrix';
 
 import GridCell from '@isrd-isi-edu/deriva-webapps/src/components/matrix/grid-cell';
 import RowHeaders from '@isrd-isi-edu/deriva-webapps/src/components/matrix/row-headers';
 import ColumnHeaders from '@isrd-isi-edu/deriva-webapps/src/components/matrix/column-headers';
 
 export type VirtualizedGridProps = {
-  gridHeight: number; // height of the entire grid
-  gridWidth: number; // width of the entire grid
-  columnHeaderHeight: number; // height of each column header
-  rowHeaderWidth: number; // width of each row header
-  cellWidth: number; // width of each grid cell
-  cellHeight: number; // height of each grid cell
-  data: Array<Array<any>>; // parsed matrix data that the grid renders
-  colorScale: Array<string>; // the colorscale used for the grid
+  /**
+   * height of the entire grid
+   */
+  gridHeight: number;
+  /**
+   * width of the entire grid
+   */
+  gridWidth: number;
+  /**
+   * height of each column header
+   */
+  columnHeaderHeight: number;
+  /**
+   * width of each row header
+   */
+  rowHeaderWidth: number;
+  /**
+   * width of each grid cell
+   */
+  cellWidth: number;
+  /**
+   * height of each grid cell
+   */
+  cellHeight: number;
+  /**
+   * parsed matrix data that the grid renders
+   */
+  data: Array<Array<ParsedGridCell>>;
+  /**
+   * color scale used for coloring the grid
+   */
+  colorScale: Array<string>; //
 };
 
 /**
@@ -156,7 +182,7 @@ const VirtualizedGrid = (
       searchedColIndex,
       searchedRowIndex,
       gridData: data,
-      colorScale: colorScale,
+      colorScale,
     }),
     [hoveredRowIndex, hoveredColIndex, searchedColIndex, searchedRowIndex, data, colorScale]
   );
@@ -207,26 +233,24 @@ const VirtualizedGrid = (
         itemData={columnHeaderData}
         onScroll={handleColumnLabelScroll}
       />
-      <div className='grid-test'>
-        <FixedSizeGrid
-          className='grid'
-          style={gridStyles}
-          width={gridWidth - 15}
-          height={gridHeight - 15}
-          columnWidth={cellWidth}
-          rowHeight={cellHeight}
-          rowCount={numRows}
-          columnCount={numColumns}
-          itemData={gridData}
-          onScroll={handleGridScroll}
-          ref={gridRef}
-          overscanColumnCount={10}
-          overscanRowCount={10}
-          itemKey={gridItemKey}
-        >
-          {GridCell}
-        </FixedSizeGrid>
-      </div>
+      <Grid
+        className='grid'
+        style={gridStyles}
+        width={gridWidth - 15}
+        height={gridHeight - 15}
+        columnWidth={cellWidth}
+        rowHeight={cellHeight}
+        rowCount={numRows}
+        columnCount={numColumns}
+        itemData={gridData}
+        onScroll={handleGridScroll}
+        ref={gridRef}
+        overscanColumnCount={10}
+        overscanRowCount={10}
+        itemKey={gridItemKey}
+      >
+        {GridCell}
+      </Grid>
       {showRight && <GridRightButton onClick={pressScrollRight} rowHeaderWidth={rowHeaderWidth} />}
       {showUp && <GridUpButton onClick={pressScrollUp} rowHeaderWidth={rowHeaderWidth} />}
       {showLeft && <GridLeftButton onClick={pressScrollLeft} rowHeaderWidth={rowHeaderWidth} />}

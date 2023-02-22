@@ -1,4 +1,3 @@
-$grid-cell-size: 25px;
 $row-header-width: 300px;
 $legend-bar-height: 15px;
 $legend-bar-width: 55px;
@@ -107,12 +106,12 @@ button {
 
 .row-margin {
   width: 100%;
-  height: $grid-cell-size;
+  height: 25px;
 }
 
 .col-margin {
   height: 100%;
-  width: $grid-cell-size;
+  width: 25px;
 }
 
 .margin-cell {
@@ -169,8 +168,6 @@ button {
 .grid-cell {
   display: flex;
   border: 1px solid #ddd;
-  width: $grid-cell-size;
-  height: $grid-cell-size;
 
   .cell-link {
     display: flex;
