@@ -6,12 +6,27 @@ import { AsyncProps } from 'react-select/async';
 
 import VirtualizedSelect from '@isrd-isi-edu/deriva-webapps/src/components/virtualized-select';
 
-type SearchBarProps = {
-  className?: string; // className of the container
-  hideButton?: boolean; // hides the search button
-  itemHeight: number; // the height of each menu item
-  onPressButton?: MouseEventHandler; // onPress the search button
-  selectProps: AsyncProps<any, any, any>; // props to be passed to the search/select input
+export type SearchBarProps = {
+  /**
+   * className of the container
+   */
+  className?: string;
+  /**
+   * hides the search button
+   */
+  hideButton?: boolean;
+  /**
+   * the height of each menu item
+   */
+  itemHeight: number;
+  /**
+   * onPress the search button
+   */
+  onPressButton?: MouseEventHandler;
+  /**
+   * props to be passed to the search/select input
+   */
+  selectProps: AsyncProps<any, any, any>;
 };
 
 /**

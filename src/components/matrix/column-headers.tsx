@@ -1,7 +1,6 @@
 import { memo, forwardRef, ForwardedRef, CSSProperties } from 'react';
 import { VariableSizeList as List, ListOnScrollProps } from 'react-window';
 
-
 type ColumnHeadersProps = {
   /**
    * height of grid cell
@@ -31,7 +30,7 @@ type ColumnHeadersProps = {
    * left position of column
    */
   left: number;
-  onScroll?: ((props: ListOnScrollProps) => any) | undefined;
+  onScroll?: (props: ListOnScrollProps) => any;
 };
 
 /**

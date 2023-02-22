@@ -70,6 +70,7 @@ const VirtualizedGrid = (
   }: VirtualizedGridProps,
   ref: any
 ): JSX.Element => {
+  /** */
   const [scrollX, setScrollX] = useState<number>(0); // scroll x position
   const [scrollY, setScrollY] = useState<number>(0); // scroll y position
   const [hoveredRowIndex, setHoveredRowIndex] = useState<number | null>(null); // hovered row state

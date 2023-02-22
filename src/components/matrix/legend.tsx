@@ -1,29 +1,47 @@
 import { memo, CSSProperties } from 'react';
 
-type LegendProps = {
-  width: number; // width of the legend
-  height: number; // height of the legend
-  data: Array<any>; // data shown
-  itemSize: number; // width of each color bar
-  colorScale: Array<string>; // color scale to use where index corresponds to ordering of scale shown
+import { LegendDatum } from '@isrd-isi-edu/deriva-webapps/hooks/matrix';
+
+export type LegendProps = {
+  /**
+   * width of the legend
+   */
+  width: number;
+  /**
+   * height of the legend
+   */
+  height: number;
+  /**
+   * data shown
+   */
+  data: Array<LegendDatum>;
+  /**
+   * width of each color bar
+   */
+  itemSize: number;
+  /**
+   * color scale to use where index corresponds to ordering of scale shown
+   */
+  colorScale: Array<string>;
 };
 
+/**
+ * Renders the legend for the colored matrix of data
+ */
 const Legend = ({ width, height, data, colorScale }: LegendProps): JSX.Element => {
   const legendStyles: CSSProperties = {
     height: height,
     width: width,
   };
 
-  type LegendPartProps = {
+  type LegendBarProps = {
     index: number;
-    legendHeight: number;
-    colorScale: Array<string>;
   };
 
   /**
    * Each colored bar of the Legend
    */
-  const LegendBar = ({ index }: LegendPartProps): JSX.Element => {
+  const LegendBar = ({ index }: LegendBarProps): JSX.Element => {
     const { colorIndex } = data[index];
     const color = colorScale[colorIndex];
     const legendBarStyle: CSSProperties = { backgroundColor: color };
@@ -34,10 +52,15 @@ const Legend = ({ width, height, data, colorScale }: LegendProps): JSX.Element =
     );
   };
 
+  type LegendHeaderProps = {
+    index: number;
+    legendHeight: number;
+  };
+  
   /**
    * Each header of the Legend
    */
-  const LegendHeader = ({ index, legendHeight }: LegendPartProps) => {
+  const LegendHeader = ({ index, legendHeight }: LegendHeaderProps) => {
     const { link, title } = data[index];
     const wrappedTextElements = (
       <div className='split-text' style={{ width: legendHeight - 25 }}>

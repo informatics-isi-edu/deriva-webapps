@@ -133,6 +133,108 @@ export type GridDataMap = {
 };
 
 /**
+ * Selectable color options for the matrix
+ */
+const colorOptions: Array<Option> = [
+  { value: 'default', label: 'Default' },
+  { value: 'parula', label: 'Parula' },
+  { value: 'viridis', label: 'Viridis' },
+];
+
+/**
+ * Hook function to use matrix data given a config object
+ *
+ * @param matrixConfigs
+ * @returns all data to be used by matrix visualization
+ */
+export const useMatrixData = (matrixConfigs: any) => {
+  const { dispatchError, errors } = useError();
+  const [styles, setStyles] = useState<any>(null); // styles from the config object
+  const [data, setData] = useState<MatrixResponse | null>(null); // raw data request from the api
+  const [matrixData, setMatrixData] = useState<ParsedMatrixData | null>(null); // parsed matrix data that goes into the matrix props
+  const [colorScaleMap, setColorScaleMap] = useState<Array<string> | null>(null); // colormap scale that maps index to rgb
+  const [colorThemeOption, setColorThemeOption] = useState<Option>(colorOptions[0]); // selected color theme of grid: ;
+
+  const setupStarted = useRef<boolean>(false);
+
+  /**
+   * Creates a color scale array map used to be passed to components where the key is the index
+   */
+  const createColorScaleArrayMap = useCallback(
+    (data: MatrixResponse) => {
+      // choose theme color based on state provided
+      const [, , { data: zData }] = data;
+      let colorScale: Array<Array<number>>;
+      if (colorThemeOption.value === 'parula') {
+        colorScale = generateScale(parula);
+      } else if (colorThemeOption.value === 'viridis') {
+        colorScale = generateScale(viridis);
+      } else {
+        colorScale = [];
+      }
+
+      // create resulting color map
+      const result = zData.map((_z: MatrixDatum, i: number) => {
+        if (colorThemeOption.value !== 'parula' && colorThemeOption.value !== 'viridis') {
+          return generateRainbowColor(zData.length, i);
+        } else {
+          return getColor(colorScale, zData.length, i);
+        }
+      });
+      return result;
+    },
+    [colorThemeOption.value]
+  );
+
+  // Side Effect for Updating Data
+  useEffect(() => {
+    const fetchMatrixData = async (config: any) => {
+      const xPromise = ConfigService.http.get(config.xURL);
+      const yPromise = ConfigService.http.get(config.yURL);
+      const zPromise = ConfigService.http.get(config.zURL);
+      const xyzPromise = ConfigService.http.get(config.xysURL);
+
+      // Batch the requests in Promise.all so they can run in parallel:
+      const data = await Promise.all([xPromise, yPromise, zPromise, xyzPromise]);
+      const parsedData = parseMatrixData(config, data);
+
+      // Set state after the request completes
+      setData(data);
+      setMatrixData(parsedData);
+      setStyles(config.styles);
+    };
+
+    if (setupStarted.current) return;
+    setupStarted.current = true;
+
+    try {
+      const config = getConfigObject(matrixConfigs);
+      fetchMatrixData(config);
+    } catch (error) {
+      dispatchError({ error });
+    }
+  }, [matrixConfigs, dispatchError, createColorScaleArrayMap]);
+
+  // Side Effect for Updating Color Scale
+  useEffect(() => {
+    if (data && Array.isArray(data)) {
+      const newColorScaleMap = createColorScaleArrayMap(data);
+      setColorScaleMap(newColorScaleMap);
+    }
+  }, [data, colorThemeOption.value, createColorScaleArrayMap]);
+
+  return {
+    errors,
+    matrixData,
+    colorOptions,
+    colorThemeOption,
+    setColorThemeOption,
+    colorScaleMap,
+    styles,
+  };
+};
+
+/**
  * Data to be passed to the grid component
  */
 export type ParsedMatrixData = {
@@ -273,108 +375,6 @@ const parseMatrixData = (config: any, response: MatrixResponse): ParsedMatrixDat
   };
 
   return parsedData;
-};
-
-/**
- * Selectable color options for the matrix
- */
-const colorOptions: Array<Option> = [
-  { value: 'default', label: 'Default' },
-  { value: 'parula', label: 'Parula' },
-  { value: 'viridis', label: 'Viridis' },
-];
-
-/**
- * Hook function to use matrix data given a config object
- *
- * @param matrixConfigs
- * @returns all data to be used by matrix visualization
- */
-export const useMatrixData = (matrixConfigs: any) => {
-  const { dispatchError, errors } = useError();
-  const [styles, setStyles] = useState<any>(null); // styles from the config object
-  const [data, setData] = useState<MatrixResponse | null>(null); // raw data request from the api
-  const [matrixData, setMatrixData] = useState<ParsedMatrixData | null>(null); // parsed matrix data that goes into the matrix props
-  const [colorScaleMap, setColorScaleMap] = useState<Array<string> | null>(null); // colormap scale that maps index to rgb
-  const [colorThemeOption, setColorThemeOption] = useState<Option>(colorOptions[0]); // selected color theme of grid: ;
-
-  const setupStarted = useRef<boolean>(false);
-
-  /**
-   * Creates a color scale array map used to be passed to components where the key is the index
-   */
-  const createColorScaleArrayMap = useCallback(
-    (data: MatrixResponse) => {
-      // choose theme color based on state provided
-      const [, , { data: zData }] = data;
-      let colorScale: Array<Array<number>>;
-      if (colorThemeOption.value === 'parula') {
-        colorScale = generateScale(parula);
-      } else if (colorThemeOption.value === 'viridis') {
-        colorScale = generateScale(viridis);
-      } else {
-        colorScale = [];
-      }
-
-      // create resulting color map
-      const result = zData.map((_z: MatrixDatum, i: number) => {
-        if (colorThemeOption.value !== 'parula' && colorThemeOption.value !== 'viridis') {
-          return generateRainbowColor(zData.length, i);
-        } else {
-          return getColor(colorScale, zData.length, i);
-        }
-      });
-      return result;
-    },
-    [colorThemeOption.value]
-  );
-
-  // Side Effect for Updating Data
-  useEffect(() => {
-    const fetchMatrixData = async (config: any) => {
-      const xPromise = ConfigService.http.get(config.xURL);
-      const yPromise = ConfigService.http.get(config.yURL);
-      const zPromise = ConfigService.http.get(config.zURL);
-      const xyzPromise = ConfigService.http.get(config.xysURL);
-
-      // Batch the requests in Promise.all so they can run in parallel:
-      const data = await Promise.all([xPromise, yPromise, zPromise, xyzPromise]);
-      const parsedData = parseMatrixData(config, data);
-
-      // Set state after the request completes
-      setData(data);
-      setMatrixData(parsedData);
-      setStyles(config.styles);
-    };
-
-    if (setupStarted.current) return;
-    setupStarted.current = true;
-
-    try {
-      const config = getConfigObject(matrixConfigs);
-      fetchMatrixData(config);
-    } catch (error) {
-      dispatchError({ error });
-    }
-  }, [matrixConfigs, dispatchError, createColorScaleArrayMap]);
-
-  // Side Effect for Updating Color Scale
-  useEffect(() => {
-    if (data && Array.isArray(data)) {
-      const newColorScaleMap = createColorScaleArrayMap(data);
-      setColorScaleMap(newColorScaleMap);
-    }
-  }, [data, colorThemeOption.value, createColorScaleArrayMap]);
-
-  return {
-    errors,
-    matrixData,
-    colorOptions,
-    colorThemeOption,
-    setColorThemeOption,
-    colorScaleMap,
-    styles,
-  };
 };
 
 /**
