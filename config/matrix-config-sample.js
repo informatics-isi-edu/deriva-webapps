@@ -16,8 +16,9 @@ var matrixConfigs = {
     prularDataset: 'datasets',
     matrixContainer: '.mousematrix-container',
     styles: {
-      title: 'Mouse Data Summary',
-      subtitle: 'See at a glance all experiment types for our mouse data by anatomy and age stage',
+      title_markdown: 'Mouse Data Matrix',
+      subtitle_markdown:
+        'See at a glance all experiment types for our mouse data by anatomy and age stage. Click a cell or label to see the related datasets at a particular age stage and anatomical region (you can find the legend for the colors at the bottom of the matrix).',
       maxCols: 30,
       maxRows: 100,
       cellWidth: 25,

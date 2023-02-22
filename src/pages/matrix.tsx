@@ -19,6 +19,7 @@ import { useMatrixData } from '@isrd-isi-edu/deriva-webapps/hooks/matrix';
 // utilities
 import { ID_NAMES } from '@isrd-isi-edu/chaise/src/utils/constants';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
+import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
 
 const matrixSettings = {
   appName: 'app/matrix',
@@ -184,6 +185,9 @@ const MatrixApp = (): JSX.Element => {
     openMenuOnFocus: false,
     openMenuOnClick: false,
   };
+
+  const title = ConfigService.ERMrestService.renderMarkdown();
+  const subtitle = ConfigService.ERMrestService.renderMarkdown();
 
   return (
     <div className='matrix-page'>

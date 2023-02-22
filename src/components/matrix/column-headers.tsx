@@ -56,47 +56,6 @@ const ColumnHeaders = (
     left: left,
   };
 
-  type HeaderComponentProps = {
-    index: number;
-    data: any;
-    style: CSSProperties;
-  };
-
-  /**
-   * Header component for each column
-   */
-  const HeaderComponent = ({ index, data, style }: HeaderComponentProps): JSX.Element => {
-    const { hoveredColIndex, setHoveredRowIndex, setHoveredColIndex, searchedColIndex, listData } =
-      data;
-
-    const { column } = listData[0][index];
-    const { link, title } = column;
-
-    const headerContainerStyles: CSSProperties = {
-      height: height,
-      width: cellWidth,
-    };
-
-    const linkClassName = hoveredColIndex === index ? 'hovered-header' : 'unhovered-header';
-    const linkDivClassName = searchedColIndex === index ? 'searched-header' : 'unsearched-header';
-
-    return (
-      <div
-        style={style}
-        onMouseEnter={() => {
-          setHoveredRowIndex(null);
-          setHoveredColIndex(index);
-        }}
-      >
-        <div className='column-header header-container' style={headerContainerStyles}>
-          <a className={`column-header-link ${linkClassName}`} href={link} title={title}>
-            <div className={linkDivClassName}>{title}</div>
-          </a>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <List
       className='grid-column-headers'
@@ -111,9 +70,47 @@ const ColumnHeaders = (
       overscanCount={30}
       ref={ref}
     >
-      {memo(HeaderComponent)}
+      {MemoizedHeader}
     </List>
   );
 };
+
+type HeaderComponentProps = {
+  index: number;
+  data: any;
+  style: CSSProperties;
+};
+
+/**
+ * Header component for each column
+ */
+const HeaderComponent = ({ index, data, style }: HeaderComponentProps): JSX.Element => {
+  const { hoveredColIndex, setHoveredRowIndex, setHoveredColIndex, searchedColIndex, listData } =
+    data;
+
+  const { column } = listData[0][index];
+  const { link, title } = column;
+
+  const linkClassName = hoveredColIndex === index ? 'hovered-header' : 'unhovered-header';
+  const linkDivClassName = searchedColIndex === index ? 'searched-header' : 'unsearched-header';
+
+  return (
+    <div
+      style={style}
+      onMouseEnter={() => {
+        setHoveredRowIndex(null);
+        setHoveredColIndex(index);
+      }}
+    >
+      <div className='column-header header-container'>
+        <a className={`column-header-link ${linkClassName}`} href={link} title={title}>
+          <div className={linkDivClassName}>{title}</div>
+        </a>
+      </div>
+    </div>
+  );
+};
+
+const MemoizedHeader = memo(HeaderComponent);
 
 export default memo(forwardRef(ColumnHeaders));

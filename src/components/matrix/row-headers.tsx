@@ -59,63 +59,6 @@ const RowHeaders = (
     top: top,
   };
 
-  type HeaderComponentProps = {
-    index: number; // index of the row
-    data: any; // data passed from headers
-    style: CSSProperties;
-  };
-
-  /**
-   * Header component for each row
-   */
-  const HeaderComponent = ({ index, data, style }: HeaderComponentProps): JSX.Element => {
-    const { hoveredRowIndex, setHoveredRowIndex, setHoveredColIndex, searchedRowIndex, listData } =
-      data;
-    let link = '';
-    let title = '';
-    if (index < listData.length) {
-      const rowData = listData[index][0];
-      link = rowData.row.link;
-      title = rowData.row.title;
-    }
-
-    const headerContainerStyles: CSSProperties = {
-      overflow: 'hidden',
-      height: cellHeight,
-      width: width,
-    };
-
-    let containerClassName = hoveredRowIndex === index ? 'hovered-cell' : 'unhovered-cell';
-    let linkClassName = hoveredRowIndex === index ? 'hovered-header' : 'unhovered-header';
-    if (searchedRowIndex === index) {
-      containerClassName += ' searched-cell';
-      linkClassName += ' searched-cell';
-    }
-
-    if (index >= listData.length - 1) {
-      containerClassName = 'row-margin';
-    }
-
-    return (
-      <div
-        style={style}
-        onMouseEnter={() => {
-          setHoveredRowIndex(index);
-          setHoveredColIndex(null);
-        }}
-      >
-        <div
-          className={`row-header header-container ${containerClassName}`}
-          style={headerContainerStyles}
-        >
-          <a className={`row-header-link ${linkClassName}`} href={link} title={title}>
-            {title}
-          </a>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <List
       className='grid-row-headers'
@@ -129,9 +72,59 @@ const RowHeaders = (
       overscanCount={30}
       ref={ref}
     >
-      {memo(HeaderComponent)}
+      {MemoizedHeader}
     </List>
   );
 };
+
+type HeaderComponentProps = {
+  index: number; // index of the row
+  data: any; // data passed from headers
+  style: CSSProperties;
+};
+
+/**
+ * Header component for each row
+ */
+const HeaderComponent = ({ index, data, style }: HeaderComponentProps): JSX.Element => {
+  const { hoveredRowIndex, setHoveredRowIndex, setHoveredColIndex, searchedRowIndex, listData } =
+    data;
+  let link = '';
+  let title = '';
+  if (index < listData.length) {
+    const rowData = listData[index][0];
+    link = rowData.row.link;
+    title = rowData.row.title;
+  }
+
+  let containerClassName = hoveredRowIndex === index ? 'hovered-cell' : 'unhovered-cell';
+  let linkClassName = hoveredRowIndex === index ? 'hovered-header' : 'unhovered-header';
+  if (searchedRowIndex === index) {
+    containerClassName += ' searched-cell';
+    linkClassName += ' searched-cell';
+  }
+
+  if (index >= listData.length - 1) {
+    containerClassName = 'row-margin';
+  }
+
+  return (
+    <div
+      style={style}
+      onMouseEnter={() => {
+        setHoveredRowIndex(index);
+        setHoveredColIndex(null);
+      }}
+    >
+      <div className={`row-header header-container ${containerClassName}`}>
+        <a className={`row-header-link ${linkClassName}`} href={link} title={title}>
+          {title}
+        </a>
+      </div>
+    </div>
+  );
+};
+
+const MemoizedHeader = memo(HeaderComponent);
 
 export default memo(forwardRef(RowHeaders));
