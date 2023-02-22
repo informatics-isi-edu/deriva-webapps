@@ -3,6 +3,8 @@ import viridis from '@isrd-isi-edu/deriva-webapps/src/assets/viridis.json';
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 
+import { Option } from '@isrd-isi-edu/deriva-webapps/src/components/virtualized-select';
+
 import { getConfigObject } from '@isrd-isi-edu/deriva-webapps/src/utils/config';
 import {
   generateRainbowColor,
@@ -14,17 +16,130 @@ import useError from '@isrd-isi-edu/chaise/src/hooks/error';
 
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
 
-// The x, y, or z axis datum to be parsed
-type MatrixDatum = {
+/**
+ * The x, y, or z axis datum to be parsed
+ */
+export type MatrixDatum = {
+  /**
+   * id of each data point
+   */
   id: string;
+  /**
+   * title of each data point
+   */
   title: string;
 };
 
-// The xyz datum to be parsed
-type MatrixXYZDatum = {
+/**
+ * The xyz datum to be parsed
+ */
+export type MatrixXYZDatum = {
+  /**
+   * xid of each data point
+   */
   xid: string;
+  /**
+   * yid of each data point
+   */
   yid: string;
+  /**
+   * array of zid of each data point
+   */
   zid: Array<string>;
+};
+
+/**
+ * Resolved response from Matrix API request
+ */
+export type MatrixResponse = [
+  /**
+   * X data points
+   */
+  { data: Array<MatrixDatum> },
+  /**
+   * Y data points
+   */
+  { data: Array<MatrixDatum> },
+  /**
+   * Z data points
+   */
+  { data: Array<MatrixDatum> },
+  /**
+   * XYZ data points
+   */
+  { data: Array<MatrixXYZDatum> }
+];
+
+/**
+ * Parsed data point for grid
+ */
+export type ParsedGridDatum = {
+  /**
+   * id of a grid cell data point
+   */
+  id: string;
+  /**
+   * title of a grid cell data point
+   */
+  title: string;
+  /**
+   * link of a grid cell data point
+   */
+  link?: string;
+};
+
+export type LegendDatum = ParsedGridDatum & {
+  /**
+   * corresponding color on the legend
+   * */
+  colorIndex: number;
+};
+
+/**
+ * Parsed cell data for grid
+ */
+export type ParsedGridCell = ParsedGridDatum & {
+  /**
+   * the row-wise data point
+   */
+  row: ParsedGridDatum;
+  /**
+   * the column-wise data point
+   */
+  column: ParsedGridDatum;
+  /**
+   * array of color indices that correspond to a colormap
+   */
+  colors: Array<number>;
+};
+
+/**
+ * Grid map data used to search rows and columns
+ */
+export type GridDataMap = {
+  /**
+   * unique identifier for grid row or column
+   */
+  [key: string]: {
+    /**
+     * corresponding type of grid row or column
+     */
+    type: 'row' | 'col';
+    /**
+     * index on the row or column
+     */
+    index: number;
+  };
+};
+
+/**
+ * Data to be passed to the grid component
+ */
+export type ParsedMatrixData = {
+  gridData: Array<Array<ParsedGridCell>>;
+  legendData: Array<LegendDatum>;
+  gridDataMap: GridDataMap;
+  options: Array<Option>;
 };
 
 /**
@@ -35,7 +150,7 @@ type MatrixXYZDatum = {
  * @param response the response for all data received from the server
  * @returns parsed data used by matrix visualization component
  */
-const parseMatrixData = (config: any, response: any): any => {
+const parseMatrixData = (config: any, response: MatrixResponse): ParsedMatrixData => {
   const [{ data: xData }, { data: yData }, { data: zData }, { data: xyzData }] = response;
 
   // Create XYZ Map
@@ -52,7 +167,7 @@ const parseMatrixData = (config: any, response: any): any => {
 
   // Create Color Map and Create Legend Data
   const colorMap: { [zTitle: string]: number } = {};
-  const legendData: Array<any> = [];
+  const legendData: Array<LegendDatum> = [];
   zData.forEach((z: MatrixDatum, i: number) => {
     colorMap[z.title.toLowerCase()] = i;
 
@@ -65,19 +180,19 @@ const parseMatrixData = (config: any, response: any): any => {
   });
 
   // Create Parsed Grid Data
-  const gridData: any = [];
+  const gridData: Array<Array<ParsedGridCell>> = [];
   yData.forEach((y: MatrixDatum, row: number) => {
     // Parse Rows
-    const yParse = {
+    const yParse: ParsedGridDatum = {
       id: y.id,
       title: y.title,
       link: generateLink(config, null, y),
     };
 
-    const gridRow: any = [];
-    xData.forEach((x: MatrixDatum, col: number) => {
+    const gridRow: Array<ParsedGridCell> = [];
+    xData.forEach((x: MatrixDatum) => {
       // Parse Columns
-      const xParse = {
+      const xParse: ParsedGridDatum = {
         id: x.id,
         title: x.title,
         link: generateLink(config, x),
@@ -109,7 +224,7 @@ const parseMatrixData = (config: any, response: any): any => {
     // Add empty column at last of each row as a margin
     gridRow.push({
       row: { id: y.id, title: '', link: '' },
-      column: { id: xData.length, title: '', link: '' },
+      column: { id: String(xData.length), title: '', link: '' },
       id: `${y.id}-${row}-${xData.length}`,
       title: '',
       link: '',
@@ -119,8 +234,8 @@ const parseMatrixData = (config: any, response: any): any => {
   });
 
   // Add empty row as a margin
-  const emptyRow = xData.map((x: any, col: number) => ({
-    row: { id: yData.length, title: '', link: '' },
+  const emptyRow: Array<ParsedGridCell> = xData.map((x: MatrixDatum, col: number) => ({
+    row: { id: String(yData.length), title: '', link: '' },
     column: { id: x.id, title: '', link: '' },
     id: `${x.id}-${col}-${yData.length}`,
     title: '',
@@ -129,8 +244,8 @@ const parseMatrixData = (config: any, response: any): any => {
   }));
   // add last corner cell
   emptyRow.push({
-    row: { id: yData.length, title: '', link: '' },
-    column: { id: xData.length, title: '', link: '' },
+    row: { id: String(yData.length), title: '', link: '' },
+    column: { id: String(xData.length), title: '', link: '' },
     id: `${xData.length}-${yData.length}`,
     title: '',
     link: '',
@@ -139,8 +254,8 @@ const parseMatrixData = (config: any, response: any): any => {
   gridData.push(emptyRow);
 
   // Create the options and datamap used for the matrix search feature
-  const options: Array<any> = [];
-  const gridDataMap: any = {};
+  const options: Array<Option> = [];
+  const gridDataMap: GridDataMap = {};
   yData.forEach((y: MatrixDatum, row: number) => {
     options.push({ value: y.id, label: y.title });
     gridDataMap[y.title.toLowerCase()] = { type: 'row', index: row };
@@ -150,7 +265,7 @@ const parseMatrixData = (config: any, response: any): any => {
     gridDataMap[x.title.toLowerCase()] = { type: 'col', index: col };
   });
 
-  const parsedData: any = {
+  const parsedData: ParsedMatrixData = {
     gridData,
     legendData,
     gridDataMap,
@@ -160,8 +275,10 @@ const parseMatrixData = (config: any, response: any): any => {
   return parsedData;
 };
 
-// Selectable color options for the matrix
-const colorOptions = [
+/**
+ * Selectable color options for the matrix
+ */
+const colorOptions: Array<Option> = [
   { value: 'default', label: 'Default' },
   { value: 'parula', label: 'Parula' },
   { value: 'viridis', label: 'Viridis' },
@@ -176,10 +293,10 @@ const colorOptions = [
 export const useMatrixData = (matrixConfigs: any) => {
   const { dispatchError, errors } = useError();
   const [styles, setStyles] = useState<any>(null); // styles from the config object
-  const [data, setData] = useState<any>(null); // raw data request from the api
-  const [matrixData, setMatrixData] = useState<any>(null); // parsed matrix data that goes into the matrix props
+  const [data, setData] = useState<MatrixResponse | null>(null); // raw data request from the api
+  const [matrixData, setMatrixData] = useState<ParsedMatrixData | null>(null); // parsed matrix data that goes into the matrix props
   const [colorScaleMap, setColorScaleMap] = useState<Array<string> | null>(null); // colormap scale that maps index to rgb
-  const [colorThemeOption, setColorThemeOption] = useState<any>(colorOptions[0]); // selected color theme of grid
+  const [colorThemeOption, setColorThemeOption] = useState<Option>(colorOptions[0]); // selected color theme of grid: ;
 
   const setupStarted = useRef<boolean>(false);
 
@@ -187,7 +304,7 @@ export const useMatrixData = (matrixConfigs: any) => {
    * Creates a color scale array map used to be passed to components where the key is the index
    */
   const createColorScaleArrayMap = useCallback(
-    (data: any) => {
+    (data: MatrixResponse) => {
       // choose theme color based on state provided
       const [, , { data: zData }] = data;
       let colorScale: Array<Array<number>>;
@@ -200,7 +317,7 @@ export const useMatrixData = (matrixConfigs: any) => {
       }
 
       // create resulting color map
-      const result = zData.map((_z: any, i: number) => {
+      const result = zData.map((_z: MatrixDatum, i: number) => {
         if (colorThemeOption.value !== 'parula' && colorThemeOption.value !== 'viridis') {
           return generateRainbowColor(zData.length, i);
         } else {
@@ -236,7 +353,7 @@ export const useMatrixData = (matrixConfigs: any) => {
     try {
       const config = getConfigObject(matrixConfigs);
       fetchMatrixData(config);
-    } catch (error: any) {
+    } catch (error) {
       dispatchError({ error });
     }
   }, [matrixConfigs, dispatchError, createColorScaleArrayMap]);
@@ -250,11 +367,8 @@ export const useMatrixData = (matrixConfigs: any) => {
   }, [data, colorThemeOption.value, createColorScaleArrayMap]);
 
   return {
-    dispatchError,
     errors,
     matrixData,
-    setMatrixData,
-    setupStarted,
     colorOptions,
     colorThemeOption,
     setColorThemeOption,

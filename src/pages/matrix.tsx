@@ -31,10 +31,10 @@ const matrixSettings = {
 const MatrixApp = (): JSX.Element => {
   const { width = 0, height = 0 } = useWindowSize();
   const {
+    errors,
     styles,
     matrixData,
     colorScaleMap,
-    errors,
     colorThemeOption,
     setColorThemeOption,
     colorOptions,

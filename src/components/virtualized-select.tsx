@@ -4,6 +4,17 @@ import { MenuListProps, StylesConfig } from 'react-select';
 import { FixedSizeList } from 'react-window';
 import { SelectComponents } from 'react-select/dist/declarations/src/components';
 
+export type Option = {
+  /**
+   * value of option
+   */
+  value: string;
+  /**
+   * displayed label of option
+   */
+  label: string;
+};
+
 type VirtualizedSelectProps = AsyncProps<any, any, any> & {
   itemHeight: number; // the height of each menu item
   hideDropdownIndicator?: boolean; // hide the dropdown indicator (down chevron)

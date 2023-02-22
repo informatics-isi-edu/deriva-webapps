@@ -2,13 +2,34 @@ import { memo, forwardRef, ForwardedRef, CSSProperties } from 'react';
 import { VariableSizeList as List, ListOnScrollProps } from 'react-window';
 
 type ColumnHeadersProps = {
-  cellHeight?: number; // height of grid cell
-  cellWidth: number; // width of grid cell
-  height: number; // height of each column header
-  width: number; // width of all column headers
-  itemCount: number; // number of items
-  itemData?: any; // data passed to each column
-  left: number; // how much to position the column left by
+  /**
+   * height of grid cell
+   */
+  cellHeight?: number;
+  /**
+   * width of grid cell
+   */
+  cellWidth: number;
+  /**
+   *  height of each column header
+   */
+  height: number;
+  /**
+   * width of all column headers
+   */
+  width: number;
+  /**
+   * number of columns
+   */
+  itemCount: number;
+  /**
+   * data passed to each column
+   */
+  itemData?: any;
+  /**
+   * left position of column
+   */
+  left: number;
   onScroll?: ((props: ListOnScrollProps) => any) | undefined;
 };
 
