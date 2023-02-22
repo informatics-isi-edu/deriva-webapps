@@ -186,8 +186,8 @@ const MatrixApp = (): JSX.Element => {
     openMenuOnClick: false,
   };
 
-  const title = ConfigService.ERMrestService.renderMarkdown();
-  const subtitle = ConfigService.ERMrestService.renderMarkdown();
+  // const title = ConfigService.ERMrestService.renderMarkdown();
+  // const subtitle = ConfigService.ERMrestService.renderMarkdown();
 
   return (
     <div className='matrix-page'>

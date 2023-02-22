@@ -1,4 +1,3 @@
-$row-header-width: 300px;
 $legend-bar-height: 15px;
 $legend-bar-width: 55px;
 $legend-text-width: 250px;
@@ -133,7 +132,7 @@ button {
 .row-header {
   display: flex;
   align-items: center;
-  width: $row-header-width;
+  width: 100%;
   overflow: hidden;
   white-space: nowrap;
 }
@@ -145,7 +144,7 @@ button {
     text-align: right;
     text-overflow: ellipsis;
     overflow: hidden;
-    width: $row-header-width;
+    width: 100%;
     padding-right: 4px;
   }
 
