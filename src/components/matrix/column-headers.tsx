@@ -62,7 +62,7 @@ const ColumnHeaders = (
       style={columnHeadersStyles}
       width={width}
       itemSize={itemSize} // width of each column header
-      height={height + 20}
+      height={height}
       layout='horizontal'
       itemCount={itemCount}
       onScroll={onScroll}
@@ -96,17 +96,16 @@ const HeaderComponent = ({ index, data, style }: HeaderComponentProps): JSX.Elem
 
   return (
     <div
+      className='column-header'
       style={style}
       onMouseEnter={() => {
         setHoveredRowIndex(null);
         setHoveredColIndex(index);
       }}
     >
-      <div className='column-header header-container'>
-        <a className={`column-header-link ${linkClassName}`} href={link} title={title}>
-          <div className={linkDivClassName}>{title}</div>
-        </a>
-      </div>
+      <a className={`column-header-link ${linkClassName}`} href={link} title={title}>
+        <div className={linkDivClassName}>{title}</div>
+      </a>
     </div>
   );
 };

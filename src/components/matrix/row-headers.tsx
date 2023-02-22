@@ -52,7 +52,7 @@ const RowHeaders = (
    * @param {number} index
    * @returns {number} item size
    */
-  const itemSize = (index: number) => (index < listData.length - 1 ? cellHeight : cellHeight + 3);
+  const itemSize = (index: number) => (index < listData.length - 1 ? cellHeight : cellHeight + 15);
 
   const rowHeadersStyles: CSSProperties = {
     position: 'absolute',
@@ -66,7 +66,7 @@ const RowHeaders = (
       height={height}
       itemSize={itemSize} // each row height
       width={width}
-      itemCount={itemCount + 1}
+      itemCount={itemCount}
       itemData={itemData}
       onScroll={onScroll}
       overscanCount={30}
@@ -116,7 +116,7 @@ const HeaderComponent = ({ index, data, style }: HeaderComponentProps): JSX.Elem
         setHoveredColIndex(null);
       }}
     >
-      <div className={`row-header header-container ${containerClassName}`}>
+      <div className={`row-header ${containerClassName}`}>
         <a className={`row-header-link ${linkClassName}`} href={link} title={title}>
           {title}
         </a>

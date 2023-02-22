@@ -100,6 +100,10 @@ button {
   }
 }
 
+.grid-column-headers {
+  overflow-y: hidden !important;
+}
+
 /* ============================================= */
 /* ================ GRID MARGIN ================ */
 
@@ -129,31 +133,28 @@ button {
   justify-content: end;
 }
 
+.column-header-link {
+  -webkit-transform: rotate(315deg);
+  -ms-transform: rotate(315deg);
+  transform: rotate(315deg);
+  padding-left: 10px; // :(
+}
+
 .row-header {
   display: flex;
   align-items: center;
+  height: 100%;
   width: 100%;
   overflow: hidden;
   white-space: nowrap;
 }
 
-.header-container {
-  display: flex;
-
-  .row-header-link {
-    text-align: right;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    width: 100%;
-    padding-right: 4px;
-  }
-
-  .column-header-link {
-    -webkit-transform: rotate(315deg);
-    -ms-transform: rotate(315deg);
-    transform: rotate(315deg);
-    padding-left: 10px; // :(
-  }
+.row-header-link {
+  text-align: right;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  width: 100%;
+  padding-right: 4px;
 }
 
 .hovered-header {

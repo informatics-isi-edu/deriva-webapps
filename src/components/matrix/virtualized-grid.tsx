@@ -237,8 +237,8 @@ const VirtualizedGrid = (
       <Grid
         className='grid'
         style={gridStyles}
-        width={gridWidth - 15}
-        height={gridHeight - 15}
+        width={gridWidth}
+        height={gridHeight}
         columnWidth={cellWidth}
         rowHeight={cellHeight}
         rowCount={numRows}
