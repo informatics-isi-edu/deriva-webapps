@@ -110,17 +110,16 @@ const HeaderComponent = ({ index, data, style }: HeaderComponentProps): JSX.Elem
 
   return (
     <div
+      className={`row-header ${containerClassName}`}
       style={style}
       onMouseEnter={() => {
         setHoveredRowIndex(index);
         setHoveredColIndex(null);
       }}
     >
-      <div className={`row-header ${containerClassName}`}>
-        <a className={`row-header-link ${linkClassName}`} href={link} title={title}>
-          {title}
-        </a>
-      </div>
+      <a className={`row-header-link ${linkClassName}`} href={link} title={title}>
+        {title}
+      </a>
     </div>
   );
 };
