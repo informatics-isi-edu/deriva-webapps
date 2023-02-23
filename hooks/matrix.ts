@@ -1,7 +1,7 @@
 import parula from '@isrd-isi-edu/deriva-webapps/src/assets/parula.json';
 import viridis from '@isrd-isi-edu/deriva-webapps/src/assets/viridis.json';
 
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, SetStateAction, Dispatch } from 'react';
 
 import { Option } from '@isrd-isi-edu/deriva-webapps/src/components/virtualized-select';
 
@@ -132,6 +132,37 @@ export type GridDataMap = {
   };
 };
 
+type MatrixData = {
+  /**
+   * Chaise errors caught during config, fetch and parse
+   */
+  errors: Array<any>;
+  /**
+   * Parsed matrix data
+   */
+  matrixData: ParsedMatrixData | null;
+  /**
+   * Available color options to select
+   */
+  colorOptions: Array<Option>;
+  /**
+   * Currently selected color option
+   */
+  colorThemeOption: Option;
+  /**
+   * Set color option function
+   */
+  setColorThemeOption: Dispatch<SetStateAction<Option>>;
+  /**
+   * Color scale that changes when color option is changed
+   */
+  colorScaleMap: Array<string> | null;
+  /**
+   * matrix configurations
+   */
+  config: any;
+};
+
 /**
  * Selectable color options for the matrix
  */
@@ -147,9 +178,9 @@ const colorOptions: Array<Option> = [
  * @param matrixConfigs
  * @returns all data to be used by matrix visualization
  */
-export const useMatrixData = (matrixConfigs: any) => {
+export const useMatrixData = (matrixConfigs: any): MatrixData => {
   const { dispatchError, errors } = useError();
-  const [styles, setStyles] = useState<any>(null); // styles from the config object
+  const [config, setConfig] = useState<any>(null); // styles from the config object
   const [data, setData] = useState<MatrixResponse | null>(null); // raw data request from the api
   const [matrixData, setMatrixData] = useState<ParsedMatrixData | null>(null); // parsed matrix data that goes into the matrix props
   const [colorScaleMap, setColorScaleMap] = useState<Array<string> | null>(null); // colormap scale that maps index to rgb
@@ -201,7 +232,7 @@ export const useMatrixData = (matrixConfigs: any) => {
       // Set state after the request completes
       setData(data);
       setMatrixData(parsedData);
-      setStyles(config.styles);
+      setConfig(config);
     };
 
     if (setupStarted.current) return;
@@ -230,7 +261,7 @@ export const useMatrixData = (matrixConfigs: any) => {
     colorThemeOption,
     setColorThemeOption,
     colorScaleMap,
-    styles,
+    config,
   };
 };
 

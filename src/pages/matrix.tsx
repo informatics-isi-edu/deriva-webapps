@@ -11,6 +11,7 @@ import Legend from '@isrd-isi-edu/deriva-webapps/src/components/matrix/legend';
 import VirtualizedGrid from '@isrd-isi-edu/deriva-webapps/src/components/matrix/virtualized-grid';
 import SearchBar from '@isrd-isi-edu/deriva-webapps/src/components/search-bar';
 import VirtualizedSelect from '@isrd-isi-edu/deriva-webapps/src/components/virtualized-select';
+import DisplayValue from '@isrd-isi-edu/chaise/src/components/display-value';
 
 // hooks
 import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/hooks/window-size';
@@ -33,7 +34,7 @@ const MatrixApp = (): JSX.Element => {
   const { width = 0, height = 0 } = useWindowSize();
   const {
     errors,
-    styles,
+    config,
     matrixData,
     colorScaleMap,
     colorThemeOption,
@@ -46,11 +47,11 @@ const MatrixApp = (): JSX.Element => {
   const gridRef = useRef<any>(); // reference to the grid
 
   // if there was an error during setup, hide the spinner
-  if ((!matrixData || !colorScaleMap || !styles) && errors.length > 0) {
+  if ((!matrixData || !colorScaleMap || !config) && errors.length > 0) {
     return <></>;
   }
 
-  if (!matrixData || !colorScaleMap || !styles) {
+  if (!matrixData || !colorScaleMap || !config) {
     return <ChaiseSpinner />;
   }
 
@@ -137,30 +138,37 @@ const MatrixApp = (): JSX.Element => {
   const numColumns = gridData[0].length;
 
   // Calculate Layout of the Grid:
+  const { styles } = config;
+  const maxCols = styles.maxCols ? styles.maxCols : 30;
+  const maxRows = styles.maxRows ? styles.maxCols : 100;
 
-  const maxCols = styles.maxCols;
-  const maxRows = styles.maxRows;
-
-  const rowHeaderWidth = styles.rowHeaderWidth;
-  const colHeaderHeight = styles.colHeaderHeight;
-  const cellHeight = styles.cellHeight;
-  const cellWidth = styles.cellWidth;
+  const rowHeaderWidth = styles.rowHeaderWidth ? styles.rowHeaderWidth : 300;
+  const colHeaderHeight = styles.colHeaderHeight ? styles.colHeaderHeight : 50;
+  const cellHeight = styles.cellHeight ? styles.cellHeight : 25;
+  const cellWidth = styles.cellWidth ? styles.cellWidth : 25;
 
   const widthBufferSpace = 50; // buffer space for keeping everything in viewport
   const heightBufferSpace = 330; // buffer space for keeping everything in viewport
-  const gridHeight = Math.min(
-    cellHeight * numRows, // can't exceed total grid
-    height - colHeaderHeight - heightBufferSpace, // can't exceed browser height
-    colHeaderHeight + cellHeight * maxRows
-  );
-  const gridWidth = Math.min(
-    cellWidth * numColumns, // can't exceed total grid
-    width - rowHeaderWidth - widthBufferSpace, // can't exceed browser width
-    rowHeaderWidth + cellWidth * maxCols
-  );
 
-  const gridTitle = styles.title;
-  const gridSubtitle = styles.subtitle;
+  const strictMinHeight = 200;
+  const strictMinWidth = 400;
+
+  const gridHeight = Math.max(
+    Math.min(
+      cellHeight * numRows, // can't exceed total grid
+      height - colHeaderHeight - heightBufferSpace, // can't exceed browser height
+      colHeaderHeight + cellHeight * maxRows
+    ),
+    strictMinHeight
+  );
+  const gridWidth = Math.max(
+    Math.min(
+      cellWidth * numColumns, // can't exceed total grid
+      width - rowHeaderWidth - widthBufferSpace, // can't exceed browser width
+      rowHeaderWidth + cellWidth * maxCols
+    ),
+    strictMinWidth
+  );
 
   const legendWidth = gridWidth + rowHeaderWidth;
   const legendHeight = styles.legendHeight;
@@ -186,8 +194,12 @@ const MatrixApp = (): JSX.Element => {
     openMenuOnClick: false,
   };
 
-  // const title = ConfigService.ERMrestService.renderMarkdown();
-  // const subtitle = ConfigService.ERMrestService.renderMarkdown();
+  const title = config.title_markdown
+    ? ConfigService.ERMrest.renderMarkdown(config.title_markdown)
+    : '';
+  const subtitle = config.subtitle_markdown
+    ? ConfigService.ERMrest.renderMarkdown(config.subtitle_markdown)
+    : '';
 
   return (
     <div className='matrix-page'>
@@ -197,10 +209,12 @@ const MatrixApp = (): JSX.Element => {
         </div>
       ) : null}
       <div className='content-container'>
-        <div className='title-container'>
-          <h1>{gridTitle}</h1>
-          <p>{gridSubtitle}</p>
-        </div>
+        {config.title_markdown && config.title_markdown ? (
+          <div className='title-container'>
+            <DisplayValue addClass value={{ value: title, isHTML: true }} />
+            <DisplayValue addClass value={{ value: subtitle, isHTML: true }} />
+          </div>
+        ) : null}
         <div className='options-container' style={{ width: legendWidth }}>
           <div className='dummy-option' />
           <SearchBar
