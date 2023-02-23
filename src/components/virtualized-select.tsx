@@ -62,7 +62,11 @@ const VirtualizedSelect = ({
         itemSize={itemHeight}
         initialScrollOffset={initialOffset}
       >
-        {({ index, style }) => <div style={style}>{children[index]}</div>}
+        {({ index, style }) => (
+          <div style={{ ...style, display: 'flex', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {children[index]}
+          </div>
+        )}
       </FixedSizeList>
     );
   };
