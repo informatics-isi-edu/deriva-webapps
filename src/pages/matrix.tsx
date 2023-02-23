@@ -139,13 +139,13 @@ const MatrixApp = (): JSX.Element => {
 
   // Calculate Layout of the Grid:
   const { styles } = config;
-  const maxCols = styles.maxCols ? styles.maxCols : 30;
-  const maxRows = styles.maxRows ? styles.maxCols : 100;
+  const maxCols = styles?.maxCols ? styles?.maxCols : 30;
+  const maxRows = styles?.maxRows ? styles?.maxCols : 100;
 
-  const rowHeaderWidth = styles.rowHeaderWidth ? styles.rowHeaderWidth : 300;
-  const colHeaderHeight = styles.colHeaderHeight ? styles.colHeaderHeight : 50;
-  const cellHeight = styles.cellHeight ? styles.cellHeight : 25;
-  const cellWidth = styles.cellWidth ? styles.cellWidth : 25;
+  const rowHeaderWidth = styles?.rowHeaderWidth ? styles?.rowHeaderWidth : 300;
+  const colHeaderHeight = styles?.colHeaderHeight ? styles?.colHeaderHeight : 50;
+  const cellHeight = styles?.cellHeight ? styles?.cellHeight : 25;
+  const cellWidth = styles?.cellWidth ? styles?.cellWidth : 25;
 
   const widthBufferSpace = 50; // buffer space for keeping everything in viewport
   const heightBufferSpace = 330; // buffer space for keeping everything in viewport
@@ -171,8 +171,9 @@ const MatrixApp = (): JSX.Element => {
   );
 
   const legendWidth = gridWidth + rowHeaderWidth;
-  const legendHeight = styles.legendHeight;
-  const legendItemSize = styles.legendBarWidth;
+  const legendHeight = styles?.legendHeight ? styles?.legendHeight : 170;
+  const legendBarWidth = styles?.legendBarWidth ? styles?.legendBarWidth : 55;
+  const legendBarHeight = styles?.legendBarHeight ? styles?.legendBarHeight : 15;
   const searchItemHeight = 30;
 
   const toastStyles: CSSProperties = {
@@ -203,16 +204,16 @@ const MatrixApp = (): JSX.Element => {
 
   return (
     <div className='matrix-page'>
-      {toastMessage ? (
-        <div className='alert alert-danger' role='alert' style={toastStyles}>
-          {toastMessage}
-        </div>
-      ) : null}
       <div className='content-container'>
         {config.title_markdown && config.title_markdown ? (
           <div className='title-container'>
             <DisplayValue addClass value={{ value: title, isHTML: true }} />
             <DisplayValue addClass value={{ value: subtitle, isHTML: true }} />
+          </div>
+        ) : null}
+        {toastMessage ? (
+          <div className='alert alert-danger' role='alert' style={toastStyles}>
+            {toastMessage}
           </div>
         ) : null}
         <div className='options-container' style={{ width: legendWidth }}>
@@ -251,7 +252,8 @@ const MatrixApp = (): JSX.Element => {
           <Legend
             width={legendWidth}
             height={legendHeight}
-            itemSize={legendItemSize}
+            barWidth={legendBarWidth}
+            barHeight={legendBarHeight}
             data={legendData}
             colorScale={colorScaleMap}
           />
