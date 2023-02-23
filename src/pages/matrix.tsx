@@ -145,39 +145,44 @@ const MatrixApp = (): JSX.Element => {
 
   // Calculate Layout of the Grid:
   const { styles } = config;
-  const maxCols = styles?.maxCols ? styles?.maxCols : 30;
-  const maxRows = styles?.maxRows ? styles?.maxCols : 100;
+  const maxCols = styles?.maxCols;
+  const maxRows = styles?.maxRows;
 
   const rowHeaderWidth = styles?.rowHeaderWidth ? styles?.rowHeaderWidth : 300;
   const colHeaderHeight = styles?.colHeaderHeight ? styles?.colHeaderHeight : 50;
   const cellHeight = styles?.cellHeight ? styles?.cellHeight : 25;
   const cellWidth = styles?.cellWidth ? styles?.cellWidth : 25;
 
+  const legendHeight = styles?.legendHeight ? styles?.legendHeight : 170;
+
   const widthBufferSpace = 50; // buffer space for keeping everything in viewport
-  const heightBufferSpace = 330; // buffer space for keeping everything in viewport
+  const heightBufferSpace = legendHeight * 2; // buffer space for keeping everything in viewport
 
   const strictMinHeight = 200;
   const strictMinWidth = 400;
 
-  const gridHeight = Math.max(
-    Math.min(
-      cellHeight * numRows, // can't exceed total grid
-      height - colHeaderHeight - heightBufferSpace, // can't exceed browser height
-      colHeaderHeight + cellHeight * maxRows
-    ),
-    strictMinHeight
+  console.log(height);
+  let gridHeight = Math.min(
+    cellHeight * numRows, // can't exceed total grid
+    height - colHeaderHeight - heightBufferSpace // can't exceed browser height
   );
-  const gridWidth = Math.max(
-    Math.min(
-      cellWidth * numColumns, // can't exceed total grid
-      width - rowHeaderWidth - widthBufferSpace, // can't exceed browser width
-      rowHeaderWidth + cellWidth * maxCols
-    ),
-    strictMinWidth
+  if (maxRows) {
+    // restrict by maxRows if exists
+    gridHeight = Math.min(gridHeight, colHeaderHeight + cellHeight * maxRows);
+  }
+  gridHeight = Math.max(gridHeight, strictMinHeight);
+
+  let gridWidth = Math.min(
+    cellWidth * numColumns, // can't exceed total grid
+    width - rowHeaderWidth - widthBufferSpace // can't exceed browser width
   );
+  if (maxCols) {
+    // restrict by maxRows if exists
+    gridWidth = Math.min(gridWidth, rowHeaderWidth + cellWidth * maxCols);
+  }
+  gridHeight = Math.max(gridHeight, strictMinWidth);
 
   const legendWidth = gridWidth + rowHeaderWidth;
-  const legendHeight = styles?.legendHeight ? styles?.legendHeight : 170;
   const legendBarWidth = styles?.legendBarWidth ? styles?.legendBarWidth : 55;
   const legendBarHeight = styles?.legendBarHeight ? styles?.legendBarHeight : 15;
   const searchItemHeight = 30;
@@ -219,9 +224,9 @@ const MatrixApp = (): JSX.Element => {
               </h1>
             )}
             {subtitle && (
-              <span>
+              <div className='matrix-subtitle'>
                 <DisplayValue addClass value={{ value: subtitle, isHTML: true }} />
-              </span>
+              </div>
             )}
           </div>
         ) : null}
