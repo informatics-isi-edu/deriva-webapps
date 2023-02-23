@@ -12,13 +12,10 @@ var matrixConfigs = {
     zFacetColumn: 'id',
     catalogId: '1',
     schemaName: 'isa',
-    tableName: 'dataset',
-    prularDataset: 'datasets',
-    matrixContainer: '.mousematrix-container',
+    title_markdown: 'Mouse Data Matrix',
+    subtitle_markdown:
+      'See at a glance all experiment types for our mouse data by anatomy and age stage. Click a cell or label to see the related datasets at a particular age stage and anatomical region (you can find the legend for the colors at the bottom of the matrix).',
     styles: {
-      title_markdown: 'Mouse Data Matrix',
-      subtitle_markdown:
-        'See at a glance all experiment types for our mouse data by anatomy and age stage. Click a cell or label to see the related datasets at a particular age stage and anatomical region (you can find the legend for the colors at the bottom of the matrix).',
       maxCols: 30,
       maxRows: 100,
       cellWidth: 25,
