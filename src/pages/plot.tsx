@@ -2,6 +2,8 @@ import '@isrd-isi-edu/deriva-webapps/src/assets/scss/_matrix.scss';
 
 import { createRoot } from 'react-dom/client';
 import { useState } from 'react';
+import Plotly from 'plotly.js-basic-dist-min';
+import createPlotlyComponent from 'react-plotly.js/factory';
 
 // components
 import AppWrapper from '@isrd-isi-edu/chaise/src/components/app-wrapper';
@@ -24,21 +26,39 @@ const plotSettings = {
   overrideExternalLinkBehavior: false,
 };
 
+const Plot = createPlotlyComponent(Plotly);
+
 const PlotApp = (): JSX.Element => {
   //   const { width = 0, height = 0 } = useWindowSize();
-  const { errors, config } = usePlotData(windowRef.plotConfigs);
+  //   const { errors, config } = usePlotData(windowRef.plotConfigs);
 
   // if there was an error during setup, hide the spinner
-  if (!config && errors.length > 0) {
-    return <></>;
-  }
-  if (!config) {
-    return <ChaiseSpinner />;
-  }
+  //   if (!config && errors.length > 0) {
+  //     return <></>;
+  //   }
+  //   if (!config) {
+  //     return <ChaiseSpinner />;
+  //   }
 
-  console.log(config);
+  //   console.log(config);
 
-  return <div className='plot-page'>Hello World!</div>;
+  return (
+    <div className='plot-page'>
+      <Plot
+        data={[
+          {
+            x: [1, 2, 3],
+            y: [2, 6, 3],
+            type: 'scatter',
+            mode: 'lines+markers',
+            marker: { color: 'red' },
+          },
+          { type: 'bar', x: [1, 2, 3], y: [2, 5, 3] },
+        ]}
+        layout={{ width: 320, height: 240, title: 'A Fancy Plot' }}
+      />
+    </div>
+  );
 };
 
 const root = createRoot(document.getElementById(ID_NAMES.APP_ROOT) as HTMLElement);
