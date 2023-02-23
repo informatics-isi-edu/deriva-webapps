@@ -207,8 +207,16 @@ const MatrixApp = (): JSX.Element => {
       <div className='content-container'>
         {config.title_markdown && config.title_markdown ? (
           <div className='title-container'>
-            <DisplayValue addClass value={{ value: title, isHTML: true }} />
-            <DisplayValue addClass value={{ value: subtitle, isHTML: true }} />
+            {title && (
+              <h1>
+                <DisplayValue addClass value={{ value: title, isHTML: true }} />
+              </h1>
+            )}
+            {subtitle && (
+              <span>
+                <DisplayValue addClass value={{ value: subtitle, isHTML: true }} />
+              </span>
+            )}
           </div>
         ) : null}
         {toastMessage ? (
