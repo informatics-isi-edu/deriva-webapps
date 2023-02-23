@@ -180,11 +180,26 @@ const colorOptions: Array<Option> = [
  */
 export const useMatrixData = (matrixConfigs: any): MatrixData => {
   const { dispatchError, errors } = useError();
-  const [config, setConfig] = useState<any>(null); // styles from the config object
-  const [data, setData] = useState<MatrixResponse | null>(null); // raw data request from the api
-  const [matrixData, setMatrixData] = useState<ParsedMatrixData | null>(null); // parsed matrix data that goes into the matrix props
-  const [colorScaleMap, setColorScaleMap] = useState<Array<string> | null>(null); // colormap scale that maps index to rgb
-  const [colorThemeOption, setColorThemeOption] = useState<Option>(colorOptions[0]); // selected color theme of grid: ;
+  /**
+   * config object state
+   */
+  const [config, setConfig] = useState<any>(null);
+  /**
+   * raw data request from the api
+   */
+  const [data, setData] = useState<MatrixResponse | null>(null);
+  /**
+   * parsed matrix data that goes into the matrix props
+   */
+  const [matrixData, setMatrixData] = useState<ParsedMatrixData | null>(null);
+  /**
+   * colormap scale that maps index to rgb
+   */
+  const [colorScaleMap, setColorScaleMap] = useState<Array<string> | null>(null);
+  /**
+   * selected color theme of grid
+   */
+  const [colorThemeOption, setColorThemeOption] = useState<Option>(colorOptions[0]);
 
   const setupStarted = useRef<boolean>(false);
 

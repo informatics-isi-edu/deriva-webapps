@@ -40,9 +40,15 @@ const MatrixApp = (): JSX.Element => {
     colorThemeOption,
     setColorThemeOption,
     colorOptions,
-  } = useMatrixData(windowRef.matrixConfigs); // get the data needed to render the gri
-  const [input, setInput] = useState<string>(''); // search input text
-  const [toastMessage, setToastMessage] = useState<string | undefined>(); // message shown on toast
+  } = useMatrixData(windowRef.matrixConfigs); // get the data needed to render the grid
+  /**
+   * search input text state
+   */
+  const [input, setInput] = useState<string>('');
+  /**
+   * toast message state
+   */
+  const [toastMessage, setToastMessage] = useState<string | undefined>();
 
   const gridRef = useRef<any>(); // reference to the grid
 
