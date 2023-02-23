@@ -43,13 +43,30 @@ CONFIG=config
 # create default app-specific config files
 MATRIX_CONFIG=$(CONFIG)/matrix-config.js
 $(MATRIX_CONFIG): $(CONFIG)/matrix-config-sample.js
-	cp -n $(CONFIG)/matrix-config-sample.js $(CONFIG)/$(MATRIX_CONFIG) || true
+	cp -n $(CONFIG)/matrix-config-sample.js $(MATRIX_CONFIG) || true
 	touch $(MATRIX_CONFIG)
+
+PLOT_CONFIG=$(CONFIG)/plot-config.js
+$(PLOT_CONFIG): $(CONFIG)/plot-config-sample.js
+	cp -n $(CONFIG)/plot-config-sample.js $(PLOT_CONFIG) || true
+	touch $(PLOT_CONFIG)
+
+# vendor files that will be treated externally in webpack
+WEBPACK_EXTERNAL_VENDOR_FILES= \
+	$(MODULES)/plotly.js-basic-dist-min/plotly-basic.min.js
 
 # version number added to all the assets
 BUILD_VERSION:=$(shell date -u +%Y%m%d%H%M%S)
 # build version will change everytime make all or install is called
 $(BUILD_VERSION):
+
+define copy_webpack_external_vendor_files
+	$(info - copying webpack external files into location)
+	mkdir -p $(REACT_BUNDLES)
+	for f in $(WEBPACK_EXTERNAL_VENDOR_FILES); do \
+		eval "rsync -a $$f $(REACT_BUNDLES)" ; \
+	done
+endef
 
 .PHONY: clean
 clean:
@@ -96,6 +113,7 @@ $(DIST): deps dist-wo-deps
 run-webpack: $(BUILD_VERSION)
 	$(info - creating webpack bundles)
 	@npx webpack --config ./webpack/main.config.js --env BUILD_VARIABLES.BUILD_VERSION=$(BUILD_VERSION) --env BUILD_VARIABLES.WEBAPPS_BASE_PATH=$(WEBAPPS_BASE_PATH) --env BUILD_VARIABLES.CHAISE_BASE_PATH=$(CHAISE_BASE_PATH) --env BUILD_VARIABLES.ERMRESTJS_BASE_PATH=$(ERMRESTJS_BASE_PATH)
+	@$(call copy_webpack_external_vendor_files)
 
 #exclude <app>-config.js to not override one on deployment
 .PHONY: deploy
@@ -162,7 +180,7 @@ deploy-matrix-w-config: dont_deploy_in_root print-variables deploy-matrix deploy
 
 # rsync the config files used by react apps.
 .PHONY: deploy-config-folder
-deploy-config-folder: dont_deploy_in_root $(MATRIX_CONFIG)
+deploy-config-folder: dont_deploy_in_root $(MATRIX_CONFIG) $(PLOT_CONFIG)
 	$(info - deploying the config folder)
 	@rsync -avz $(CONFIG) $(WEBAPPSDIR)
 
