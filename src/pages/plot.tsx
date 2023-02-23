@@ -9,6 +9,7 @@ import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
 
 // hooks
 import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/hooks/window-size';
+import { usePlotData } from '@isrd-isi-edu/deriva-webapps/hooks/plot';
 
 // utilities
 import { ID_NAMES } from '@isrd-isi-edu/chaise/src/utils/constants';
@@ -24,7 +25,17 @@ const plotSettings = {
 };
 
 const PlotApp = (): JSX.Element => {
-//   const { width = 0, height = 0 } = useWindowSize();
+  //   const { width = 0, height = 0 } = useWindowSize();
+  const { errors, config } = usePlotData(windowRef.plotConfigs);
+
+  // if there was an error during setup, hide the spinner
+  if (!config && errors.length > 0) {
+    return <></>;
+  }
+  if (!config) {
+    return <ChaiseSpinner />;
+  }
+
   return <div className='plot-page'>Hello World!</div>;
 };
 
