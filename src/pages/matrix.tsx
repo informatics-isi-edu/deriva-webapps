@@ -156,7 +156,7 @@ const MatrixApp = (): JSX.Element => {
   const legendHeight = styles?.legendHeight ? styles?.legendHeight : 170;
 
   const widthBufferSpace = 50; // buffer space for keeping everything in viewport
-  const heightBufferSpace = legendHeight * 2; // buffer space for keeping everything in viewport
+  const heightBufferSpace = legendHeight * 2 - 20; // buffer space for keeping everything in viewport
 
   const strictMinHeight = 200;
   const strictMinWidth = 400;
