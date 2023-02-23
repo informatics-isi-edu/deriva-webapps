@@ -36,6 +36,8 @@ const PlotApp = (): JSX.Element => {
     return <ChaiseSpinner />;
   }
 
+  console.log(config);
+
   return <div className='plot-page'>Hello World!</div>;
 };
 
