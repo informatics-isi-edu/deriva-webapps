@@ -88,7 +88,7 @@ const MatrixApp = (): JSX.Element => {
    * Sets a state to show message when no results found from search
    */
   const showNoResults = () => {
-    setToastMessage('no result found');
+    setToastMessage('no search result found');
     setTimeout(() => setToastMessage(''), 2000);
   };
 
@@ -178,8 +178,8 @@ const MatrixApp = (): JSX.Element => {
 
   const toastStyles: CSSProperties = {
     position: 'absolute',
-    top: 167,
-    left: width / 2 + 230,
+    top: height / 2 - 300,
+    left: width / 2 - 100,
     padding: '9px 12px',
   };
 
@@ -219,11 +219,7 @@ const MatrixApp = (): JSX.Element => {
             )}
           </div>
         ) : null}
-        {toastMessage ? (
-          <div className='alert alert-danger' role='alert' style={toastStyles}>
-            {toastMessage}
-          </div>
-        ) : null}
+
         <div className='options-container' style={{ width: legendWidth }}>
           <div className='dummy-option' />
           <SearchBar
@@ -267,6 +263,11 @@ const MatrixApp = (): JSX.Element => {
           />
         </div>
       </div>
+      {toastMessage ? (
+        <div className='alert alert-danger' role='alert' style={toastStyles}>
+          {toastMessage}
+        </div>
+      ) : null}
     </div>
   );
 };
