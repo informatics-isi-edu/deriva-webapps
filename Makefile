@@ -135,14 +135,12 @@ deploy-lineplot-w-config: dont_deploy_in_root print-variables
 	@rsync -avz lineplot $(WEBAPPSDIR)
 
 .PHONY: deploy-plot
-deploy-plot: dont_deploy_in_root print-variables
+deploy-plot: dont_deploy_in_root print-variables deploy-bundles
 	$(info - deploying plot)
-	@rsync -avz --exclude='/plot/plot-config*' plot $(WEBAPPSDIR)
+	@rsync -avz $(DIST_REACT)/plot/ $(WEBAPPSDIR)/plot/
 
 .PHONY: deploy-plot-w-config
-deploy-plot-w-config: dont_deploy_in_root print-variables
-	$(info - deploying plot with the existing config file(s))
-	@rsync -avz plot $(WEBAPPSDIR)
+deploy-plot-w-config: dont_deploy_in_root print-variables deploy-plot deploy-config-folder
 
 .PHONY: deploy-treeview
 deploy-treeview: dont_deploy_in_root print-variables
