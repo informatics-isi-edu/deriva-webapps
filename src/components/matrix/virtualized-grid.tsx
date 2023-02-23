@@ -90,8 +90,8 @@ const VirtualizedGrid = (
     // Scrolls to and sets the searched index to the given one
     searchRow: (index: number) => {
       const offset = index * cellHeight - gridHeight / 2 - cellHeight / 2;
-      rowLabelRef.current.scrollTo(offset);
-      gridRef.current.scrollTo({ scrollTop: offset });
+      rowLabelRef?.current?.scrollTo(offset);
+      gridRef?.current?.scrollTo({ scrollTop: offset });
 
       setSearchedRowIndex(index);
       setSearchedColIndex(null);
