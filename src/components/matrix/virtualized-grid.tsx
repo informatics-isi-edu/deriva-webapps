@@ -265,6 +265,9 @@ type GridMoveButton = {
   rowHeaderWidth: number;
 };
 
+/**
+ * SVG Icon for button from https://icons.getbootstrap.com/
+ */
 const GridLeftButton = ({ onClick, rowHeaderWidth }: GridMoveButton): JSX.Element => {
   return (
     <button
@@ -302,6 +305,9 @@ const GridLeftButton = ({ onClick, rowHeaderWidth }: GridMoveButton): JSX.Elemen
   );
 };
 
+/**
+ * SVG Icon for button from https://icons.getbootstrap.com/
+ */
 const GridUpButton = ({ onClick, rowHeaderWidth }: GridMoveButton): JSX.Element => {
   return (
     <div
@@ -345,6 +351,9 @@ const GridUpButton = ({ onClick, rowHeaderWidth }: GridMoveButton): JSX.Element 
   );
 };
 
+/**
+ * SVG Icon for button from https://icons.getbootstrap.com/
+ */
 const GridRightButton = ({ onClick }: GridMoveButton): JSX.Element => {
   return (
     <div
@@ -386,6 +395,9 @@ const GridRightButton = ({ onClick }: GridMoveButton): JSX.Element => {
   );
 };
 
+/**
+ * SVG Icon for button from https://icons.getbootstrap.com/
+ */
 const GridDownButton = ({ onClick, rowHeaderWidth }: GridMoveButton): JSX.Element => {
   return (
     <div
