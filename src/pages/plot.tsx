@@ -30,17 +30,17 @@ const Plot = createPlotlyComponent(Plotly);
 
 const PlotApp = (): JSX.Element => {
   //   const { width = 0, height = 0 } = useWindowSize();
-  //   const { errors, config } = usePlotData(windowRef.plotConfigs);
+  const { errors, config } = usePlotData(windowRef.plotConfigs);
 
-  // if there was an error during setup, hide the spinner
-  //   if (!config && errors.length > 0) {
-  //     return <></>;
-  //   }
-  //   if (!config) {
-  //     return <ChaiseSpinner />;
-  //   }
+  //   if there was an error during setup, hide the spinner
+  if (!config && errors.length > 0) {
+    return <></>;
+  }
+  if (!config) {
+    return <ChaiseSpinner />;
+  }
 
-  //   console.log(config);
+  console.log(config);
 
   return (
     <div className='plot-page'>

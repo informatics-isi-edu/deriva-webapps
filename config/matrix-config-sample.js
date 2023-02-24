@@ -34,6 +34,30 @@ var matrixConfigs = {
      * key name of data from the z axis API response
      */
     zFacetColumn: 'id',
+    /**
+     * source for generating x-axis links
+     */
+    xSource: [
+      { inbound: ['isa', 'dataset_stage_dataset_id_fkey'] },
+      { outbound: ['isa', 'dataset_stage_stage_fkey'] },
+      'id',
+    ],
+    /**
+     * source for generating y-axis links
+     */
+    ySource: [
+      { inbound: ['isa', 'dataset_anatomy_dataset_id_fkey'] },
+      { outbound: ['isa', 'dataset_anatomy_anatomy_fkey'] },
+      'id',
+    ],
+    /**
+     * source for generating z-axis links
+     */
+    zSource: [
+      { inbound: ['isa', 'dataset_experiment_type_dataset_id_fkey'] },
+      { outbound: ['isa', 'dataset_experiment_type_experiment_type_fkey'] },
+      'id',
+    ],
     catalogId: '1',
     schemaName: 'isa',
     tableName: 'dataset',
