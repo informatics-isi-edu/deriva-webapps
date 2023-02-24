@@ -1,9 +1,30 @@
+*.swp
 .vscode
 node_modules
 .DS_Store*
+.Spotlight-V100
+.Trashes
+.idea
+.idea/
+.vscode
+ehthumbs.db
+Thumbs.db
+
+# npm
+node_modules
+npm-debug.log
+
+# build files
+dist
+
+# sass temporary compiled files
+.sass-cache
+
+# config files
 boolean-search/booleansearch-config.js
 heatmap/heatmap-config.js
 lineplot/lineplot-config.js
 plot/plot-config.js
 plot/test.html
 treeview/treeview-config.js
+config/*-config.js

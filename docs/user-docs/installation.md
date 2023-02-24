@@ -24,7 +24,18 @@ The current implementation of each app makes different assumption about the loca
 
       - If you're deploying remotely, since we're using this location in `rsync` command, you can use a remote location `username@host:public_html/deriva-webapps` for this variable.
 
-2. After making sure the variable is propertly set, you can run the deploy commands. To deploy all the deriva web apps you can use the `deploy` target:
+2. Build the webapps bundles by running the following command:
+    ```sh
+    make dist
+    ```
+
+    Notes:
+    - Make sure to run this command with the owner of the current folder. If you attempt to run this with a different user, it will complain.
+    - This command will also install the npm packages everytime that is called. You can skip installing npm pacakges by using `make dist-wo-deps` command instead. If you want to install npm modules in a separate command, the following make targets are available:
+      - `deps`: Install the dependencies based on `NODE_ENV` environment variable (it will skip `devDependencies` if `NODE_ENV` is not defined or is "production").
+      - `npm-install-all-modules`: Install all dependencies including `devDependencies` regardless of `NODE_ENV` value.
+
+3. To deploy all the deriva web apps you can use the `deploy` target:
 
     ```
     $ make deploy
@@ -39,12 +50,22 @@ The current implementation of each app makes different assumption about the loca
         - `deploy-heatmap-w-config`: Only deploy boolean-search and copy its configuration files.
         - `deploy-lineplot`: Only deploy lineplot and copy its configuration files.
         - `deploy-lineplot-w-config`: Only deploy lineplot and copy its configuration files.
+        - `deploy-matrix`: Only deploy matrix app and copy its configuration files.
+        - `deploy-matrix-w-config`: Only deploy matrix app and copy its configuration files.
         - `deploy-plot`: Only deploy plot and copy its configuration files.
         - `deploy-plot-w-config`: Only deploy plot and copy its configuration files.
         - `deploy-treeview`: Only deploy treeview and copy its configuration files.
         - `deploy-treeview-w-config`: Only deploy treeview and copy its configuration files.
 
       - If the given directory does not exist, it will first create it. So you may need to run `make deploy` with _super user_ privileges depending on the deployment directory you choose.
+
+4. Most of the apps won't work out of the box, and you need to define a configuration file for them. Please refer to each app for more information about how it should be configured.
+   - [boolean-search](../../boolean-search/booleansearch-config-sample.js)
+   - [heatmap](../../heatmap/README.md)
+   - [lineplot](../../lineplot/lineplot-config-sample.js)
+   - [matrix](matrix-app.md)
+   - [plot](../../plot/README.md)
+   - [treeview](../../treeview/README.md)
 
 
 ## Running
