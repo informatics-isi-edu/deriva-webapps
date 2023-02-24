@@ -42,6 +42,7 @@ The applications are:
 - [boolean-search](/boolean-search/): Allows users to construct structured filter and navigate to recordset. For more information please refer to [this issue](https://github.com/informatics-isi-edu/deriva-webapps/issues/5) (specific to RBK deployment.)
 - [heatmap](/heatmap/): Display a heatmap based on the given `heatmap-config.js` (specific to RBK deployment.)
 - [lineplot](/lineplot/): Display a line plot for the given columns in the `lineplot-config.js` (specific to RBK deployment.)
+- [matrix](matrix-app.md): Summarize the available data based on combination of three different attributes.
 - [plot](/plot/): A general plot drawing app that can work on different tables and deployments based on the given `plot-config.js` file.
 - [treeview](/treview/): Display the parent-child relationship between vocabularies in a tree-like view for RBK deployment.
 

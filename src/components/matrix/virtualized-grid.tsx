@@ -271,7 +271,7 @@ type GridMoveButton = {
 const GridLeftButton = ({ onClick, rowHeaderWidth }: GridMoveButton): JSX.Element => {
   return (
     <button
-      title='Scroll Left Button'
+      title='Scroll left'
       className='grid-left-btn'
       onClick={onClick}
       style={{
@@ -322,7 +322,7 @@ const GridUpButton = ({ onClick, rowHeaderWidth }: GridMoveButton): JSX.Element 
       }}
     >
       <button
-        title='Scroll Up Button'
+        title='Scroll up'
         onClick={onClick}
         className='grid-up-btn'
         style={{
@@ -368,7 +368,7 @@ const GridRightButton = ({ onClick }: GridMoveButton): JSX.Element => {
       }}
     >
       <button
-        title='Scroll Right Button'
+        title='Scroll right'
         onClick={onClick}
         className='grid-down-btn'
         style={{ backgroundColor: 'transparent' }}
@@ -413,7 +413,7 @@ const GridDownButton = ({ onClick, rowHeaderWidth }: GridMoveButton): JSX.Elemen
       }}
     >
       <button
-        title='Scroll Down Button'
+        title='Scroll down'
         className='grid-down-btn'
         onClick={onClick}
         style={{

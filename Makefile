@@ -43,7 +43,7 @@ CONFIG=config
 # create default app-specific config files
 MATRIX_CONFIG=$(CONFIG)/matrix-config.js
 $(MATRIX_CONFIG): $(CONFIG)/matrix-config-sample.js
-	cp -n $(CONFIG)/matrix-config-sample.js $(CONFIG)/$(MATRIX_CONFIG) || true
+	cp -n $(CONFIG)/matrix-config-sample.js $(MATRIX_CONFIG) || true
 	touch $(MATRIX_CONFIG)
 
 # version number added to all the assets

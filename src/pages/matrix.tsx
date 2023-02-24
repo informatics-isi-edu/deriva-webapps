@@ -28,6 +28,7 @@ const matrixSettings = {
   overrideHeadTitle: false,
   overrideDownloadClickBehavior: false,
   overrideExternalLinkBehavior: false,
+  openIframeLinksInTab: true,
 };
 
 const MatrixApp = (): JSX.Element => {
@@ -148,12 +149,12 @@ const MatrixApp = (): JSX.Element => {
   const maxCols = styles?.maxCols;
   const maxRows = styles?.maxRows;
 
-  const rowHeaderWidth = styles?.rowHeaderWidth ? styles?.rowHeaderWidth : 300;
+  const rowHeaderWidth = styles?.rowHeaderWidth ? styles?.rowHeaderWidth : 250;
   const colHeaderHeight = styles?.colHeaderHeight ? styles?.colHeaderHeight : 50;
   const cellHeight = styles?.cellHeight ? styles?.cellHeight : 25;
   const cellWidth = styles?.cellWidth ? styles?.cellWidth : 25;
 
-  const legendHeight = styles?.legendHeight ? styles?.legendHeight : 170;
+  const legendHeight = styles?.legendHeight ? styles?.legendHeight : 200;
 
   const widthBufferSpace = 50; // buffer space for keeping everything in viewport
   const heightBufferSpace = legendHeight * 2; // buffer space for keeping everything in viewport
@@ -231,7 +232,8 @@ const MatrixApp = (): JSX.Element => {
         ) : null}
 
         <div className='options-container' style={{ width: legendWidth }}>
-          <div className='dummy-option' />
+          {/* The dummy option can be added to center align the search-box */}
+          {/* <div className='dummy-option' /> */}
           <SearchBar
             className='search-bar'
             selectProps={searchBarSelectProps}
