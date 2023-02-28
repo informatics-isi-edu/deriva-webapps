@@ -30,7 +30,7 @@ const Plot = createPlotlyComponent(Plotly);
 
 const PlotApp = (): JSX.Element => {
   //   const { width = 0, height = 0 } = useWindowSize();
-  const { errors, config } = usePlotData(windowRef.plotConfigs);
+  const { errors, config, parsedData } = usePlotData(windowRef.plotConfigs);
 
   //   if there was an error during setup, hide the spinner
   if (!config && errors.length > 0) {
@@ -40,23 +40,13 @@ const PlotApp = (): JSX.Element => {
     return <ChaiseSpinner />;
   }
 
-  console.log(config);
+  console.log(parsedData);
 
   return (
     <div className='plot-page'>
-      <Plot
-        data={[
-          {
-            x: [1, 2, 3],
-            y: [2, 6, 3],
-            type: 'scatter',
-            mode: 'lines+markers',
-            marker: { color: 'red' },
-          },
-          { type: 'bar', x: [1, 2, 3], y: [2, 5, 3] },
-        ]}
-        layout={{ width: 320, height: 240, title: 'A Fancy Plot' }}
-      />
+      {parsedData.map((data, i) => (
+        <Plot key={i} {...data} />
+      ))}
     </div>
   );
 };

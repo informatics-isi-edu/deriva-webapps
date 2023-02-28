@@ -206,10 +206,10 @@ const VirtualizedGrid = (
   };
 
   // Boolean values to indicate whether scroll buttons are shown
-  const showRight = scrollX < cellWidth * numColumns - gridWidth;
+  const showRight = scrollX < cellWidth * (numColumns - 1) - gridWidth;
   const showLeft = scrollX > 0;
   const showUp = scrollY > 0;
-  const showDown = scrollY < cellHeight * numRows - gridHeight;
+  const showDown = scrollY < cellHeight * (numRows - 1) - gridHeight;
 
   return (
     <div className='grid-container' style={gridContainerStyles}>
