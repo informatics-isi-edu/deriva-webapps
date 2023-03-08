@@ -31,6 +31,9 @@ const PlotApp = (): JSX.Element => {
    * Use plot data to be visualized by plotly component
    */
   const { parsedData, config, errors } = usePlotData(windowRef.plotConfigs);
+  /**
+   * Window size of component
+   */
   const windowSize = useWindowSize();
 
   //   if there was an error during setup, hide the spinner

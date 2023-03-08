@@ -69,7 +69,7 @@ export const usePlotData = (plotConfigs: PlotConfig) => {
    */
   const [, setData] = useState<Array<ResponseData>>([]);
   /**
-   * parsed data
+   * parsed data to be used in for visualization of plots
    */
   const [parsedData, setParsedData] = useState<Array<any>>([]);
   /**
@@ -128,8 +128,8 @@ export const usePlotData = (plotConfigs: PlotConfig) => {
  */
 const parsePlotData = (plot: Plot, unpackedResponses: Array<ResponseData>) => {
   const result: any = { ...plot.plotly, data: [] };
-  updatePlotlyConfig(plot, result);
-  updatePlotlyLayout(plot, result);
+  updatePlotlyConfig(plot, result); // update the config
+  updatePlotlyLayout(plot, result); // update the layout
 
   // Add all plot "traces" to data array based on plot type
   result.data = unpackedResponses.map((responseData: ResponseData, index: number) => {
@@ -252,6 +252,7 @@ const parseHistogramResponse = (trace: Trace, plot: Plot, responseData: Response
     }
   });
 
+  // Add data to correct axis depending on orientation
   if (trace.orientation === 'h') {
     result.y = dataPoints;
   } else if (trace.orientation === 'v') {
@@ -285,10 +286,12 @@ const parseScatterResponse = (trace: Trace, plot: Plot, responseData: ResponseDa
 
   responseData.forEach((item: any, i: number) => {
     updateWithTraceColData(result, trace, item, i);
+    // Add X data
     trace?.x_col?.forEach((colName) => {
       const value = getValue(item, colName, xaxis, format_data_x, plot);
       result.x?.push(value.toString());
     });
+    // Add Y data
     trace?.y_col?.forEach((colName) => {
       const value = getValue(item, colName, yaxis, format_data_y, plot);
       result.y?.push(value.toString());
@@ -324,12 +327,15 @@ const parsePieResponse = (trace: Trace, plot: Plot, responseData: ResponseData) 
 
   responseData.forEach((item: any, i: number) => {
     updateWithTraceColData(result, trace, item, i);
+    // Add data
     if (trace.data_col) {
       const value = getValue(item, trace.data_col, undefined, format_data, plot);
       if (Array.isArray(result.values)) {
         result.values.push(value);
       }
     }
+
+    // Add legend data if exists
     if (trace.legend_col) {
       const value = getValue(item, trace.legend_col, undefined, false, plot);
       result.text.push(item[trace.legend_col]);
