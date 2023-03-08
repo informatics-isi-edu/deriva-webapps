@@ -3,10 +3,10 @@ import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
 /**
  * Appends and returns the pcid and ppid for the given link
  *
- * @param link
- * @returns
+ * @param link string to append pcid and ppid to
+ * @returns {string}
  */
-export const appendContextParameters = (link: string) => {
+export const appendContextParameters = (link: string): string => {
   const contextUrlParams = ConfigService.contextHeaderParams;
   const qCharacter = getQueryParamCharacter(link);
   return qCharacter + 'pcid=' + contextUrlParams.cid + '&ppid=' + contextUrlParams.pid;
@@ -16,14 +16,14 @@ export const appendContextParameters = (link: string) => {
  * Checks if the given link already has a "?" if yes append "&" else append "?" to add the parameters to the link
  *
  * @param link
- * @returns
+ * @returns {string}
  */
-export const getQueryParamCharacter = (link: string) => {
+export const getQueryParamCharacter = (link: string): string => {
   return link.indexOf('?') !== -1 ? '&' : '?';
 };
 
 /**
- * Extracts the link from the given string pattern, otherwise returns false if no link was found
+ * Extracts the link from the given markdown string pattern, otherwise returns false if no link was found
  *
  * @param pattern
  * @returns
@@ -64,12 +64,12 @@ export const extractLink = (pattern: string): string | false => {
 /**
  * Formats the string data used by plot by adding commas for numbers when neccesary
  *
- * @param data
- * @param format
- * @param type
+ * @param data data value
+ * @param format whether to format or not
+ * @param type the type of plot data
  * @returns
  */
-export const formatPlotData = (data: any, format: any, type: string) => {
+export const formatPlotData = (data: string, format: boolean, type: string): string | number => {
   if (format) {
     try {
       const formatedData = parseInt(data.split(' ')[0], 10);
@@ -95,28 +95,45 @@ export const formatPlotData = (data: any, format: any, type: string) => {
 /**
  * Adds a thousand separator in the given number if possible
  *
- * @param data
+ * @param data data to add thousand separator
  * @returns
  */
-export const addComma = (data: any) => {
+export const addComma = (data: number | string): string => {
   return data.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
 };
 
-export const getLink = (markdownPattern: string, templateParam?: any) => {
+/**
+ * Creates the link bemplateased on the given markdown pattern and templateParam
+ *
+ * @param markdownPattern pattern used to create link 
+ * @param templateParam params used to replace values in the pattern to create the link
+ * @returns
+ */
+export const createLink = (markdownPattern: string, templateParam?: any): string => {
   let markdown = markdownPattern;
   if (templateParam) {
     markdown = ConfigService.ERMrest.renderHandlebarsTemplate(markdownPattern, templateParam);
   }
   const patternLink = ConfigService.ERMrest.renderMarkdown(markdown, true);
   const extractedLink = extractLink(markdownPattern);
-  const linkWithContextParams = getLinkWithContextParams(markdownPattern, extractedLink);
+  const linkWithContextParams = createLinkWithContextParams(markdownPattern, extractedLink);
   return patternLink.replace(extractedLink, linkWithContextParams);
 };
 
-export const getLinkWithContextParams = (
+
+/**
+ * Creates a link with context parameters based on the given markdown pattern or extracted link.
+ * Uses the extracted link first, otherwise uses the markdown pattern. If neither is provided, it
+ * will not create a proper link.
+ *
+ * @param markdownPattern pattern used to create result 
+ * @param extractedLink link used to create result 
+ * @returns
+ */
+export const createLinkWithContextParams = (
   markdownPattern?: string,
-  extractedLink?: string | false,
-) => {
+  extractedLink?: string | false
+): string => {
   let link: string | false = '';
   if (extractedLink) {
     link = extractedLink;
