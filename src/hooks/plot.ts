@@ -94,8 +94,8 @@ export const usePlotData = (plotConfigs: PlotConfig) => {
         // Parse and update the plot data on each succesful plot batch request
         if (plotResponses.length > 0) {
           const unpackedResponses = plotResponses.map((response: Response) => response.data); // unpack data
-          setData((data) => [...data, unpackedResponses]);
-          setParsedData((data) => [...data, parsePlotData(plot, unpackedResponses)]);
+          setData((data) => [...data, unpackedResponses]); // set raw data
+          setParsedData((data) => [...data, parsePlotData(plot, unpackedResponses)]); // set parsed data
         }
       });
       setTypeConfig(config);

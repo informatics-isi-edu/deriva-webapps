@@ -10,9 +10,6 @@ import {
  * Config file for the plot
  */
 export type PlotConfig = {
-  /**
-   * Data configs for plots
-   */
   [name: string]: DataConfig;
 };
 
@@ -20,9 +17,6 @@ export type PlotConfig = {
  * Data
  */
 export type DataConfig = {
-  /**
-   * Plots for the data
-   */
   plots: Plot[];
 };
 
@@ -30,29 +24,11 @@ export type DataConfig = {
  * Specific plot
  */
 export type Plot = {
-  /**
-   * Type of plot
-   */
   plot_type: 'bar' & 'violin' & 'pie' & 'scatter' & 'histogram';
-  /**
-   * Configurations for the plot
-   */
   config: PlotConfigConfig;
-  /**
-   * Trace within each plot
-   */
   traces: Trace[];
-  /**
-   * Pattern for gene uri
-   */
   gene_uri_pattern?: string;
-  /**
-   * Pattern for study uri
-   */
   study_uri_pattern?: string;
-  /**
-   * Plotly options
-   */
   plotly?: Plotly;
 };
 
@@ -60,16 +36,13 @@ export type Plot = {
  * Plotly specific options
  */
 export type Plotly = {
-  /**
-   * Configurations for plotly
-   */
   config: PlotlyConfig;
-  /**
-   * Layout for plotly
-   */
   layout: PlotlyLayout;
 };
 
+/**
+ * Configs for the plot
+ */
 export type PlotConfigConfig = {
   title_display_markdown_pattern?: string;
   xaxis?: PlotConfigAxis;
@@ -88,6 +61,9 @@ export type PlotConfigConfig = {
   responsive?: boolean;
 };
 
+/**
+ * Axis configs for the plot
+ */
 export type PlotConfigAxis = {
   title?: string;
   type?: string;
@@ -100,6 +76,9 @@ export type PlotConfigAxis = {
   default_all_studies_group?: string;
 };
 
+/**
+ * Group key configs for the plot
+ */
 export type PlotConfigAxisGroupKey = {
   column_name: string;
   title_display_pattern: string;
@@ -107,6 +86,9 @@ export type PlotConfigAxisGroupKey = {
   default?: boolean;
 };
 
+/**
+ * Trace configs
+ */
 export type TraceConfig = {
   uri?: string;
   data_col?: string;
@@ -120,26 +102,14 @@ export type TraceConfig = {
   queryPattern?: string;
 };
 
+/**
+ * Trace data
+ */
 export type TracePlotyData = Partial<PlotlyPlotData> &
   Partial<PlotlyViolinData> &
   Partial<PlotlyPieData>;
 
-export type Trace = TraceConfig & TracePlotyData;
-
 /**
- * Data options for plotly
+ * Trace configs
  */
-export type Data = {
-  points: string;
-  pointpos: number;
-  box: Box;
-  meanline: Meanline;
-};
-
-export type Box = {
-  visible: boolean;
-};
-
-export type Meanline = {
-  visible: boolean;
-};
+export type Trace = TraceConfig & TracePlotyData;

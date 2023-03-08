@@ -43,14 +43,12 @@ const PlotApp = (): JSX.Element => {
 
   return (
     <div className='plot-page'>
-      {parsedData.map((data, i) => {
-        // Adjust width of chart based on window width, if not provided in config
+      {parsedData.map((data, i): JSX.Element => {
         if (!data.layout.width && windowSize.width) {
-          data.layout.width = 0.9 * windowSize.width;
+          data.layout.width = 0.9 * windowSize.width; // plot width based on window width
         }
-        // Adjust height of chart based on window height, if not provided in config
         if (!data.layout.height && windowSize.height) {
-          data.layout.height = 0.8 * windowSize.height;
+          data.layout.height = 0.8 * windowSize.height; // plot height based on window height
         }
         return <Plot key={i} className='plot' {...data} />;
       })}
