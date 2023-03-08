@@ -10,7 +10,7 @@ import {
 } from 'react';
 import { FixedSizeGrid as Grid } from 'react-window';
 
-import { ParsedGridCell } from '@isrd-isi-edu/deriva-webapps/hooks/matrix';
+import { ParsedGridCell } from '@isrd-isi-edu/deriva-webapps/src/hooks/matrix';
 
 import GridCell from '@isrd-isi-edu/deriva-webapps/src/components/matrix/grid-cell';
 import RowHeaders from '@isrd-isi-edu/deriva-webapps/src/components/matrix/row-headers';

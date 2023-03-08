@@ -9,8 +9,8 @@ import AppWrapper from '@isrd-isi-edu/chaise/src/components/app-wrapper';
 import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
 
 // hooks
-import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/hooks/window-size';
-import { usePlotData } from '@isrd-isi-edu/deriva-webapps/hooks/plot';
+import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
+import { usePlotData } from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
 
 // utilities
 import { ID_NAMES } from '@isrd-isi-edu/chaise/src/utils/constants';
