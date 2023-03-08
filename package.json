@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "@isrd-isi-edu/chaise": "0.0.8",
+    "plotly.js-cartesian-dist-min": "^2.18.2",
     "react-select": "^5.7.0",
     "react-window": "^1.8.8"
   }

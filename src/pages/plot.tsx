@@ -1,8 +1,7 @@
-import '@isrd-isi-edu/deriva-webapps/src/assets/scss/_matrix.scss';
+import '@isrd-isi-edu/deriva-webapps/src/assets/scss/_plot.scss';
 
 import { createRoot } from 'react-dom/client';
-import { useState } from 'react';
-import Plotly from 'plotly.js-basic-dist-min';
+import Plotly from 'plotly.js-cartesian-dist-min';
 import createPlotlyComponent from 'react-plotly.js/factory';
 
 // components
@@ -16,7 +15,6 @@ import { usePlotData } from '@isrd-isi-edu/deriva-webapps/hooks/plot';
 // utilities
 import { ID_NAMES } from '@isrd-isi-edu/chaise/src/utils/constants';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
-import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
 
 const plotSettings = {
   appName: 'app/plot',
@@ -29,24 +27,28 @@ const plotSettings = {
 const Plot = createPlotlyComponent(Plotly);
 
 const PlotApp = (): JSX.Element => {
-  //   const { width = 0, height = 0 } = useWindowSize();
   const { errors, config, parsedData } = usePlotData(windowRef.plotConfigs);
+  const windowSize = useWindowSize();
 
   //   if there was an error during setup, hide the spinner
-  if (!config && errors.length > 0) {
+  if ((!config || parsedData.length === 0) && errors.length > 0) {
     return <></>;
   }
-  if (!config) {
+  if (!config || parsedData.length === 0) {
     return <ChaiseSpinner />;
   }
 
-  console.log(parsedData);
-
   return (
     <div className='plot-page'>
-      {parsedData.map((data, i) => (
-        <Plot key={i} {...data} />
-      ))}
+      {parsedData.map((data, i) => {
+        if (!data.layout.width && windowSize.width) {
+          data.layout.width = 0.9 * windowSize.width;
+        }
+        if (!data.layout.height && windowSize.height) {
+          data.layout.height = 0.8 * windowSize.height;
+        }
+        return <Plot key={i} className='plot' {...data} />;
+      })}
     </div>
   );
 };
