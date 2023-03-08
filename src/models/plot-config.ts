@@ -68,10 +68,6 @@ export type Plotly = {
    * Layout for plotly
    */
   layout: PlotlyLayout;
-  /**
-   * Data options for plotly
-   */
-  data?: Data;
 };
 
 export type PlotConfigConfig = {
@@ -129,11 +125,6 @@ export type TracePlotyData = Partial<PlotlyPlotData> &
   Partial<PlotlyPieData>;
 
 export type Trace = TraceConfig & TracePlotyData;
-
-export type Font = {
-  size: number;
-  family?: string;
-};
 
 /**
  * Data options for plotly

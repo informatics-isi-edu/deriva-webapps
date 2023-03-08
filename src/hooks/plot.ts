@@ -45,7 +45,7 @@ type ResponseData = Array<any>;
 type PlotResultData = {
   x: string[] & number[];
   y: string[] & number[];
-  text: string[] & number[];
+  text?: string[];
 };
 
 /**
@@ -132,8 +132,8 @@ const parsePlotData = (plot: Plot, unpackedResponses: Array<ResponseData>) => {
   updatePlotlyLayout(plot, result);
 
   // Add all plot "traces" to data array based on plot type
-  result.data = unpackedResponses.map((responseData: ResponseData, i: number) => {
-    const currTrace = plot.traces[i];
+  result.data = unpackedResponses.map((responseData: ResponseData, index: number) => {
+    const currTrace = plot.traces[index];
     if (plot.plot_type === 'bar') {
       return parseBarResponse(currTrace, plot, responseData);
     } else if (plot.plot_type === 'pie') {
@@ -241,16 +241,13 @@ const parseHistogramResponse = (trace: Trace, plot: Plot, responseData: Response
     type: 'histogram',
   };
 
+  const { config } = plot;
+  const { format_data = false } = config;
+
   const dataPoints: Array<any> = [];
   responseData.forEach((item: any) => {
     if (trace.data_col) {
-      const value = getValue(
-        item,
-        trace.data_col,
-        undefined,
-        Boolean(plot.config.format_data),
-        plot
-      );
+      const value = getValue(item, trace.data_col, undefined, format_data, plot);
       dataPoints.push(value);
     }
   });
@@ -273,11 +270,12 @@ const parseHistogramResponse = (trace: Trace, plot: Plot, responseData: Response
  * @returns
  */
 const parseScatterResponse = (trace: Trace, plot: Plot, responseData: ResponseData) => {
-  const result: Partial<TraceConfig> & Partial<PlotlyPlotData> & PlotResultData= {
+  const result: Partial<TraceConfig> & Partial<PlotlyPlotData> & PlotResultData = {
     ...trace,
     mode: 'markers',
     name: trace.legend ? trace.legend[0] : '',
     type: plot.plot_type,
+    text: [],
     x: [],
     y: [],
   };
@@ -289,11 +287,11 @@ const parseScatterResponse = (trace: Trace, plot: Plot, responseData: ResponseDa
     updateWithTraceColData(result, trace, item, i);
     trace?.x_col?.forEach((colName) => {
       const value = getValue(item, colName, xaxis, format_data_x, plot);
-      result.x.push(value.toString());
+      result.x?.push(value.toString());
     });
     trace?.y_col?.forEach((colName) => {
       const value = getValue(item, colName, yaxis, format_data_y, plot);
-      result.y.push(value.toString());
+      result.y?.push(value.toString());
     });
   });
 
@@ -321,16 +319,13 @@ const parsePieResponse = (trace: Trace, plot: Plot, responseData: ResponseData) 
     // graphic_clickable_links: [], // TODO: confirm deprecated
   };
 
+  const { config } = plot;
+  const { format_data = false } = config;
+
   responseData.forEach((item: any, i: number) => {
     updateWithTraceColData(result, trace, item, i);
     if (trace.data_col) {
-      const value = getValue(
-        item,
-        trace.data_col,
-        undefined,
-        Boolean(plot.config.format_data),
-        plot
-      );
+      const value = getValue(item, trace.data_col, undefined, format_data, plot);
       if (Array.isArray(result.values)) {
         result.values.push(value);
       }
@@ -367,7 +362,7 @@ const parseBarResponse = (trace: Trace, plot: Plot, responseData: ResponseData) 
   };
 
   const { config } = plot;
-  const { xaxis, yaxis, format_data_x, format_data_y } = config; // why is format_data_x not in xaxis?
+  const { xaxis, yaxis, format_data_x = false, format_data_y = false } = config; // why is format_data_x not in xaxis?
 
   responseData.forEach((item: any) => {
     // Add the x values for the bar plot
@@ -376,9 +371,9 @@ const parseBarResponse = (trace: Trace, plot: Plot, responseData: ResponseData) 
         // update the trace data if orientation is horizontal
         updateWithTraceColData(result, trace, item, i);
         const textValue = getValue(item, colName, undefined, true, plot);
-        result.text.push(textValue.toString());
+        result.text?.push(textValue.toString());
       }
-      const value = getValue(item, colName, xaxis, Boolean(format_data_x), plot);
+      const value = getValue(item, colName, xaxis, format_data_x, plot);
       result.x.push(value.toString());
     });
 
@@ -388,9 +383,9 @@ const parseBarResponse = (trace: Trace, plot: Plot, responseData: ResponseData) 
         // update the trace data if orientation is vertical
         updateWithTraceColData(result, trace, item, i);
         const textValue = getValue(item, colName, undefined, true, plot);
-        result.text.push(textValue.toString());
+        result.text?.push(textValue.toString());
       }
-      const value = getValue(item, colName, yaxis, Boolean(format_data_y), plot);
+      const value = getValue(item, colName, yaxis, format_data_y, plot);
       result.y.push(value.toString());
     });
   });
@@ -428,13 +423,13 @@ const getValue = (
  * @param result trace object to be updated
  * @param trace from plot configs
  * @param item from the response object
- * @param i index of the response
+ * @param index index of the response
  */
-const updateWithTraceColData = (result: any, trace: Trace, item: any, i: number): void => {
+const updateWithTraceColData = (result: any, trace: Trace, item: any, index: number): void => {
   // legend name
-  let name = trace.legend ? trace.legend[i] : '';
+  let name = trace.legend ? trace.legend[index] : '';
   if (trace.legend_markdown_pattern) {
-    name = createLink(trace.legend_markdown_pattern[i] || '');
+    name = createLink(trace.legend_markdown_pattern[index] || '');
   }
   result.name = name;
 
