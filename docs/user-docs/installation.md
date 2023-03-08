@@ -50,12 +50,22 @@ The current implementation of each app makes different assumption about the loca
         - `deploy-heatmap-w-config`: Only deploy boolean-search and copy its configuration files.
         - `deploy-lineplot`: Only deploy lineplot and copy its configuration files.
         - `deploy-lineplot-w-config`: Only deploy lineplot and copy its configuration files.
+        - `deploy-matrix`: Only deploy matrix app and copy its configuration files.
+        - `deploy-matrix-w-config`: Only deploy matrix app and copy its configuration files.
         - `deploy-plot`: Only deploy plot and copy its configuration files.
         - `deploy-plot-w-config`: Only deploy plot and copy its configuration files.
         - `deploy-treeview`: Only deploy treeview and copy its configuration files.
         - `deploy-treeview-w-config`: Only deploy treeview and copy its configuration files.
 
       - If the given directory does not exist, it will first create it. So you may need to run `make deploy` with _super user_ privileges depending on the deployment directory you choose.
+
+4. Most of the apps won't work out of the box, and you need to define a configuration file for them. Please refer to each app for more information about how it should be configured.
+   - [boolean-search](../../boolean-search/booleansearch-config-sample.js)
+   - [heatmap](../../heatmap/README.md)
+   - [lineplot](../../lineplot/lineplot-config-sample.js)
+   - [matrix](matrix-app.md)
+   - [plot](../../plot/README.md)
+   - [treeview](../../treeview/README.md)
 
 
 ## Running

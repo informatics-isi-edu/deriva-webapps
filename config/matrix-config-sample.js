@@ -23,41 +23,32 @@ var matrixConfigs = {
      */
     xysURL: baseUri + '/xid:=X:id,yid:=Y:id;zid:=array(Z:name)',
     /**
+     * The source path of x. used for generating the facet blob
+     */
+    xSource: [{'inbound':['isa','dataset_stage_dataset_id_fkey']},{'outbound':['isa','dataset_stage_stage_fkey']},'id'],
+    /**
      * key name of data from the x axis API response
      */
     xFacetColumn: 'id',
+    /**
+     * The source path of y. used for generating the facet blob
+     */
+    ySource: [{'inbound':['isa','dataset_anatomy_dataset_id_fkey']},{'outbound':['isa','dataset_anatomy_anatomy_fkey']},'id'],
     /**
      * key name of data from the y axis API response
      */
     yFacetColumn: 'id',
     /**
+     * The source path of z. used for generating the facet blob
+     */
+    zSource: [{'inbound':['isa','dataset_experiment_type_dataset_id_fkey']},{'outbound':['isa','dataset_experiment_type_experiment_type_fkey']},'id'],
+    /**
      * key name of data from the z axis API response
      */
     zFacetColumn: 'id',
     /**
-     * source for generating x-axis links
+     * the catalog, schema, and table information. used for generating the links
      */
-    xSource: [
-      { inbound: ['isa', 'dataset_stage_dataset_id_fkey'] },
-      { outbound: ['isa', 'dataset_stage_stage_fkey'] },
-      'id',
-    ],
-    /**
-     * source for generating y-axis links
-     */
-    ySource: [
-      { inbound: ['isa', 'dataset_anatomy_dataset_id_fkey'] },
-      { outbound: ['isa', 'dataset_anatomy_anatomy_fkey'] },
-      'id',
-    ],
-    /**
-     * source for generating z-axis links
-     */
-    zSource: [
-      { inbound: ['isa', 'dataset_experiment_type_dataset_id_fkey'] },
-      { outbound: ['isa', 'dataset_experiment_type_experiment_type_fkey'] },
-      'id',
-    ],
     catalogId: '1',
     schemaName: 'isa',
     tableName: 'dataset',
@@ -95,7 +86,7 @@ var matrixConfigs = {
       /**
        * Width of the row headers
        */
-      rowHeaderWidth: 300,
+      rowHeaderWidth: 250,
       /**
        * Height of the column headers
        */
@@ -103,7 +94,7 @@ var matrixConfigs = {
       /**
        * Height of the legend
        */
-      legendHeight: 170,
+      legendHeight: 200,
       /**
        * Width of the legend bar
        */

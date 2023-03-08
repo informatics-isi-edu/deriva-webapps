@@ -1,6 +1,6 @@
 import { MouseEventHandler } from 'react';
 
-type GridMoveButton = {
+export type GridMoveButton = {
   onClick: MouseEventHandler;
   rowHeaderWidth: number;
 };
@@ -11,7 +11,7 @@ type GridMoveButton = {
 export const GridLeftButton = ({ onClick, rowHeaderWidth }: GridMoveButton): JSX.Element => {
   return (
     <button
-      title='Scroll Left Button'
+      title='Scroll left'
       className='grid-left-btn'
       onClick={onClick}
       style={{
@@ -62,7 +62,7 @@ export const GridUpButton = ({ onClick, rowHeaderWidth }: GridMoveButton): JSX.E
       }}
     >
       <button
-        title='Scroll Up Button'
+        title='Scroll up'
         onClick={onClick}
         className='grid-up-btn'
         style={{
@@ -108,7 +108,7 @@ export const GridRightButton = ({ onClick }: GridMoveButton): JSX.Element => {
       }}
     >
       <button
-        title='Scroll Right Button'
+        title='Scroll right'
         onClick={onClick}
         className='grid-down-btn'
         style={{ backgroundColor: 'transparent' }}
@@ -153,7 +153,7 @@ export const GridDownButton = ({ onClick, rowHeaderWidth }: GridMoveButton): JSX
       }}
     >
       <button
-        title='Scroll Down Button'
+        title='Scroll down'
         className='grid-down-btn'
         onClick={onClick}
         style={{

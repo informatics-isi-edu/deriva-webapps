@@ -6,9 +6,14 @@ This document is a summary of code changes in Deriva Webapps. This is the vocabu
   - `[Changed]`: modifications to existing features.
   - `[Fixed]`: bug fixes.
 
-# 11/02/21
+# 05/26/22
+  - [Changed] Makefile uses deploy instead of install
+
+# 11/19/21
   - [Improved] Plot: responsiveness when in iframe and on standalone page
   - [Changed] Plot: always choose first study instead of all studies
+  - [Improved] Plot: studies show rowname instead of RID
+  - [Added] Plot: Ability to change to log scale
 
 # 09/22/21
  - [Improved] Plot: allow for text links in title and axis labels [PR #117](https://github.com/informatics-isi-edu/deriva-webapps/pull/117)
