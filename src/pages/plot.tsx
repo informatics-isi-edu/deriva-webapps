@@ -27,7 +27,10 @@ const plotSettings = {
 const Plot = createPlotlyComponent(Plotly);
 
 const PlotApp = (): JSX.Element => {
-  const { errors, config, parsedData } = usePlotData(windowRef.plotConfigs);
+  /**
+   * Use plot data to be visualized by plotly component
+   */
+  const { parsedData, config, errors } = usePlotData(windowRef.plotConfigs);
   const windowSize = useWindowSize();
 
   //   if there was an error during setup, hide the spinner
@@ -41,9 +44,11 @@ const PlotApp = (): JSX.Element => {
   return (
     <div className='plot-page'>
       {parsedData.map((data, i) => {
+        // Adjust width of chart based on window width, if not provided in config
         if (!data.layout.width && windowSize.width) {
           data.layout.width = 0.9 * windowSize.width;
         }
+        // Adjust height of chart based on window height, if not provided in config
         if (!data.layout.height && windowSize.height) {
           data.layout.height = 0.8 * windowSize.height;
         }

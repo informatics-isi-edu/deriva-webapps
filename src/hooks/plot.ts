@@ -266,17 +266,17 @@ const parseScatterResponse = (trace: Trace, plot: Plot, responseData: any) => {
 /**
  * Parses response data obtained for every trace within the plot
  *
- * @param trace
- * @param plot
- * @param responseData
+ * @param trace from the plot config
+ * @param plot plot config
+ * @param responseData data received from request to be parsed
  * @returns
  */
 const parsePieResponse = (trace: Trace, plot: Plot, responseData: any) => {
   const result: any = {
     ...trace,
     type: plot.plot_type,
-    hoverinfo: 'text+value+percent',
-    textinfo: 'value',
+    hoverinfo: 'text+value+percent', // value to show on hover of a pie slice
+    textinfo: 'value', // data shown on a pie slice
     labels: [],
     values: [],
     text: [],
@@ -303,20 +303,20 @@ const parsePieResponse = (trace: Trace, plot: Plot, responseData: any) => {
 /**
  * Parses response data obtained for every trace within the plot
  *
- * @param trace
- * @param plot
- * @param responseData
+ * @param trace from the plot config
+ * @param plot plot config
+ * @param responseData data received from request to be parsed
  * @returns
  */
 const parseBarResponse = (trace: Trace, plot: Plot, responseData: any) => {
   const result: any = {
     ...trace,
     type: plot.plot_type,
-    textposition: 'outside',
-    hoverinfo: 'text',
-    x: [],
-    y: [],
-    text: [],
+    textposition: 'outside', // position of bar values
+    hoverinfo: 'text', // value to show on hover of a bar
+    x: [], // x data
+    y: [], // y data
+    text: [], // text data
     legend_clickable_links: [],
     graphic_clickable_links: [],
   };
@@ -328,6 +328,7 @@ const parseBarResponse = (trace: Trace, plot: Plot, responseData: any) => {
     // Add the x values for the bar plot
     trace?.x_col?.forEach((colName, i: number) => {
       if (trace.orientation === 'h') {
+        // update the trace data if orientation is horizontal
         updateWithTraceColData(result, trace, item, i);
         const textValue = getValue(item, colName, undefined, true, plot);
         result.text.push(textValue);
@@ -339,6 +340,7 @@ const parseBarResponse = (trace: Trace, plot: Plot, responseData: any) => {
     // Add the y values for the bar plot
     trace?.y_col?.forEach((colName, i: number) => {
       if (trace.orientation === 'v') {
+        // update the trace data if orientation is vertical
         updateWithTraceColData(result, trace, item, i);
         const textValue = getValue(item, colName, undefined, true, plot);
         result.text.push(textValue);
@@ -354,11 +356,11 @@ const parseBarResponse = (trace: Trace, plot: Plot, responseData: any) => {
  * Gets the value in the form of a link from the given markdown pattern.
  * Optionally formats the value.
  *
- * @param item
- * @param colName
- * @param axis
- * @param formatData
- * @param plot
+ * @param item each item of data
+ * @param colName column name for the item of data
+ * @param axis axis object from plot config
+ * @param formatData whether to format the data or not
+ * @param plot plot config
  * @returns
  */
 const getValue = (
@@ -378,10 +380,10 @@ const getValue = (
 /**
  * Updates the trace with given the given trace passed in from plot-cnofig and the item data
  *
- * @param result
- * @param trace
- * @param item
- * @param i
+ * @param result trace object to be updated
+ * @param trace from plot configs
+ * @param item from the response object
+ * @param i index of the response
  */
 const updateWithTraceColData = (result: any, trace: Trace, item: any, i: number) => {
   const templateParams = { $self: { data: item } };
