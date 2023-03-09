@@ -447,14 +447,14 @@ var plotConfigs = {
             },
           },
         },
-        config: {
-          xbins: 50,
-        },
         traces: [
           {
             uri: '/ermrest/catalog/2/entity/Gene_Expression:Specimen@sort(RCT::desc::)?limit=10000',
             data_col: 'RCT',
             orientation: 'v',
+            xbins: {
+              size: 'M1',
+            },
           },
         ],
       },
@@ -492,14 +492,14 @@ var plotConfigs = {
             },
           },
         },
-        config: {
-          ybins: 50,
-        },
         traces: [
           {
             uri: '/ermrest/catalog/2/entity/Gene_Expression:Specimen@sort(RCT::desc::)?limit=10000',
             data_col: 'RCT',
             orientation: 'h',
+            ybins: {
+              size: 'M1',
+            },
           },
         ],
       },
