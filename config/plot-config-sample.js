@@ -417,7 +417,7 @@ var plotConfigs = {
   'specimen-histogram-vertical': {
     plots: [
       {
-        plot_type: 'histogram-vertical',
+        plot_type: 'histogram',
         plotly: {
           config: {
             modeBarButtonsToRemove: [
@@ -454,6 +454,7 @@ var plotConfigs = {
           {
             uri: '/ermrest/catalog/2/entity/Gene_Expression:Specimen@sort(RCT::desc::)?limit=10000',
             data_col: 'RCT',
+            orientation: 'v',
           },
         ],
       },
@@ -462,7 +463,7 @@ var plotConfigs = {
   'specimen-histogram-horizontal': {
     plots: [
       {
-        plot_type: 'histogram-horizontal',
+        plot_type: 'histogram',
         plotly: {
           config: {
             modeBarButtonsToRemove: [
@@ -498,6 +499,7 @@ var plotConfigs = {
           {
             uri: '/ermrest/catalog/2/entity/Gene_Expression:Specimen@sort(RCT::desc::)?limit=10000',
             data_col: 'RCT',
+            orientation: 'h',
           },
         ],
       },
