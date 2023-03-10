@@ -17,15 +17,7 @@ export type MatrixDefaultConfig = {
   styles?: MatrixStyles;
 };
 
-export type AxisSource = [Inbound, Outbound];
-
-export type Inbound = {
-  inbound: ['isa', 'dataset_stage_dataset_id_fkey'];
-};
-
-export type Outbound = {
-  outbound: ['isa', 'dataset_stage_dataset_id_fkey'];
-};
+export type AxisSource = any;
 
 export type MatrixStyles = {
   maxCols?: number;
