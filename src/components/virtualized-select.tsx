@@ -129,4 +129,4 @@ const VirtualizedSelect = ({
   );
 };
 
-export default memo(VirtualizedSelect);
+export default VirtualizedSelect;
