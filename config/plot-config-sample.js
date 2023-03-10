@@ -136,7 +136,7 @@ var plotConfigs = {
     // Array of object plots to be shown on the page
     plots: [
       {
-        // Values can be from :  "bar", "pie", "histogram",
+        // Values can be from : "line", "bar", "dot", "area", "dot-lines", "pie", "histogram-horizontal", "histogram-verical"
         plot_type: 'pie',
         plotly: {
           config: {
@@ -447,14 +447,14 @@ var plotConfigs = {
             },
           },
         },
-        config: {
-          xbins: 50,
-        },
         traces: [
           {
             uri: '/ermrest/catalog/2/entity/Gene_Expression:Specimen@sort(RCT::desc::)?limit=10000',
             data_col: 'RCT',
             orientation: 'v',
+            xbins: {
+              size: 'M1',
+            },
           },
         ],
       },
@@ -492,14 +492,14 @@ var plotConfigs = {
             },
           },
         },
-        config: {
-          ybins: 50,
-        },
         traces: [
           {
             uri: '/ermrest/catalog/2/entity/Gene_Expression:Specimen@sort(RCT::desc::)?limit=10000',
             data_col: 'RCT',
             orientation: 'h',
+            ybins: {
+              size: 'M1',
+            },
           },
         ],
       },

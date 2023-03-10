@@ -87,3 +87,15 @@ var matrixConfigs = {
 }
 
 ```
+
+
+## Example of using this app in an iframe
+
+Given that you have a lot of flexibility on how to configure this app, the following is an example of an iframe that can be used in combination with the default `styles` that are included in the `matrix-config-sample.js`:
+
+```html
+<iframe src="/deriva-webapps/matrix/" height="100%" width="100%"
+  frameBorder="0" style="height: 98vh; margin-top: 0.5em; margin-bottom: 0.5em;"></iframe>
+```
+
+The defined `height`, `width`, and `styles` will make sure the matrix takes as much space as it needs and fit the page content.

@@ -1,0 +1,12 @@
+.plot-page {
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  height: 90vh;
+}
+
+.plot {
+  margin: 20px 0px;
+}

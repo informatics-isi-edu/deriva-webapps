@@ -12,6 +12,9 @@
     "url": "https://github.com/informatics-isi-edu/deriva-webapps.git"
   },
   "devDependencies": {
+    "@types/plotly.js": "^2.12.18",
+    "@types/plotly.js-basic-dist-min": "^2.12.1",
+    "@types/react-plotly.js": "^2.6.0",
     "@types/react-window": "^1.8.5",
     "@typescript-eslint/eslint-plugin": "^5.13.0",
     "@typescript-eslint/parser": "^5.13.0",
@@ -26,6 +29,7 @@
   },
   "dependencies": {
     "@isrd-isi-edu/chaise": "0.0.8",
+    "plotly.js-cartesian-dist-min": "^2.18.2",
     "react-select": "^5.7.0",
     "react-window": "^1.8.8"
   }

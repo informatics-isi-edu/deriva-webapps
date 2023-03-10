@@ -14,8 +14,8 @@ import VirtualizedSelect from '@isrd-isi-edu/deriva-webapps/src/components/virtu
 import DisplayValue from '@isrd-isi-edu/chaise/src/components/display-value';
 
 // hooks
-import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/hooks/window-size';
-import { useMatrixData } from '@isrd-isi-edu/deriva-webapps/hooks/matrix';
+import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
+import { useMatrixData } from '@isrd-isi-edu/deriva-webapps/src/hooks/matrix';
 
 // utilities
 import { ID_NAMES } from '@isrd-isi-edu/chaise/src/utils/constants';
