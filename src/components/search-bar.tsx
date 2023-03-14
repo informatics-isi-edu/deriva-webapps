@@ -103,4 +103,4 @@ const SearchBarButton = ({ onClick }: SearchBarButtonProps): JSX.Element => (
 
 const MemoizedSearchBarButton = memo(SearchBarButton);
 
-export default memo(SearchBar);
+export default SearchBar;
