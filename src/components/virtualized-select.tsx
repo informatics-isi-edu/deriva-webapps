@@ -24,9 +24,12 @@ type VirtualizedSelectProps = AsyncProps<any, any, any> & {
 // Define Custom Styles for the Select Component
 export const SelectStyles: StylesConfig = {
   option: (base) => ({ ...base, ...{ height: 30, padding: '4px 12px' } }),
-  control: (base) => ({ ...base, ...{ height: 30, minHeight: 30, padding: '0px 10px' } }),
+  control: (base) => ({
+    ...base,
+    ...{ height: 30, minHeight: 30, padding: 0, overflow: 'hidden' },
+  }),
   singleValue: (base) => ({ ...base, padding: 0 }),
-  valueContainer: (base) => ({ ...base, padding: 0 }),
+  valueContainer: (base) => ({ ...base, padding: '0px 10px' }),
   indicatorsContainer: (base) => ({ ...base, padding: 0 }),
   dropdownIndicator: (base) => ({ ...base, paddingTop: 0, paddingBottom: 0 }),
   clearIndicator: (base) => ({ ...base, padding: 0 }),
@@ -38,7 +41,6 @@ export const SelectStyles: StylesConfig = {
  * in react-select
  */
 const VirtualizedSelect = ({
-  hideDropdownIndicator,
   options = [],
   itemHeight,
   components,
@@ -93,37 +95,22 @@ const VirtualizedSelect = ({
     );
   };
 
-  /**
-   * Function to filter based on searched options
-   */
-  const loadOptions = (input: string, callback: any) => {
-    setTimeout(() => {
-      callback(
-        options.filter(({ label }: any) => label.toLowerCase().includes(input.toLowerCase()))
-      );
-    }, 200);
-  };
-
   const newComponents: Partial<SelectComponents<unknown, any, any>> = {
     MenuList: memo(MenuList),
     ...components,
   };
 
-  if (hideDropdownIndicator) {
-    newComponents['DropdownIndicator'] = () => null;
-    newComponents['IndicatorSeparator'] = () => null;
-  }
   if (useOptimizedOption) {
     newComponents['Option'] = memo(Option);
   }
 
+
+
   return (
     <Async
-      className='async-select'
       styles={{ ...SelectStyles, ...styles }}
       components={newComponents}
       options={options}
-      loadOptions={loadOptions}
       {...restProps}
     />
   );
