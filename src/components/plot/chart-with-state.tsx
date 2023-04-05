@@ -26,11 +26,11 @@ const ChartWithState = ({ config }: ChartWithStateProps): JSX.Element => {
   /**
    * Data that goes into the chart
    */
-  const { parsedData, selectData, modalProps, isLoading } = useChartData(config);
+  const { parsedData, selectData, modalProps, isPlotLoading, isInitLoading } = useChartData(config);
 
 
   // TODO: chart vs selectors loading
-  if (!parsedData || isLoading) {
+  if (!parsedData || isPlotLoading || isInitLoading) {
     return <ChaiseSpinner />;
   }
 

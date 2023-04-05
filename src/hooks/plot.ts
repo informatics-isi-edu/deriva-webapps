@@ -96,32 +96,13 @@ export const usePlotConfig = (plotConfigs: PlotConfig) => {
 export const useChartData = (plot: Plot) => {
   const isFirstRender = useIsFirstRender(); // TODO: use for initial request
   const { dispatchError, errors } = useError();
-  /**
-   * raw data from endpoint
-   */
-  const [data, setData] = useState<ResponseData | null>(null);
-  /**
-   * parsed data to be used in for visualization of plots
-   */
+
+  const [data, setData] = useState<any | null>(null);
   const [parsedData, setParsedData] = useState<any>(null);
-
-  /** VIOLIN SELECTOR STATES
-   * TODO: Consolidate these into an array of selectors once approved
-   * TODO: Each selector can have different type, button, dropdown, clickable dropdown ...
-   */
-  /**
-   * select results state
-   */
   const [selectData, setSelectData] = useState<any>(null);
-  /**
-   * modal open state
-   */
   const [modalProps, setModalProps] = useState<any>(null);
-
-  /**
-   * Hack to refetch data
-   */
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isInitLoading, setIsInitLoading] = useState<boolean>(false);
+  const [isPlotLoading, setIsPlotLoading] = useState<boolean>(false);
 
   const [isFetchSelected, setIsFetchSelected] = useState<boolean>(false);
 
@@ -141,9 +122,8 @@ export const useChartData = (plot: Plot) => {
   );
 
   const fetchSelectData = useCallback(
-    async (selectGrid: any) => {
-      // todo: pass in the indices to parser and into the callback
-      const initialSelectDataGrid: any = await Promise.all(
+    async (selectGrid: any) =>
+      Promise.all(
         selectGrid.map(async (row: any[], i: number) =>
           Promise.all(
             row.map(async (cell: any, j: number) =>
@@ -151,54 +131,46 @@ export const useChartData = (plot: Plot) => {
             )
           )
         )
-      );
-
-      setSelectData(initialSelectDataGrid);
-      return { initialSelectDataGrid };
-    },
+      ),
     [templateParams]
   );
 
-  const fetchData = useCallback(
-    async (selectDataGrid: any) => {
-      setIsLoading(true);
-      // Fulfill promise for plot
-      const plotResponses: Array<Response> = await Promise.all(
-        // request for each trace
-        plot.traces.map((trace) => {
-          if (trace.uri) {
-            return ConfigService.http.get(trace.uri);
-          } else if (trace.queryPattern) {
-            const { uri, headers } = getPatternUri(trace.queryPattern, templateParams);
-            return ConfigService.http.get(uri, { headers });
-          } else {
-            return { data: [] };
-          }
-        })
-      );
+  const fetchData = useCallback(async () => {
+    // Fulfill promise for plot
+    const plotResponses: Array<Response> = await Promise.all(
+      // request for each trace
+      plot.traces.map((trace) => {
+        if (trace.uri) {
+          return ConfigService.http.get(trace.uri);
+        } else if (trace.queryPattern) {
+          const { uri, headers } = getPatternUri(trace.queryPattern, templateParams);
+          return ConfigService.http.get(uri, { headers });
+        } else {
+          return { data: [] };
+        }
+      })
+    );
 
-      // Parse and update the plot data on each succesful plot batch request
-      if (plotResponses.length > 0) {
-        const unpackedResponses = plotResponses.map((response: Response) => response.data); // unpack data
-        setData(unpackedResponses); // set raw data received from api
-        setIsLoading(false);
-      }
-    },
-    [plot, templateParams]
-  );
-
-  const fetchInitialData = useCallback(async () => {
-    let initialSelectDataGrid: any = [];
-    if (plot.plot_type === 'violin') {
-      const selectGrid = createStudyViolinSelectGrid(plot);
-      const dataResult = await fetchSelectData(selectGrid);
-      initialSelectDataGrid = dataResult.initialSelectDataGrid;
-    }
-    fetchData(initialSelectDataGrid);
-  }, [fetchSelectData, fetchData, plot]);
+    return plotResponses.map((response: Response) => response.data); // unpack data
+  }, [plot, templateParams]);
 
   // Side Effect for initial Data
   useEffect(() => {
+    const fetchInitialData = async () => {
+      setIsInitLoading(true);
+      let initialSelectData: any = [];
+      if (plot.plot_type === 'violin') {
+        const selectGrid = createStudyViolinSelectGrid(plot);
+        initialSelectData = await fetchSelectData(selectGrid);
+        setSelectData(initialSelectData);
+      }
+      const plotData = await fetchData();
+      const parsedPlotData = parsePlotData(plot, plotData, initialSelectData, templateParams);
+      setData(plotData);
+      setParsedData(parsedPlotData);
+      setIsInitLoading(false);
+    };
+
     if (isFirstRender) {
       try {
         fetchInitialData();
@@ -206,26 +178,41 @@ export const useChartData = (plot: Plot) => {
         dispatchError({ error });
       }
     }
-  }, [isFirstRender, plot, dispatchError, fetchInitialData]);
+  }, [isFirstRender, plot, dispatchError, fetchData, fetchSelectData, templateParams]);
 
   // Effect to fetch data on subsequent state changes
   useEffect(() => {
+    const fetchSubsequentData = async () => {
+      setIsPlotLoading(true);
+      if (isFetchSelected) {
+        const plotData = await fetchData();
+        const parsedPlotData = parsePlotData(plot, plotData, selectData, templateParams);
+        setData(plotData);
+        setParsedData(parsedPlotData);
+      } else {
+        const parsedPlotData = parsePlotData(plot, data, selectData, templateParams);
+        setParsedData(parsedPlotData);
+      }
+      setIsPlotLoading(false);
+    };
+
     if (!isFirstRender && selectData && isFetchSelected) {
       try {
-        fetchData(selectData);
+        fetchSubsequentData();
       } catch (error) {
         dispatchError({ error });
       }
     }
-  }, [isFirstRender, selectData, isFetchSelected, dispatchError, fetchData]);
-
-  // Effect to reparse data on state changes
-  useEffect(() => {
-    if (data && selectData) {
-      const newParsedData = parsePlotData(plot, data, selectData, templateParams);
-      setParsedData(newParsedData); // set parsed data
-    }
-  }, [data, plot, selectData, templateParams]);
+  }, [
+    isFirstRender,
+    isFetchSelected,
+    dispatchError,
+    fetchData,
+    selectData,
+    templateParams,
+    plot,
+    data,
+  ]);
 
   /**
    * @param cell
@@ -412,7 +399,8 @@ export const useChartData = (plot: Plot) => {
 
   return {
     isFirstRender,
-    isLoading,
+    isInitLoading,
+    isPlotLoading,
     modalProps,
     errors,
     selectData,
@@ -571,7 +559,7 @@ const createStudyViolinSelectGrid = (plot: Plot) => {
  */
 const parsePlotData = (
   plot: Plot,
-  unpackedResponses: Array<ResponseData>,
+  unpackedResponses: ResponseData[],
   selectDataGrid: any,
   templateParams: any
 ) => {
