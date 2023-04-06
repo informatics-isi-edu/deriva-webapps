@@ -121,18 +121,192 @@ export const useChartData = (plot: Plot) => {
     []
   );
 
-  const fetchSelectData = useCallback(
-    async (selectGrid: any) =>
-      Promise.all(
-        selectGrid.map(async (row: any[], i: number) =>
-          Promise.all(
-            row.map(async (cell: any, j: number) =>
-              parseSelectGridCell(cell, templateParams, [i, j])
-            )
-          )
-        )
-      ),
-    [templateParams]
+  const fetchSelectGridCellData = async (uri: string, headers: any, compact: boolean) => {
+    const resolvedRef = await ConfigService.ERMrest.resolve(uri, { headers });
+    const ref = compact ? resolvedRef.contextualize.compactSelect : resolvedRef;
+    const initialReference = resolvedRef.contextualize.compactSelect;
+    const page = await ref.read(1);
+    const tupleData = page.tuples;
+    return { initialReference, tupleData };
+  };
+
+  const parseSelectGridCell = useCallback(
+    async (cell: any, templateParams: any, indices: number[]) => {
+      const { isMulti, compact, templateParamKey, ...restOfSeletData } = cell;
+      const { requestInfo } = cell;
+      const selectResult: any = { ...restOfSeletData };
+      if (requestInfo) {
+        const { uriPattern, valueKey, labelKey, recordsetProps } = requestInfo;
+        const { uri, headers } = getPatternUri(uriPattern, templateParams);
+        if (uri) {
+          const { initialReference, tupleData } = await fetchSelectGridCellData(
+            uri,
+            headers,
+            compact
+          );
+          recordsetProps.initialReference = initialReference;
+          requestInfo.tupleData = tupleData;
+          const firstTuple = tupleData[0];
+
+          // set default value for selector
+          selectResult.value = {
+            value: firstTuple.data[valueKey],
+            label: firstTuple.data[labelKey],
+          };
+
+          if (!isMulti) {
+            templateParams.$url_parameters[templateParamKey].data = firstTuple.data;
+          } else {
+            templateParams.$url_parameters[templateParamKey] = tupleData.map((tuple: any) => ({
+              data: tuple.data,
+            }));
+          }
+        }
+
+        if (selectResult.action === 'modal') {
+          const onCloseModal = () => {
+            setModalProps(null);
+          };
+
+          const onSubmitModal = (selectedRows: any[]) => {
+            if (selectedRows && selectedRows.length > 0) {
+              setSelectData((prevValues: any) => {
+                const newValues = [...prevValues];
+                const [i, j] = indices;
+
+                const firstTuple = selectedRows[0];
+                const value = {
+                  value: firstTuple.data[requestInfo.valueKey],
+                  label: firstTuple.data[requestInfo.labelKey],
+                };
+
+                newValues[i][j] = { ...prevValues[i][j], value, selectedRows };
+
+                // TODO: remove this hack. Don't use noData or this condition
+                if (prevValues[i][j].id === 'study') {
+                  templateParams.noData = false;
+                }
+
+                if (!isMulti) {
+                  templateParams.$url_parameters[templateParamKey].data = selectedRows[0].data;
+                } else {
+                  templateParams.$url_parameters[templateParamKey] = selectedRows.map(
+                    (tuple: any) => ({
+                      data: tuple.data,
+                    })
+                  );
+                }
+
+                return newValues;
+              });
+              setIsFetchSelected(true);
+              onCloseModal();
+            }
+          };
+
+          const onClickSelectAll = () => {
+            if (requestInfo.recordsetProps) {
+              templateParams.noData = false;
+              setIsFetchSelected(true);
+              setSelectData((prevValues: any) => {
+                const newValues = [...prevValues];
+                const [i, j] = indices;
+
+                newValues[i][j] = { ...prevValues[i][j], selectedRows: [] };
+
+                templateParams.$url_parameters[templateParamKey] = [];
+
+                return newValues;
+              });
+            }
+          };
+
+          const removeCallback = (removed: any) => {
+            setIsFetchSelected(true);
+            if (removed === null) {
+              // REMOVE ALL
+              setSelectData((prevValues: any) => {
+                const newValues = [...prevValues];
+                const [i, j] = indices;
+                newValues[i][j] = { ...prevValues[i][j], selectedRows: null };
+                templateParams.$url_parameters[templateParamKey] = null;
+                templateParams.noData = true;
+
+                return newValues;
+              });
+            } else {
+              // REMOVE ONE
+              setSelectData((prevValues: any) => {
+                const newValues = [...prevValues];
+                const [i, j] = indices;
+                const prevSelectData = prevValues[i][j];
+                const selectedRows = prevSelectData.selectedRows.filter(
+                  (curr: any) => curr.uniqueId !== removed.uniqueId
+                );
+                if (selectedRows.length === 0) {
+                  templateParams.noData = true;
+                  newValues[i][j] = { ...prevSelectData, selectedRows: null };
+                  templateParams.$url_parameters[templateParamKey] = null;
+                } else {
+                  templateParams.noData = false;
+                  newValues[i][j] = { ...prevSelectData, selectedRows };
+                  templateParams.$url_parameters[templateParamKey] = selectedRows;
+                }
+
+                return newValues;
+              });
+            }
+          };
+
+          const onClickSelectSome = () => {
+            if (requestInfo.recordsetProps) {
+              setIsFetchSelected(true);
+              setModalProps({
+                recordsetProps: requestInfo.recordsetProps,
+                onCloseModal,
+                onSubmitModal,
+              });
+            }
+          };
+
+          const onClick = () => {
+            if (requestInfo.recordsetProps) {
+              setModalProps({
+                recordsetProps: requestInfo.recordsetProps,
+                onCloseModal,
+                onSubmitModal,
+              });
+            }
+          };
+
+          // functions for button-select
+          selectResult.onClickSelectAll = onClickSelectAll;
+          selectResult.onClickSelectSome = onClickSelectSome;
+          selectResult.removeCallback = removeCallback;
+
+          // functions for dropdown-select
+          selectResult.onClick = onClick;
+        }
+      }
+
+      const onChange = (option: any) => {
+        if (option) {
+          console.log(option);
+          setSelectData((prevValues: any) => {
+            const newValues = [...prevValues];
+            const [i, j] = indices;
+            newValues[i][j] = { ...prevValues[i][j], value: option };
+            console.log(newValues);
+            return newValues;
+          });
+          setIsFetchSelected(false);
+        }
+      };
+      selectResult.onChange = onChange;
+
+      return selectResult;
+    },
+    []
   );
 
   const fetchData = useCallback(async () => {
@@ -156,6 +330,17 @@ export const useChartData = (plot: Plot) => {
 
   //  Effect to fetch initial Data
   useEffect(() => {
+    const fetchSelectData = async (selectGrid: any) =>
+      Promise.all(
+        selectGrid.map(async (row: any[], i: number) =>
+          Promise.all(
+            row.map(async (cell: any, j: number) =>
+              parseSelectGridCell(cell, templateParams, [i, j])
+            )
+          )
+        )
+      );
+
     const fetchInitialData = async () => {
       setIsInitLoading(true);
       if (plot.plot_type === 'violin') {
@@ -175,7 +360,7 @@ export const useChartData = (plot: Plot) => {
         dispatchError({ error });
       }
     }
-  }, [isFirstRender, plot, fetchData, fetchSelectData, dispatchError]);
+  }, [isFirstRender, plot, templateParams, fetchData, dispatchError, parseSelectGridCell]);
 
   // Effect to fetch data on subsequent selectData changes
   useEffect(() => {
@@ -204,202 +389,6 @@ export const useChartData = (plot: Plot) => {
       setIsParseLoading(false);
     }
   }, [plot, data, selectData, templateParams]);
-
-  const fetchSelectGridCellData = async (requestInfo: any) => {
-    const { uriPattern } = requestInfo;
-    const { uri, headers } = getPatternUri(uriPattern, templateParams);
-    const resolvedRef = await ConfigService.ERMrest.resolve(uri, { headers });
-    const initialReference = resolvedRef.contextualize.compactSelect;
-    const page = await resolvedRef.read(1);
-    const tupleData = page.tuples;
-    return { initialReference, tupleData };
-  };
-
-  /**
-   * @param cell
-   */
-  const parseSelectGridCell = async (cell: any, templateParams: any, indices: number[]) => {
-    const { isMulti, compact, templateParamKey, ...restOfSeletData } = cell;
-    const { requestInfo } = cell;
-    const selectResult: any = { ...restOfSeletData };
-    let defaultValue = null;
-    if (requestInfo) {
-      const { uriPattern, valueKey, labelKey, recordsetProps } = requestInfo;
-      const { uri, headers } = getPatternUri(uriPattern, templateParams);
-      if (uri) {
-        const resolvedRef = await ConfigService.ERMrest.resolve(uri, { headers });
-        const ref = compact ? resolvedRef.contextualize.compactSelect : resolvedRef;
-        recordsetProps.initialReference = resolvedRef.contextualize.compactSelect;
-
-        const page = await ref.read(1);
-        const tupleData = page.tuples;
-        requestInfo.tupleData = tupleData;
-        const firstTuple = tupleData[0];
-        defaultValue = {
-          value: firstTuple.data[valueKey],
-          label: firstTuple.data[labelKey],
-        };
-
-        // TODO: handle edge case differently
-        if (!isMulti) {
-          templateParams.$url_parameters[templateParamKey].data = firstTuple.data;
-        } else {
-          templateParams.$url_parameters[templateParamKey] = tupleData.map((tuple: any) => ({
-            data: tuple.data,
-          }));
-        }
-      }
-    }
-    if (defaultValue) {
-      selectResult.value = defaultValue;
-    }
-
-    // todo: check action is modal and add these
-    if (requestInfo && selectResult.action === 'modal') {
-      const onCloseModal = () => {
-        console.log('onclosemodal');
-        setModalProps(null);
-      };
-
-      const onSubmitModal = (selectedRows: any[]) => {
-        console.log('onsubmitmodal');
-        if (selectedRows && selectedRows.length > 0) {
-          setSelectData((prevValues: any) => {
-            const newValues = [...prevValues];
-            const [i, j] = indices;
-
-            const firstTuple = selectedRows[0];
-            const value = {
-              value: firstTuple.data[requestInfo.valueKey],
-              label: firstTuple.data[requestInfo.labelKey],
-            };
-
-            newValues[i][j] = { ...prevValues[i][j], value, selectedRows };
-
-            // TODO: remove this hack. Don't use noData or this condition
-            if (prevValues[i][j].id === 'study') {
-              templateParams.noData = false;
-            }
-
-            if (!isMulti) {
-              templateParams.$url_parameters[templateParamKey].data = selectedRows[0].data;
-            } else {
-              templateParams.$url_parameters[templateParamKey] = selectedRows.map((tuple: any) => ({
-                data: tuple.data,
-              }));
-            }
-
-            return newValues;
-          });
-          setIsFetchSelected(true);
-          onCloseModal();
-        }
-      };
-
-      const onClickSelectAll = () => {
-        if (requestInfo.recordsetProps) {
-          console.log(requestInfo.recordsetProps);
-          templateParams.noData = false;
-          setIsFetchSelected(true);
-          setSelectData((prevValues: any) => {
-            const newValues = [...prevValues];
-            const [i, j] = indices;
-
-            newValues[i][j] = { ...prevValues[i][j], selectedRows: [] };
-
-            templateParams.$url_parameters[templateParamKey] = [];
-
-            return newValues;
-          });
-        }
-      };
-
-      const removeCallback = (removed: any) => {
-        setIsFetchSelected(true);
-        if (removed === null) {
-          // REMOVE ALL
-          setSelectData((prevValues: any) => {
-            const newValues = [...prevValues];
-            const [i, j] = indices;
-            newValues[i][j] = { ...prevValues[i][j], selectedRows: null };
-            templateParams.$url_parameters[templateParamKey] = null;
-            templateParams.noData = true;
-
-            return newValues;
-          });
-        } else {
-          // REMOVE ONE
-          setSelectData((prevValues: any) => {
-            const newValues = [...prevValues];
-            const [i, j] = indices;
-            const prevSelectData = prevValues[i][j];
-            const selectedRows = prevSelectData.selectedRows.filter(
-              (curr: any) => curr.uniqueId !== removed.uniqueId
-            );
-            if (selectedRows.length === 0) {
-              templateParams.noData = true;
-              newValues[i][j] = { ...prevSelectData, selectedRows: null };
-              templateParams.$url_parameters[templateParamKey] = null;
-            } else {
-              templateParams.noData = false;
-              newValues[i][j] = { ...prevSelectData, selectedRows };
-              templateParams.$url_parameters[templateParamKey] = selectedRows;
-            }
-
-            return newValues;
-          });
-        }
-      };
-
-      const onClickSelectSome = () => {
-        if (requestInfo.recordsetProps) {
-          console.log(requestInfo.recordsetProps);
-          setIsFetchSelected(true);
-          setModalProps({
-            recordsetProps: requestInfo.recordsetProps,
-            onCloseModal,
-            onSubmitModal,
-          });
-        }
-      };
-
-      const onClick = () => {
-        if (requestInfo.recordsetProps) {
-          console.log(requestInfo.recordsetProps);
-          setModalProps({
-            recordsetProps: requestInfo.recordsetProps,
-            onCloseModal,
-            onSubmitModal,
-          });
-        }
-      };
-
-      // functions for button-select
-      selectResult.onClickSelectAll = onClickSelectAll;
-      selectResult.onClickSelectSome = onClickSelectSome;
-      selectResult.removeCallback = removeCallback;
-
-      // functions for dropdown-select
-      selectResult.onClick = onClick;
-    }
-
-    const onChange = (option: any) => {
-      if (option) {
-        console.log(option);
-        setSelectData((prevValues: any) => {
-          const newValues = [...prevValues];
-          const [i, j] = indices;
-          newValues[i][j] = { ...prevValues[i][j], value: option };
-          console.log(newValues);
-          return newValues;
-        });
-        setIsFetchSelected(false);
-      }
-    };
-    selectResult.onChange = onChange;
-
-    return selectResult;
-  };
 
   return {
     isFirstRender,
