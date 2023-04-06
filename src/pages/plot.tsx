@@ -5,6 +5,7 @@ import { createRoot } from 'react-dom/client';
 // components
 import AppWrapper from '@isrd-isi-edu/chaise/src/components/app-wrapper';
 import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
+import ChartWithEffect from '@isrd-isi-edu/deriva-webapps/src/components/plot/chart-with-effect';
 
 // hooks
 import { usePlotConfig } from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
@@ -13,7 +14,6 @@ import { usePlotConfig } from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
 import { ID_NAMES } from '@isrd-isi-edu/chaise/src/utils/constants';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
 
-import ChartWithState from '@isrd-isi-edu/deriva-webapps/src/components/plot/chart-with-state';
 
 const plotSettings = {
   appName: 'app/plot',
@@ -32,6 +32,7 @@ const PlotApp = (): JSX.Element => {
   if (!config && errors.length > 0) {
     return <></>;
   }
+
   if (!config) {
     return <ChaiseSpinner />;
   }
@@ -39,7 +40,7 @@ const PlotApp = (): JSX.Element => {
   return (
     <div className='plot-page'>
       {config.plots.map((plotConfig, i): JSX.Element => {
-        return <ChartWithState key={i} config={plotConfig} />;
+        return <ChartWithEffect key={i} config={plotConfig} />;
       })}
     </div>
   );

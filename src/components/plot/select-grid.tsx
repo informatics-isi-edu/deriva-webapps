@@ -9,11 +9,11 @@ type SelectGridProps = {
   /**
    * width of grid
    */
-  maxWidth: number;
+  width: number;
 };
 
-const SelectGrid = ({ selectors, maxWidth }: SelectGridProps): JSX.Element => (
-  <div className='selectors-grid' style={{ display: 'flex', maxWidth: maxWidth }}>
+const SelectGrid = ({ selectors, width }: SelectGridProps): JSX.Element => (
+  <div className='selectors-grid' style={{ display: 'flex', flex: 1, width: width }}>
     {selectors.map((row: any, i: number) => {
       return (
         <div key={i} className='selectors-row'>

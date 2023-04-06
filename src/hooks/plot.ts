@@ -94,7 +94,7 @@ export const usePlotConfig = (plotConfigs: PlotConfig) => {
  * @returns all data to be used by plot
  */
 export const useChartData = (plot: Plot) => {
-  const isFirstRender = useIsFirstRender(); // TODO: use for initial request
+  const isFirstRender = useIsFirstRender();
   const { dispatchError, errors } = useError();
 
   const [data, setData] = useState<any | null>(null);
@@ -102,8 +102,8 @@ export const useChartData = (plot: Plot) => {
   const [selectData, setSelectData] = useState<any>(null);
   const [modalProps, setModalProps] = useState<any>(null);
   const [isInitLoading, setIsInitLoading] = useState<boolean>(false);
-  const [isPlotLoading, setIsPlotLoading] = useState<boolean>(false);
-
+  const [isDataLoading, setIsDataLoading] = useState<boolean>(false);
+  const [isParseLoading, setIsParseLoading] = useState<boolean>(false);
   const [isFetchSelected, setIsFetchSelected] = useState<boolean>(false);
 
   // TODO: change this to a more local scope and don't hardcode the values
@@ -154,20 +154,17 @@ export const useChartData = (plot: Plot) => {
     return plotResponses.map((response: Response) => response.data); // unpack data
   }, [plot, templateParams]);
 
-  // Side Effect for initial Data
+  //  Effect to fetch initial Data
   useEffect(() => {
     const fetchInitialData = async () => {
       setIsInitLoading(true);
-      let initialSelectData: any = [];
       if (plot.plot_type === 'violin') {
         const selectGrid = createStudyViolinSelectGrid(plot);
-        initialSelectData = await fetchSelectData(selectGrid);
+        const initialSelectData = await fetchSelectData(selectGrid);
         setSelectData(initialSelectData);
       }
       const plotData = await fetchData();
-      const parsedPlotData = parsePlotData(plot, plotData, initialSelectData, templateParams);
       setData(plotData);
-      setParsedData(parsedPlotData);
       setIsInitLoading(false);
     };
 
@@ -178,41 +175,45 @@ export const useChartData = (plot: Plot) => {
         dispatchError({ error });
       }
     }
-  }, [isFirstRender, plot, dispatchError, fetchData, fetchSelectData, templateParams]);
+  }, [isFirstRender, plot, fetchData, fetchSelectData, dispatchError]);
 
-  // Effect to fetch data on subsequent state changes
+  // Effect to fetch data on subsequent selectData changes
   useEffect(() => {
     const fetchSubsequentData = async () => {
-      setIsPlotLoading(true);
-      if (isFetchSelected) {
-        const plotData = await fetchData();
-        const parsedPlotData = parsePlotData(plot, plotData, selectData, templateParams);
-        setData(plotData);
-        setParsedData(parsedPlotData);
-      } else {
-        const parsedPlotData = parsePlotData(plot, data, selectData, templateParams);
-        setParsedData(parsedPlotData);
-      }
-      setIsPlotLoading(false);
+      setIsDataLoading(true);
+      const plotData = await fetchData();
+      setData(plotData);
+      setIsDataLoading(false);
     };
 
-    if (!isFirstRender && selectData && isFetchSelected) {
+    if (!isFirstRender && isFetchSelected) {
       try {
         fetchSubsequentData();
       } catch (error) {
         dispatchError({ error });
       }
     }
-  }, [
-    isFirstRender,
-    isFetchSelected,
-    dispatchError,
-    fetchData,
-    selectData,
-    templateParams,
-    plot,
-    data,
-  ]);
+  }, [isFirstRender, isFetchSelected, selectData, templateParams, fetchData, dispatchError]);
+
+  // Parse data on state changes to data and selectData
+  useEffect(() => {
+    if (data) {
+      setIsParseLoading(true);
+      const parsedPlotData = parsePlotData(plot, data, selectData, templateParams);
+      setParsedData(parsedPlotData);
+      setIsParseLoading(false);
+    }
+  }, [plot, data, selectData, templateParams]);
+
+  const fetchSelectGridCellData = async (requestInfo: any) => {
+    const { uriPattern } = requestInfo;
+    const { uri, headers } = getPatternUri(uriPattern, templateParams);
+    const resolvedRef = await ConfigService.ERMrest.resolve(uri, { headers });
+    const initialReference = resolvedRef.contextualize.compactSelect;
+    const page = await resolvedRef.read(1);
+    const tupleData = page.tuples;
+    return { initialReference, tupleData };
+  };
 
   /**
    * @param cell
@@ -299,6 +300,7 @@ export const useChartData = (plot: Plot) => {
         if (requestInfo.recordsetProps) {
           console.log(requestInfo.recordsetProps);
           templateParams.noData = false;
+          setIsFetchSelected(true);
           setSelectData((prevValues: any) => {
             const newValues = [...prevValues];
             const [i, j] = indices;
@@ -313,6 +315,7 @@ export const useChartData = (plot: Plot) => {
       };
 
       const removeCallback = (removed: any) => {
+        setIsFetchSelected(true);
         if (removed === null) {
           // REMOVE ALL
           setSelectData((prevValues: any) => {
@@ -351,6 +354,7 @@ export const useChartData = (plot: Plot) => {
       const onClickSelectSome = () => {
         if (requestInfo.recordsetProps) {
           console.log(requestInfo.recordsetProps);
+          setIsFetchSelected(true);
           setModalProps({
             recordsetProps: requestInfo.recordsetProps,
             onCloseModal,
@@ -400,11 +404,13 @@ export const useChartData = (plot: Plot) => {
   return {
     isFirstRender,
     isInitLoading,
-    isPlotLoading,
+    isDataLoading,
+    isParseLoading,
     modalProps,
-    errors,
     selectData,
     parsedData,
+    data,
+    errors,
   };
 };
 
