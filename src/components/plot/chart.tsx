@@ -13,8 +13,6 @@ export type ChartProps = {
 };
 
 const Chart = ({ selectors, plotlyProps, isChartLoading }: ChartProps): JSX.Element => {
-  console.log('ISCHARTLOADING', isChartLoading);
-
   return (
     <div className='chart'>
       {selectors && selectors.length > 0 ? (

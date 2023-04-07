@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import {
   PlotData as PlotlyPlotData,
   ViolinData as PlotlyViolinData,
@@ -25,6 +25,7 @@ import {
   RecordsetDisplayMode,
   RecordsetSelectMode,
 } from '@isrd-isi-edu/chaise/src/models/recordset';
+import SelectedRows from '@isrd-isi-edu/chaise/src/components/selected-rows';
 
 /**
  * Data received from API request
@@ -62,6 +63,13 @@ export type PieResultData = {
   labels: string[] & number[];
 };
 
+type PlotTemplateParams = {
+  $url_parameters: {
+    [paramKey: string]: any;
+  };
+  noData: boolean;
+};
+
 /**
  * Sets the plot configs
  *
@@ -87,6 +95,48 @@ export const usePlotConfig = (plotConfigs: PlotConfig) => {
   return { errors, config: typeConfig };
 };
 
+const initialTemplateParams = {
+  $url_parameters: {
+    Gene: {
+      data: {
+        NCBI_GeneID: '1', // TODO: deal with default value
+      },
+    },
+    Study: [],
+  },
+};
+
+const addUrlParameters = (
+  templateParams: PlotTemplateParams,
+  isMulti: boolean,
+  paramKey: string,
+  tupleData: any[]
+) => ({
+  ...templateParams,
+  $url_parameters: {
+    ...templateParams.$url_parameters,
+    [paramKey]: isMulti
+      ? tupleData.map((tuple: any) => ({ data: tuple.data }))
+      : { data: tupleData[0].data },
+  },
+});
+
+// TODO: template parameters can be removed and migrated to use this instead if initial template params are defined differently
+const createTemplateParams = (selectData: any[][]) => {
+  const $url_parameters: PlotTemplateParams['$url_parameters'] = {};
+  flatten2DArray(selectData).forEach((cell: any) => {
+    const { requestInfo, isMulti, urlParamKey, selectedRows } = cell;
+    if (requestInfo) {
+      if (isMulti) {
+        $url_parameters[urlParamKey] = selectedRows;
+      } else {
+        $url_parameters[urlParamKey] = { data: selectedRows[0].data };
+      }
+    }
+  });
+  return { $url_parameters };
+};
+
 /**
  * Hook function to use plot config object
  *
@@ -95,8 +145,6 @@ export const usePlotConfig = (plotConfigs: PlotConfig) => {
  */
 export const useChartData = (plot: Plot) => {
   const isFirstRender = useIsFirstRender();
-  const { dispatchError, errors } = useError();
-
   const [data, setData] = useState<any | null>(null);
   const [parsedData, setParsedData] = useState<any>(null);
   const [selectData, setSelectData] = useState<any>(null);
@@ -105,9 +153,10 @@ export const useChartData = (plot: Plot) => {
   const [isDataLoading, setIsDataLoading] = useState<boolean>(false);
   const [isParseLoading, setIsParseLoading] = useState<boolean>(false);
   const [isFetchSelected, setIsFetchSelected] = useState<boolean>(false);
+  const { dispatchError, errors } = useError();
 
   // TODO: change this to a more local scope and don't hardcode the values
-  const templateParams: unknown = useMemo(
+  const templateParams: PlotTemplateParams = useMemo(
     () => ({
       $url_parameters: {
         Gene: {
@@ -117,6 +166,7 @@ export const useChartData = (plot: Plot) => {
         },
         Study: [],
       },
+      noData: false, // TODOL: remove hack when empty selectedRows are fixed
     }),
     []
   );
@@ -130,184 +180,187 @@ export const useChartData = (plot: Plot) => {
     return { initialReference, tupleData };
   };
 
-  const parseSelectGridCell = useCallback(
-    async (cell: any, templateParams: any, indices: number[]) => {
-      const { isMulti, compact, templateParamKey, ...restOfSeletData } = cell;
-      const { requestInfo } = cell;
-      const selectResult: any = { ...restOfSeletData };
-      if (requestInfo) {
-        const { uriPattern, valueKey, labelKey, recordsetProps } = requestInfo;
-        const { uri, headers } = getPatternUri(uriPattern, templateParams);
-        if (uri) {
-          const { initialReference, tupleData } = await fetchSelectGridCellData(
-            uri,
-            headers,
-            compact
-          );
-          recordsetProps.initialReference = initialReference;
-          requestInfo.tupleData = tupleData;
-          const firstTuple = tupleData[0];
+  const parseSelectGridCell = useCallback(async (cell: any, templateParams: PlotTemplateParams, indices: number[]) => {
+    const { isMulti, compact, urlParamKey, ...restOfSeletData } = cell;
+    const { requestInfo } = cell;
+    const selectResult: any = { ...restOfSeletData };
+    if (requestInfo) {
+      const { uriPattern, valueKey, labelKey, recordsetProps } = requestInfo;
+      const { uri, headers } = getPatternUri(uriPattern, templateParams);
+      if (uri) {
+        const { initialReference, tupleData } = await fetchSelectGridCellData(
+          uri,
+          headers,
+          compact
+        );
+        recordsetProps.initialReference = initialReference; // set initial ref
+        selectResult.selectedRows = tupleData; // set initial selected rows
 
-          // set default value for selector
-          selectResult.value = {
-            value: firstTuple.data[valueKey],
-            label: firstTuple.data[labelKey],
-          };
+        // set default value for selector
+        const firstTuple = tupleData[0];
+        selectResult.value = {
+          value: firstTuple.data[valueKey],
+          label: firstTuple.data[labelKey],
+        };
 
-          if (!isMulti) {
-            templateParams.$url_parameters[templateParamKey].data = firstTuple.data;
-          } else {
-            templateParams.$url_parameters[templateParamKey] = tupleData.map((tuple: any) => ({
-              data: tuple.data,
-            }));
-          }
-        }
-
-        if (selectResult.action === 'modal') {
-          const onCloseModal = () => {
-            setModalProps(null);
-          };
-
-          const onSubmitModal = (selectedRows: any[]) => {
-            if (selectedRows && selectedRows.length > 0) {
-              setSelectData((prevValues: any) => {
-                const newValues = [...prevValues];
-                const [i, j] = indices;
-
-                const firstTuple = selectedRows[0];
-                const value = {
-                  value: firstTuple.data[requestInfo.valueKey],
-                  label: firstTuple.data[requestInfo.labelKey],
-                };
-
-                newValues[i][j] = { ...prevValues[i][j], value, selectedRows };
-
-                // TODO: remove this hack. Don't use noData or this condition
-                if (prevValues[i][j].id === 'study') {
-                  templateParams.noData = false;
-                }
-
-                if (!isMulti) {
-                  templateParams.$url_parameters[templateParamKey].data = selectedRows[0].data;
-                } else {
-                  templateParams.$url_parameters[templateParamKey] = selectedRows.map(
-                    (tuple: any) => ({
-                      data: tuple.data,
-                    })
-                  );
-                }
-
-                return newValues;
-              });
-              setIsFetchSelected(true);
-              onCloseModal();
-            }
-          };
-
-          const onClickSelectAll = () => {
-            if (requestInfo.recordsetProps) {
-              templateParams.noData = false;
-              setIsFetchSelected(true);
-              setSelectData((prevValues: any) => {
-                const newValues = [...prevValues];
-                const [i, j] = indices;
-
-                newValues[i][j] = { ...prevValues[i][j], selectedRows: [] };
-
-                templateParams.$url_parameters[templateParamKey] = [];
-
-                return newValues;
-              });
-            }
-          };
-
-          const removeCallback = (removed: any) => {
-            setIsFetchSelected(true);
-            if (removed === null) {
-              // REMOVE ALL
-              setSelectData((prevValues: any) => {
-                const newValues = [...prevValues];
-                const [i, j] = indices;
-                newValues[i][j] = { ...prevValues[i][j], selectedRows: null };
-                templateParams.$url_parameters[templateParamKey] = null;
-                templateParams.noData = true;
-
-                return newValues;
-              });
-            } else {
-              // REMOVE ONE
-              setSelectData((prevValues: any) => {
-                const newValues = [...prevValues];
-                const [i, j] = indices;
-                const prevSelectData = prevValues[i][j];
-                const selectedRows = prevSelectData.selectedRows.filter(
-                  (curr: any) => curr.uniqueId !== removed.uniqueId
-                );
-                if (selectedRows.length === 0) {
-                  templateParams.noData = true;
-                  newValues[i][j] = { ...prevSelectData, selectedRows: null };
-                  templateParams.$url_parameters[templateParamKey] = null;
-                } else {
-                  templateParams.noData = false;
-                  newValues[i][j] = { ...prevSelectData, selectedRows };
-                  templateParams.$url_parameters[templateParamKey] = selectedRows;
-                }
-
-                return newValues;
-              });
-            }
-          };
-
-          const onClickSelectSome = () => {
-            if (requestInfo.recordsetProps) {
-              setIsFetchSelected(true);
-              setModalProps({
-                recordsetProps: requestInfo.recordsetProps,
-                onCloseModal,
-                onSubmitModal,
-              });
-            }
-          };
-
-          const onClick = () => {
-            if (requestInfo.recordsetProps) {
-              setModalProps({
-                recordsetProps: requestInfo.recordsetProps,
-                onCloseModal,
-                onSubmitModal,
-              });
-            }
-          };
-
-          // functions for button-select
-          selectResult.onClickSelectAll = onClickSelectAll;
-          selectResult.onClickSelectSome = onClickSelectSome;
-          selectResult.removeCallback = removeCallback;
-
-          // functions for dropdown-select
-          selectResult.onClick = onClick;
+        if (!isMulti) {
+          templateParams.$url_parameters[urlParamKey].data = firstTuple.data;
+        } else {
+          templateParams.$url_parameters[urlParamKey] = tupleData.map((tuple: any) => ({
+            data: tuple.data,
+          }));
         }
       }
 
-      const onChange = (option: any) => {
-        if (option) {
-          console.log(option);
+      if (selectResult.action === 'modal') {
+        const onCloseModal = () => {
+          console.log('onCloseModal');
+          setModalProps(null);
+        };
+
+        const onSubmitModal = (selectedRows: any[]) => {
+          templateParams.noData = true;
           setSelectData((prevValues: any) => {
             const newValues = [...prevValues];
             const [i, j] = indices;
-            newValues[i][j] = { ...prevValues[i][j], value: option };
-            console.log(newValues);
+
+            newValues[i][j] = { ...prevValues[i][j], selectedRows };
+
+            if (selectedRows && selectedRows.length > 0) {
+              const firstTuple = selectedRows[0];
+              const value = {
+                value: firstTuple.data[requestInfo.valueKey],
+                label: firstTuple.data[requestInfo.labelKey],
+              };
+
+              newValues[i][j].value = value;
+
+              // TODO: remove this hack. Don't use noData or this condition
+              if (prevValues[i][j].id === 'study') {
+                templateParams.noData = false;
+              }
+
+              if (!isMulti) {
+                templateParams.$url_parameters[urlParamKey].data = selectedRows[0].data;
+              } else {
+                templateParams.$url_parameters[urlParamKey] = selectedRows.map((tuple: any) => ({
+                  data: tuple.data,
+                }));
+              }
+            }
+
             return newValues;
           });
-          setIsFetchSelected(false);
-        }
-      };
-      selectResult.onChange = onChange;
+          onCloseModal();
+        };
 
-      return selectResult;
-    },
-    []
-  );
+        const onClickSelectAll = () => {
+          console.log('onClickSelectAll');
+          templateParams.noData = false;
+          setSelectData((prevValues: any) => {
+            const newValues = [...prevValues];
+            const [i, j] = indices;
+
+            newValues[i][j] = { ...prevValues[i][j], selectedRows: [] };
+
+            templateParams.$url_parameters[urlParamKey] = [];
+
+            return newValues;
+          });
+        };
+
+        const removeCallback = (removed: any) => {
+          console.log('removeCallback');
+          setIsFetchSelected(true);
+          if (removed === null) {
+            // REMOVE ALL
+            setSelectData((prevValues: any) => {
+              const newValues = [...prevValues];
+              const [i, j] = indices;
+              newValues[i][j] = { ...prevValues[i][j], selectedRows: null };
+              templateParams.$url_parameters[urlParamKey] = null;
+              templateParams.noData = true;
+
+              return newValues;
+            });
+          } else {
+            // REMOVE ONE
+            setSelectData((prevValues: any) => {
+              const newValues = [...prevValues];
+              const [i, j] = indices;
+              const prevSelectData = prevValues[i][j];
+              const selectedRows = prevSelectData.selectedRows.filter(
+                (curr: any) => curr.uniqueId !== removed.uniqueId
+              );
+              if (selectedRows.length === 0) {
+                templateParams.noData = true;
+                newValues[i][j] = { ...prevSelectData, selectedRows: null };
+                templateParams.$url_parameters[urlParamKey] = null;
+              } else {
+                templateParams.noData = false;
+                newValues[i][j] = { ...prevSelectData, selectedRows };
+                templateParams.$url_parameters[urlParamKey] = selectedRows;
+              }
+
+              return newValues;
+            });
+          }
+        };
+
+        const onClickSelectSome = () => {
+          console.log('test', selectData);
+          if (selectData) {
+            const [i, j] = indices;
+            if (Array.isArray(selectData)) {
+              console.log('test2', selectData[i][j]);
+              console.log('test3', selectData[i][j].selectedRows);
+            }
+          }
+          setIsFetchSelected(true);
+          setModalProps({
+            indices,
+            recordsetProps,
+            onCloseModal,
+            onSubmitModal,
+          });
+        };
+
+        const onClick = () => {
+          console.log('onClick', indices, recordsetProps);
+          setIsFetchSelected(true);
+          setModalProps({
+            indices,
+            recordsetProps,
+            onCloseModal,
+            onSubmitModal,
+          });
+        };
+
+        // functions for button-select
+        selectResult.onClickSelectAll = onClickSelectAll;
+        selectResult.onClickSelectSome = onClickSelectSome;
+        selectResult.removeCallback = removeCallback;
+
+        // functions for dropdown-select
+        selectResult.onClick = onClick;
+      }
+    }
+
+    const onChange = (option: any) => {
+      if (option) {
+        setSelectData((prevValues: any) => {
+          const newValues = [...prevValues];
+          const [i, j] = indices;
+          newValues[i][j] = { ...prevValues[i][j], value: option };
+          return newValues;
+        });
+        setIsFetchSelected(false);
+      }
+    };
+    selectResult.onChange = onChange;
+
+    return selectResult;
+  }, []);
 
   const fetchData = useCallback(async () => {
     // Fulfill promise for plot
@@ -433,9 +486,11 @@ const createStudyViolinSelectGrid = (plot: Plot) => {
   const row1 = [];
   const row2 = [];
 
+  // TODO: define typing for these
+
   const GeneSelectData = {
     id: 'gene',
-    templateParamKey: 'Gene',
+    urlParamKey: 'Gene',
     label: 'Gene',
     type: 'dropdown-select',
     action: 'modal',
@@ -453,7 +508,7 @@ const createStudyViolinSelectGrid = (plot: Plot) => {
           deletable: false,
           sortable: false,
           selectMode: RecordsetSelectMode.SINGLE_SELECT,
-          showFaceting: false,
+          showFaceting: true,
           disableFaceting: false,
           displayMode: RecordsetDisplayMode.POPUP,
         },
@@ -465,45 +520,9 @@ const createStudyViolinSelectGrid = (plot: Plot) => {
     },
   };
 
-  const { group_keys = [] } = plot.config.xaxis || {};
-
-  // TODO: define typing for this
-  const GroupBySelectData: any = {
-    id: 'groupby',
-    label: 'Group By',
-    type: 'dropdown-select',
-    action: 'groupby',
-    axis: 'x',
-  };
-
-  // Set default data for group by
-  if (group_keys.length > 0) {
-    GroupBySelectData.value = {
-      value: group_keys[0].column_name,
-      label: group_keys[0].title_display_pattern,
-    };
-    GroupBySelectData.defaultOptions = group_keys.map((data) => {
-      return { value: data.column_name, label: data.title_display_pattern };
-    });
-  }
-
-  const ScaleSelectData: any = {
-    id: 'scale',
-    label: 'Scale',
-    type: 'dropdown-select',
-    action: 'scale',
-    axis: 'y',
-    setting: plot.config.yaxis,
-    value: { value: 'linear', label: 'Linear' },
-    defaultOptions: [
-      { value: 'linear', label: 'Linear' },
-      { value: 'log', label: 'Log' },
-    ],
-  };
-
   const StudySelectData = {
     id: 'study',
-    templateParamKey: 'Study',
+    urlParamKey: 'Study',
     label: 'Study',
     type: 'button-select',
     isMulti: true,
@@ -521,9 +540,8 @@ const createStudyViolinSelectGrid = (plot: Plot) => {
           deletable: false,
           sortable: false,
           selectMode: RecordsetSelectMode.MULTI_SELECT,
-          showFaceting: false,
+          showFaceting: true,
           disableFaceting: false,
-
           displayMode: RecordsetDisplayMode.POPUP,
         },
         logInfo: {
@@ -533,6 +551,39 @@ const createStudyViolinSelectGrid = (plot: Plot) => {
       },
     },
   };
+
+  const ScaleSelectData: any = {
+    id: 'scale',
+    label: 'Scale',
+    type: 'dropdown-select',
+    action: 'scale',
+    axis: 'y',
+    setting: plot.config.yaxis,
+    value: { value: 'linear', label: 'Linear' },
+    defaultOptions: [
+      { value: 'linear', label: 'Linear' },
+      { value: 'log', label: 'Log' },
+    ],
+  };
+
+  const GroupBySelectData: any = {
+    id: 'groupby',
+    label: 'Group By',
+    type: 'dropdown-select',
+    action: 'groupby',
+    axis: 'x',
+  };
+  // Set default data for group by
+  const { group_keys = [] } = plot.config.xaxis || {};
+  if (group_keys.length > 0) {
+    GroupBySelectData.value = {
+      value: group_keys[0].column_name,
+      label: group_keys[0].title_display_pattern,
+    };
+    GroupBySelectData.defaultOptions = group_keys.map((data) => {
+      return { value: data.column_name, label: data.title_display_pattern };
+    });
+  }
 
   row1.push(GeneSelectData);
   row1.push(GroupBySelectData);
@@ -724,9 +775,6 @@ const parseViolinResponse = (
       }
     });
 
-    // console.log('parseViolinResponse X GROUPBY OBJ', xGroupBy);
-    // console.log('Y SCALE OBJ', yScale);
-
     const x: any[] = [];
     const y: any[] = [];
     const xTicks = [];
@@ -756,9 +804,6 @@ const parseViolinResponse = (
         }
       }
     });
-
-    // console.log('parseViolinResponse XVALUES', x);
-    // console.log('YVALUES', y);
 
     result.x = x;
     result.y = y;
@@ -968,6 +1013,9 @@ const getValue = (
   }
   return formatPlotData(value, formatData, plot.plot_type);
 };
+
+// click events
+// https://plotly.com/javascript/click-events/
 
 /**
  * Updates the trace with given the given trace passed in from plot-cnofig and the item data

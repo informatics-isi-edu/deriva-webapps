@@ -20,11 +20,8 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
   /**
    * Data that goes into the chart
    */
-  const { parsedData, selectData, data, modalProps, isDataLoading, isParseLoading, isInitLoading } =
+  const { parsedData, selectData, modalProps, isDataLoading, isParseLoading, isInitLoading } =
     useChartData(config);
-
-  console.log('ISLOADING', isDataLoading, isParseLoading, isInitLoading, !parsedData);
-  console.log('data', parsedData, selectData, data);
 
   if (!parsedData || isInitLoading) {
     return <ChaiseSpinner />;
@@ -39,6 +36,13 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
   parsedData.layout.height = layoutHeight;
 
   const isModalOpen = modalProps ? true : false;
+
+
+  // TODO: incorrect way of changing a state. change the way this is done.
+  if (modalProps && selectData) {
+    const [i, j] = modalProps.indices;
+    modalProps.recordsetProps.initialSelectedRows = selectData[i][j].selectedRows;
+  }
 
   return (
     <div>
