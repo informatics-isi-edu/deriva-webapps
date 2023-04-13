@@ -8,7 +8,7 @@ import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
 import ChartWithEffect from '@isrd-isi-edu/deriva-webapps/src/components/plot/chart-with-effect';
 
 // hooks
-import { usePlotConfig } from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
+import { usePlotConfig } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
 
 // utilities
 import { ID_NAMES } from '@isrd-isi-edu/chaise/src/utils/constants';

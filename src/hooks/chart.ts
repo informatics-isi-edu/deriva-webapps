@@ -6,11 +6,19 @@ import {
 } from 'plotly.js';
 
 import { getConfigObject } from '@isrd-isi-edu/deriva-webapps/src/utils/config';
-import { formatPlotData, createLink } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
+import {
+  formatPlotData,
+  createLink,
+  getPatternUri,
+  createLinkWithContextParams,
+} from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 import { flatten2DArray } from '@isrd-isi-edu/deriva-webapps/src/utils/data';
 
 import useError from '@isrd-isi-edu/chaise/src/hooks/error';
-import useIsFirstRender from '@isrd-isi-edu/chaise/src/hooks/is-first-render';
+import {
+  createStudyViolinSelectGrid,
+  useChartSelectGrid,
+} from '@isrd-isi-edu/deriva-webapps/src/hooks/chart-select-grid';
 
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
 import {
@@ -21,16 +29,12 @@ import {
   Trace,
   TraceConfig,
 } from '@isrd-isi-edu/deriva-webapps/src/models/plot-config';
-import {
-  RecordsetDisplayMode,
-  RecordsetSelectMode,
-} from '@isrd-isi-edu/chaise/src/models/recordset';
-import SelectedRows from '@isrd-isi-edu/chaise/src/components/selected-rows';
+import useIsFirstRender from '@isrd-isi-edu/chaise/src/hooks/is-first-render';
 
 /**
  * Data received from API request
  */
-type Response = {
+export type Response = {
   /**
    * Dta received from response
    */
@@ -44,15 +48,20 @@ type Response = {
 /**
  * Uunpacked within the response
  */
-type ResponseData = Array<any>;
+export type ResponseData = Array<any>;
 
 /**
  * Data packed in result
  */
-type PlotResultData = {
+export type PlotResultData = {
   x: string[] & number[];
   y: string[] & number[];
   text?: string[];
+};
+
+export type ClickableLinks = {
+  graphic_clickable_links: string[];
+  legend_clickable_links: string[];
 };
 
 /**
@@ -63,7 +72,7 @@ export type PieResultData = {
   labels: string[] & number[];
 };
 
-type PlotTemplateParams = {
+export type PlotTemplateParams = {
   $url_parameters: {
     [paramKey: string]: any;
   };
@@ -147,8 +156,8 @@ export const useChartData = (plot: Plot) => {
   const isFirstRender = useIsFirstRender();
   const [data, setData] = useState<any | null>(null);
   const [parsedData, setParsedData] = useState<any>(null);
-  const [selectData, setSelectData] = useState<any>(null);
   const [modalProps, setModalProps] = useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isInitLoading, setIsInitLoading] = useState<boolean>(false);
   const [isDataLoading, setIsDataLoading] = useState<boolean>(false);
   const [isParseLoading, setIsParseLoading] = useState<boolean>(false);
@@ -171,196 +180,13 @@ export const useChartData = (plot: Plot) => {
     []
   );
 
-  const fetchSelectGridCellData = async (uri: string, headers: any, compact: boolean) => {
-    const resolvedRef = await ConfigService.ERMrest.resolve(uri, { headers });
-    const ref = compact ? resolvedRef.contextualize.compactSelect : resolvedRef;
-    const initialReference = resolvedRef.contextualize.compactSelect;
-    const page = await ref.read(1);
-    const tupleData = page.tuples;
-    return { initialReference, tupleData };
-  };
-
-  const parseSelectGridCell = useCallback(async (cell: any, templateParams: PlotTemplateParams, indices: number[]) => {
-    const { isMulti, compact, urlParamKey, ...restOfSeletData } = cell;
-    const { requestInfo } = cell;
-    const selectResult: any = { ...restOfSeletData };
-    if (requestInfo) {
-      const { uriPattern, valueKey, labelKey, recordsetProps } = requestInfo;
-      const { uri, headers } = getPatternUri(uriPattern, templateParams);
-      if (uri) {
-        const { initialReference, tupleData } = await fetchSelectGridCellData(
-          uri,
-          headers,
-          compact
-        );
-        recordsetProps.initialReference = initialReference; // set initial ref
-        selectResult.selectedRows = tupleData; // set initial selected rows
-
-        // set default value for selector
-        const firstTuple = tupleData[0];
-        selectResult.value = {
-          value: firstTuple.data[valueKey],
-          label: firstTuple.data[labelKey],
-        };
-
-        if (!isMulti) {
-          templateParams.$url_parameters[urlParamKey].data = firstTuple.data;
-        } else {
-          templateParams.$url_parameters[urlParamKey] = tupleData.map((tuple: any) => ({
-            data: tuple.data,
-          }));
-        }
-      }
-
-      if (selectResult.action === 'modal') {
-        const onCloseModal = () => {
-          console.log('onCloseModal');
-          setModalProps(null);
-        };
-
-        const onSubmitModal = (selectedRows: any[]) => {
-          templateParams.noData = true;
-          setSelectData((prevValues: any) => {
-            const newValues = [...prevValues];
-            const [i, j] = indices;
-
-            newValues[i][j] = { ...prevValues[i][j], selectedRows };
-
-            if (selectedRows && selectedRows.length > 0) {
-              const firstTuple = selectedRows[0];
-              const value = {
-                value: firstTuple.data[requestInfo.valueKey],
-                label: firstTuple.data[requestInfo.labelKey],
-              };
-
-              newValues[i][j].value = value;
-
-              // TODO: remove this hack. Don't use noData or this condition
-              if (prevValues[i][j].id === 'study') {
-                templateParams.noData = false;
-              }
-
-              if (!isMulti) {
-                templateParams.$url_parameters[urlParamKey].data = selectedRows[0].data;
-              } else {
-                templateParams.$url_parameters[urlParamKey] = selectedRows.map((tuple: any) => ({
-                  data: tuple.data,
-                }));
-              }
-            }
-
-            return newValues;
-          });
-          onCloseModal();
-        };
-
-        const onClickSelectAll = () => {
-          console.log('onClickSelectAll');
-          templateParams.noData = false;
-          setSelectData((prevValues: any) => {
-            const newValues = [...prevValues];
-            const [i, j] = indices;
-
-            newValues[i][j] = { ...prevValues[i][j], selectedRows: [] };
-
-            templateParams.$url_parameters[urlParamKey] = [];
-
-            return newValues;
-          });
-        };
-
-        const removeCallback = (removed: any) => {
-          console.log('removeCallback');
-          setIsFetchSelected(true);
-          if (removed === null) {
-            // REMOVE ALL
-            setSelectData((prevValues: any) => {
-              const newValues = [...prevValues];
-              const [i, j] = indices;
-              newValues[i][j] = { ...prevValues[i][j], selectedRows: null };
-              templateParams.$url_parameters[urlParamKey] = null;
-              templateParams.noData = true;
-
-              return newValues;
-            });
-          } else {
-            // REMOVE ONE
-            setSelectData((prevValues: any) => {
-              const newValues = [...prevValues];
-              const [i, j] = indices;
-              const prevSelectData = prevValues[i][j];
-              const selectedRows = prevSelectData.selectedRows.filter(
-                (curr: any) => curr.uniqueId !== removed.uniqueId
-              );
-              if (selectedRows.length === 0) {
-                templateParams.noData = true;
-                newValues[i][j] = { ...prevSelectData, selectedRows: null };
-                templateParams.$url_parameters[urlParamKey] = null;
-              } else {
-                templateParams.noData = false;
-                newValues[i][j] = { ...prevSelectData, selectedRows };
-                templateParams.$url_parameters[urlParamKey] = selectedRows;
-              }
-
-              return newValues;
-            });
-          }
-        };
-
-        const onClickSelectSome = () => {
-          console.log('test', selectData);
-          if (selectData) {
-            const [i, j] = indices;
-            if (Array.isArray(selectData)) {
-              console.log('test2', selectData[i][j]);
-              console.log('test3', selectData[i][j].selectedRows);
-            }
-          }
-          setIsFetchSelected(true);
-          setModalProps({
-            indices,
-            recordsetProps,
-            onCloseModal,
-            onSubmitModal,
-          });
-        };
-
-        const onClick = () => {
-          console.log('onClick', indices, recordsetProps);
-          setIsFetchSelected(true);
-          setModalProps({
-            indices,
-            recordsetProps,
-            onCloseModal,
-            onSubmitModal,
-          });
-        };
-
-        // functions for button-select
-        selectResult.onClickSelectAll = onClickSelectAll;
-        selectResult.onClickSelectSome = onClickSelectSome;
-        selectResult.removeCallback = removeCallback;
-
-        // functions for dropdown-select
-        selectResult.onClick = onClick;
-      }
-    }
-
-    const onChange = (option: any) => {
-      if (option) {
-        setSelectData((prevValues: any) => {
-          const newValues = [...prevValues];
-          const [i, j] = indices;
-          newValues[i][j] = { ...prevValues[i][j], value: option };
-          return newValues;
-        });
-        setIsFetchSelected(false);
-      }
-    };
-    selectResult.onChange = onChange;
-
-    return selectResult;
-  }, []);
+  const { selectData, handleCloseModal, handleSubmitModal, fetchSelectData, setSelectData } =
+    useChartSelectGrid(plot, {
+      templateParams,
+      setModalProps,
+      setIsModalOpen,
+      setIsFetchSelected,
+    });
 
   const fetchData = useCallback(async () => {
     // Fulfill promise for plot
@@ -381,41 +207,42 @@ export const useChartData = (plot: Plot) => {
     return plotResponses.map((response: Response) => response.data); // unpack data
   }, [plot, templateParams]);
 
-  //  Effect to fetch initial Data
+  // Effect to fetch data
   useEffect(() => {
-    const fetchSelectData = async (selectGrid: any) =>
-      Promise.all(
-        selectGrid.map(async (row: any[], i: number) =>
-          Promise.all(
-            row.map(async (cell: any, j: number) =>
-              parseSelectGridCell(cell, templateParams, [i, j])
-            )
-          )
-        )
-      );
-
-    const fetchInitialData = async () => {
+    const fetchInitData = async () => {
       setIsInitLoading(true);
       if (plot.plot_type === 'violin') {
         const selectGrid = createStudyViolinSelectGrid(plot);
         const initialSelectData = await fetchSelectData(selectGrid);
         setSelectData(initialSelectData);
       }
+
       const plotData = await fetchData();
       setData(plotData);
       setIsInitLoading(false);
     };
-
+    console.log('fetchInitEffect called');
+    // selectData must be not null first cause it modifies templateParams
     if (isFirstRender) {
+      console.log('inFirstRender');
       try {
-        fetchInitialData();
+        console.log('fetchInitData called');
+        fetchInitData();
       } catch (error) {
         dispatchError({ error });
       }
     }
-  }, [isFirstRender, plot, templateParams, fetchData, dispatchError, parseSelectGridCell]);
+  }, [
+    plot,
+    isFirstRender,
+    fetchSelectData,
+    setSelectData,
+    templateParams,
+    fetchData,
+    dispatchError,
+  ]);
 
-  // Effect to fetch data on subsequent selectData changes
+  // Effect to fetch data on selectData changes
   useEffect(() => {
     const fetchSubsequentData = async () => {
       setIsDataLoading(true);
@@ -424,6 +251,7 @@ export const useChartData = (plot: Plot) => {
       setIsDataLoading(false);
     };
 
+    // selectData must be not null first cause it modifies templateParams
     if (!isFirstRender && isFetchSelected) {
       try {
         fetchSubsequentData();
@@ -444,156 +272,18 @@ export const useChartData = (plot: Plot) => {
   }, [plot, data, selectData, templateParams]);
 
   return {
-    isFirstRender,
     isInitLoading,
     isDataLoading,
     isParseLoading,
     modalProps,
+    isModalOpen,
     selectData,
     parsedData,
     data,
     errors,
+    handleCloseModal,
+    handleSubmitModal,
   };
-};
-
-const getPatternUri = (queryPattern: string, templateParams: any) => {
-  const { contextHeaderName } = ConfigService.ERMrest;
-  const defaultHeaders = ConfigService.contextHeaderParams;
-  const uri = ConfigService.ERMrest.renderHandlebarsTemplate(queryPattern, templateParams);
-  const headers = { [contextHeaderName]: defaultHeaders };
-
-  if (uri) {
-    const uriParams = uri.split('/');
-
-    let schema_table = uriParams[uriParams.indexOf('entity') + 1];
-    if (schema_table.includes(':=')) schema_table = schema_table.split(':=')[1]; // get schema_table
-
-    const catalog = uriParams[uriParams.indexOf('catalog') + 1]; // get catalog
-
-    headers[contextHeaderName] = ConfigService.ERMrest._certifyContextHeader({
-      ...headers[contextHeaderName],
-      schema_table, // TODO: camelcase?
-      catalog,
-    });
-  }
-
-  return { uri, headers };
-};
-
-// TODO: deprecate this
-const createStudyViolinSelectGrid = (plot: Plot) => {
-  const result = [];
-  const row1 = [];
-  const row2 = [];
-
-  // TODO: define typing for these
-
-  const GeneSelectData = {
-    id: 'gene',
-    urlParamKey: 'Gene',
-    label: 'Gene',
-    type: 'dropdown-select',
-    action: 'modal',
-    isButton: true,
-    compact: true,
-    requestInfo: {
-      valueKey: 'NCBI_GeneID',
-      labelKey: 'NCBI_Symbol',
-      uriPattern: plot.gene_uri_pattern,
-      recordsetProps: {
-        initialReference: null,
-        config: {
-          viewable: false,
-          editable: false,
-          deletable: false,
-          sortable: false,
-          selectMode: RecordsetSelectMode.SINGLE_SELECT,
-          showFaceting: true,
-          disableFaceting: false,
-          displayMode: RecordsetDisplayMode.POPUP,
-        },
-        logInfo: {
-          logStack: [{ type: 'set', s_t: 'Common:Gene' }],
-          logStackPath: 'set/gene-selector',
-        },
-      },
-    },
-  };
-
-  const StudySelectData = {
-    id: 'study',
-    urlParamKey: 'Study',
-    label: 'Study',
-    type: 'button-select',
-    isMulti: true,
-    action: 'modal',
-    selectedRows: [],
-    requestInfo: {
-      uriPattern: plot.study_uri_pattern,
-      valueKey: 'RID',
-      labelKey: 'RID',
-      recordsetProps: {
-        initialReference: null,
-        config: {
-          viewable: false,
-          editable: false,
-          deletable: false,
-          sortable: false,
-          selectMode: RecordsetSelectMode.MULTI_SELECT,
-          showFaceting: true,
-          disableFaceting: false,
-          displayMode: RecordsetDisplayMode.POPUP,
-        },
-        logInfo: {
-          logStack: [{ type: 'set', s_t: 'RNASeq:Study' }],
-          logStackPath: 'set/study-selector',
-        },
-      },
-    },
-  };
-
-  const ScaleSelectData: any = {
-    id: 'scale',
-    label: 'Scale',
-    type: 'dropdown-select',
-    action: 'scale',
-    axis: 'y',
-    setting: plot.config.yaxis,
-    value: { value: 'linear', label: 'Linear' },
-    defaultOptions: [
-      { value: 'linear', label: 'Linear' },
-      { value: 'log', label: 'Log' },
-    ],
-  };
-
-  const GroupBySelectData: any = {
-    id: 'groupby',
-    label: 'Group By',
-    type: 'dropdown-select',
-    action: 'groupby',
-    axis: 'x',
-  };
-  // Set default data for group by
-  const { group_keys = [] } = plot.config.xaxis || {};
-  if (group_keys.length > 0) {
-    GroupBySelectData.value = {
-      value: group_keys[0].column_name,
-      label: group_keys[0].title_display_pattern,
-    };
-    GroupBySelectData.defaultOptions = group_keys.map((data) => {
-      return { value: data.column_name, label: data.title_display_pattern };
-    });
-  }
-
-  row1.push(GeneSelectData);
-  row1.push(GroupBySelectData);
-  row1.push(ScaleSelectData);
-  row2.push(StudySelectData);
-
-  result.push(row1);
-  result.push(row2);
-
-  return result;
 };
 
 /**
@@ -741,26 +431,30 @@ const parseViolinResponse = (
   noData?: boolean
 ) => {
   const { ...plotlyTrace } = trace;
-  const result: Partial<TraceConfig> & Partial<PlotlyViolinData> & Partial<{ transforms: any[] }> =
-    {
-      ...plotlyTrace,
-      type: 'violin',
-      text: [],
-      x: [],
-      y: [],
-      // todo: maybe migrate the bottom params to config
-      points: 'all',
-      pointpos: 0,
-      box: {
-        visible: true,
-      },
-      meanline: {
-        visible: true,
-      },
-      line: {
-        width: 1,
-      },
-    };
+  const result: Partial<TraceConfig> &
+    Partial<PlotlyViolinData> &
+    Partial<{ transforms: any[] }> &
+    Partial<ClickableLinks> = {
+    ...plotlyTrace,
+    type: 'violin',
+    text: [],
+    x: [],
+    y: [],
+    legend_clickable_links: [],
+    graphic_clickable_links: [],
+    // todo: maybe migrate the params below to config
+    points: 'all',
+    pointpos: 0,
+    box: {
+      visible: true,
+    },
+    meanline: {
+      visible: true,
+    },
+    line: {
+      width: 1,
+    },
+  };
 
   if (!noData) {
     const selectDataArray = flatten2DArray(selectDataGrid);
@@ -778,7 +472,7 @@ const parseViolinResponse = (
     const x: any[] = [];
     const y: any[] = [];
     const xTicks = [];
-    responseData.forEach((item: any) => {
+    responseData.forEach((item: any, i: number) => {
       if (xGroupBy) {
         const groupByKey = xGroupBy.value.value;
         const xVal = item[groupByKey];
@@ -795,6 +489,8 @@ const parseViolinResponse = (
 
       if (yScale) {
         const yItem = item[yScale.setting.group_key];
+        updateWithTraceColData(result, trace, yItem, i);
+
         if (yScale.value.value === 'log') {
           const yVal = yItem + 1;
           y.push(yVal);
@@ -901,7 +597,7 @@ const parseScatterResponse = (trace: Trace, plot: Plot, responseData: ResponseDa
  * @returns
  */
 const parsePieResponse = (trace: Trace, plot: Plot, responseData: ResponseData) => {
-  const result: Partial<TraceConfig> & Partial<PlotlyPieData> & PieResultData = {
+  const result: Partial<TraceConfig> & Partial<PlotlyPieData> & PieResultData & ClickableLinks = {
     ...trace,
     type: plot.plot_type,
     hoverinfo: 'text+value+percent', // value to show on hover of a pie slice
@@ -909,8 +605,8 @@ const parsePieResponse = (trace: Trace, plot: Plot, responseData: ResponseData) 
     labels: [],
     values: [],
     text: [],
-    // legend_clickable_links: [], // TODO: confirm deprecated
-    // graphic_clickable_links: [], // TODO: confirm deprecated
+    legend_clickable_links: [],
+    graphic_clickable_links: [],
   };
 
   const { config } = plot;
@@ -946,7 +642,7 @@ const parsePieResponse = (trace: Trace, plot: Plot, responseData: ResponseData) 
  * @returns
  */
 const parseBarResponse = (trace: Trace, plot: Plot, responseData: ResponseData) => {
-  const result: Partial<TraceConfig> & Partial<PlotlyPlotData> & PlotResultData = {
+  const result: Partial<TraceConfig> & Partial<PlotlyPlotData> & PlotResultData & ClickableLinks = {
     ...trace,
     type: plot.plot_type,
     textposition: 'outside', // position of bar values
@@ -954,8 +650,8 @@ const parseBarResponse = (trace: Trace, plot: Plot, responseData: ResponseData) 
     x: [], // x data
     y: [], // y data
     text: [], // text data
-    // legend_clickable_links: [], // TODO: confirm deprecated
-    // graphic_clickable_links: [], // TODO: confirm deprecated
+    legend_clickable_links: [],
+    graphic_clickable_links: [],
   };
 
   const { config } = plot;
@@ -1033,23 +729,22 @@ const updateWithTraceColData = (result: any, trace: Trace, item: any, index: num
   }
   result.name = name;
 
-  // TODO: confirm deprecated
-  // get legend clickable links
-  // if (trace.legend_markdown_pattern) {
-  //   const traceLinkWithContextParams = createLinkWithContextParams(
-  //     trace.legend_markdown_pattern[i] || ''
-  //   );
-  //   result.legend_clickable_links.push(traceLinkWithContextParams);
-  // }
+  if (trace.legend_markdown_pattern) {
+    const linkPattern = Array.isArray(trace.legend_markdown_pattern)
+      ? trace.legend_markdown_pattern[index]
+      : trace.legend_markdown_pattern;
+    const extractedLink = createLinkWithContextParams(linkPattern);
+    if (extractedLink) {
+      result.legend_clickable_links.push(createLink(extractedLink, { $self: { data: item } }));
+    }
+  }
 
-  // TODO: confirm deprecated
-  // Configure links for individual traces
-  // For Configuring links we are only going to render the templating pattern as the link would not contain any of html content in it, it would be plain link like,
-  // graphic_link_pattern: "/chaise/recordset/#2/{{{ $self.data.Schema_Table }}}/*::facets::{{#encodeFacet}}{{{ $self.data.Data_Type_Filter }}}{{/encodeFacet}}"
-  // if (trace.graphic_link_pattern) {
-  //   const linkPattern = Array.isArray(trace.graphic_link_pattern)
-  //     ? trace.graphic_link_pattern[0]
-  //     : trace.graphic_link_pattern;
-  //   result.graphic_clickable_links.push(createLink(linkPattern, templateParams));
-  // }
+  if (trace.graphic_link_pattern) {
+    const linkPattern = Array.isArray(trace.graphic_link_pattern)
+      ? trace.graphic_link_pattern[0]
+      : trace.graphic_link_pattern;
+    if (linkPattern) {
+      result.graphic_clickable_links.push(createLink(linkPattern, { $self: { data: item } }));
+    }
+  }
 };
