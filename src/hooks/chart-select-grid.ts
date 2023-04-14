@@ -285,7 +285,7 @@ export const createStudyViolinSelectGrid = (plot: Plot) => {
           sortable: false,
           selectMode: RecordsetSelectMode.SINGLE_SELECT,
           showFaceting: false,
-          disableFaceting: false,
+          disableFaceting: true,
           displayMode: RecordsetDisplayMode.POPUP,
         },
         logInfo: {

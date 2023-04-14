@@ -350,7 +350,7 @@ const updatePlotlyLayout = (
   plot: Plot,
   result: any,
   templateParams: any,
-  parsedLayout?: any,
+  additionalLayout?: any,
   selectDataGrid?: any
 ): void => {
   // title
@@ -376,14 +376,11 @@ const updatePlotlyLayout = (
   if (plot.config.xaxis?.title_display_markdown_pattern) {
     result.layout.xaxis.title = createLink(plot.config.xaxis.title_display_markdown_pattern);
   }
-  if (parsedLayout?.xaxis?.tickvals) {
-    result.layout.xaxis.tickmode = 'array';
-    result.layout.xaxis.tickvals = parsedLayout.xaxis.tickvals;
-    console.log('parsedlayoutres tickvals', result.layout.xaxis.tickvals);
+  if (additionalLayout?.xaxis?.tickvals) {
+    result.layout.xaxis.tickvals = additionalLayout.xaxis.tickvals;
   }
-  if (parsedLayout?.xaxis?.ticktext) {
-    result.layout.xaxis.ticktext = parsedLayout.xaxis.ticktext;
-    console.log('parsedlayoutres ticktext', parsedLayout.xaxis.ticktext);
+  if (additionalLayout?.xaxis?.ticktext) {
+    result.layout.xaxis.ticktext = additionalLayout.xaxis.ticktext;
   }
   if (selectDataGrid) {
     const xaxisTitle = getSelectGroupByAxisTitle(selectDataGrid, 'x');
@@ -455,8 +452,7 @@ const parseViolinResponse = (
     type: 'violin',
     x: [],
     y: [],
-    legend_clickable_links: [],
-    graphic_clickable_links: [],
+    text: [],
     hovertemplate: '',
 
     // todo: maybe migrate the params below to config
@@ -471,6 +467,9 @@ const parseViolinResponse = (
     line: {
       width: 1,
     },
+
+    legend_clickable_links: [],
+    graphic_clickable_links: [],
   };
 
   const layout: any = {};
@@ -497,10 +496,18 @@ const parseViolinResponse = (
         const xGroupItem = xGroupBy.groupKeysMap[groupByKey];
         updateWithTraceColData(result, trace, item, i, xGroupItem);
 
-        const xVal = item[groupByKey];
+        console.log('violin legendmarkdown', xGroupItem?.legend_markdown_pattern);
+
+        const xVal = xGroupItem?.legend_markdown_pattern
+          ? createLink(xGroupItem?.legend_markdown_pattern[0], { $row: item })
+          : item[groupByKey];
+
+        console.log('xval', xVal);
+
         const xTick = xGroupItem?.tick_display_markdown_pattern
           ? createLink(xGroupItem?.tick_display_markdown_pattern, { $row: item })
-          : xVal;
+          : null;
+
         if (xVal !== null && xVal !== undefined) {
           x.push(xVal);
         }
@@ -527,18 +534,22 @@ const parseViolinResponse = (
 
     console.log('x', x);
     console.log('y', y);
+    console.log('xTicks', xTicks);
 
-    result.x = x;
+    result.x = x.length === 0 ? ['N/A'] : x;
     result.y = y;
 
     result.transforms = [
       {
         type: 'groupby',
-        groups: x,
+        groups: result.x,
       },
     ];
 
-    layout.xaxis = { tickvals: x, ticktext: xTicks };
+    layout.xaxis = {
+      tickvals: result.x,
+      ticktext: xTicks.length === 0 ? ['N/A'] : xTicks,
+    };
   }
 
   return { result, layout };
