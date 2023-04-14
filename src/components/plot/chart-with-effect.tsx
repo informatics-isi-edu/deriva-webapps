@@ -47,7 +47,6 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
    * Handles the behavior when a graphic is clicked
    */
   const handlePlotlyClick = ({ points }: { points: any[]; event: MouseEvent }) => {
-    console.log('onClick Plotly', points);
     if (
       !Array.isArray(points) || //  points not an array
       points.length !== 1 || // points not a single point
@@ -75,7 +74,6 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
    * Handles the behavior when a graphic is clicked
    */
   const handlePlotlyLegendClick = (clickData: any) => {
-    console.log('onLegendClick Plotly', clickData);
     const { data, label } = clickData;
     if (
       !Array.isArray(data) || //  points not an array
@@ -87,12 +85,7 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
     let url = '';
     if (label && Array.isArray(data[0].labels) && data[0].legend_clickable_links) {
       url = data[0].legend_clickable_links[data[0].labels.indexOf(label)];
-    } else if (
-      data[0].legend &&
-      data[0].legend.length === 1 &&
-      data[0].legend_clickable_links &&
-      data[0].legend_clickable_links.length > 0
-    ) {
+    } else if (data[0].legend_clickable_links && data[0].legend_clickable_links.length > 0) {
       url = data[0].legend_clickable_links[0];
     }
 

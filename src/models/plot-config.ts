@@ -4,6 +4,7 @@ import {
   PlotData as PlotlyPlotData,
   ViolinData as PlotlyViolinData,
   PieData as PlotlyPieData,
+  PlotData,
 } from 'plotly.js';
 
 /**
@@ -51,7 +52,7 @@ export type PlotConfigConfig = {
   format_data_x?: boolean;
   format_data_y?: boolean;
   disable_default_legend_click?: boolean;
-  slice_label?: string;
+  slice_label?: PlotData['textinfo'];
   x_axis_thousands_separator?: boolean;
   xbins?: number;
   ybins?: number;

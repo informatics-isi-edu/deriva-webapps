@@ -103,7 +103,7 @@ export const addComma = (data: number | string): string => {
 };
 
 /**
- * Creates the link bemplateased on the given markdown pattern and templateParam
+ * Creates the link based on the given markdown pattern and templateParam
  *
  * @param markdownPattern pattern used to create link 
  * @param templateParam params used to replace values in the pattern to create the link

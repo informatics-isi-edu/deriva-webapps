@@ -1,21 +1,18 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { Plot } from '@isrd-isi-edu/deriva-webapps/src/models/plot-config';
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
 import { getPatternUri } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 
-import { PlotTemplateParams, Response } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
-import useError from '@isrd-isi-edu/chaise/src/hooks/error';
-import useIsFirstRender from '@isrd-isi-edu/chaise/src/hooks/is-first-render';
+import { PlotTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
+
 import {
   RecordsetDisplayMode,
   RecordsetSelectMode,
 } from '@isrd-isi-edu/chaise/src/models/recordset';
 
-export const useChartSelectGrid = (
-  plot: Plot,
-  { templateParams, setModalProps, setIsModalOpen, setIsFetchSelected }: any
-) => {
+export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOpen }: any) => {
   const [selectData, setSelectData] = useState<any>(null);
+  const [isFetchSelected, setIsFetchSelected] = useState<boolean>(false);
 
   const handleCloseModal = () => {
     console.log('onCloseModal');
@@ -239,25 +236,6 @@ export const useChartSelectGrid = (
     [handleChange, handleClick, handleClickSelectAll, handleClickSelectSome, handleRemoveCallback]
   );
 
-  const fetchData = useCallback(async () => {
-    // Fulfill promise for plot
-    const plotResponses: Array<Response> = await Promise.all(
-      // request for each trace
-      plot.traces.map((trace) => {
-        if (trace.uri) {
-          return ConfigService.http.get(trace.uri);
-        } else if (trace.queryPattern) {
-          const { uri, headers } = getPatternUri(trace.queryPattern, templateParams);
-          return ConfigService.http.get(uri, { headers });
-        } else {
-          return { data: [] };
-        }
-      })
-    );
-
-    return plotResponses.map((response: Response) => response.data); // unpack data
-  }, [plot, templateParams]);
-
   const fetchSelectData = useCallback(
     async (selectGrid: any) =>
       Promise.all(
@@ -272,6 +250,7 @@ export const useChartSelectGrid = (
     selectData,
     setSelectData,
     fetchSelectData,
+    isFetchSelected,
     handleCloseModal,
     handleSubmitModal,
   };
@@ -305,7 +284,7 @@ export const createStudyViolinSelectGrid = (plot: Plot) => {
           deletable: false,
           sortable: false,
           selectMode: RecordsetSelectMode.SINGLE_SELECT,
-          showFaceting: true,
+          showFaceting: false,
           disableFaceting: false,
           displayMode: RecordsetDisplayMode.POPUP,
         },
@@ -380,6 +359,11 @@ export const createStudyViolinSelectGrid = (plot: Plot) => {
     GroupBySelectData.defaultOptions = group_keys.map((data) => {
       return { value: data.column_name, label: data.title_display_pattern };
     });
+    const groupKeysMap: any = {};
+    group_keys.forEach((data) => {
+      groupKeysMap[data.column_name] = data;
+    });
+    GroupBySelectData.groupKeysMap = groupKeysMap;
   }
 
   row1.push(GeneSelectData);

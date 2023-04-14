@@ -1,6 +1,7 @@
 import DropdownSelect from '@isrd-isi-edu/deriva-webapps/src/components/plot/dropdown-select';
 import ButtonSelect from '@isrd-isi-edu/deriva-webapps/src/components/plot/button-select';
-import { Option } from '../virtualized-select';
+import { Option } from '@isrd-isi-edu/deriva-webapps/src/components/virtualized-select';
+
 import { SelectedRow } from '@isrd-isi-edu/chaise/src/models/recordset';
 
 type SelectGridProps = {

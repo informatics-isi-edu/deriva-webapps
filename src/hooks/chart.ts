@@ -104,48 +104,6 @@ export const usePlotConfig = (plotConfigs: PlotConfig) => {
   return { errors, config: typeConfig };
 };
 
-const initialTemplateParams = {
-  $url_parameters: {
-    Gene: {
-      data: {
-        NCBI_GeneID: '1', // TODO: deal with default value
-      },
-    },
-    Study: [],
-  },
-};
-
-const addUrlParameters = (
-  templateParams: PlotTemplateParams,
-  isMulti: boolean,
-  paramKey: string,
-  tupleData: any[]
-) => ({
-  ...templateParams,
-  $url_parameters: {
-    ...templateParams.$url_parameters,
-    [paramKey]: isMulti
-      ? tupleData.map((tuple: any) => ({ data: tuple.data }))
-      : { data: tupleData[0].data },
-  },
-});
-
-// TODO: template parameters can be removed and migrated to use this instead if initial template params are defined differently
-const createTemplateParams = (selectData: any[][]) => {
-  const $url_parameters: PlotTemplateParams['$url_parameters'] = {};
-  flatten2DArray(selectData).forEach((cell: any) => {
-    const { requestInfo, isMulti, urlParamKey, selectedRows } = cell;
-    if (requestInfo) {
-      if (isMulti) {
-        $url_parameters[urlParamKey] = selectedRows;
-      } else {
-        $url_parameters[urlParamKey] = { data: selectedRows[0].data };
-      }
-    }
-  });
-  return { $url_parameters };
-};
-
 /**
  * Hook function to use plot config object
  *
@@ -161,7 +119,6 @@ export const useChartData = (plot: Plot) => {
   const [isInitLoading, setIsInitLoading] = useState<boolean>(false);
   const [isDataLoading, setIsDataLoading] = useState<boolean>(false);
   const [isParseLoading, setIsParseLoading] = useState<boolean>(false);
-  const [isFetchSelected, setIsFetchSelected] = useState<boolean>(false);
   const { dispatchError, errors } = useError();
 
   // TODO: change this to a more local scope and don't hardcode the values
@@ -180,13 +137,18 @@ export const useChartData = (plot: Plot) => {
     []
   );
 
-  const { selectData, handleCloseModal, handleSubmitModal, fetchSelectData, setSelectData } =
-    useChartSelectGrid(plot, {
-      templateParams,
-      setModalProps,
-      setIsModalOpen,
-      setIsFetchSelected,
-    });
+  const {
+    selectData,
+    handleCloseModal,
+    handleSubmitModal,
+    fetchSelectData,
+    setSelectData,
+    isFetchSelected,
+  } = useChartSelectGrid({
+    templateParams,
+    setModalProps,
+    setIsModalOpen,
+  });
 
   const fetchData = useCallback(async () => {
     // Fulfill promise for plot
@@ -221,12 +183,9 @@ export const useChartData = (plot: Plot) => {
       setData(plotData);
       setIsInitLoading(false);
     };
-    console.log('fetchInitEffect called');
     // selectData must be not null first cause it modifies templateParams
     if (isFirstRender) {
-      console.log('inFirstRender');
       try {
-        console.log('fetchInitData called');
         fetchInitData();
       } catch (error) {
         dispatchError({ error });
@@ -300,6 +259,7 @@ const parsePlotData = (
   templateParams: any
 ) => {
   const result: any = { ...plot.plotly, data: [] };
+  let additionalLayout = {};
 
   // Add all plot "traces" to data array based on plot type
   result.data = unpackedResponses.map((responseData: ResponseData, index: number) => {
@@ -313,18 +273,20 @@ const parsePlotData = (
     } else if (plot.plot_type === 'histogram') {
       return parseHistogramResponse(currTrace, plot, responseData);
     } else if (plot.plot_type === 'violin') {
-      return parseViolinResponse(
+      const { result, layout } = parseViolinResponse(
         currTrace,
         plot,
         responseData,
         selectDataGrid,
         templateParams.noData
       );
+      additionalLayout = layout;
+      return result;
     }
   });
 
   updatePlotlyConfig(plot, result); // update the config
-  updatePlotlyLayout(plot, result, templateParams, selectDataGrid); // update the layout
+  updatePlotlyLayout(plot, result, templateParams, additionalLayout, selectDataGrid); // update the layout
 
   return result;
 };
@@ -340,6 +302,44 @@ const updatePlotlyConfig = (plot: Plot, result: any): void => {
   result.config.responsive = Boolean(plot.config.responsive);
 };
 
+const getSelectGroupByAxisTitle = (selectDataGrid: any, axis: 'x' | 'y') => {
+  let title = '';
+  selectDataGrid.forEach((row: any) => {
+    row.forEach((cell: any) => {
+      if (cell.action === 'groupby' && cell.axis === axis) {
+        const { groupKeysMap, value } = cell;
+        const group = groupKeysMap[value.value];
+        if (group.title_display_pattern) {
+          title = createLink(group.title_display_pattern);
+        }
+      }
+    });
+  });
+  return title;
+};
+
+const getSelectScaleAxisTitle = (
+  selectDataGrid: any,
+  title_display_markdown_pattern: string,
+  axis: 'x' | 'y'
+) => {
+  let title = '';
+  let type = '';
+  selectDataGrid.forEach((row: any) => {
+    row.forEach((cell: any) => {
+      if (cell.action === 'scale' && cell.axis === axis) {
+        if (cell.value.value === 'log') {
+          title = createLink(`log(${title_display_markdown_pattern} + 1)`);
+        } else {
+          title = createLink(`${title_display_markdown_pattern}`);
+        }
+        type = cell.value.value;
+      }
+    });
+  });
+  return { title, type };
+};
+
 /**
  * Updates the plotly layout based on given plot configs
  *
@@ -350,15 +350,19 @@ const updatePlotlyLayout = (
   plot: Plot,
   result: any,
   templateParams: any,
+  parsedLayout?: any,
   selectDataGrid?: any
 ): void => {
   // title
+  let title = '';
   if (plot.config.title_display_markdown_pattern) {
-    result.layout.title = createLink(plot.config.title_display_markdown_pattern, templateParams);
+    title = createLink(plot.config.title_display_markdown_pattern, templateParams);
+    console.log('title link', title);
   }
   if (templateParams.noData) {
-    result.layout.title = 'No Data';
+    title = 'No Data';
   }
+  result.layout.title = title;
 
   // legend
   if (plot.config.disable_default_legend_click) {
@@ -372,6 +376,22 @@ const updatePlotlyLayout = (
   if (plot.config.xaxis?.title_display_markdown_pattern) {
     result.layout.xaxis.title = createLink(plot.config.xaxis.title_display_markdown_pattern);
   }
+  if (parsedLayout?.xaxis?.tickvals) {
+    result.layout.xaxis.tickmode = 'array';
+    result.layout.xaxis.tickvals = parsedLayout.xaxis.tickvals;
+    console.log('parsedlayoutres tickvals', result.layout.xaxis.tickvals);
+  }
+  if (parsedLayout?.xaxis?.ticktext) {
+    result.layout.xaxis.ticktext = parsedLayout.xaxis.ticktext;
+    console.log('parsedlayoutres ticktext', parsedLayout.xaxis.ticktext);
+  }
+  if (selectDataGrid) {
+    const xaxisTitle = getSelectGroupByAxisTitle(selectDataGrid, 'x');
+    if (xaxisTitle) {
+      result.layout.xaxis.title = xaxisTitle;
+    }
+  }
+
   result.layout.xaxis.automargin = true;
   result.layout.xaxis.tickformat = plot.config.x_axis_thousands_separator ? ',d' : '';
   result.layout.xaxis.ticksuffix = '  ';
@@ -380,30 +400,26 @@ const updatePlotlyLayout = (
   if (!result.layout.yaxis) {
     result.layout.yaxis = {};
   }
-
-  // set yaxis type and title
   if (plot.config.yaxis?.title_display_markdown_pattern) {
+    result.layout.yaxis.title = createLink(plot.config.yaxis.title_display_markdown_pattern);
+
     // TODO: figure out cleaner way to do this
     if (Array.isArray(selectDataGrid)) {
-      selectDataGrid.forEach((row: any) => {
-        row.forEach((cell: any) => {
-          if (cell.action === 'scale') {
-            if (cell.value.value === 'log') {
-              result.layout.yaxis.title = createLink(
-                `log(${plot.config.yaxis?.title_display_markdown_pattern} + 1)`
-              );
-            } else {
-              result.layout.yaxis.title = createLink(
-                `${plot.config.yaxis?.title_display_markdown_pattern}`
-              );
-            }
-            result.layout.yaxis.type = cell.value.value;
-          }
-        });
-      });
-    } else {
-      result.layout.yaxis.title = createLink(plot.config.yaxis.title_display_markdown_pattern);
+      const yaxisTitle = getSelectScaleAxisTitle(
+        selectDataGrid,
+        plot.config.yaxis.title_display_markdown_pattern,
+        'y'
+      );
+      if (yaxisTitle.title) {
+        result.layout.yaxis.title = yaxisTitle.title;
+        result.layout.yaxis.type = yaxisTitle.type;
+      }
     }
+  }
+
+  if (plot.plot_type === 'violin') {
+    result.layout.hovermode = 'closest';
+    result.layout.dragmode = 'pan';
   }
 
   result.layout.yaxis.automargin = true;
@@ -437,11 +453,12 @@ const parseViolinResponse = (
     Partial<ClickableLinks> = {
     ...plotlyTrace,
     type: 'violin',
-    text: [],
     x: [],
     y: [],
     legend_clickable_links: [],
     graphic_clickable_links: [],
+    hovertemplate: '',
+
     // todo: maybe migrate the params below to config
     points: 'all',
     pointpos: 0,
@@ -455,6 +472,8 @@ const parseViolinResponse = (
       width: 1,
     },
   };
+
+  const layout: any = {};
 
   if (!noData) {
     const selectDataArray = flatten2DArray(selectDataGrid);
@@ -471,13 +490,16 @@ const parseViolinResponse = (
 
     const x: any[] = [];
     const y: any[] = [];
-    const xTicks = [];
+    const xTicks: any[] = [];
     responseData.forEach((item: any, i: number) => {
       if (xGroupBy) {
         const groupByKey = xGroupBy.value.value;
+        const xGroupItem = xGroupBy.groupKeysMap[groupByKey];
+        updateWithTraceColData(result, trace, item, i, xGroupItem);
+
         const xVal = item[groupByKey];
-        const xTick = xGroupBy?.setting?.tick_display_markdown_pattern
-          ? createLink(xGroupBy?.setting?.tick_display_markdown_pattern)
+        const xTick = xGroupItem?.tick_display_markdown_pattern
+          ? createLink(xGroupItem?.tick_display_markdown_pattern, { $row: item })
           : xVal;
         if (xVal !== null && xVal !== undefined) {
           x.push(xVal);
@@ -489,29 +511,37 @@ const parseViolinResponse = (
 
       if (yScale) {
         const yItem = item[yScale.setting.group_key];
-        updateWithTraceColData(result, trace, yItem, i);
-
         if (yScale.value.value === 'log') {
           const yVal = yItem + 1;
-          y.push(yVal);
+          if (yVal !== null && yVal !== undefined) {
+            y.push(yVal);
+          }
         } else {
           const yVal = yItem ? createLink(yItem.toString()) : yItem;
-          y.push(yVal);
+          if (yVal !== null && yVal !== undefined) {
+            y.push(yVal);
+          }
         }
       }
     });
 
+    console.log('x', x);
+    console.log('y', y);
+
     result.x = x;
     result.y = y;
+
     result.transforms = [
       {
         type: 'groupby',
         groups: x,
       },
     ];
+
+    layout.xaxis = { tickvals: x, ticktext: xTicks };
   }
 
-  return result;
+  return { result, layout };
 };
 
 /**
@@ -601,17 +631,16 @@ const parsePieResponse = (trace: Trace, plot: Plot, responseData: ResponseData) 
     ...trace,
     type: plot.plot_type,
     hoverinfo: 'text+value+percent', // value to show on hover of a pie slice
-    textinfo: 'value', // data shown on a pie slice
+    textinfo: plot.config.slice_label || 'value', // data shown on a pie slice
     labels: [],
-    values: [],
-    text: [],
-    legend_clickable_links: [],
-    graphic_clickable_links: [],
+    text: [], // text to show on hover of a pie slice
+    values: [], // array of links / elements for the legend
+    legend_clickable_links: [], // array of links for when clicking legend
+    graphic_clickable_links: [], // array of links for when clicking graph
   };
 
   const { config } = plot;
   const { format_data = false } = config;
-
   responseData.forEach((item: any, i: number) => {
     updateWithTraceColData(result, trace, item, i);
     // Add data
@@ -624,9 +653,14 @@ const parsePieResponse = (trace: Trace, plot: Plot, responseData: ResponseData) 
 
     // Add legend data if exists
     if (trace.legend_col) {
-      const value = getValue(item, trace.legend_col, undefined, false, plot);
-      result.text.push(item[trace.legend_col]);
-      result.labels.push(value);
+      const textValue = createLink(item[trace.legend_col], { $self: { data: item } });
+      let labelValue = textValue;
+      if (typeof trace.legend_markdown_pattern === 'string') {
+        labelValue = createLink(trace.legend_markdown_pattern, { $self: { data: item } });
+        console.log('pie legend_markdown_pattern link', textValue);
+      }
+      result.text.push(textValue);
+      result.labels.push(labelValue);
     }
   });
 
@@ -721,7 +755,13 @@ const getValue = (
  * @param item from the response object
  * @param index index of the response
  */
-const updateWithTraceColData = (result: any, trace: Trace, item: any, index: number): void => {
+const updateWithTraceColData = (
+  result: any,
+  trace: Trace,
+  item: any,
+  index: number,
+  extraInfo?: any
+): void => {
   // legend name
   let name = trace.legend ? trace.legend[index] : '';
   if (trace.legend_markdown_pattern) {
@@ -729,22 +769,31 @@ const updateWithTraceColData = (result: any, trace: Trace, item: any, index: num
   }
   result.name = name;
 
-  if (trace.legend_markdown_pattern) {
-    const linkPattern = Array.isArray(trace.legend_markdown_pattern)
-      ? trace.legend_markdown_pattern[index]
-      : trace.legend_markdown_pattern;
-    const extractedLink = createLinkWithContextParams(linkPattern);
-    if (extractedLink) {
-      result.legend_clickable_links.push(createLink(extractedLink, { $self: { data: item } }));
+  const legend_markdown_pattern =
+    trace.legend_markdown_pattern || extraInfo?.legend_markdown_pattern;
+  if (legend_markdown_pattern) {
+    const linkPattern = Array.isArray(legend_markdown_pattern)
+      ? legend_markdown_pattern[index]
+      : legend_markdown_pattern;
+    const extractedLinkPattern = createLinkWithContextParams(linkPattern);
+    if (extractedLinkPattern) {
+      const link = createLink(extractedLinkPattern, { $self: { data: item } });
+      if (link) {
+        result.legend_clickable_links.push(link);
+      }
     }
   }
 
-  if (trace.graphic_link_pattern) {
-    const linkPattern = Array.isArray(trace.graphic_link_pattern)
-      ? trace.graphic_link_pattern[0]
-      : trace.graphic_link_pattern;
+  const graphic_link_pattern = trace.graphic_link_pattern || extraInfo?.graphic_link_pattern;
+  if (graphic_link_pattern) {
+    const linkPattern = Array.isArray(graphic_link_pattern)
+      ? graphic_link_pattern[0]
+      : graphic_link_pattern;
     if (linkPattern) {
-      result.graphic_clickable_links.push(createLink(linkPattern, { $self: { data: item } }));
+      const link = createLink(linkPattern, { $self: { data: item } });
+      if (link) {
+        result.graphic_clickable_links.push(link);
+      }
     }
   }
 };
