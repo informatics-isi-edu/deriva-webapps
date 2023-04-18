@@ -10,17 +10,20 @@ import {
   RecordsetSelectMode,
 } from '@isrd-isi-edu/chaise/src/models/recordset';
 
+/**
+ * This hook is used to handle the effects and state of the select grid in the chart.
+ *
+ * @returns
+ */
 export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOpen }: any) => {
   const [selectData, setSelectData] = useState<any>(null);
   const [isFetchSelected, setIsFetchSelected] = useState<boolean>(false);
 
   const handleCloseModal = () => {
-    console.log('onCloseModal');
     setIsModalOpen(false);
   };
 
   const handleSubmitModal = (selectedRows: any[], indices: number[], cell: any) => {
-    console.log('onSubmitModal', selectedRows, indices, cell);
     const { isMulti, urlParamKey, requestInfo } = cell;
 
     setIsFetchSelected(true);
@@ -31,10 +34,8 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
       newValues[i][j] = { ...prevValues[i][j], selectedRows };
 
       if (selectedRows && selectedRows.length > 0) {
-        console.log('setSelectData in handleSubmitModal', indices, prevValues[i][j].id);
-
-        // TODO: remove this hack. Don't use noData or this condition
         if (prevValues[i][j].id === 'study') {
+          // TODO: eventually remove this hack. Don't use noData or this condition
           templateParams.noData = false;
         }
 
@@ -53,8 +54,8 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
           }));
         }
       } else {
-        // TODO: remove this hack. Don't use noData or this condition
         if (prevValues[i][j].id === 'study') {
+          // TODO: remove this hack. Don't use noData or this condition
           templateParams.noData = true;
         }
       }
@@ -66,7 +67,6 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
 
   const handleClickSelectAll = useCallback(
     (indices: number[], cell: any) => {
-      console.log('onClickSelectAll', indices, cell);
       const { urlParamKey } = cell;
       templateParams.noData = false;
       setIsFetchSelected(true);
@@ -86,16 +86,9 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
 
   const handleClickSelectSome = useCallback(
     (indices: number[], cell: any) => {
-      console.log('handleClickSelectSome', indices, cell, selectData);
       const { requestInfo } = cell;
       const { recordsetProps } = requestInfo;
-      if (selectData) {
-        const [i, j] = indices;
-        if (Array.isArray(selectData)) {
-          console.log('test2', selectData[i][j]);
-          console.log('test3', selectData[i][j].selectedRows);
-        }
-      }
+
       setIsFetchSelected(true);
       setModalProps({
         indices,
@@ -103,15 +96,15 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
       });
       setIsModalOpen(true);
     },
-    [selectData, setIsModalOpen, setIsFetchSelected, setModalProps]
+    [setIsModalOpen, setIsFetchSelected, setModalProps]
   );
 
   const handleRemoveCallback = useCallback(
     (removed: any, indices: number[], cell: any) => {
       const { urlParamKey } = cell;
-      console.log('removeCallback', removed, indices, cell);
+
       if (removed === null) {
-        // REMOVE ALL
+        // REMOVE ALL OCCURRED
         setSelectData((prevValues: any) => {
           const newValues = [...prevValues];
           const [i, j] = indices;
@@ -122,7 +115,7 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
           return newValues;
         });
       } else {
-        // REMOVE ONE
+        // REMOVE ONE OCCURRED
         setSelectData((prevValues: any) => {
           const newValues = [...prevValues];
           const [i, j] = indices;
@@ -149,7 +142,6 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
 
   const handleClick = useCallback(
     (indices: number[], cell: any) => {
-      console.log('onClick', indices, cell);
       const { requestInfo } = cell;
       const { recordsetProps } = requestInfo;
       setIsFetchSelected(true);
@@ -177,6 +169,15 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
     [setIsFetchSelected]
   );
 
+  /**
+   * Fetch the data from the given uri for a select grid cell data
+   * return the reference and tuple data received from the request
+   *
+   * @param uri
+   * @param headers
+   * @param compact
+   * @returns
+   */
   const fetchSelectGridCellData = async (uri: string, headers: any, compact: boolean) => {
     const resolvedRef = await ConfigService.ERMrest.resolve(uri, { headers });
     const ref = compact ? resolvedRef.contextualize.compactSelect : resolvedRef;
@@ -186,51 +187,65 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
     return { initialReference, tupleData };
   };
 
+  /**
+   * Parses a select grid cell. When needed it will perform a request to get initial data
+   * needed in the selection grid cell.
+   *
+   * @param cell
+   * @param templateParams
+   * @returns object containing a single data cell for the selection grid
+   */
   const parseSelectGridCell = useCallback(
     async (cell: any, templateParams: PlotTemplateParams) => {
-      const { isMulti, compact, urlParamKey } = cell;
-      const { requestInfo } = cell;
+      const { type, isMulti, compact, urlParamKey, requestInfo } = cell;
       const selectResult: any = { ...cell };
+
       if (requestInfo) {
+        // there is requestInfo, so we need to fetch data for the select grid cell
+
         const { uriPattern, valueKey, labelKey, recordsetProps } = requestInfo;
         const { uri, headers } = getPatternUri(uriPattern, templateParams);
+
+        // only fetch data if the uri is valid
         if (uri) {
           const { initialReference, tupleData } = await fetchSelectGridCellData(
             uri,
             headers,
             compact
-          );
+          ); // perform the data fetch
           recordsetProps.initialReference = initialReference; // set initial ref
           selectResult.selectedRows = tupleData; // set initial selected rows
 
-          // set default value for selector
-          const firstTuple = tupleData[0];
-          selectResult.value = {
-            value: firstTuple.data[valueKey],
-            label: firstTuple.data[labelKey],
-          };
+          // fill in the default value for the dropdown selection type from the received tuple data
+          if (type === 'dropdown-select') {
+            const firstTuple = tupleData[0];
+            selectResult.value = {
+              value: firstTuple.data[valueKey],
+              label: firstTuple.data[labelKey],
+            };
 
-          if (!isMulti) {
-            templateParams.$url_parameters[urlParamKey].data = firstTuple.data;
-          } else {
-            templateParams.$url_parameters[urlParamKey] = tupleData.map((tuple: any) => ({
-              data: tuple.data,
-            }));
+            if (!isMulti) {
+              templateParams.$url_parameters[urlParamKey].data = firstTuple.data;
+            } else {
+              templateParams.$url_parameters[urlParamKey] = tupleData.map((tuple: any) => ({
+                data: tuple.data,
+              }));
+            }
           }
         }
 
         if (selectResult.action === 'modal') {
-          // functions for button-select
-          selectResult.onClickSelectAll = handleClickSelectAll;
-          selectResult.onClickSelectSome = handleClickSelectSome;
-          selectResult.removeCallback = handleRemoveCallback;
+          // only add these functions if the action is a modal
 
-          // functions for dropdown-select
-          selectResult.onClick = handleClick;
+          selectResult.onClickSelectAll = handleClickSelectAll; // function for select all of button-select
+          selectResult.onClickSelectSome = handleClickSelectSome; // function for select some of button-select
+          selectResult.removeCallback = handleRemoveCallback; // function for remove callback of button-select
+
+          selectResult.onClick = handleClick; // functions for onclick dropdown-select
         }
       }
 
-      selectResult.onChange = handleChange;
+      selectResult.onChange = handleChange; // function for onchange of dropdown-select
       return selectResult;
     },
     [handleChange, handleClick, handleClickSelectAll, handleClickSelectSome, handleRemoveCallback]
@@ -256,7 +271,13 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
   };
 };
 
-// TODO: deprecate this
+/**
+ * A temporary fix to get the data for the study violin plot
+ * TODO: this function should be eventually replaced so that the selectors can be defined in the config file
+ *
+ * @param plot plot config object
+ * @returns grid of select data to be used to create selectors of the chart
+ */
 export const createStudyViolinSelectGrid = (plot: Plot) => {
   const result = [];
   const row1 = [];

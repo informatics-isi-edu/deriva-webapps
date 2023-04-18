@@ -25,7 +25,7 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
   const { width = 0, height = 0 } = useWindowSize();
 
   /**
-   * Data that goes into the chart
+   * Data that goes into building the chart
    */
   const {
     parsedData,
@@ -52,16 +52,20 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
       points.length !== 1 || // points not a single point
       !points[0].data // points does not have data
     ) {
+      // invalid data point for clicking
       return; // do nothing
     }
+
     let url = '';
     if (
       points[0].pointNumber && // point has an index
       points[0].data.graphic_clickable_links && // point has a graphic
       points[0].data.graphic_clickable_links[points[0].pointNumber] // point has graphic link
     ) {
+      // when pointNumber exists we want to use the index of the point to get the link
       url = points[0].data.graphic_clickable_links[points[0].pointNumber];
     } else if (points[0].uri) {
+      // when pointNumber does not exist we want to use the uri
       url = points[0].uri;
     }
 
@@ -80,12 +84,15 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
       data.length !== 1 || // points not a single point
       !data[0]
     ) {
+      // invalid legend for clicking
       return; // do nothing
     }
     let url = '';
     if (label && Array.isArray(data[0].labels) && data[0].legend_clickable_links) {
+      // when a label exists we want to use the index of the label to get the link
       url = data[0].legend_clickable_links[data[0].labels.indexOf(label)];
     } else if (data[0].legend_clickable_links && data[0].legend_clickable_links.length > 0) {
+      // when a label does not exist we want to use the first link in the array
       url = data[0].legend_clickable_links[0];
     }
 

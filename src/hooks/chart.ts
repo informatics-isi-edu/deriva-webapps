@@ -105,7 +105,7 @@ export const usePlotConfig = (plotConfigs: PlotConfig) => {
 };
 
 /**
- * Hook function to use plot config object
+ * Hook function to handle the needed data to be used by the chart
  *
  * @param plot configuration object
  * @returns all data to be used by plot
@@ -121,7 +121,11 @@ export const useChartData = (plot: Plot) => {
   const [isParseLoading, setIsParseLoading] = useState<boolean>(false);
   const { dispatchError, errors } = useError();
 
-  // TODO: change this to a more local scope and don't hardcode the values
+  /**
+   * Template parameters for the plot
+   * TODO: eventually remove this, everything in here is already stored in state
+   * TODO: create functions to retrieve only the neccesary templateParams from state and pass them into a more local scope
+   */
   const templateParams: PlotTemplateParams = useMemo(
     () => ({
       $url_parameters: {
@@ -132,7 +136,7 @@ export const useChartData = (plot: Plot) => {
         },
         Study: [],
       },
-      noData: false, // TODOL: remove hack when empty selectedRows are fixed
+      noData: false, // TODO: remove hack when empty selectedRows are fixed
     }),
     []
   );
@@ -150,6 +154,9 @@ export const useChartData = (plot: Plot) => {
     setIsModalOpen,
   });
 
+  /**
+   * Fetches data from the plot traces in the plot config and returns the data
+   */
   const fetchData = useCallback(async () => {
     // Fulfill promise for plot
     const plotResponses: Array<Response> = await Promise.all(
@@ -169,22 +176,23 @@ export const useChartData = (plot: Plot) => {
     return plotResponses.map((response: Response) => response.data); // unpack data
   }, [plot, templateParams]);
 
-  // Effect to fetch data
+  // Effect to fetch initial data
   useEffect(() => {
     const fetchInitData = async () => {
       setIsInitLoading(true);
       if (plot.plot_type === 'violin') {
-        const selectGrid = createStudyViolinSelectGrid(plot);
-        const initialSelectData = await fetchSelectData(selectGrid);
-        setSelectData(initialSelectData);
+        const selectGrid = createStudyViolinSelectGrid(plot); // TODO: change plot.plot_type to study-violin
+        const initialSelectData = await fetchSelectData(selectGrid); // fetch the data needed for the select grid
+        setSelectData(initialSelectData); // set the data for the select grid
       }
 
-      const plotData = await fetchData();
-      setData(plotData);
-      setIsInitLoading(false);
+      const plotData = await fetchData(); // fetch the data for the plot
+      setData(plotData); // set the data for the plot
+      setIsInitLoading(false); // set loading to false
     };
-    // selectData must be not null first cause it modifies templateParams
+
     if (isFirstRender) {
+      // only run on first render
       try {
         fetchInitData();
       } catch (error) {
@@ -201,7 +209,7 @@ export const useChartData = (plot: Plot) => {
     dispatchError,
   ]);
 
-  // Effect to fetch data on selectData changes
+  // Effect to fetch data on subsequent changes when different selections are made (when selectData changes)
   useEffect(() => {
     const fetchSubsequentData = async () => {
       setIsDataLoading(true);
@@ -210,8 +218,10 @@ export const useChartData = (plot: Plot) => {
       setIsDataLoading(false);
     };
 
-    // selectData must be not null first cause it modifies templateParams
     if (!isFirstRender && isFetchSelected) {
+      // only run on subsequent renders and when selectData changes with isFetchSelected being true
+      // we only want to fetch data when the selection made requires it
+      // cause some selection changes can simply be handled by reparsing the existing data
       try {
         fetchSubsequentData();
       } catch (error) {
@@ -220,7 +230,7 @@ export const useChartData = (plot: Plot) => {
     }
   }, [isFirstRender, isFetchSelected, selectData, templateParams, fetchData, dispatchError]);
 
-  // Parse data on state changes to data and selectData
+  // Parse data on state changes to data or selectData
   useEffect(() => {
     if (data) {
       setIsParseLoading(true);
@@ -302,6 +312,13 @@ const updatePlotlyConfig = (plot: Plot, result: any): void => {
   result.config.responsive = Boolean(plot.config.responsive);
 };
 
+/**
+ * Gets the axis title for groupby selector
+ *
+ * @param selectDataGrid
+ * @param axis
+ * @returns
+ */
 const getSelectGroupByAxisTitle = (selectDataGrid: any, axis: 'x' | 'y') => {
   let title = '';
   selectDataGrid.forEach((row: any) => {
@@ -318,6 +335,14 @@ const getSelectGroupByAxisTitle = (selectDataGrid: any, axis: 'x' | 'y') => {
   return title;
 };
 
+/**
+ * Gets the axis title for scale selector
+ *
+ * @param selectDataGrid
+ * @param title_display_markdown_pattern
+ * @param axis
+ * @returns
+ */
 const getSelectScaleAxisTitle = (
   selectDataGrid: any,
   title_display_markdown_pattern: string,
@@ -356,42 +381,49 @@ const updatePlotlyLayout = (
   // title
   let title = '';
   if (plot.config.title_display_markdown_pattern) {
+    // use the title_display_markdown_pattern if it exists
     title = createLink(plot.config.title_display_markdown_pattern, templateParams);
-    console.log('title link', title);
   }
   if (templateParams.noData) {
+    // TODO: remove this hack
     title = 'No Data';
   }
   result.layout.title = title;
 
   // legend
   if (plot.config.disable_default_legend_click) {
+    // disable default legend click if it exists
     result.layout.disable_default_legend_click = plot.config.disable_default_legend_click;
   }
 
   // x axis
   if (!result.layout.xaxis) {
+    // initialize xaxis if it doesn't exist
     result.layout.xaxis = {};
   }
   if (plot.config.xaxis?.title_display_markdown_pattern) {
+    // use the title_display_markdown_pattern if it exists
     result.layout.xaxis.title = createLink(plot.config.xaxis.title_display_markdown_pattern);
   }
   if (additionalLayout?.xaxis?.tickvals) {
+    // use the tickvals if it exists
     result.layout.xaxis.tickvals = additionalLayout.xaxis.tickvals;
   }
   if (additionalLayout?.xaxis?.ticktext) {
+    // use the ticktext if it exists
     result.layout.xaxis.ticktext = additionalLayout.xaxis.ticktext;
   }
   if (selectDataGrid) {
+    // use the groupby axis title if it exists
     const xaxisTitle = getSelectGroupByAxisTitle(selectDataGrid, 'x');
     if (xaxisTitle) {
       result.layout.xaxis.title = xaxisTitle;
     }
   }
 
-  result.layout.xaxis.automargin = true;
-  result.layout.xaxis.tickformat = plot.config.x_axis_thousands_separator ? ',d' : '';
-  result.layout.xaxis.ticksuffix = '  ';
+  result.layout.xaxis.automargin = true; // always set automargin to true
+  result.layout.xaxis.tickformat = plot.config.x_axis_thousands_separator ? ',d' : ''; // set tickformat based on the config
+  result.layout.xaxis.ticksuffix = '  '; // add a space to the end of the tick for spacing
 
   // y axis
   if (!result.layout.yaxis) {
@@ -400,7 +432,6 @@ const updatePlotlyLayout = (
   if (plot.config.yaxis?.title_display_markdown_pattern) {
     result.layout.yaxis.title = createLink(plot.config.yaxis.title_display_markdown_pattern);
 
-    // TODO: figure out cleaner way to do this
     if (Array.isArray(selectDataGrid)) {
       const yaxisTitle = getSelectScaleAxisTitle(
         selectDataGrid,
@@ -450,26 +481,24 @@ const parseViolinResponse = (
     Partial<ClickableLinks> = {
     ...plotlyTrace,
     type: 'violin',
-    x: [],
-    y: [],
-    text: [],
-    hovertemplate: '',
+    x: [], // x data
+    y: [], // y data
 
-    // todo: maybe migrate the params below to config
-    points: 'all',
-    pointpos: 0,
+    // TODO: migrate all these params options to config
+    points: 'all', // show all points on violin plot
+    pointpos: 0, // position of points on violin plot
     box: {
-      visible: true,
+      visible: true, // show box plot
     },
     meanline: {
-      visible: true,
+      visible: true, // show mean line
     },
     line: {
-      width: 1,
+      width: 1, // width of violin plot
     },
 
-    legend_clickable_links: [],
-    graphic_clickable_links: [],
+    legend_clickable_links: [], // array of links for clicking on legend
+    graphic_clickable_links: [], // array of links for clicking on graph points
   };
 
   const layout: any = {};
@@ -496,13 +525,9 @@ const parseViolinResponse = (
         const xGroupItem = xGroupBy.groupKeysMap[groupByKey];
         updateWithTraceColData(result, trace, item, i, xGroupItem);
 
-        console.log('violin legendmarkdown', xGroupItem?.legend_markdown_pattern);
-
         const xVal = xGroupItem?.legend_markdown_pattern
           ? createLink(xGroupItem?.legend_markdown_pattern[0], { $row: item })
           : item[groupByKey];
-
-        console.log('xval', xVal);
 
         const xTick = xGroupItem?.tick_display_markdown_pattern
           ? createLink(xGroupItem?.tick_display_markdown_pattern, { $row: item })
@@ -532,13 +557,10 @@ const parseViolinResponse = (
       }
     });
 
-    console.log('x', x);
-    console.log('y', y);
-    console.log('xTicks', xTicks);
-
-    result.x = x.length === 0 ? ['N/A'] : x;
+    result.x = x.length === 0 ? ['N/A'] : x; // plotly requires at least one value. use N/A if none were given
     result.y = y;
 
+    // group by x
     result.transforms = [
       {
         type: 'groupby',
@@ -546,6 +568,7 @@ const parseViolinResponse = (
       },
     ];
 
+    // add custom layout for x axis ticks
     layout.xaxis = {
       tickvals: result.x,
       ticktext: xTicks.length === 0 ? ['N/A'] : xTicks,
@@ -599,32 +622,38 @@ const parseHistogramResponse = (trace: Trace, plot: Plot, responseData: Response
  * @returns
  */
 const parseScatterResponse = (trace: Trace, plot: Plot, responseData: ResponseData) => {
-  const result: Partial<TraceConfig> & Partial<PlotlyPlotData> & PlotResultData = {
+  const result: Partial<TraceConfig> & Partial<PlotlyPlotData> = {
     ...trace,
     mode: 'markers',
     name: trace.legend ? trace.legend[0] : '',
     type: plot.plot_type,
-    text: [],
-    x: [],
-    y: [],
+    x: [], // x data
+    y: [], // y data
   };
 
   const { config } = plot;
-  const { xaxis, yaxis, format_data_x = false, format_data_y = false } = config; // why is format_data_x not in xaxis?
+  const { xaxis, yaxis, format_data_x = false, format_data_y = false } = config; // TODO: move format_data_x to xaxis in config
 
+  const x: string[] = [];
+  const y: string[] = [];
   responseData.forEach((item: any, i: number) => {
     updateWithTraceColData(result, trace, item, i);
+
     // Add X data
     trace?.x_col?.forEach((colName) => {
       const value = getValue(item, colName, xaxis, format_data_x, plot);
-      result.x?.push(value.toString());
+      x.push(value.toString());
     });
+
     // Add Y data
     trace?.y_col?.forEach((colName) => {
       const value = getValue(item, colName, yaxis, format_data_y, plot);
-      result.y?.push(value.toString());
+      y.push(value.toString());
     });
   });
+
+  result.x = x;
+  result.y = y;
 
   return result;
 };
@@ -643,9 +672,9 @@ const parsePieResponse = (trace: Trace, plot: Plot, responseData: ResponseData) 
     type: plot.plot_type,
     hoverinfo: 'text+value+percent', // value to show on hover of a pie slice
     textinfo: plot.config.slice_label || 'value', // data shown on a pie slice
-    labels: [],
+    labels: [], // array of labels for the legend
     text: [], // text to show on hover of a pie slice
-    values: [], // array of links / elements for the legend
+    values: [], // the values for the legend
     legend_clickable_links: [], // array of links for when clicking legend
     graphic_clickable_links: [], // array of links for when clicking graph
   };
@@ -695,8 +724,8 @@ const parseBarResponse = (trace: Trace, plot: Plot, responseData: ResponseData) 
     x: [], // x data
     y: [], // y data
     text: [], // text data
-    legend_clickable_links: [],
-    graphic_clickable_links: [],
+    legend_clickable_links: [], // array of links for when clicking legend
+    graphic_clickable_links: [], // array of links for when clicking graph
   };
 
   const { config } = plot;
@@ -755,9 +784,6 @@ const getValue = (
   return formatPlotData(value, formatData, plot.plot_type);
 };
 
-// click events
-// https://plotly.com/javascript/click-events/
-
 /**
  * Updates the trace with given the given trace passed in from plot-cnofig and the item data
  *
@@ -781,8 +807,9 @@ const updateWithTraceColData = (
   result.name = name;
 
   const legend_markdown_pattern =
-    trace.legend_markdown_pattern || extraInfo?.legend_markdown_pattern;
+    trace.legend_markdown_pattern || extraInfo?.legend_markdown_pattern; // use either the trace or extraInfo
   if (legend_markdown_pattern) {
+    // if there is a legend_markdown_pattern then create the link and add it to the array
     const linkPattern = Array.isArray(legend_markdown_pattern)
       ? legend_markdown_pattern[index]
       : legend_markdown_pattern;
@@ -795,8 +822,9 @@ const updateWithTraceColData = (
     }
   }
 
-  const graphic_link_pattern = trace.graphic_link_pattern || extraInfo?.graphic_link_pattern;
+  const graphic_link_pattern = trace.graphic_link_pattern || extraInfo?.graphic_link_pattern; // use either the trace or extraInfo
   if (graphic_link_pattern) {
+    // if there is a graphic_link_pattern then create the link and it to the array
     const linkPattern = Array.isArray(graphic_link_pattern)
       ? graphic_link_pattern[0]
       : graphic_link_pattern;
