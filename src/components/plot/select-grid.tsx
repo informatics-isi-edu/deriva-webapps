@@ -31,19 +31,18 @@ const SelectGrid = ({ selectors, width }: SelectGridProps): JSX.Element => (
               removeCallback,
               ...props
             } = cell;
+
             if (type === 'dropdown-select') {
               return (
                 <DropdownSelect
                   key={j}
                   onClick={() => {
                     if (typeof onClick === 'function') {
-                      console.log('onclick selectgrid', indices, cell);
                       onClick(indices, cell);
                     }
                   }}
                   onChange={(option: Option) => {
                     if (typeof onChange === 'function') {
-                      console.log('onchange selectgrid', indices, cell);
                       onChange(option, indices, cell);
                     }
                   }}
@@ -56,27 +55,22 @@ const SelectGrid = ({ selectors, width }: SelectGridProps): JSX.Element => (
                   key={j}
                   onClickSelectAll={() => {
                     if (typeof onClickSelectAll === 'function') {
-                      console.log('onClickSelectAll selectgrid', indices, cell);
                       onClickSelectAll(indices, cell);
                     }
                   }}
                   onClickSelectSome={() => {
                     if (typeof onClickSelectSome === 'function') {
-                      console.log('onClickSelectSome selectgrid', indices, cell);
                       onClickSelectSome(indices, cell);
                     }
                   }}
                   removeCallback={(row: SelectedRow) => {
                     if (typeof removeCallback === 'function') {
-                      console.log('removeCallback selectgrid', indices, cell);
                       removeCallback(row, indices, cell);
                     }
                   }}
                   {...props}
                 />
               );
-            } else {
-              return null;
             }
           })}
         </div>

@@ -102,6 +102,7 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
     }
   };
 
+  // set the width and height of the chart
   const { layout } = config.plotly || {};
   const minWidth = 800;
   const minHeight = 600;
@@ -109,9 +110,12 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
   const layoutHeight = Math.max(minHeight, layout?.height || 0.7 * height);
   parsedData.layout.width = layoutWidth;
   parsedData.layout.height = layoutHeight;
-  parsedData.onClick = handlePlotlyClick;
-  parsedData.onLegendClick = handlePlotlyLegendClick;
 
+  // set click handlers for chart
+  parsedData.onClick = handlePlotlyClick; // append click handler to the chart
+  parsedData.onLegendClick = handlePlotlyLegendClick; // append legend click handler to the chart
+
+  // set modal data
   let modalIndices: number[] = [0, 0];
   let modalCell: any = null;
   if (modalProps && selectData) {

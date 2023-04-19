@@ -19,42 +19,56 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
   const [selectData, setSelectData] = useState<any>(null);
   const [isFetchSelected, setIsFetchSelected] = useState<boolean>(false);
 
+  /**
+   * Handles closing the modal.
+   */
   const handleCloseModal = () => {
     setIsModalOpen(false);
   };
 
+  /**
+   * Handles the submit of the modal data. This function will update the templateParams and selectData state.
+   *
+   * @param selectedRows
+   * @param indices
+   * @param cell
+   */
   const handleSubmitModal = (selectedRows: any[], indices: number[], cell: any) => {
     const { isMulti, urlParamKey, requestInfo } = cell;
 
-    setIsFetchSelected(true);
+    setIsFetchSelected(true); // this action requires fetching data
     setSelectData((prevValues: any) => {
       const newValues = [...prevValues];
       const [i, j] = indices;
 
+      // update selectedRows
       newValues[i][j] = { ...prevValues[i][j], selectedRows };
 
       if (selectedRows && selectedRows.length > 0) {
         if (prevValues[i][j].id === 'study') {
+          // if there is selected rows, we need to set the noData flag to false for violin plot, study selector
           // TODO: eventually remove this hack. Don't use noData or this condition
           templateParams.noData = false;
         }
 
         if (!isMulti) {
+          // if the cell is not multi, we update the selected row with one value
           const selectedTuple = selectedRows[selectedRows.length - 1];
           const value = {
             value: selectedTuple.data[requestInfo.valueKey],
             label: selectedTuple.data[requestInfo.labelKey],
           };
-          newValues[i][j] = { ...prevValues[i][j], value, selectedRows };
           newValues[i][j].value = value;
           templateParams.$url_parameters[urlParamKey].data = selectedTuple.data;
         } else {
+          // if the cell is multi, we update the selected rows with all the values
           templateParams.$url_parameters[urlParamKey] = selectedRows.map((tuple: any) => ({
             data: tuple.data,
           }));
         }
       } else {
         if (prevValues[i][j].id === 'study') {
+          // if there is no selected rows, we need to set the noData flag to true for violin plot, study selector
           // TODO: remove this hack. Don't use noData or this condition
           templateParams.noData = true;
         }
@@ -65,11 +79,14 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
     setIsModalOpen(false);
   };
 
+  /**
+   * Handles the click of the select all button. This function will update the templateParams and selectData state.
+   */
   const handleClickSelectAll = useCallback(
     (indices: number[], cell: any) => {
       const { urlParamKey } = cell;
-      templateParams.noData = false;
-      setIsFetchSelected(true);
+      templateParams.noData = false; // set noData to false when select all is clicked
+      setIsFetchSelected(true); // this action requires fetching data
       setSelectData((prevValues: any) => {
         const newValues = [...prevValues];
         const [i, j] = indices;
@@ -84,19 +101,21 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
     [setIsFetchSelected, templateParams]
   );
 
+  /**
+   * Handles the click of the select some button. This function will update the templateParams and selectData state.
+   */
   const handleClickSelectSome = useCallback(
     (indices: number[], cell: any) => {
       const { requestInfo } = cell;
       const { recordsetProps } = requestInfo;
 
-      setIsFetchSelected(true);
       setModalProps({
         indices,
         recordsetProps,
       });
       setIsModalOpen(true);
     },
-    [setIsModalOpen, setIsFetchSelected, setModalProps]
+    [setIsModalOpen, setModalProps]
   );
 
   const handleRemoveCallback = useCallback(
@@ -104,7 +123,7 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
       const { urlParamKey } = cell;
 
       if (removed === null) {
-        // REMOVE ALL OCCURRED
+        // removing all records occurred
         setSelectData((prevValues: any) => {
           const newValues = [...prevValues];
           const [i, j] = indices;
@@ -115,7 +134,7 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
           return newValues;
         });
       } else {
-        // REMOVE ONE OCCURRED
+        // removing one record occurred
         setSelectData((prevValues: any) => {
           const newValues = [...prevValues];
           const [i, j] = indices;
@@ -140,6 +159,9 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
     [templateParams, setSelectData]
   );
 
+  /**
+   * Handles the click of the select button. This function will update the templateParams and selectData state.
+   */
   const handleClick = useCallback(
     (indices: number[], cell: any) => {
       const { requestInfo } = cell;
@@ -154,6 +176,9 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
     [setIsFetchSelected, setIsModalOpen, setModalProps]
   );
 
+  /**
+   * Handles the change of select dropdown. This function will update the templateParams and selectData state.
+   */
   const handleChange = useCallback(
     (option: any, indices: number[]) => {
       if (option) {
@@ -251,11 +276,21 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
     [handleChange, handleClick, handleClickSelectAll, handleClickSelectSome, handleRemoveCallback]
   );
 
+  /**
+   * Fetch the data for the select grid
+   * Performed in parallel for each row and cell
+   * If one cell fails its request, all will fail
+   */
   const fetchSelectData = useCallback(
-    async (selectGrid: any) =>
+    (selectGrid: any) =>
       Promise.all(
-        selectGrid.map(async (row: any[]) =>
-          Promise.all(row.map(async (cell: any) => parseSelectGridCell(cell, templateParams)))
+        selectGrid.map((row: any[]) =>
+          Promise.all(
+            row.map(async (cell: any) =>
+              // parse the select grid cell
+              parseSelectGridCell(cell, templateParams)
+            )
+          )
         )
       ),
     [parseSelectGridCell, templateParams]

@@ -4,21 +4,46 @@ import SelectedRows from '@isrd-isi-edu/chaise/src/components/selected-rows';
 import { SelectedRow } from '@isrd-isi-edu/chaise/src/models/recordset';
 import ChaiseTooltip from '@isrd-isi-edu/chaise/src/components/tooltip';
 
-export type DropdownSelectProps = {
+/**
+ * ButtonSelectProps is the type of props for ButtonSelect component.
+ */
+export type ButtonSelectProps = {
+  /**
+   * selected rows to be rendered
+   */
   selectedRows?: SelectedRow[];
+  /**
+   * remove callback for the selected rows
+   * 
+   * @param row 
+   * @param event 
+   * @returns 
+   */
   removeCallback?: (row: SelectedRow | null, event: any) => void;
+  /**
+   * label for the select input
+   */
   label?: string;
+  /**
+   * onClickSelectAll callback for the select input
+   */
   onClickSelectAll?: MouseEventHandler;
+  /**
+   * onClickSelectSome callback for the select input
+   */
   onClickSelectSome?: MouseEventHandler;
 };
 
+/**
+ * ButtonSelect is a component that renders a button select input.
+ */
 const ButtonSelect = ({
   selectedRows,
   removeCallback = () => null,
   label,
   onClickSelectAll,
   onClickSelectSome,
-}: DropdownSelectProps): JSX.Element => {
+}: ButtonSelectProps): JSX.Element => {
   // TODO: remove this if chaise has a way to show this when rows.length === 0
   const ClearAllButton = (): JSX.Element => (
     <ChaiseTooltip placement='bottom-start' tooltip='Clear all the selected items.'>

@@ -54,13 +54,28 @@ export type ResponseData = Array<any>;
  * Data packed in result
  */
 export type PlotResultData = {
+  /**
+   * Data for the x axis
+   */
   x: string[] & number[];
+  /**
+   * Data for the y axis
+   */
   y: string[] & number[];
+  /**
+   * text hover for the plot
+   */
   text?: string[];
 };
 
 export type ClickableLinks = {
+  /**
+   * Links for the plot graphic
+   */
   graphic_clickable_links: string[];
+  /**
+   * Links for the legend
+   */
   legend_clickable_links: string[];
 };
 
@@ -68,14 +83,26 @@ export type ClickableLinks = {
  * Data packed in result
  */
 export type PieResultData = {
+  /**
+   * Hover text for the plot
+   */
   text: string[] & number[];
+  /**
+   * Legend labels for the plot
+   */
   labels: string[] & number[];
 };
 
 export type PlotTemplateParams = {
+  /**
+   * Parameters for URL
+   */
   $url_parameters: {
     [paramKey: string]: any;
   };
+  /**
+   * No data flag
+   */
   noData: boolean;
 };
 
