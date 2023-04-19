@@ -122,6 +122,7 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
     (removed: any, indices: number[], cell: any) => {
       const { urlParamKey } = cell;
 
+      setIsFetchSelected(true); // this action requires fetching data
       if (removed === null) {
         // removing all records occurred
         setSelectData((prevValues: any) => {
@@ -156,7 +157,7 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
         });
       }
     },
-    [templateParams, setSelectData]
+    [templateParams, setIsFetchSelected, setSelectData]
   );
 
   /**
@@ -242,20 +243,18 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
           selectResult.selectedRows = tupleData; // set initial selected rows
 
           // fill in the default value for the dropdown selection type from the received tuple data
-          if (type === 'dropdown-select') {
-            const firstTuple = tupleData[0];
-            selectResult.value = {
-              value: firstTuple.data[valueKey],
-              label: firstTuple.data[labelKey],
-            };
+          const firstTuple = tupleData[0];
+          selectResult.value = {
+            value: firstTuple.data[valueKey],
+            label: firstTuple.data[labelKey],
+          };
 
-            if (!isMulti) {
-              templateParams.$url_parameters[urlParamKey].data = firstTuple.data;
-            } else {
-              templateParams.$url_parameters[urlParamKey] = tupleData.map((tuple: any) => ({
-                data: tuple.data,
-              }));
-            }
+          if (!isMulti) {
+            templateParams.$url_parameters[urlParamKey].data = firstTuple.data;
+          } else {
+            templateParams.$url_parameters[urlParamKey] = tupleData.map((tuple: any) => ({
+              data: tuple.data,
+            }));
           }
         }
 
@@ -278,15 +277,13 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
 
   /**
    * Fetch the data for the select grid
-   * Performed in parallel for each row and cell
-   * If one cell fails its request, all will fail
    */
   const fetchSelectData = useCallback(
     (selectGrid: any) =>
       Promise.all(
         selectGrid.map((row: any[]) =>
           Promise.all(
-            row.map(async (cell: any) =>
+            row.map((cell: any) =>
               // parse the select grid cell
               parseSelectGridCell(cell, templateParams)
             )

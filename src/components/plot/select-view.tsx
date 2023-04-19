@@ -1,7 +1,13 @@
 import { ReactNode } from 'react';
 
 export type SelectViewProps = {
+  /**
+   * label for the select input
+   */
   label?: string;
+  /**
+   * children of the view
+   */
   children: ReactNode;
 };
 

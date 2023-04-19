@@ -16,12 +16,21 @@ export type Option = {
 };
 
 type VirtualizedSelectProps = AsyncProps<any, any, any> & {
-  itemHeight: number; // the height of each menu item
-  hideDropdownIndicator?: boolean; // hide the dropdown indicator (down chevron)
-  useOptimizedOption?: boolean; // use optimized option for each menu item (but disables mouseover effects)
+  /**
+   * the height of each menu item
+   */
+  itemHeight: number;
+  /**
+   * hide the dropdown indicator (down chevron)
+   */
+  hideDropdownIndicator?: boolean;
+  /**
+   * use optimized option for each menu item (but disables mouseover effects)
+   */
+  useOptimizedOption?: boolean;
 };
 
-// Define Custom Styles for the Select Component
+/** Define Custom Styles for the Select Component */
 export const SelectStyles: StylesConfig = {
   option: (base) => ({ ...base, ...{ height: 30, padding: '4px 12px' } }),
   control: (base) => ({

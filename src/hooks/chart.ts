@@ -436,10 +436,10 @@ const updatePlotlyLayout = (
     // use the tickvals if it exists
     result.layout.xaxis.tickvals = additionalLayout.xaxis.tickvals;
   }
-  if (additionalLayout?.xaxis?.ticktext) {
-    // use the ticktext if it exists
-    result.layout.xaxis.ticktext = additionalLayout.xaxis.ticktext;
-  }
+  // if (additionalLayout?.xaxis?.ticktext) {
+  //   // use the ticktext if it exists
+  //   result.layout.xaxis.ticktext = additionalLayout.xaxis.ticktext;
+  // }
   if (selectDataGrid) {
     // use the groupby axis title if it exists
     const xaxisTitle = getSelectGroupByAxisTitle(selectDataGrid, 'x');
@@ -598,7 +598,7 @@ const parseViolinResponse = (
     // add custom layout for x axis ticks
     layout.xaxis = {
       tickvals: result.x,
-      ticktext: xTicks.length === 0 ? ['N/A'] : xTicks,
+      // ticktext: x.length === 0 ? ['N/A'] : xTicks,
     };
   }
 
