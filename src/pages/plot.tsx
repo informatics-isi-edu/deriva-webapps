@@ -14,7 +14,6 @@ import { usePlotConfig } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
 import { ID_NAMES } from '@isrd-isi-edu/chaise/src/utils/constants';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
 
-
 const plotSettings = {
   appName: 'app/plot',
   appTitle: 'Plot',

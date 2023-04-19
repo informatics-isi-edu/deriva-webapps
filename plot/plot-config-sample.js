@@ -5,6 +5,15 @@
  */
 var plotConfigs = {
   'study-violin': {
+    // templateVariables: {
+    //     $url_parameters: {
+    //         Study: [{data: {}}],
+    //         Gene: {data: {}}
+    //     },
+    //     // each row of data for graph added before templating each time
+    //     // only available for the tick_display_markdown_pattern
+    //     $row: response.data[index]
+    // }
     headTitle: 'Study Violin Plot',
     top_right_link_text: 'Enable gene, study selectors',
     plots: [
@@ -17,7 +26,7 @@ var plotConfigs = {
         // sets up the study selector
         // /ermrest/catalog/2/entity/RNASeq:Replicate_Expression/NCBI_GeneID=xxxx/(Study)=(RNASeq:Study:RID) + /RID=xxxx
         study_uri_pattern:
-          '/ermrest/catalog/2/entity/RNASeq:Replicate_Expression/NCBI_GeneID={{{$url_parameters.Gene.data.NCBI_GeneID}}}/(Study)=(RNASeq:Study:RID)',
+          '/ermrest/catalog/2/entity/RNASeq:Replicate_Expression/NCBI_GeneID={{{$url_parameters.NCBI_GeneID}}}/(Study)=(RNASeq:Study:RID)',
         // base configuration for plotly
         plotly: {
           // passed directly to plotly (plotly.config)
@@ -52,12 +61,6 @@ var plotConfigs = {
                 title_display_pattern: 'Experiment',
                 tick_display_markdown_pattern:
                   '[{{{$row.Experiment}}}](/chaise/record/#2/RNASeq:Experiment/RID={{{$row.Experiment}}}): {{{$row.Experiment_Internal_ID}}}', // NOTE: this templates the value based on $row (response.data[index]) being in template environment
-                legend_markdown_pattern: [
-                  '[{{{$row.Experiment}}}](/chaise/record/#2/RNASeq:Experiment/RID={{{$row.Experiment}}}): {{{$row.Experiment_Internal_ID}}}',
-                ],
-                graphic_link_pattern: [
-                  '/chaise/recordset/#2/RNASeq:Replicate_Expression/Experiment={{{$row.Experiment}}}',
-                ],
                 default: true,
               },
               {
@@ -117,12 +120,12 @@ var plotConfigs = {
         traces: [
           {
             // The request url that has to be used to fetch the data.
-            // assumes $url_parameters.Study is a set of Tuples
             // -- join Experiment to get the Experiment_Internal_ID
-            //queryPattern: "/ermrest/catalog/2/attributegroup/M:=RNASeq:Replicate_Expression/{{#if (gt $url_parameters.Study.length 0)}}({{#each $url_parameters.Study}}Study={{{this.data.RID}}}{{#unless @last}};{{/unless}}{{/each}})&{{/if}}NCBI_GeneID={{{$url_parameters.Gene.data.NCBI_GeneID}}}/exp:=(Experiment)=(RNASeq:Experiment:RID)/$M/Anatomical_Source,Experiment,Experiment_Internal_ID:=exp:Internal_ID,NCBI_GeneID,Replicate,Sex,Species,Specimen,Specimen_Type,Stage,Age,Starts_At,Ends_At,TPM"
+            //queryPattern: "/ermrest/catalog/2/attributegroup/M:=RNASeq:Replicate_Expression/{{#if (gt $url_parameters.Study.length 0)}}({{#each $url_parameters.Study}}Study={{{this.data.RID}}}{{#unless @last}};{{/unless}}{{/each}})&{{/if}}NCBI_GeneID={{{$url_parameters.NCBI_GeneID}}}/exp:=(Experiment)=(RNASeq:Experiment:RID)/$M/Anatomical_Source,Experiment,Experiment_Internal_ID:=exp:Internal_ID,NCBI_GeneID,Replicate,Sex,Species,Specimen,Specimen_Type,Stage,Age,Starts_At,Ends_At,TPM"
             // -- use Experiment_Internal_ID from Replicate_Expression table. Should be faster
+            // queryPattern: "/ermrest/catalog/2/attributegroup/M:=RNASeq:Replicate_Expression/{{#if (gt $url_parameters.Study.length 0)}}({{#each $url_parameters.Study}}Study={{{this.data.RID}}}{{#unless @last}};{{/unless}}{{/each}})&{{/if}}NCBI_GeneID={{{$url_parameters.NCBI_GeneID}}}/$M/Anatomical_Source,Experiment,Experiment_Internal_ID,NCBI_GeneID,Replicate,Sex,Species,Specimen,Specimen_Type,Stage,Age,Starts_At,Ends_At,TPM"
             queryPattern:
-              '/ermrest/catalog/2/attributegroup/M:=RNASeq:Replicate_Expression/{{#if (gt $url_parameters.Study.length 0)}}({{#each $url_parameters.Study}}Study={{{this.data.RID}}}{{#unless @last}};{{/unless}}{{/each}})&{{/if}}NCBI_GeneID={{{$url_parameters.Gene.data.NCBI_GeneID}}}/$M/Anatomical_Source,Experiment,Experiment_Internal_ID,NCBI_GeneID,Replicate,Sex,Species,Specimen,Specimen_Type,Stage,Age,Starts_At,Ends_At,TPM',
+              '/ermrest/catalog/2/attributegroup/M:=RNASeq:Replicate_Expression/{{#if (gt $url_parameters.Study.length 0)}}({{#each $url_parameters.Study}}Study={{{this.data.RID}}}{{#unless @last}};{{/unless}}{{/each}})&{{/if}}NCBI_GeneID={{{$url_parameters.NCBI_GeneID}}}/$M/Anatomical_Source,Experiment,Experiment_Internal_ID,NCBI_GeneID,Replicate,Sex,Species,Specimen,Specimen_Type,Stage,TPM',
           },
         ],
       },
@@ -173,11 +176,6 @@ var plotConfigs = {
             // legend: ["Browser All Events 1","Browser All Events 2"],   // name of traces in legend
             data_col: '#_Released', // name of the attribute of the data column
             legend_col: 'Data_Type', // name of the attribute of the legend column
-            legend_markdown_pattern:
-              '[{{$self.data.Data_Type}}](/chaise/recordset/#2/{{{$self.data.Schema_Table}}}/*::facets::{{#encodeFacet}}{{{$self.data.Data_Type_Filter}}}{{/encodeFacet}}){target=_blank}',
-            graphic_link_pattern: [
-              '/chaise/recordset/#2/{{{$self.data.Schema_Table}}}/*::facets::{{#encodeFacet}}{{{$self.data.Data_Type_Filter}}}{{/encodeFacet}}',
-            ],
           },
         ],
       },
@@ -214,6 +212,9 @@ var plotConfigs = {
               title: 'Number of Records', // plot x_axis label
               type: 'log', // optional value: tickformat should compatible with type
             },
+            yaxis: {
+              title: 'Data_Types', // plot y_axis label
+            },
             margin: {
               t: 30,
               l: 280,
@@ -232,12 +233,6 @@ var plotConfigs = {
             // The request url that has to be used to fetch the data.
             uri: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23_Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
             legend: ['#_Released'], // name of traces in legend
-            legend_markdown_pattern: [
-              '[#Released](/chaise/recordset/#2/Antibody:Antibody_Tests/){target=_blank}',
-            ],
-            graphic_link_pattern:
-              '/chaise/recordset/#2/{{{ $self.data.Schema_Table }}}/*::facets::{{#encodeFacet}}{{{ $self.data.Data_Type_Filter }}}{{/encodeFacet}}',
-
             x_col: ['#_Released'], // column name to use for x values
             y_col: ['Data_Type'], // array of column names to use for y values
             orientation: 'h', // Optional parameter for displaying the bar chart horizontally
@@ -313,7 +308,7 @@ var plotConfigs = {
     ],
   },
   'gudmap-data-summary-responsive': {
-    headTitle: 'GUDMAP Data Summary Dashboard',
+    page_title: 'GUDMAP Data Summary Dashboard',
     // Array of object plots to be shown on the page
     plots: [
       {
