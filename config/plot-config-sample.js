@@ -420,6 +420,23 @@ var plotConfigs = {
             },
           },
         },
+        config: {
+          title_display_markdown_pattern:
+            '[Specimen Stage vs Assay Type](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
+          xaxis: {
+            title_display_markdown_pattern:
+              '[Assay Type](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
+            tick_display_markdown_pattern:
+              '[{{$self.data.Assay_Type}}](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
+          },
+          yaxis: {
+            title_display_markdown_pattern:
+              '[Stage](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
+            tick_display_markdown_pattern:
+              '[{{$self.data.Name}}](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
+          },
+          disable_default_legend_click: false,
+        },
         traces: [
           {
             uri: '/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/stage:=left(Stage_ID)=(Vocabulary:Developmental_Stage:ID)/$M/Assay_Type,stage:Name',
@@ -465,13 +482,25 @@ var plotConfigs = {
           },
         },
         config: {
-          xbins: 50,
+          title_display_markdown_pattern:
+            '[Specimen Creation Time](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
+          xaxis: {
+            title_display_markdown_pattern:
+              '[Creation Date](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
+          },
         },
         traces: [
           {
             uri: '/ermrest/catalog/2/entity/Gene_Expression:Specimen@sort(RCT::desc::)?limit=10000',
             data_col: 'RCT',
             orientation: 'v',
+            nbinsx: 50,
+          },
+          {
+            uri: '/ermrest/catalog/2/entity/Gene_Expression:Specimen@sort(RCT::desc::)?limit=10000',
+            data_col: 'RCT',
+            orientation: 'v',
+            nbinsx: 50,
           },
         ],
       },
@@ -510,13 +539,20 @@ var plotConfigs = {
           },
         },
         config: {
-          ybins: 50,
+          title_display_markdown_pattern:
+            '[Specimen Creation Time](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
+          yaxis: {
+            title_display_markdown_pattern:
+              '[Creation Date](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
+          },
+          disable_default_legend_click: false,
         },
         traces: [
           {
             uri: '/ermrest/catalog/2/entity/Gene_Expression:Specimen@sort(RCT::desc::)?limit=10000',
             data_col: 'RCT',
             orientation: 'h',
+            nbinsy: 50,
           },
         ],
       },
