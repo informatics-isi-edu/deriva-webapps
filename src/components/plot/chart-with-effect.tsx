@@ -11,6 +11,7 @@ import PlotlyChart from '@isrd-isi-edu/deriva-webapps/src/components/plot/plotly
 import RecordsetModal from '@isrd-isi-edu/chaise/src/components/modals/recordset-modal';
 import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
 import { SelectedRow } from '@isrd-isi-edu/chaise/src/models/recordset';
+import { getQueryParam } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 
 export type ChartWithEffectProps = {
   config: Plot;
@@ -18,11 +19,27 @@ export type ChartWithEffectProps = {
 
 const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
   const plotlyRef = useRef<any>(null);
-
   /**
    * Window size of component
    */
   const { width = 0, height = 0 } = useWindowSize();
+
+  // set the width and height of the chart
+  const { layout } = config.plotly || {};
+
+  // Add upper bounds to layout width and height for responsive
+  const minWidth = 800; // absolute min width
+  const minHeight = 600; // absolute min height
+  const dynamicStyles: { width: string | number; height: string | number } = {
+    width: '100%',
+    height: '100%',
+  };
+  if (layout?.width) {
+    dynamicStyles.width = Math.max(minWidth, Math.min(layout?.width, 0.8 * width)); // set width to min of VP or given Layout
+  }
+  if (layout?.height) {
+    dynamicStyles.height = Math.max(minHeight, Math.min(layout?.height, 0.7 * height)); // set width to min of VP or given Layout
+  }
 
   /**
    * Data that goes into building the chart
@@ -46,10 +63,11 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
   /**
    * Handles the behavior when a graphic is clicked
    */
-  const handlePlotlyClick = ({ points }: { points: any[]; event: MouseEvent }) => {
+  const handlePlotlyClick = (clickData: { points: any[]; event: MouseEvent }) => {
+    const { points } = clickData;
     if (
-      !Array.isArray(points) || //  points not an array
-      points.length !== 1 || // points not a single point
+      !Array.isArray(points) || // points not an array
+      points.length < 1 || // points is empty
       !points[0].data // points does not have data
     ) {
       // invalid data point for clicking
@@ -58,17 +76,22 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
 
     let url = '';
     if (
-      points[0].pointNumber && // point has an index
       points[0].data.graphic_clickable_links && // point has a graphic
-      points[0].data.graphic_clickable_links[points[0].pointNumber] // point has graphic link
+      points[0].data.graphic_clickable_links.length > 0 // point has graphic link
     ) {
       // when pointNumber exists we want to use the index of the point to get the link
-      url = points[0].data.graphic_clickable_links[points[0].pointNumber];
+      if (
+        points[0].pointNumber >= 0 &&
+        points[0].pointNumber < points[0].data.graphic_clickable_links.length
+      ) {
+        url = points[0].data.graphic_clickable_links[points[0].pointNumber];
+      } else {
+        url = points[0].data.graphic_clickable_links[0];
+      }
     } else if (points[0].uri) {
       // when pointNumber does not exist we want to use the uri
       url = points[0].uri;
     }
-
     if (url) {
       window.open(url, '_blank');
     }
@@ -78,7 +101,7 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
    * Handles the behavior when a graphic is clicked
    */
   const handlePlotlyLegendClick = (clickData: any) => {
-    const { data, label } = clickData;
+    const { data, label, layout } = clickData;
     if (
       !Array.isArray(data) || //  points not an array
       data.length !== 1 || // points not a single point
@@ -87,6 +110,7 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
       // invalid legend for clicking
       return; // do nothing
     }
+
     let url = '';
     if (label && Array.isArray(data[0].labels) && data[0].legend_clickable_links) {
       // when a label exists we want to use the index of the label to get the link
@@ -98,18 +122,9 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
 
     if (url) {
       window.open(url, '_blank');
-      return false;
+      return !layout.disable_default_legend_click;
     }
   };
-
-  // set the width and height of the chart
-  const { layout } = config.plotly || {};
-  const minWidth = 800;
-  const minHeight = 600;
-  const layoutWidth = Math.max(minWidth, layout?.width || 0.8 * width);
-  const layoutHeight = Math.max(minHeight, layout?.height || 0.7 * height);
-  parsedData.layout.width = layoutWidth;
-  parsedData.layout.height = layoutHeight;
 
   // set click handlers for chart
   parsedData.onClick = handlePlotlyClick; // append click handler to the chart
@@ -130,22 +145,27 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
   }
 
   return (
-    <div>
+    <div className='chart-container'>
       <div className='chart'>
         {selectData && selectData.length > 0 ? (
-          <SelectGrid selectors={selectData} width={parsedData.layout.width} />
+          <SelectGrid selectors={selectData} width={dynamicStyles.width} />
         ) : null}
         {isDataLoading || isParseLoading ? (
           <ChaiseSpinner />
         ) : (
-          <PlotlyChart className='plotly-chart' ref={plotlyRef} {...parsedData} />
+          <PlotlyChart
+            className='plotly-chart'
+            style={dynamicStyles}
+            ref={plotlyRef}
+            {...parsedData}
+            useResizeHandler
+          />
         )}
       </div>
       {isModalOpen && modalProps ? (
         <RecordsetModal
           recordsetProps={modalProps.recordsetProps}
           onSubmit={(selectedRows: SelectedRow[]) => {
-            console.log('onSubmit func in recordsetmodal', selectedRows);
             handleSubmitModal(selectedRows, modalIndices, modalCell);
           }}
           onClose={handleCloseModal}

@@ -30,6 +30,7 @@ import {
   TraceConfig,
 } from '@isrd-isi-edu/deriva-webapps/src/models/plot-config';
 import useIsFirstRender from '@isrd-isi-edu/chaise/src/hooks/is-first-render';
+import { getQueryParam } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 
 /**
  * Data received from API request
@@ -207,7 +208,7 @@ export const useChartData = (plot: Plot) => {
   useEffect(() => {
     const fetchInitData = async () => {
       setIsInitLoading(true);
-      if (plot.plot_type === 'violin') {
+      if (getQueryParam(window.location.href, 'config') === 'study-violin') {
         const selectGrid = createStudyViolinSelectGrid(plot); // TODO: change plot.plot_type to study-violin
         const initialSelectData = await fetchSelectData(selectGrid); // fetch the data needed for the select grid
         setSelectData(initialSelectData); // set the data for the select grid
@@ -295,10 +296,17 @@ const parsePlotData = (
   selectDataGrid: any,
   templateParams: any
 ) => {
-  const result: any = { ...plot.plotly, data: [] };
-  let additionalLayout = {};
+  const result: any = { data: [] };
+  result.config = { ...plot?.plotly?.config };
+  result.layout = {
+    ...plot.plotly?.layout,
+    width: undefined, // undefined to allow for responsive layout
+    height: undefined, // undefined to allow for responsive layout
+  };
+  // NOTE: width and height max are set in dynamic styles of chart-with-effect.tsx
 
   // Add all plot "traces" to data array based on plot type
+  let additionalLayout = {};
   result.data = unpackedResponses.map((responseData: ResponseData, index: number) => {
     const currTrace = plot.traces[index];
     if (plot.plot_type === 'bar') {
@@ -310,7 +318,7 @@ const parsePlotData = (
     } else if (plot.plot_type === 'histogram') {
       return parseHistogramResponse(currTrace, plot, responseData);
     } else if (plot.plot_type === 'violin') {
-      const { result, layout } = parseViolinResponse(
+      const { result: parseResult, layout } = parseViolinResponse(
         currTrace,
         plot,
         responseData,
@@ -318,12 +326,14 @@ const parsePlotData = (
         templateParams.noData
       );
       additionalLayout = layout;
-      return result;
+      return parseResult;
     }
   });
 
   updatePlotlyConfig(plot, result); // update the config
   updatePlotlyLayout(plot, result, templateParams, additionalLayout, selectDataGrid); // update the layout
+
+  // width and heigh are set in the css
 
   return result;
 };
@@ -336,7 +346,14 @@ const parsePlotData = (
  */
 const updatePlotlyConfig = (plot: Plot, result: any): void => {
   result.config.displaylogo = Boolean(plot.config.displaylogo);
-  result.config.responsive = Boolean(plot.config.responsive);
+  // result.config.responsive = Boolean(plot.config.responsive);
+  result.config.responsive = true;
+
+  // legend
+  if (plot.config.disable_default_legend_click) {
+    // disable default legend click if it exists
+    result.layout.disable_default_legend_click = plot.config.disable_default_legend_click;
+  }
 };
 
 /**
@@ -417,12 +434,6 @@ const updatePlotlyLayout = (
   }
   result.layout.title = title;
 
-  // legend
-  if (plot.config.disable_default_legend_click) {
-    // disable default legend click if it exists
-    result.layout.disable_default_legend_click = plot.config.disable_default_legend_click;
-  }
-
   // x axis
   if (!result.layout.xaxis) {
     // initialize xaxis if it doesn't exist
@@ -484,6 +495,8 @@ const updatePlotlyLayout = (
   if (plot?.plotly?.config?.modeBarButtonsToRemove) {
     result.layout.modebar = { remove: plot?.plotly?.config?.modeBarButtonsToRemove };
   }
+
+  result.layout.autoresize = true;
 };
 
 /**
@@ -724,7 +737,6 @@ const parsePieResponse = (trace: Trace, plot: Plot, responseData: ResponseData) 
       let labelValue = textValue;
       if (typeof trace.legend_markdown_pattern === 'string') {
         labelValue = createLink(trace.legend_markdown_pattern, { $self: { data: item } });
-        console.log('pie legend_markdown_pattern link', textValue);
       }
       result.text.push(textValue);
       result.labels.push(labelValue);
@@ -856,7 +868,7 @@ const updateWithTraceColData = (
       ? graphic_link_pattern[0]
       : graphic_link_pattern;
     if (linkPattern) {
-      const link = createLink(linkPattern, { $self: { data: item } });
+      const link = createLink(linkPattern, { $self: { data: item }, $row: item });
       if (link) {
         result.graphic_clickable_links.push(link);
       }

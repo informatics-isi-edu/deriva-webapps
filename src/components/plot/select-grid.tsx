@@ -12,7 +12,7 @@ type SelectGridProps = {
   /**
    * width of grid
    */
-  width: number;
+  width: number | string;
 };
 
 const SelectGrid = ({ selectors, width }: SelectGridProps): JSX.Element => (
@@ -29,9 +29,13 @@ const SelectGrid = ({ selectors, width }: SelectGridProps): JSX.Element => (
               onClickSelectAll,
               onClickSelectSome,
               removeCallback,
+              hidden,
               ...props
             } = cell;
 
+            if (hidden) {
+              return null;
+            }
             if (type === 'dropdown-select') {
               return (
                 <DropdownSelect

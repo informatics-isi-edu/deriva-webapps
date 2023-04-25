@@ -4,6 +4,7 @@ import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
 import { getPatternUri } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 
 import { PlotTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
+import { getQueryParam } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 
 import {
   RecordsetDisplayMode,
@@ -230,7 +231,16 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
         // there is requestInfo, so we need to fetch data for the select grid cell
 
         const { uriPattern, valueKey, labelKey, recordsetProps } = requestInfo;
-        const { uri, headers } = getPatternUri(uriPattern, templateParams);
+        const patternUri = getPatternUri(uriPattern, templateParams);
+        const headers = patternUri.headers;
+        let uri = patternUri.uri;
+
+        // checks both urlparam and valuekey
+        // TODO: maybe change query param to only urlparam
+        const hrefQueryParam = getQueryParam(window.location.href, urlParamKey) || getQueryParam(window.location.href, valueKey);
+        if (hrefQueryParam) {
+          uri += `/${valueKey}=` + hrefQueryParam;
+        }
 
         // only fetch data if the uri is valid
         if (uri) {
@@ -241,6 +251,17 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
           ); // perform the data fetch
           recordsetProps.initialReference = initialReference; // set initial ref
           selectResult.selectedRows = tupleData; // set initial selected rows
+
+          if (hrefQueryParam) {
+            if (!isMulti) {
+              templateParams.$url_parameters[urlParamKey].data = hrefQueryParam;
+            } else {
+              templateParams.$url_parameters[urlParamKey] = [
+                { data: { [valueKey]: hrefQueryParam } },
+              ];
+            }
+            selectResult.hidden = true;
+          }
 
           // fill in the default value for the dropdown selection type from the received tuple data
           const firstTuple = tupleData[0];

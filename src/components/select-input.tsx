@@ -20,8 +20,17 @@ const ITEM_HEIGHT = 30;
 export const SelectStyles: StylesConfig = {
   control: (base) => ({
     ...base,
-    ...{ height: 30, minHeight: 30, padding: 0, overflow: 'hidden', cursor: 'pointer' },
+    ...{
+      height: 30,
+      minHeight: 30,
+      padding: 0,
+      overflow: 'hidden',
+      cursor: 'pointer',
+      backgroundColor: 'none',
+      borderColor: 'rgb(204,204,204)',
+    },
   }),
+  singleValue: (base) => ({ ...base, padding: 0, color: 'rgb(51,51,51)' }),
 };
 
 /**
