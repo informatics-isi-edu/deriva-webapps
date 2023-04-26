@@ -3,6 +3,7 @@ import ButtonSelect from '@isrd-isi-edu/deriva-webapps/src/components/plot/butto
 import { Option } from '@isrd-isi-edu/deriva-webapps/src/components/virtualized-select';
 
 import { SelectedRow } from '@isrd-isi-edu/chaise/src/models/recordset';
+import { getQueryParam } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 
 type SelectGridProps = {
   /**
@@ -15,72 +16,103 @@ type SelectGridProps = {
   width: number | string;
 };
 
-const SelectGrid = ({ selectors, width }: SelectGridProps): JSX.Element => (
-  <div className='selectors-grid' style={{ display: 'flex', flex: 1, width: width }}>
-    {selectors.map((row: any, i: number) => {
-      return (
-        <div key={i} className='selectors-row'>
-          {row.map((cell: any, j: number) => {
-            const indices = [i, j];
-            const {
-              type,
-              onClick,
-              onChange,
-              onClickSelectAll,
-              onClickSelectSome,
-              removeCallback,
-              hidden,
-              ...props
-            } = cell;
+const SelectGrid = ({ selectors, width }: SelectGridProps): JSX.Element => {
+  let isOneHrefOn = false;
+  let selectorNames = '';
+  selectors.forEach((row: any) => {
+    row.forEach((cell: any, j: number) => {
+      if (cell.label && cell.requestInfo) {
+        selectorNames += cell.label;
+        if (j < row.length - 1) {
+          selectorNames += ' & ';
+        }
+      }
+      if (cell.isHrefOn) {
+        isOneHrefOn = true;
+      }
+    });
+  });
+  selectorNames += ' selectors';
 
-            if (hidden) {
-              return null;
-            }
-            if (type === 'dropdown-select') {
-              return (
-                <DropdownSelect
-                  key={j}
-                  onClick={() => {
-                    if (typeof onClick === 'function') {
-                      onClick(indices, cell);
-                    }
-                  }}
-                  onChange={(option: Option) => {
-                    if (typeof onChange === 'function') {
-                      onChange(option, indices, cell);
-                    }
-                  }}
-                  {...props}
-                />
-              );
-            } else if (type === 'button-select') {
-              return (
-                <ButtonSelect
-                  key={j}
-                  onClickSelectAll={() => {
-                    if (typeof onClickSelectAll === 'function') {
-                      onClickSelectAll(indices, cell);
-                    }
-                  }}
-                  onClickSelectSome={() => {
-                    if (typeof onClickSelectSome === 'function') {
-                      onClickSelectSome(indices, cell);
-                    }
-                  }}
-                  removeCallback={(row: SelectedRow) => {
-                    if (typeof removeCallback === 'function') {
-                      removeCallback(row, indices, cell);
-                    }
-                  }}
-                  {...props}
-                />
-              );
-            }
-          })}
+  return (
+    <div className='selectors-grid' style={{ display: 'flex', flex: 1, width: width }}>
+      {isOneHrefOn ? (
+        <div className='selectors-link-container'>
+          <div />
+          <a
+            className='selectors-link'
+            href={`${window.location.href.split('&')[0]}`}
+          >
+            Visualization with {selectorNames}
+          </a>
         </div>
-      );
-    })}
-  </div>
-);
+      ) : null}
+      {selectors.map((row: any, i: number) => {
+        return (
+          <div key={i} className='selectors-row'>
+            {row.map((cell: any, j: number) => {
+              const indices = [i, j];
+              const {
+                type,
+                onClick,
+                onChange,
+                onClickSelectAll,
+                onClickSelectSome,
+                removeCallback,
+                isHrefOn,
+                ...props
+              } = cell;
+
+              if (type === 'dropdown-select') {
+                return (
+                  <DropdownSelect
+                    key={j}
+                    onClick={() => {
+                      if (typeof onClick === 'function') {
+                        onClick(indices, cell);
+                      }
+                    }}
+                    onChange={(option: Option) => {
+                      if (typeof onChange === 'function') {
+                        onChange(option, indices, cell);
+                      }
+                    }}
+                    isDisabled={isHrefOn}
+                    {...props}
+                  />
+                );
+              } else if (type === 'button-select') {
+                if (isHrefOn) {
+                  return null;
+                }
+                return (
+                  <ButtonSelect
+                    key={j}
+                    onClickSelectAll={() => {
+                      if (typeof onClickSelectAll === 'function') {
+                        onClickSelectAll(indices, cell);
+                      }
+                    }}
+                    onClickSelectSome={() => {
+                      if (typeof onClickSelectSome === 'function') {
+                        onClickSelectSome(indices, cell);
+                      }
+                    }}
+                    removeCallback={(row: SelectedRow) => {
+                      if (typeof removeCallback === 'function') {
+                        removeCallback(row, indices, cell);
+                      }
+                    }}
+                    {...props}
+                  />
+                );
+              }
+            })}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
 
 export default SelectGrid;

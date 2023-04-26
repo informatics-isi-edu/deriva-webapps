@@ -16,6 +16,7 @@ export type DropdownSelectProps = {
    * if true, the select input will be rendered as a button
    */
   isButton?: boolean;
+  isDisabled?: boolean;
   /**
    * onClick callback for the select input
    */
@@ -44,6 +45,7 @@ export type DropdownSelectProps = {
 const DropdownSelect = ({
   label,
   isButton = false,
+  isDisabled,
   onClick,
   onChange,
   value,
@@ -52,7 +54,7 @@ const DropdownSelect = ({
   const SelectComponent = (): JSX.Element => (
     <SelectInput
       className='dropdown-select'
-      isDisabled={isButton}
+      isDisabled={isDisabled}
       placeholder={'select...'}
       onChange={onChange}
       value={value}
@@ -62,7 +64,7 @@ const DropdownSelect = ({
 
   return (
     <SelectView label={label}>
-      {isButton ? (
+      {isButton && !isDisabled ? (
         <button className='select-input-button' onClick={onClick}>
           <SelectComponent />
         </button>

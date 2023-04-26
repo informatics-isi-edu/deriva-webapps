@@ -23,13 +23,12 @@
     align-items: center;
     width: 80%;
     height: 100%;
-    margin: 20px 0px;
+    padding: 20px;
   }
 
   .plotly-chart {
     width: 100%;
     height: 70vh;
-    margin: 20px 0px;
   }
 
   .dropdown-select {
@@ -43,6 +42,18 @@
     background: none;
     width: 100%;
     text-align: left;
+  }
+
+  .selectors-link {
+    margin-right: 8px;
+  }
+
+  .selectors-link-container {
+    display: flex;
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-bottom: 12px;
   }
 
   .selectors-grid {

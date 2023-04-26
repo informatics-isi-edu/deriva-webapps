@@ -11,7 +11,6 @@ import PlotlyChart from '@isrd-isi-edu/deriva-webapps/src/components/plot/plotly
 import RecordsetModal from '@isrd-isi-edu/chaise/src/components/modals/recordset-modal';
 import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
 import { SelectedRow } from '@isrd-isi-edu/chaise/src/models/recordset';
-import { getQueryParam } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 
 export type ChartWithEffectProps = {
   config: Plot;
@@ -28,19 +27,17 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
   const { layout } = config.plotly || {};
 
   // Add upper bounds to layout width and height for responsive
-  const minWidth = 800; // absolute min width
+  const minWidth = 320; // absolute min width
   const minHeight = 600; // absolute min height
+  const maxWidth = 0.8 * width; // 80% of viewport, used as max width
+  const maxHeight = 0.7 * height; // 70% of viewport, used as min height
   const dynamicStyles: { width: string | number; height: string | number } = {
     width: '100%',
     height: '100%',
   };
-  if (layout?.width) {
-    dynamicStyles.width = Math.max(minWidth, Math.min(layout?.width, 0.8 * width)); // set width to min of VP or given Layout
-  }
-  if (layout?.height) {
-    dynamicStyles.height = Math.max(minHeight, Math.min(layout?.height, 0.7 * height)); // set width to min of VP or given Layout
-  }
-
+  dynamicStyles.width = Math.max(minWidth, Math.min(layout?.width || maxWidth, maxWidth)); // set width to min of VP or given Layout
+  dynamicStyles.height = Math.max(minHeight, Math.min(layout?.height || maxHeight, maxHeight)); // set width to min of VP or given Layout
+  
   /**
    * Data that goes into building the chart
    */

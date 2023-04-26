@@ -262,7 +262,7 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
                 { data: { [valueKey]: hrefQueryParam } },
               ];
             }
-            selectResult.hidden = true;
+            selectResult.isHrefOn = true;
           }
 
           // fill in the default value for the dropdown selection type from the received tuple data
