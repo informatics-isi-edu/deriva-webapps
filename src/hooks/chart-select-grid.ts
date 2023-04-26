@@ -168,14 +168,13 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
     (indices: number[], cell: any) => {
       const { requestInfo } = cell;
       const { recordsetProps } = requestInfo;
-      setIsFetchSelected(true);
       setModalProps({
         indices,
         recordsetProps,
       });
       setIsModalOpen(true);
     },
-    [setIsFetchSelected, setIsModalOpen, setModalProps]
+    [setIsModalOpen, setModalProps]
   );
 
   /**
@@ -206,6 +205,7 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
    * @returns
    */
   const fetchSelectGridCellData = async (uri: string, headers: any, compact: boolean) => {
+    // console.log('fetchselectgridcell occurred', uri);
     const resolvedRef = await ConfigService.ERMrest.resolve(uri, { headers });
     const ref = compact ? resolvedRef.contextualize.compactSelect : resolvedRef;
     const initialReference = resolvedRef.contextualize.compactSelect;
@@ -237,7 +237,9 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
 
         // checks both urlparam and valuekey
         // TODO: maybe change query param to only urlparam
-        const hrefQueryParam = getQueryParam(window.location.href, urlParamKey) || getQueryParam(window.location.href, valueKey);
+        const hrefQueryParam =
+          getQueryParam(window.location.href, urlParamKey) ||
+          getQueryParam(window.location.href, valueKey);
         if (hrefQueryParam) {
           uri += `/${valueKey}=` + hrefQueryParam;
         }

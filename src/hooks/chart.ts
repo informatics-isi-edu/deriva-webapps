@@ -186,13 +186,16 @@ export const useChartData = (plot: Plot) => {
    * Fetches data from the plot traces in the plot config and returns the data
    */
   const fetchData = useCallback(async () => {
+    // console.log('fetchData occurred');
     // Fulfill promise for plot
     const plotResponses: Array<Response> = await Promise.all(
       // request for each trace
       plot.traces.map((trace) => {
         if (trace.uri) {
+          // console.log(trace.uri);
           return ConfigService.http.get(trace.uri);
         } else if (trace.queryPattern) {
+          // console.log(trace.queryPattern);
           const { uri, headers } = getPatternUri(trace.queryPattern, templateParams);
           return ConfigService.http.get(uri, { headers });
         } else {
@@ -803,7 +806,7 @@ const parseBarResponse = (trace: Trace, plot: Plot, responseData: ResponseData) 
  * Optionally formats the value.
  *
  * @param item each item of data
- * @param colName column name for the item of data
+* @param colName column name for the item of data
  * @param axis axis object from plot config
  * @param formatData whether to format the data or not
  * @param plot plot config
