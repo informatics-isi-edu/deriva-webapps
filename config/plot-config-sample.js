@@ -50,6 +50,7 @@ var plotConfigs = {
               {
                 column_name: 'Experiment',
                 title_display_pattern: 'Experiment',
+                title: 'Experiment',
                 tick_display_markdown_pattern:
                   '[{{{$row.Experiment}}}](/chaise/record/#2/RNASeq:Experiment/RID={{{$row.Experiment}}}): {{{$row.Experiment_Internal_ID}}}', // NOTE: this templates the value based on $row (response.data[index]) being in template environment
                 legend_markdown_pattern: [
@@ -62,46 +63,54 @@ var plotConfigs = {
               },
               {
                 column_name: 'Experiment_Internal_ID',
+                title: 'Experiment Internal ID',
                 title_display_pattern: 'Experiment Internal ID',
               },
               {
                 column_name: 'Replicate',
+                title: 'Replicate',
                 title_display_pattern: 'Replicate',
                 tick_display_markdown_pattern:
                   '[{{{$row.Replicate}}}](/chaise/record/#2/RNASeq:Replicate/RID={{{$row.Replicate}}})',
               },
               {
                 column_name: 'Specimen',
+                title: 'Specimen',
                 title_display_pattern: 'Specimen',
                 tick_display_markdown_pattern:
                   '[{{{$row.Specimen}}}](/chaise/record/#2/Gene_Expression:Specimen/RID={{{$row.Specimen}}})',
               },
               {
                 column_name: 'Anatomical_Source',
+                title: 'Anatomical_Source',
                 title_display_pattern: 'Anatomical Source',
                 tick_display_markdown_pattern:
                   '{{#if $row.Anatomical_Source}}{{{$row.Anatomical_Source}}}{{else}}N/A{{/if}}',
               },
               {
                 column_name: 'Sex',
+                title: 'Sex',
                 title_display_pattern: 'Sex',
                 tick_display_markdown_pattern:
                   '{{#if $row.Sex}}[{{{$row.Sex}}}](/chaise/record/#2/Vocabulary:Sex/Name={{#encode $row.Sex}}{{/encode}}){{else}}N/A{{/if}}',
               },
               {
                 column_name: 'Species',
+                title: 'Species',
                 title_display_pattern: 'Species',
                 tick_display_markdown_pattern:
                   '[{{{$row.Species}}}](/chaise/record/#2/Vocabulary:Species/Name={{#encode $row.Species}}{{/encode}})',
               },
               {
                 column_name: 'Specimen_Type',
+                title: 'Specimen_Type',
                 title_display_pattern: 'Specimen Type',
                 tick_display_markdown_pattern:
                   '[{{{$row.Specimen_Type}}}](/chaise/record/#2/Vocab:Specimen_Type/Name={{#encode $row.Specimen_Type}}{{/encode}})',
               },
               {
                 column_name: 'Stage',
+                title: 'Stage',
                 title_display_pattern: 'Stage',
                 tick_display_markdown_pattern:
                   '{{#if $row.Stage}}[{{{$row.Stage}}}](/chaise/record/#2/Vocabulary:Developmental_Stage/Name={{#encode $row.Stage}}{{/encode}}){{else}}N/A{{/if}}',

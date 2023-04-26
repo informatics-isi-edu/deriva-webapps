@@ -3,7 +3,6 @@ import ButtonSelect from '@isrd-isi-edu/deriva-webapps/src/components/plot/butto
 import { Option } from '@isrd-isi-edu/deriva-webapps/src/components/virtualized-select';
 
 import { SelectedRow } from '@isrd-isi-edu/chaise/src/models/recordset';
-import { getQueryParam } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 
 type SelectGridProps = {
   /**

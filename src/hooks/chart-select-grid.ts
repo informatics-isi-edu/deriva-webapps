@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Plot } from '@isrd-isi-edu/deriva-webapps/src/models/plot-config';
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
-import { getPatternUri } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
+import { createLink, extractLink, getPatternUri } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 
 import { PlotTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
 import { getQueryParam } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
@@ -430,10 +430,10 @@ export const createStudyViolinSelectGrid = (plot: Plot) => {
   if (group_keys.length > 0) {
     GroupBySelectData.value = {
       value: group_keys[0].column_name,
-      label: group_keys[0].title_display_pattern,
+      label: group_keys[0].title,
     };
     GroupBySelectData.defaultOptions = group_keys.map((data) => {
-      return { value: data.column_name, label: data.title_display_pattern };
+      return { value: data.column_name, label: data.title };
     });
     const groupKeysMap: any = {};
     group_keys.forEach((data) => {

@@ -82,6 +82,7 @@ export type PlotConfigAxis = {
  */
 export type PlotConfigAxisGroupKey = {
   column_name: string;
+  title: string;
   title_display_pattern: string;
   tick_display_markdown_pattern?: string;
   default?: boolean;

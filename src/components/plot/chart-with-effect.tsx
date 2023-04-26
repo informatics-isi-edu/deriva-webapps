@@ -80,7 +80,7 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
       if (
         points[0].pointNumber >= 0 &&
         points[0].pointNumber < points[0].data.graphic_clickable_links.length
-      ) {
+      ) { 
         url = points[0].data.graphic_clickable_links[points[0].pointNumber];
       } else {
         url = points[0].data.graphic_clickable_links[0];
