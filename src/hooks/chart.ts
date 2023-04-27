@@ -489,6 +489,9 @@ const updatePlotlyLayout = (
   if (plot.plot_type === 'violin') {
     result.layout.hovermode = 'closest';
     result.layout.dragmode = 'pan';
+    if (result.layout.yaxis.zeroline === undefined) {
+      result.layout.yaxis.zeroline = false;
+    }
   }
 
   result.layout.yaxis.automargin = true;
@@ -806,7 +809,7 @@ const parseBarResponse = (trace: Trace, plot: Plot, responseData: ResponseData) 
  * Optionally formats the value.
  *
  * @param item each item of data
-* @param colName column name for the item of data
+ * @param colName column name for the item of data
  * @param axis axis object from plot config
  * @param formatData whether to format the data or not
  * @param plot plot config
