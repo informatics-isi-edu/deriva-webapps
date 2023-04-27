@@ -16,6 +16,7 @@ type SelectGridProps = {
 };
 
 const SelectGrid = ({ selectors, width }: SelectGridProps): JSX.Element => {
+  let isAllHrefOn = true;
   let isOneHrefOn = false;
   let selectorNames = '';
   selectors.forEach((row: any) => {
@@ -25,6 +26,9 @@ const SelectGrid = ({ selectors, width }: SelectGridProps): JSX.Element => {
         if (j < row.length - 1) {
           selectorNames += ' & ';
         }
+      }
+      if (cell.requestInfo && !cell.isHrefOn) {
+        isAllHrefOn = false;
       }
       if (cell.isHrefOn) {
         isOneHrefOn = true;
@@ -76,12 +80,12 @@ const SelectGrid = ({ selectors, width }: SelectGridProps): JSX.Element => {
                         onChange(option, indices, cell);
                       }
                     }}
-                    isDisabled={isHrefOn}
+                    isDisabled={isHrefOn && !isAllHrefOn}
                     {...props}
                   />
                 );
               } else if (type === 'button-select') {
-                if (isHrefOn) {
+                if (isHrefOn && !isAllHrefOn) {
                   return null;
                 }
                 return (
