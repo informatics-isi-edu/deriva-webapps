@@ -18,19 +18,24 @@ const ITEM_HEIGHT = 30;
 
 // Define Custom Styles for the Select Component
 export const SelectStyles: StylesConfig = {
-  control: (base) => ({
-    ...base,
-    ...{
-      height: 30,
-      minHeight: 30,
-      padding: 0,
-      overflow: 'hidden',
-      cursor: 'pointer',
-      // backgroundColor: 'none',
-      // borderColor: 'rgb(204,204,204)',
-    },
-  }),
-  singleValue: (base) => ({ ...base, padding: 0, color: 'rgb(51,51,51)' }),
+  control: (base, { isDisabled }) => {
+    const controlStyle = {
+      ...base,
+      ...{
+        height: 30,
+        minHeight: 30,
+        padding: 0,
+        overflow: 'hidden',
+        cursor: 'pointer',
+      },
+    };
+    if (isDisabled) {
+      controlStyle.backgroundColor = '#ddd';
+      controlStyle.color = '#999';
+    }
+    return controlStyle;
+  },
+  singleValue: (base) => ({ ...base, padding: 0 }),
 };
 
 /**
@@ -38,7 +43,9 @@ export const SelectStyles: StylesConfig = {
  */
 const SelectInput = ({ className, onPressButton, ...rest }: SelectInputProps): JSX.Element => {
   const components: Partial<SelectComponents<unknown, any, any>> = {
-    DropdownIndicator: () => <MemoizedDropdownButton onClick={onPressButton} />,
+    DropdownIndicator: rest.isDisabled
+      ? () => null
+      : () => <MemoizedDropdownButton onClick={onPressButton} />,
     IndicatorSeparator: () => null,
   };
 
