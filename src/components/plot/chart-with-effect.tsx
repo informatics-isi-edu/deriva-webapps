@@ -37,7 +37,7 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
   };
   dynamicStyles.width = Math.max(minWidth, Math.min(layout?.width || maxWidth, maxWidth)); // set width to min of VP or given Layout
   dynamicStyles.height = Math.max(minHeight, Math.min(layout?.height || maxHeight, maxHeight)); // set width to min of VP or given Layout
-  
+
   /**
    * Data that goes into building the chart
    */
@@ -46,7 +46,7 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
     selectData,
     modalProps,
     isModalOpen,
-    isDataLoading,
+    isFetchSelected,
     isParseLoading,
     isInitLoading,
     handleCloseModal,
@@ -80,7 +80,7 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
       if (
         points[0].pointNumber >= 0 &&
         points[0].pointNumber < points[0].data.graphic_clickable_links.length
-      ) { 
+      ) {
         url = points[0].data.graphic_clickable_links[points[0].pointNumber];
       } else {
         url = points[0].data.graphic_clickable_links[0];
@@ -147,7 +147,7 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
         {selectData && selectData.length > 0 ? (
           <SelectGrid selectors={selectData} width={dynamicStyles.width} />
         ) : null}
-        {isDataLoading || isParseLoading ? (
+        {isParseLoading || isFetchSelected ? (
           <ChaiseSpinner />
         ) : (
           <PlotlyChart

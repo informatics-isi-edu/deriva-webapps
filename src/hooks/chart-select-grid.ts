@@ -323,6 +323,7 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
     isFetchSelected,
     handleCloseModal,
     handleSubmitModal,
+    setIsFetchSelected,
   };
 };
 

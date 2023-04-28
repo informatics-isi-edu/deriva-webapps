@@ -176,6 +176,7 @@ export const useChartData = (plot: Plot) => {
     fetchSelectData,
     setSelectData,
     isFetchSelected,
+    setIsFetchSelected,
   } = useChartSelectGrid({
     templateParams,
     setModalProps,
@@ -210,6 +211,7 @@ export const useChartData = (plot: Plot) => {
   // Effect to fetch initial data
   useEffect(() => {
     const fetchInitData = async () => {
+      console.log('fetch initial occurred');
       setIsInitLoading(true);
       if (getQueryParam(window.location.href, 'config') === 'study-violin') {
         const selectGrid = createStudyViolinSelectGrid(plot); // TODO: change plot.plot_type to study-violin
@@ -243,10 +245,13 @@ export const useChartData = (plot: Plot) => {
   // Effect to fetch data on subsequent changes when different selections are made (when selectData changes)
   useEffect(() => {
     const fetchSubsequentData = async () => {
+      console.log('fetch occurred');
       setIsDataLoading(true);
+      setIsParseLoading(true);
       const plotData = await fetchData();
       setData(plotData);
       setIsDataLoading(false);
+      setIsFetchSelected(false);
     };
 
     if (!isFirstRender && isFetchSelected) {
@@ -259,22 +264,31 @@ export const useChartData = (plot: Plot) => {
         dispatchError({ error });
       }
     }
-  }, [isFirstRender, isFetchSelected, selectData, templateParams, fetchData, dispatchError]);
+  }, [
+    isFirstRender,
+    isFetchSelected,
+    setIsFetchSelected,
+    selectData,
+    templateParams,
+    fetchData,
+    dispatchError,
+  ]);
 
   // Parse data on state changes to data or selectData
   useEffect(() => {
-    if (data) {
-      setIsParseLoading(true);
+    if (data && !isDataLoading && !isInitLoading && !isFetchSelected) {
+      console.log('parse occurred');
       const parsedPlotData = parsePlotData(plot, data, selectData, templateParams);
       setParsedData(parsedPlotData);
-      setIsParseLoading(false);
+      setIsParseLoading(false); // set loading to false after parsing
     }
-  }, [plot, data, selectData, templateParams]);
+  }, [plot, data, isDataLoading, isFetchSelected, isInitLoading, selectData, templateParams]);
 
   return {
     isInitLoading,
     isDataLoading,
     isParseLoading,
+    isFetchSelected,
     modalProps,
     isModalOpen,
     selectData,
