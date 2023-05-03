@@ -1,5 +1,5 @@
-import parula from '@isrd-isi-edu/deriva-webapps/src/assets/parula.json';
-import viridis from '@isrd-isi-edu/deriva-webapps/src/assets/viridis.json';
+import parula from '@isrd-isi-edu/deriva-webapps/src/assets/colors/parula.json';
+import viridis from '@isrd-isi-edu/deriva-webapps/src/assets/colors/viridis.json';
 
 import { useEffect, useState, useRef, useCallback, SetStateAction, Dispatch } from 'react';
 
@@ -15,6 +15,8 @@ import {
 import useError from '@isrd-isi-edu/chaise/src/hooks/error';
 
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
+
+import { MatrixConfig, MatrixDefaultConfig } from '@isrd-isi-edu/deriva-webapps/src/models/matrix-config';
 
 /**
  * The x, y, or z axis datum to be parsed
@@ -160,7 +162,7 @@ type MatrixData = {
   /**
    * matrix configurations
    */
-  config: any;
+  config: MatrixDefaultConfig | null;
 };
 
 /**
@@ -178,12 +180,12 @@ const colorOptions: Array<Option> = [
  * @param matrixConfigs
  * @returns all data to be used by matrix visualization
  */
-export const useMatrixData = (matrixConfigs: any): MatrixData => {
+export const useMatrixData = (matrixConfigs: MatrixConfig): MatrixData => {
   const { dispatchError, errors } = useError();
   /**
    * config object state
    */
-  const [config, setConfig] = useState<any>(null);
+  const [config, setConfig] = useState<MatrixDefaultConfig | null>(null);
   /**
    * raw data request from the api
    */
@@ -234,7 +236,7 @@ export const useMatrixData = (matrixConfigs: any): MatrixData => {
 
   // Side Effect for Updating Data
   useEffect(() => {
-    const fetchMatrixData = async (config: any) => {
+    const fetchMatrixData = async (config: MatrixDefaultConfig) => {
       const xPromise = ConfigService.http.get(config.xURL);
       const yPromise = ConfigService.http.get(config.yURL);
       const zPromise = ConfigService.http.get(config.zURL);
@@ -298,7 +300,7 @@ export type ParsedMatrixData = {
  * @param response the response for all data received from the server
  * @returns parsed data used by matrix visualization component
  */
-const parseMatrixData = (config: any, response: MatrixResponse): ParsedMatrixData => {
+const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse): ParsedMatrixData => {
   const [{ data: xData }, { data: yData }, { data: zData }, { data: xyzData }] = response;
 
   // Create XYZ Map
@@ -429,7 +431,7 @@ const parseMatrixData = (config: any, response: MatrixResponse): ParsedMatrixDat
  * @param  {object} y the y object, must have .title and .id
  * @return {string} returns the url string to be used
  */
-const generateLink = (config: any, x?: any, y?: any, z?: any) => {
+const generateLink = (config: MatrixDefaultConfig, x?: any, y?: any, z?: any) => {
   const facetList = [];
   if (x) {
     facetList.push({ source: config.xSource, choices: [x[config.xFacetColumn]] });

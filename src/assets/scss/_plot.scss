@@ -1,0 +1,88 @@
+.plot-page {
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  height: 90vh;
+
+  .chart-container {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+  }
+
+  .chart {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    width: 80%;
+    height: 100%;
+    padding: 20px;
+  }
+
+  .plotly-chart {
+    width: 100%;
+    height: 70vh;
+  }
+
+  .dropdown-select {
+    width: 100%;
+  }
+
+  .select-input-button {
+    margin: 0px;
+    padding: 0px;
+    border: 0px;
+    background: none;
+    width: 100%;
+    text-align: left;
+  }
+
+  .selectors-link {
+    margin-right: 8px;
+  }
+
+  .selectors-link-container {
+    display: flex;
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .selectors-grid {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .selectors-row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: 100%;
+    margin-bottom: 12px;
+  }
+
+  .selector-container {
+    display: flex;
+    flex-direction: row;
+    flex: 1;
+    align-items: center;
+    margin-right: 8px;
+  }
+
+  .selector-label {
+    white-space: nowrap;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    margin-right: 4px;
+  }
+}

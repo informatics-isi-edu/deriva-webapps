@@ -1,6 +1,6 @@
 import { memo, CSSProperties } from 'react';
 
-import { LegendDatum } from '@isrd-isi-edu/deriva-webapps/hooks/matrix';
+import { LegendDatum } from '@isrd-isi-edu/deriva-webapps/src/hooks/matrix';
 
 export type LegendProps = {
   /**
