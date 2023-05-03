@@ -587,23 +587,20 @@ const parseViolinResponse = (
 
         const xVal = xGroupItem?.legend_markdown_pattern
           ? createLink(xGroupItem?.legend_markdown_pattern[0], { $row: item })
-          : item[groupByKey];
+          : (item[groupByKey] || 'N/A');
 
         const xTick = xGroupItem?.tick_display_markdown_pattern
           ? createLink(xGroupItem?.tick_display_markdown_pattern, { $row: item })
-          : null;
+          : 'N/A';
 
-        if (xVal !== null && xVal !== undefined) {
-          x.push(xVal);
-        }
-        if (xTick !== null && xTick !== undefined) {
-          xTicks.push(xTick);
-        }
+        x.push(xVal);
+        xTicks.push(xTick);
       }
 
       if (yScale) {
         const yItem = item[yScale.setting.group_key];
         if (yScale.value.value === 'log') {
+          // increase 'TPM' by 1 for log scale
           const yVal = yItem + 1;
           if (yVal !== null && yVal !== undefined) {
             y.push(yVal);
@@ -617,7 +614,7 @@ const parseViolinResponse = (
       }
     });
 
-    result.x = x.length === 0 ? ['N/A'] : x; // plotly requires at least one value. use N/A if none were given
+    result.x = x;
     result.y = y;
 
     // group by x
@@ -631,7 +628,7 @@ const parseViolinResponse = (
     // add custom layout for x axis ticks
     layout.xaxis = {
       tickvals: result.x,
-      // ticktext: x.length === 0 ? ['N/A'] : xTicks,
+      ticktext: xTicks,
     };
   }
 
@@ -700,13 +697,13 @@ const parseScatterResponse = (trace: Trace, plot: Plot, responseData: ResponseDa
     updateWithTraceColData(result, trace, item, i);
 
     // Add X data
-    trace?.x_col?.forEach((colName) => {
+    trace?.x_col?.forEach((colName: string) => {
       const value = getValue(item, colName, xaxis, format_data_x, plot);
       x.push(value.toString());
     });
 
     // Add Y data
-    trace?.y_col?.forEach((colName) => {
+    trace?.y_col?.forEach((colName: string) => {
       const value = getValue(item, colName, yaxis, format_data_y, plot);
       y.push(value.toString());
     });
@@ -792,7 +789,7 @@ const parseBarResponse = (trace: Trace, plot: Plot, responseData: ResponseData) 
 
   responseData.forEach((item: any) => {
     // Add the x values for the bar plot
-    trace?.x_col?.forEach((colName, i: number) => {
+    trace?.x_col?.forEach((colName: string, i: number) => {
       if (trace.orientation === 'h') {
         // update the trace data if orientation is horizontal
         updateWithTraceColData(result, trace, item, i);
@@ -804,7 +801,7 @@ const parseBarResponse = (trace: Trace, plot: Plot, responseData: ResponseData) 
     });
 
     // Add the y values for the bar plot
-    trace?.y_col?.forEach((colName, i: number) => {
+    trace?.y_col?.forEach((colName: string, i: number) => {
       if (trace.orientation === 'v') {
         // update the trace data if orientation is vertical
         updateWithTraceColData(result, trace, item, i);

@@ -431,10 +431,10 @@ export const createStudyViolinSelectGrid = (plot: Plot) => {
   if (group_keys.length > 0) {
     GroupBySelectData.value = {
       value: group_keys[0].column_name,
-      label: group_keys[0].title,
+      label: group_keys[0].title || group_keys[0].title_display_pattern, // title might not be defined in old configs
     };
     GroupBySelectData.defaultOptions = group_keys.map((data) => {
-      return { value: data.column_name, label: data.title };
+      return { value: data.column_name, label: data.title || data.title_display_pattern }; // title might not be defined in old configs
     });
     const groupKeysMap: any = {};
     group_keys.forEach((data) => {

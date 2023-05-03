@@ -5,6 +5,15 @@
  */
 var plotConfigs = {
   'study-violin': {
+    // templateVariables: {
+    //     $url_parameters: {
+    //         Study: [{data: {}}],
+    //         Gene: {data: {}}
+    //     },
+    //     // each row of data for graph added before templating each time
+    //     // only available for the tick_display_markdown_pattern
+    //     $row: response.data[index]
+    // }
     headTitle: 'Study Violin Plot',
     top_right_link_text: 'Enable gene, study selectors',
     plots: [
