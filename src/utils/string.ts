@@ -103,7 +103,7 @@ export const addComma = (data: number | string): string => {
 };
 
 /**
- * Creates the link bemplateased on the given markdown pattern and templateParam
+ * Creates the link based on the given markdown pattern and templateParam
  *
  * @param markdownPattern pattern used to create link 
  * @param templateParam params used to replace values in the pattern to create the link
@@ -141,4 +141,35 @@ export const createLinkWithContextParams = (
     link = extractLink(markdownPattern);
   }
   return link + appendContextParameters(link || '');
+};
+
+/**
+ * Gets the uri and headers for the given query pattern and template params
+ * 
+ * @param queryPattern 
+ * @param templateParams 
+ * @returns 
+ */
+export const getPatternUri = (queryPattern: string, templateParams: any) => {
+  const { contextHeaderName } = ConfigService.ERMrest;
+  const defaultHeaders = ConfigService.contextHeaderParams;
+  const uri = ConfigService.ERMrest.renderHandlebarsTemplate(queryPattern, templateParams);
+  const headers = { [contextHeaderName]: defaultHeaders };
+
+  if (uri) {
+    const uriParams = uri.split('/');
+
+    let schema_table = uriParams[uriParams.indexOf('entity') + 1];
+    if (schema_table.includes(':=')) schema_table = schema_table.split(':=')[1]; // get schema_table
+
+    const catalog = uriParams[uriParams.indexOf('catalog') + 1]; // get catalog
+
+    headers[contextHeaderName] = ConfigService.ERMrest._certifyContextHeader({
+      ...headers[contextHeaderName],
+      schema_table, // TODO: camelcase?
+      catalog,
+    });
+  }
+
+  return { uri, headers };
 };

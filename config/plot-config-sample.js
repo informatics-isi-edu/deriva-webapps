@@ -26,7 +26,7 @@ var plotConfigs = {
         // sets up the study selector
         // /ermrest/catalog/2/entity/RNASeq:Replicate_Expression/NCBI_GeneID=xxxx/(Study)=(RNASeq:Study:RID) + /RID=xxxx
         study_uri_pattern:
-          '/ermrest/catalog/2/entity/RNASeq:Replicate_Expression/NCBI_GeneID={{{$url_parameters.NCBI_GeneID}}}/(Study)=(RNASeq:Study:RID)',
+          '/ermrest/catalog/2/entity/RNASeq:Replicate_Expression/NCBI_GeneID={{{$url_parameters.Gene.data.NCBI_GeneID}}}/(Study)=(RNASeq:Study:RID)',
         // base configuration for plotly
         plotly: {
           // passed directly to plotly (plotly.config)
@@ -59,52 +59,67 @@ var plotConfigs = {
               {
                 column_name: 'Experiment',
                 title_display_pattern: 'Experiment',
+                title: 'Experiment',
                 tick_display_markdown_pattern:
                   '[{{{$row.Experiment}}}](/chaise/record/#2/RNASeq:Experiment/RID={{{$row.Experiment}}}): {{{$row.Experiment_Internal_ID}}}', // NOTE: this templates the value based on $row (response.data[index]) being in template environment
+                legend_markdown_pattern: [
+                  '[{{{$row.Experiment}}}](/chaise/record/#2/RNASeq:Experiment/RID={{{$row.Experiment}}}): {{{$row.Experiment_Internal_ID}}}',
+                ],
+                graphic_link_pattern: [
+                  '/chaise/recordset/#2/RNASeq:Replicate_Expression/Experiment={{{$row.Experiment}}}',
+                ],
                 default: true,
               },
               {
                 column_name: 'Experiment_Internal_ID',
+                title: 'Experiment Internal ID',
                 title_display_pattern: 'Experiment Internal ID',
               },
               {
                 column_name: 'Replicate',
+                title: 'Replicate',
                 title_display_pattern: 'Replicate',
                 tick_display_markdown_pattern:
                   '[{{{$row.Replicate}}}](/chaise/record/#2/RNASeq:Replicate/RID={{{$row.Replicate}}})',
               },
               {
                 column_name: 'Specimen',
+                title: 'Specimen',
                 title_display_pattern: 'Specimen',
                 tick_display_markdown_pattern:
                   '[{{{$row.Specimen}}}](/chaise/record/#2/Gene_Expression:Specimen/RID={{{$row.Specimen}}})',
               },
               {
                 column_name: 'Anatomical_Source',
+                title: 'Anatomical_Source',
                 title_display_pattern: 'Anatomical Source',
                 tick_display_markdown_pattern:
                   '{{#if $row.Anatomical_Source}}{{{$row.Anatomical_Source}}}{{else}}N/A{{/if}}',
               },
               {
                 column_name: 'Sex',
+                title: 'Sex',
                 title_display_pattern: 'Sex',
                 tick_display_markdown_pattern:
                   '{{#if $row.Sex}}[{{{$row.Sex}}}](/chaise/record/#2/Vocabulary:Sex/Name={{#encode $row.Sex}}{{/encode}}){{else}}N/A{{/if}}',
               },
               {
                 column_name: 'Species',
+                title: 'Species',
                 title_display_pattern: 'Species',
                 tick_display_markdown_pattern:
                   '[{{{$row.Species}}}](/chaise/record/#2/Vocabulary:Species/Name={{#encode $row.Species}}{{/encode}})',
               },
               {
                 column_name: 'Specimen_Type',
+                title: 'Specimen_Type',
                 title_display_pattern: 'Specimen Type',
                 tick_display_markdown_pattern:
                   '[{{{$row.Specimen_Type}}}](/chaise/record/#2/Vocab:Specimen_Type/Name={{#encode $row.Specimen_Type}}{{/encode}})',
               },
               {
                 column_name: 'Stage',
+                title: 'Stage',
                 title_display_pattern: 'Stage',
                 tick_display_markdown_pattern:
                   '{{#if $row.Stage}}[{{{$row.Stage}}}](/chaise/record/#2/Vocabulary:Developmental_Stage/Name={{#encode $row.Stage}}{{/encode}}){{else}}N/A{{/if}}',
@@ -120,12 +135,12 @@ var plotConfigs = {
         traces: [
           {
             // The request url that has to be used to fetch the data.
+            // assumes $url_parameters.Study is a set of Tuples
             // -- join Experiment to get the Experiment_Internal_ID
-            //queryPattern: "/ermrest/catalog/2/attributegroup/M:=RNASeq:Replicate_Expression/{{#if (gt $url_parameters.Study.length 0)}}({{#each $url_parameters.Study}}Study={{{this.data.RID}}}{{#unless @last}};{{/unless}}{{/each}})&{{/if}}NCBI_GeneID={{{$url_parameters.NCBI_GeneID}}}/exp:=(Experiment)=(RNASeq:Experiment:RID)/$M/Anatomical_Source,Experiment,Experiment_Internal_ID:=exp:Internal_ID,NCBI_GeneID,Replicate,Sex,Species,Specimen,Specimen_Type,Stage,Age,Starts_At,Ends_At,TPM"
+            //queryPattern: "/ermrest/catalog/2/attributegroup/M:=RNASeq:Replicate_Expression/{{#if (gt $url_parameters.Study.length 0)}}({{#each $url_parameters.Study}}Study={{{this.data.RID}}}{{#unless @last}};{{/unless}}{{/each}})&{{/if}}NCBI_GeneID={{{$url_parameters.Gene.data.NCBI_GeneID}}}/exp:=(Experiment)=(RNASeq:Experiment:RID)/$M/Anatomical_Source,Experiment,Experiment_Internal_ID:=exp:Internal_ID,NCBI_GeneID,Replicate,Sex,Species,Specimen,Specimen_Type,Stage,Age,Starts_At,Ends_At,TPM"
             // -- use Experiment_Internal_ID from Replicate_Expression table. Should be faster
-            // queryPattern: "/ermrest/catalog/2/attributegroup/M:=RNASeq:Replicate_Expression/{{#if (gt $url_parameters.Study.length 0)}}({{#each $url_parameters.Study}}Study={{{this.data.RID}}}{{#unless @last}};{{/unless}}{{/each}})&{{/if}}NCBI_GeneID={{{$url_parameters.NCBI_GeneID}}}/$M/Anatomical_Source,Experiment,Experiment_Internal_ID,NCBI_GeneID,Replicate,Sex,Species,Specimen,Specimen_Type,Stage,Age,Starts_At,Ends_At,TPM"
             queryPattern:
-              '/ermrest/catalog/2/attributegroup/M:=RNASeq:Replicate_Expression/{{#if (gt $url_parameters.Study.length 0)}}({{#each $url_parameters.Study}}Study={{{this.data.RID}}}{{#unless @last}};{{/unless}}{{/each}})&{{/if}}NCBI_GeneID={{{$url_parameters.NCBI_GeneID}}}/$M/Anatomical_Source,Experiment,Experiment_Internal_ID,NCBI_GeneID,Replicate,Sex,Species,Specimen,Specimen_Type,Stage,TPM',
+              '/ermrest/catalog/2/attributegroup/M:=RNASeq:Replicate_Expression/{{#if (gt $url_parameters.Study.length 0)}}({{#each $url_parameters.Study}}Study={{{this.data.RID}}}{{#unless @last}};{{/unless}}{{/each}})&{{/if}}NCBI_GeneID={{{$url_parameters.Gene.data.NCBI_GeneID}}}/$M/Anatomical_Source,Experiment,Experiment_Internal_ID,NCBI_GeneID,Replicate,Sex,Species,Specimen,Specimen_Type,Stage,Age,Starts_At,Ends_At,TPM',
           },
         ],
       },
@@ -136,7 +151,7 @@ var plotConfigs = {
     // Array of object plots to be shown on the page
     plots: [
       {
-        // Values can be from : "line", "bar", "dot", "area", "dot-lines", "pie", "histogram-horizontal", "histogram-verical"
+        // Values can be from :  "bar", "pie", "histogram",
         plot_type: 'pie',
         plotly: {
           config: {
@@ -165,9 +180,11 @@ var plotConfigs = {
           },
         },
         config: {
-          title_display_markdown_pattern: 'Number of GUDMAP resources released to-date',
+          title_display_markdown_pattern:
+            '[ Number of GUDMAP resources released to-date ](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
           slice_label: 'value', // what to show on the slice of pie chart - value or "percent
           format_data: true, // - to use hack or not for formatting
+          disable_default_legend_click: false,
         },
         traces: [
           {
@@ -176,6 +193,11 @@ var plotConfigs = {
             // legend: ["Browser All Events 1","Browser All Events 2"],   // name of traces in legend
             data_col: '#_Released', // name of the attribute of the data column
             legend_col: 'Data_Type', // name of the attribute of the legend column
+            legend_markdown_pattern:
+              '[{{$self.data.Data_Type}}](/chaise/recordset/#2/{{{$self.data.Schema_Table}}}/*::facets::{{#encodeFacet}}{{{$self.data.Data_Type_Filter}}}{{/encodeFacet}}){target=_blank}',
+            graphic_link_pattern: [
+              '/chaise/recordset/#2/{{{$self.data.Schema_Table}}}/*::facets::{{#encodeFacet}}{{{$self.data.Data_Type_Filter}}}{{/encodeFacet}}',
+            ],
           },
         ],
       },
@@ -212,9 +234,6 @@ var plotConfigs = {
               title: 'Number of Records', // plot x_axis label
               type: 'log', // optional value: tickformat should compatible with type
             },
-            yaxis: {
-              title: 'Data_Types', // plot y_axis label
-            },
             margin: {
               t: 30,
               l: 280,
@@ -225,14 +244,30 @@ var plotConfigs = {
           },
         },
         config: {
-          title_display_markdown_pattern: 'Number of GUDMAP resources released to date (log scale)',
+          title_display_markdown_pattern:
+            '[Number of GUDMAP resources released to date (log scale)](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
           format_data_x: true, // defualt : false - to use hack or not
+          xaxis: {
+            title_display_markdown_pattern:
+              '[Number of Records](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+          },
+          yaxis: {
+            tick_display_markdown_pattern:
+              '[{{$self.data.Data_Type}}](/chaise/recordset/#2/{{{$self.data.Schema_Table}}}){target=_blank}',
+          },
+          disable_default_legend_click: true,
         },
         traces: [
           {
             // The request url that has to be used to fetch the data.
             uri: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23_Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
             legend: ['#_Released'], // name of traces in legend
+            legend_markdown_pattern: [
+              '[#Released](/chaise/recordset/#2/Antibody:Antibody_Tests/){target=_blank}',
+            ],
+            graphic_link_pattern:
+              '/chaise/recordset/#2/{{{ $self.data.Schema_Table }}}/*::facets::{{#encodeFacet}}{{{ $self.data.Data_Type_Filter }}}{{/encodeFacet}}',
+
             x_col: ['#_Released'], // column name to use for x values
             y_col: ['Data_Type'], // array of column names to use for y values
             orientation: 'h', // Optional parameter for displaying the bar chart horizontally
@@ -308,7 +343,7 @@ var plotConfigs = {
     ],
   },
   'gudmap-data-summary-responsive': {
-    page_title: 'GUDMAP Data Summary Dashboard',
+    headTitle: 'GUDMAP Data Summary Dashboard',
     // Array of object plots to be shown on the page
     plots: [
       {
@@ -403,6 +438,23 @@ var plotConfigs = {
             },
           },
         },
+        config: {
+          title_display_markdown_pattern:
+            '[Specimen Stage vs Assay Type](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
+          xaxis: {
+            title_display_markdown_pattern:
+              '[Assay Type](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
+            tick_display_markdown_pattern:
+              '[{{$self.data.Assay_Type}}](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
+          },
+          yaxis: {
+            title_display_markdown_pattern:
+              '[Stage](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
+            tick_display_markdown_pattern:
+              '[{{$self.data.Name}}](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
+          },
+          disable_default_legend_click: false,
+        },
         traces: [
           {
             uri: '/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/stage:=left(Stage_ID)=(Vocabulary:Developmental_Stage:ID)/$M/Assay_Type,stage:Name',
@@ -447,14 +499,26 @@ var plotConfigs = {
             },
           },
         },
+        config: {
+          title_display_markdown_pattern:
+            '[Specimen Creation Time](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
+          xaxis: {
+            title_display_markdown_pattern:
+              '[Creation Date](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
+          },
+        },
         traces: [
           {
             uri: '/ermrest/catalog/2/entity/Gene_Expression:Specimen@sort(RCT::desc::)?limit=10000',
             data_col: 'RCT',
             orientation: 'v',
-            xbins: {
-              size: 'M1',
-            },
+            nbinsx: 50,
+          },
+          {
+            uri: '/ermrest/catalog/2/entity/Gene_Expression:Specimen@sort(RCT::desc::)?limit=10000',
+            data_col: 'RCT',
+            orientation: 'v',
+            nbinsx: 50,
           },
         ],
       },
@@ -492,14 +556,21 @@ var plotConfigs = {
             },
           },
         },
+        config: {
+          title_display_markdown_pattern:
+            '[Specimen Creation Time](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
+          yaxis: {
+            title_display_markdown_pattern:
+              '[Creation Date](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
+          },
+          disable_default_legend_click: false,
+        },
         traces: [
           {
             uri: '/ermrest/catalog/2/entity/Gene_Expression:Specimen@sort(RCT::desc::)?limit=10000',
             data_col: 'RCT',
             orientation: 'h',
-            ybins: {
-              size: 'M1',
-            },
+            nbinsy: 50,
           },
         ],
       },

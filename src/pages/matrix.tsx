@@ -9,7 +9,7 @@ import AppWrapper from '@isrd-isi-edu/chaise/src/components/app-wrapper';
 import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
 import Legend from '@isrd-isi-edu/deriva-webapps/src/components/matrix/legend';
 import VirtualizedGrid from '@isrd-isi-edu/deriva-webapps/src/components/matrix/virtualized-grid';
-import SearchBar from '@isrd-isi-edu/deriva-webapps/src/components/search-bar';
+import SearchBar from '@isrd-isi-edu/deriva-webapps/src/components/search-input';
 import VirtualizedSelect from '@isrd-isi-edu/deriva-webapps/src/components/virtualized-select';
 import DisplayValue from '@isrd-isi-edu/chaise/src/components/display-value';
 
@@ -234,12 +234,14 @@ const MatrixApp = (): JSX.Element => {
         <div className='options-container' style={{ width: legendWidth }}>
           {/* The dummy option can be added to center align the search-box */}
           {/* <div className='dummy-option' /> */}
-          <SearchBar
-            className='search-bar'
-            selectProps={searchBarSelectProps}
-            onPressButton={handleSubmit}
-            itemHeight={searchItemHeight}
-          />
+          <div style={{ width: 350 }}>
+            <SearchBar
+              className='search-bar'
+              onPressButton={handleSubmit}
+              itemHeight={searchItemHeight}
+              {...searchBarSelectProps}
+            />
+          </div>
           <div className='color-theme-container'>
             <label className='color-theme-label'>Color Theme</label>
             <VirtualizedSelect

@@ -1,5 +1,5 @@
-import parula from '@isrd-isi-edu/deriva-webapps/src/assets/parula.json';
-import viridis from '@isrd-isi-edu/deriva-webapps/src/assets/viridis.json';
+import parula from '@isrd-isi-edu/deriva-webapps/src/assets/colors/parula.json';
+import viridis from '@isrd-isi-edu/deriva-webapps/src/assets/colors/viridis.json';
 
 import { useEffect, useState, useRef, useCallback, SetStateAction, Dispatch } from 'react';
 

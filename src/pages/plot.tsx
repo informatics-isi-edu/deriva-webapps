@@ -1,16 +1,14 @@
 import '@isrd-isi-edu/deriva-webapps/src/assets/scss/_plot.scss';
 
 import { createRoot } from 'react-dom/client';
-import Plotly from 'plotly.js-cartesian-dist-min';
-import createPlotlyComponent from 'react-plotly.js/factory';
 
 // components
 import AppWrapper from '@isrd-isi-edu/chaise/src/components/app-wrapper';
 import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
+import ChartWithEffect from '@isrd-isi-edu/deriva-webapps/src/components/plot/chart-with-effect';
 
 // hooks
-import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
-import { usePlotData } from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
+import { usePlotConfig } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
 
 // utilities
 import { ID_NAMES } from '@isrd-isi-edu/chaise/src/utils/constants';
@@ -24,36 +22,24 @@ const plotSettings = {
   overrideExternalLinkBehavior: false,
 };
 
-const Plot = createPlotlyComponent(Plotly);
-
 const PlotApp = (): JSX.Element => {
   /**
    * Use plot data to be visualized by plotly component
    */
-  const { parsedData, config, errors } = usePlotData(windowRef.plotConfigs);
-  /**
-   * Window size of component
-   */
-  const windowSize = useWindowSize();
+  const { config, errors } = usePlotConfig(windowRef.plotConfigs);
 
-  //   if there was an error during setup, hide the spinner
-  if ((!config || parsedData.length === 0) && errors.length > 0) {
+  if (!config && errors.length > 0) {
     return <></>;
   }
-  if (!config || parsedData.length === 0) {
+
+  if (!config) {
     return <ChaiseSpinner />;
   }
 
   return (
     <div className='plot-page'>
-      {parsedData.map((data, i): JSX.Element => {
-        if (!data.layout.width && windowSize.width) {
-          data.layout.width = 0.9 * windowSize.width; // plot width based on window width
-        }
-        if (!data.layout.height && windowSize.height) {
-          data.layout.height = 0.8 * windowSize.height; // plot height based on window height
-        }
-        return <Plot key={i} className='plot' {...data} />;
+      {config.plots.map((plotConfig, i): JSX.Element => {
+        return <ChartWithEffect key={i} config={plotConfig} />;
       })}
     </div>
   );
