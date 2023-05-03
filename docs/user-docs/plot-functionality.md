@@ -25,7 +25,7 @@ Plotly includes showing a legend for graphs that have multiple types of data sho
 
 By default, when clicking on an option in the legend, a single click will hide that clicked trace from the plot and a double click will isolate that clicked trace and only show that one.
 
-We have also extended the functionality of the legend to allow for "html" like displays similar to the plot title and x/y axis titles and tick labels. If this styling creates a link, this doesn't replace the on click events that plotly includes. To disable the default click events from plotly, we added a property called `disable_default_legend_click`. See [README.md](/plot/README.md) for more information.
+We have also extended the functionality of the legend, `legend_markdown_pattern`, to allow for "html" like displays similar to the plot title and x/y axis titles and tick labels. If this styling creates a link, this doesn't replace the on click events that plotly includes. To disable the default click events from plotly, we added a property called `disable_default_legend_click`. See [README.md](/plot/README.md) for more information.
 
 #### Graph Click
 By default, clicking on a part of the graph will not do anything. We extended the functionality of the plot to allow for clickable links on the graph itself. For instance, clicking a pie slice or a bar can be used to navigate to the defined url in `graphic_clickable_links`. See [README.md](/plot/README.md) for more information.
