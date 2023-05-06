@@ -16,6 +16,7 @@ export type ChartWithEffectProps = {
   config: Plot;
 };
 
+// NOTE: Currently only used for violin plots
 const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
   const plotlyRef = useRef<any>(null);
   /**

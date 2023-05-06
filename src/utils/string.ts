@@ -166,7 +166,7 @@ export const getPatternUri = (queryPattern: string, templateParams: any) => {
 
     headers[contextHeaderName] = ConfigService.ERMrest._certifyContextHeader({
       ...headers[contextHeaderName],
-      schema_table, // TODO: camelcase?
+      schema_table,
       catalog,
     });
   }

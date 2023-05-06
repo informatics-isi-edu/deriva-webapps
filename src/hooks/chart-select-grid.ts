@@ -13,6 +13,9 @@ import {
 
 /**
  * This hook is used to handle the effects and state of the select grid in the chart.
+ * TODO: change how content is managed in select grid
+ *    - each function has an indices array attached, this keeps track of where each selector is for accessing the information about the selector
+ *    - this should be changed to a map that keeps track of the content that is separate from looking it up in the array of arrays each time
  *
  * @returns
  */
@@ -94,6 +97,7 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
 
         newValues[i][j] = { ...prevValues[i][j], selectedRows: [] };
 
+        // TODO: Using empty array to represent "all values" should be changed
         templateParams.$url_parameters[urlParamKey] = [];
 
         return newValues;
@@ -340,7 +344,9 @@ export const createStudyViolinSelectGrid = (plot: Plot) => {
   const row2 = [];
 
   // TODO: define typing for these
-
+  // TODO: should recordsetProps be part of requestInfo object?
+  //    or moved to top level `GeneSelectData.recordsetProps`?
+  // TODO: why is gene contextualized to compactSelect and not study?
   const GeneSelectData = {
     id: 'gene',
     urlParamKey: 'Gene',
@@ -443,6 +449,8 @@ export const createStudyViolinSelectGrid = (plot: Plot) => {
     GroupBySelectData.groupKeysMap = groupKeysMap;
   }
 
+  // TODO: define a configuration in plot-config to generalize how to display selectors
+  //    this is hard coded specifically for violin-plot
   row1.push(GeneSelectData);
   row1.push(GroupBySelectData);
   row1.push(ScaleSelectData);

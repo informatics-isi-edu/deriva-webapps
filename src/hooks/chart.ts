@@ -152,7 +152,9 @@ export const useChartData = (plot: Plot) => {
   /**
    * Template parameters for the plot
    * TODO: eventually remove this, everything in here is already stored in state
+   *    - or could be a provider created for each plot
    * TODO: create functions to retrieve only the neccesary templateParams from state and pass them into a more local scope
+   *    - gene and study selectors touch these params to modify values used in API requests
    */
   const templateParams: PlotTemplateParams = useMemo(
     () => ({
@@ -189,6 +191,7 @@ export const useChartData = (plot: Plot) => {
   const fetchData = useCallback(async () => {
     // console.log('fetchData occurred');
     // Fulfill promise for plot
+    // NOTE: If 1 trace request fails, all requests fail. Should this be addressed?
     const plotResponses: Array<Response> = await Promise.all(
       // request for each trace
       plot.traces.map((trace) => {
@@ -277,7 +280,6 @@ export const useChartData = (plot: Plot) => {
   // Parse data on state changes to data or selectData
   useEffect(() => {
     if (data && !isDataLoading && !isInitLoading && !isFetchSelected) {
-      console.log('parse occurred');
       const parsedPlotData = parsePlotData(plot, data, selectData, templateParams);
       setParsedData(parsedPlotData);
       setIsParseLoading(false); // set loading to false after parsing

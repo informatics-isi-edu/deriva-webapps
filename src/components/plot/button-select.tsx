@@ -85,6 +85,7 @@ const ButtonSelect = ({
       </SelectView>
       <div style={{ marginTop: 8 }}>
         {!selectedRows ? <span>No Studies Selected</span> : null}
+        {/* TODO: All Studies Component should rely on a different check than if the array is empty */}
         {selectedRows && selectedRows.length === 0 ? <AllStudiesComponent /> : null}
         {selectedRows && selectedRows.length > 0 && removeCallback ? (
           <SelectedRows rows={selectedRows} removeCallback={removeCallback} />
