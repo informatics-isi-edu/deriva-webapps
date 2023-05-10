@@ -18,6 +18,11 @@ module.exports = (env) => {
   return getWebPackConfig(
     [
       {
+        appName: 'heatmap',
+        appTitle: 'Heatmap',
+        appConfigLocation: `${WEBAPPS_BASE_PATH}config/heatmap-config.js`,
+      },
+      {
         appName: 'matrix',
         appTitle: 'Matrix',
         appConfigLocation: `${WEBAPPS_BASE_PATH}config/matrix-config.js`,

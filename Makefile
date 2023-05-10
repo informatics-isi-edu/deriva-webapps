@@ -41,6 +41,11 @@ REACT_BUNDLES=$(DIST_REACT)/$(REACT_BUNDLES_FOLDERNAME)
 CONFIG=config
 
 # create default app-specific config files
+HEATMAP_CONFIG=$(CONFIG)/heatmap-config.js
+$(HEATMAP_CONFIG): $(CONFIG)/heatmap-config-sample.js
+	cp -n $(CONFIG)/heatmap-config-sample.js $(HEATMAP_CONFIG) || true
+	touch $(HEATMAP_CONFIG)
+
 MATRIX_CONFIG=$(CONFIG)/matrix-config.js
 $(MATRIX_CONFIG): $(CONFIG)/matrix-config-sample.js
 	cp -n $(CONFIG)/matrix-config-sample.js $(MATRIX_CONFIG) || true
@@ -117,10 +122,10 @@ run-webpack: $(BUILD_VERSION)
 
 #exclude <app>-config.js to not override one on deployment
 .PHONY: deploy
-deploy: dont_deploy_in_root print-variables deploy-boolean-search deploy-heatmap deploy-lineplot deploy-plot deploy-treeview deploy-matrix
+deploy: dont_deploy_in_root print-variables deploy-boolean-search deploy-heatmap deploy-plot deploy-treeview deploy-matrix
 
 .PHONY: deploy-w-config
-deploy-w-config:dont_deploy_in_root print-variables deploy-boolean-search-w-config deploy-heatmap-w-config deploy-lineplot-w-config deploy-plot-w-config deploy-treeview-w-config deploy-matrix-w-config
+deploy-w-config:dont_deploy_in_root print-variables deploy-boolean-search-w-config deploy-heatmap-w-config deploy-plot-w-config deploy-treeview-w-config deploy-matrix-w-config
 
 .PHONY: deploy-boolean-search
 deploy-boolean-search: dont_deploy_in_root print-variables
@@ -133,24 +138,12 @@ deploy-boolean-search-w-config: dont_deploy_in_root print-variables
 	@rsync -avz boolean-search $(WEBAPPSDIR)
 
 .PHONY: deploy-heatmap
-deploy-heatmap: dont_deploy_in_root print-variables
+deploy-heatmap: dont_deploy_in_root print-variables deploy-bundles
 	$(info - deploying heatmap)
-	@rsync -avz --exclude='/heatmap/heatmap-config*' heatmap $(WEBAPPSDIR)
+	@rsync -avz $(DIST_REACT)/heatmap/ $(WEBAPPSDIR)/heatmap/
 
 .PHONY: deploy-heatmap-w-config
-deploy-heatmap-w-config: dont_deploy_in_root print-variables
-	$(info - deploying heatmap with the existing config file(s))
-	@rsync -avz heatmap $(WEBAPPSDIR)
-
-.PHONY: deploy-lineplot
-deploy-lineplot: dont_deploy_in_root print-variables
-	$(info - deploying lineplot)
-	@rsync -avz --exclude='/lineplot/lineplot-config*' lineplot $(WEBAPPSDIR)
-
-.PHONY: deploy-lineplot-w-config
-deploy-lineplot-w-config: dont_deploy_in_root print-variables
-	$(info - deploying lineplot with the existing config file(s))
-	@rsync -avz lineplot $(WEBAPPSDIR)
+deploy-heatmap-w-config: dont_deploy_in_root print-variables deploy-heatmap deploy-config-folder
 
 .PHONY: deploy-plot
 deploy-plot: dont_deploy_in_root print-variables deploy-bundles
@@ -180,7 +173,7 @@ deploy-matrix-w-config: dont_deploy_in_root print-variables deploy-matrix deploy
 
 # rsync the config files used by react apps.
 .PHONY: deploy-config-folder
-deploy-config-folder: dont_deploy_in_root $(MATRIX_CONFIG) $(PLOT_CONFIG)
+deploy-config-folder: dont_deploy_in_root $(HEATMAP_CONFIG) $(MATRIX_CONFIG) $(PLOT_CONFIG)
 	$(info - deploying the config folder)
 	@rsync -avz $(CONFIG) $(WEBAPPSDIR)
 
@@ -221,8 +214,6 @@ usage:
 	@echo "  deploy-boolean-search-w-config   deploy boolean search app with the existing config file(s)"
 	@echo "  deploy-heatmap                   deploy heatmap app"
 	@echo "  deploy-heatmap-w-config          deploy heatmap app with the existing config file(s)"
-	@echo "  deploy-lineplot                  deploy lineplot app"
-	@echo "  deploy-lineplot-w-config         deploy lineplot app with the existing config file(s)"
 	@echo "  deploy-matrix                    deploy matrix app"
 	@echo "  deploy-matrix-w-config           deploy matrix with the existing config file(s)"
 	@echo "  deploy-plot                      deploy plot app"
