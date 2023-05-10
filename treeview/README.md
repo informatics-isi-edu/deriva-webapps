@@ -49,3 +49,6 @@ if (typeof module === 'object' && module.exports && typeof require === 'function
 }
 
 ```
+
+## Treeview with legend
+When `Specimen_RID` is present as a url parameter, treeview will display in an alternate mode that includes a legend on the left side with terms in the tree being "annotated". This is a working link on dev.atlas when that server is working: https://dev.atlas-d2k.org/deriva-webapps/treeview/?Specimen_RID=N-GXA4
