@@ -122,10 +122,10 @@ run-webpack: $(BUILD_VERSION)
 
 #exclude <app>-config.js to not override one on deployment
 .PHONY: deploy
-deploy: dont_deploy_in_root print-variables deploy-boolean-search deploy-heatmap deploy-lineplot deploy-plot deploy-treeview deploy-matrix
+deploy: dont_deploy_in_root print-variables deploy-boolean-search deploy-heatmap deploy-plot deploy-treeview deploy-matrix
 
 .PHONY: deploy-w-config
-deploy-w-config:dont_deploy_in_root print-variables deploy-boolean-search-w-config deploy-heatmap-w-config deploy-lineplot-w-config deploy-plot-w-config deploy-treeview-w-config deploy-matrix-w-config
+deploy-w-config:dont_deploy_in_root print-variables deploy-boolean-search-w-config deploy-heatmap-w-config deploy-plot-w-config deploy-treeview-w-config deploy-matrix-w-config
 
 .PHONY: deploy-boolean-search
 deploy-boolean-search: dont_deploy_in_root print-variables deploy-bundles
@@ -144,16 +144,6 @@ deploy-heatmap: dont_deploy_in_root print-variables
 deploy-heatmap-w-config: dont_deploy_in_root print-variables
 	$(info - deploying heatmap with the existing config file(s))
 	@rsync -avz heatmap $(WEBAPPSDIR)
-
-.PHONY: deploy-lineplot
-deploy-lineplot: dont_deploy_in_root print-variables
-	$(info - deploying lineplot)
-	@rsync -avz --exclude='/lineplot/lineplot-config*' lineplot $(WEBAPPSDIR)
-
-.PHONY: deploy-lineplot-w-config
-deploy-lineplot-w-config: dont_deploy_in_root print-variables
-	$(info - deploying lineplot with the existing config file(s))
-	@rsync -avz lineplot $(WEBAPPSDIR)
 
 .PHONY: deploy-plot
 deploy-plot: dont_deploy_in_root print-variables deploy-bundles
@@ -224,8 +214,6 @@ usage:
 	@echo "  deploy-boolean-search-w-config   deploy boolean search app with the existing config file(s)"
 	@echo "  deploy-heatmap                   deploy heatmap app"
 	@echo "  deploy-heatmap-w-config          deploy heatmap app with the existing config file(s)"
-	@echo "  deploy-lineplot                  deploy lineplot app"
-	@echo "  deploy-lineplot-w-config         deploy lineplot app with the existing config file(s)"
 	@echo "  deploy-matrix                    deploy matrix app"
 	@echo "  deploy-matrix-w-config           deploy matrix with the existing config file(s)"
 	@echo "  deploy-plot                      deploy plot app"
