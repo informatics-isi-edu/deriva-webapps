@@ -20,15 +20,7 @@ module.exports = (env) => {
       {
         appName: 'matrix',
         appTitle: 'Matrix',
-        appConfigLocation: `${WEBAPPS_BASE_PATH}config/matrix-config.js`,
-      },
-      {
-        appName: 'plot',
-        appTitle: 'Plot',
-        appConfigLocation: `${WEBAPPS_BASE_PATH}config/plot-config.js`,
-        externalFiles: [
-          `${WEBAPPS_BASE_PATH}bundles/plotly-basic.min.js`
-        ]
+        appConfigLocation: `${WEBAPPS_BASE_PATH}../../local-test/matrix-config.js`,
       }
     ],
     mode,

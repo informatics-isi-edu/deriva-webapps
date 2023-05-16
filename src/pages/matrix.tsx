@@ -288,7 +288,7 @@ const MatrixApp = (): JSX.Element => {
 
 const root = createRoot(document.getElementById(ID_NAMES.APP_ROOT) as HTMLElement);
 root.render(
-  <AppWrapper appSettings={matrixSettings} includeNavbar displaySpinner ignoreHashChange>
+  <AppWrapper appSettings={matrixSettings} includeNavbar displaySpinner ignoreHashChange dontFetchSession>
     <MatrixApp />
   </AppWrapper>
 );
