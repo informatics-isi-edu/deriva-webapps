@@ -349,6 +349,21 @@ const parsePlotData = (
     }
   });
 
+  if (plot.plot_type === 'heatmap') {
+    result.data = [
+      {
+        x: ['a', 'b', 'c', 'd'],
+        y: [1, 2, 3, 4],
+        z: [[1,2,3,4], [1,23,34,21], [2, 5, 27, 4], [12,14,26,22]],
+        xgap: 5,
+        ygap: 5,
+        type: 'heatmap',
+        hoverinfo: 'text',
+        text: [['z1=1<br>z2=3<br>z3=26', 'Text B', 'Text C', 'Text D'], ['Text A', 'Text B', 'Text C', 'Text D'], ['Text A', 'Text B', 'Text C', 'Text D'], ['Text A', 'Text B', 'Text C', 'Text D']]
+      }
+    ];
+  }
+
   updatePlotlyConfig(plot, result); // update the config
   updatePlotlyLayout(plot, result, templateParams, additionalLayout, selectDataGrid); // update the layout
 
