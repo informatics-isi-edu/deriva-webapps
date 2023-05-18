@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 // services
 import $log from '@isrd-isi-edu/chaise/src/services/logger';
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
+import ChaiseToolTip from '@isrd-isi-edu/chaise/src/components/tooltip';
+
 
 export type HeatmapProps = {
   config: any
@@ -20,7 +22,6 @@ const Heatmap = ({
   useEffect(() => {
     if (setupStarted.current) return;
     setupStarted.current = true;
-
     $log.log('config file:');
     $log.log(config);
 
@@ -30,7 +31,16 @@ const Heatmap = ({
 
 
   return (
-    <>Heatmap component!</>
+    <>	
+        {$log.log(window.location)}
+        <ChaiseToolTip
+          placement='right'
+          tooltip="View Array Data related to this Gene"
+          >
+            {/* /chaise/recordset/${ConfigService.ERMrest.("2", "Gene_Expression", "Array_Data", facet)} */}
+          <a href={``} target='_blank'>View Array Data Table</a>
+        </ChaiseToolTip>
+    </>
   )
 }
 

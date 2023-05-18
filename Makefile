@@ -152,6 +152,8 @@ deploy-plot: dont_deploy_in_root print-variables deploy-bundles
 
 .PHONY: deploy-plot-w-config
 deploy-plot-w-config: dont_deploy_in_root print-variables deploy-plot deploy-config-folder
+	$(info - deploying heatmap)
+	@rsync -avz --inplace heatmap $(WEBAPPSDIR)
 
 .PHONY: deploy-treeview
 deploy-treeview: dont_deploy_in_root print-variables
