@@ -56,6 +56,11 @@ $(PLOT_CONFIG): $(CONFIG)/plot-config-sample.js
 	cp -n $(CONFIG)/plot-config-sample.js $(PLOT_CONFIG) || true
 	touch $(PLOT_CONFIG)
 
+TREEVIEW_CONFIG=$(CONFIG)/treeview-config.js
+$(TREEVIEW_CONFIG): $(CONFIG)/treeview-config-sample.js
+	cp -n $(CONFIG)/treeview-config-sample.js $(TREEVIEW_CONFIG) || true
+	touch $(TREEVIEW_CONFIG)
+
 # vendor files that will be treated externally in webpack
 WEBPACK_EXTERNAL_VENDOR_FILES= \
 	$(MODULES)/plotly.js-basic-dist-min/plotly-basic.min.js
@@ -161,9 +166,7 @@ deploy-treeview: dont_deploy_in_root print-variables
 	@rsync -avz --exclude='/treeview/treeview-config*' treeview $(WEBAPPSDIR)
 
 .PHONY: deploy-treeview-w-config
-deploy-treeview-w-config: dont_deploy_in_root print-variables
-	$(info - deploying treeview with the existing config file(s))
-	@rsync -avz treeview $(WEBAPPSDIR)
+deploy-treeview-w-config: dont_deploy_in_root print-variables deploy-treeview deploy-config-folder
 
 .PHONY: deploy-matrix
 deploy-matrix: dont_deploy_in_root print-variables deploy-bundles
@@ -175,7 +178,8 @@ deploy-matrix-w-config: dont_deploy_in_root print-variables deploy-matrix deploy
 
 # rsync the config files used by react apps.
 .PHONY: deploy-config-folder
-deploy-config-folder: dont_deploy_in_root $(HEATMAP_CONFIG) $(MATRIX_CONFIG) $(PLOT_CONFIG)
+
+deploy-config-folder: dont_deploy_in_root $(MATRIX_CONFIG) $(PLOT_CONFIG) $(TREEVIEW_CONFIG) $(HEATMAP_CONFIG)
 	$(info - deploying the config folder)
 	@rsync -avz $(CONFIG) $(WEBAPPSDIR)
 
