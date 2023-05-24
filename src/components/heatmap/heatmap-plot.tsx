@@ -1,4 +1,4 @@
-import PlotlyChart from "../plot/plotly-chart";
+import PlotlyChart from '@isrd-isi-edu/deriva-webapps/src/components/plot/plotly-chart';
 
 
 export type HeatmapPlotProps = {
