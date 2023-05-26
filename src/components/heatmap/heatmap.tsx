@@ -11,11 +11,38 @@ import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
 import ChaiseToolTip from '@isrd-isi-edu/chaise/src/components/tooltip';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
 import HeatmapPlot from '@isrd-isi-edu/deriva-webapps/src/components/heatmap/heatmap-plot';
+import { HeatmapConfig } from '@isrd-isi-edu/deriva-webapps/src/models/heatmap-config';
 
 
 export type HeatmapProps = {
-  config: any,
+  config: HeatmapConfig,
 };
+
+export type inputParamsType = {
+  width: number,
+  xTickAngle: number,
+  tickFont: {
+    family: string,
+    size: number
+  }
+}
+
+export type layoutParamsType = {
+    height: number,
+    width: number,
+    margin: {
+      t: number,
+      r: number,
+      b: number,
+      l: number,
+    },
+    xTickAngle: number,
+    yTickAngle: number,
+    tickFont: {
+      family: string,
+      size: number
+    }
+}
 
 const Heatmap = ({
   config,
@@ -24,12 +51,12 @@ const Heatmap = ({
   // since we're using strict mode, the useEffect is getting called twice in dev mode
   // this is to guard against it
   const setupStarted = useRef<boolean>(false);
-  const [invalidConfigs, setInvalidConfigs] = useState(['']);
+  const [invalidConfigs, setInvalidConfigs] = useState<string>(['']);
   const [configErrorsPresent, setConfigErrorsPresent] = useState<boolean>(false);
   const [heatmaps, setHeatmaps] = useState<any>([]);
-  const [NCBIGeneID, setNCBIGeneID] = useState('');
-  const [header, setHeader] = useState({});
-  const [facet, setFacet] = useState({});
+  const [NCBIGeneID, setNCBIGeneID] = useState<string>('');
+  const [header, setHeader] = useState<any>({});
+  const [facet, setFacet] = useState<any>({});
 
 
 
@@ -60,24 +87,22 @@ const Heatmap = ({
       const reference = response.contextualize.compact;
       verifyConfiguration(reference);
       if (!configErrorsPresent) {
-        const sortBy = typeof config.data.sortBy !== 'undefined' ? config.data.sortBy : [];
+        const sortBy = typeof Object(config).data.sortBy !== 'undefined' ? Object(config).data.sortBy : [];
         const ref = reference.sort(sortBy);
-        setHeader((prevHeader) => ({ ...prevHeader, action: 'main' }));
+        setHeader((prevHeader: any) => ({ ...prevHeader, action: 'main' }));
         const pcid = getQueryParams(location.href).pcid
         const ppid = getQueryParams(location.href).ppid
-        if (pcid)
-          setHeader((prevHeader) => ({
-            ...prevHeader,
-            pcid,
-          }));
-        if (ppid)
-          setHeader((prevHeader) => ({
-            ...prevHeader,
-            ppid,
-          }))
-        ref.read(1000, header).then(function getPage(page: any) {
+        if (pcid || ppid){
+          let tempHeader = {...header}
+          if(pcid)
+            tempHeader.pcid=pcid
+          if(ppid)
+            tempHeader.ppid=ppid
+          setHeader(() => (tempHeader));
+        }
+        ref.read(1000, header).then((page: any) => {
           readAll(page);
-        }).catch(function () {
+        }).catch(() => {
           setInvalidConfigs(['Error while reading data from Ermrestjs']);
           setConfigErrorsPresent(true);
         });
@@ -102,26 +127,29 @@ const Heatmap = ({
 
   const verifyConfiguration = (reference: any) => {
     const columns = ['titleColumn', 'idColumn', 'xColumn', 'yColumn', 'zColumn'];
-    setInvalidConfigs(() => []);
+    let tempInvalidConfigs = [...invalidConfigs];
+    /* Iterating over columns array defined above (a list of key names in the configuration) to verify that those 
+     column array values are matching with the ones that are defined in the configuration document(heatmap-config.js)*/
     for (let i = 0; i < columns.length; i++) {
       try {
-        reference.getColumnByName(config.data[columns[i]]);
+        reference.getColumnByName(Object(config).data[columns[i]]);
       } catch (error) {
-        setInvalidConfigs((prevInvalidConfigs) =>
-          ([...prevInvalidConfigs, 'Coulmn \'' + config.data[columns[i]] + '\' does not exist. Give a valid value for the ' + columns[i] + '.']))
+          tempInvalidConfigs.push('Column \'' + Object(config).data[columns[i]] + 
+          '\' does not exist. Give a valid value for the ' + columns[i] + '.');
       }
     }
-    const sortColumns = config.data.sortBy;
+    const sortColumns = Object(config).data.sortBy;
+    /* Iterating over sortColumns array defined above (a list of key names with their sort order in the configuration) to verify that those 
+     sortColumns array values are matching with the ones that are defined in the configuration document(heatmap-config.js)*/
     for (let i = 0; i < sortColumns.length; i++) {
       try {
         reference.getColumnByName(sortColumns[i].column);
       } catch (error) {
-        setInvalidConfigs((prevInvalidConfigs) =>
-          ([...prevInvalidConfigs, 'Coulmn \'' + sortColumns[i].column + '\' in \'sortBy\' field does not exist. Replace it with a valid column.']));
+        tempInvalidConfigs.push('Column \'' + sortColumns[i].column + '\' in \'sortBy\' field does not exist. Replace it with a valid column.');
       }
     }
-    if (invalidConfigs.length > 0) {
-      setInvalidConfigs(() => invalidConfigs);
+    if (tempInvalidConfigs?.length > 0 && tempInvalidConfigs?.length > invalidConfigs?.length) {
+      setInvalidConfigs(() => tempInvalidConfigs);
       setConfigErrorsPresent(true);
     }
   }
@@ -135,7 +163,7 @@ const Heatmap = ({
     }
     if (page.hasNext) {
       Object(header).action = 'page';
-      page.next.read(1000, header).then(readAll).catch(function () {
+      page.next.read(1000, header).then(readAll).catch(() => {
         setInvalidConfigs(() => ['Error while reading data from Ermrestjs']);
         setConfigErrorsPresent(() => false);
       });
@@ -147,34 +175,39 @@ const Heatmap = ({
   /**
    * 
    * @param tuple : Tuple object retrieved from page
-   * Adds data(x,y,z values) to heatmap objects
+   * Adds data(x,y) value into the x,y arrays if they are not there yet and adds tuple's z 
+   * value at corresponding index and append id to each heatmap object 
    */
 
   const addData = (tuple: any) => {
-    const configData = Object.assign({}, config.data);
+    const configData = Object.assign({}, Object(config).data);
     let hm = null;
     const x = tuple.data[configData.xColumn];
     const y = tuple.data[configData.yColumn];
     const z = tuple.data[configData.zColumn];
     const title = tuple.data[configData.titleColumn];
     const id = tuple.data[configData.idColumn];
+    //Iterating over the heatmaps array and assigning id that is fetched from tuple object for matching title
     for (let i = 0; i < heatmaps.length; i++) {
       if (Object(heatmaps[i]).title === title) {
         Object(heatmaps)[i]['id'] = id;
         hm = heatmaps[i];
       }
     }
+    //If no heatmap is found with the given title create an empty heatmap object with that title
     if (hm === null) {
       hm = { 'title': title, 'rows': { y: [], x: [], z: [], type: 'heatmap' } };
       heatmaps.push(hm);
     }
     let rowIndex = Object(hm).rows.y.indexOf(y);
+    //If rowIndex < 0 then current y value is not there in y values array
     if (rowIndex < 0) {
       Object(hm).rows.y.push(y);
       Object(hm).rows.z.push([]);
       rowIndex = Object(hm).rows.y.indexOf(y);
     }
-    if (!Object(hm).rows.x.includes(x)) {
+    //If index < 0 then current x value is not there in x values array
+    if (Object(hm).rows.x.indexOf(x) < 0) {
       Object(hm).rows.x.push(x);
     }
     Object(hm).rows.z[rowIndex].push(z);
@@ -203,7 +236,7 @@ const Heatmap = ({
      * 	tickFont: font to be used in labels
      * }
      */
-  const getHeatmapLayoutParams = (input: any, longestXTick: number, longestYTick: number, lengthY: number) => {
+  const getHeatmapLayoutParams = (input: inputParamsType, longestXTick: number, longestYTick: number, lengthY: number) => {
     let height;
     let yTickAngle;
     const tMargin = 25;
@@ -233,7 +266,7 @@ const Heatmap = ({
       rMargin = 5;
     }
 
-    const layoutParams = {
+    const layoutParams: layoutParamsType = {
       height: height,
       width: input.width,
       margin: {
@@ -248,6 +281,7 @@ const Heatmap = ({
     };
     return layoutParams;
   }
+
 
 
   /** It can have following input parameters in the heatmap-config.js file in presenattion object:
@@ -275,7 +309,7 @@ const Heatmap = ({
    */
 
   const createPlotLayoutParams = (plot: any = {}) => {
-    const configPresentation = Object.assign({}, config.presentation);
+    const configPresentation = Object.assign({}, Object(config).presentation);
     let layout = {};
     if (plot) {
       const longestXTick = plot?.rows?.x.reduce((a: any, b: any) => { return a?.length > b?.length ? a : b; });
@@ -331,10 +365,10 @@ const Heatmap = ({
           View Array Data Table</a>
       </ChaiseToolTip>
       {/* Iterating over the heatmaps fetched for the given NCBIGeneID */}
-      {heatmaps.map((heatmap: any): JSX.Element => {
+      {heatmaps.map((heatmap: any,index: number): JSX.Element => {
         const { plot, layout } = createPlotLayoutParams(heatmap);
-        return <div id={`heatmap_${heatmap.id}`} key={`heatmap_${heatmap.id}`}>
-          <HeatmapPlot key={`heatmap_${heatmap.id}`} data={plot} layout={layout} />
+        return <div id={`heatmap_${heatmap.id}`} key={`heatmap_${index}`}>
+          <HeatmapPlot data={plot?.rows} layout={layout} />
         </div>;
       })}
     </div>

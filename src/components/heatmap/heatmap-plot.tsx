@@ -1,23 +1,21 @@
 import PlotlyChart from '@isrd-isi-edu/deriva-webapps/src/components/plot/plotly-chart';
+import { PlotData, PlotlyLayout } from 'plotly.js-cartesian-dist-min'
 
+
+export type PlotlyLayout = typeof PlotlyLayout;
+export type PlotlyData = typeof PlotData;
 
 export type HeatmapPlotProps = {
-    data: any,
-    layout: any,
+    data: PlotlyData,
+    layout: PlotlyLayout,
 };
 
 const HeatmapPlot = ({
     data,
     layout,
   }: HeatmapPlotProps): JSX.Element => {
-    return <PlotlyChart data={[data.rows]}
-      layout={{
-        ...layout,
-        //For enabling icons Toggle spike lines, Show closest data and compare data on hover
-        modebar: {
-        add: ['togglespikelines','v1hovermode'],
-        },
-      }}
+    return <PlotlyChart data={[data]}
+      layout={layout}
     />;
   }
 
