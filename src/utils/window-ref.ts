@@ -8,6 +8,7 @@ interface WebAppCustomWindow extends ICustomWindow {
   booleanSearchConfig: BooleanSearchConfig
   matrixConfigs: MatrixConfig;
   plotConfigs: PlotConfig;
+  setSourceForFilter: any
 }
 
 declare let window: WebAppCustomWindow;
