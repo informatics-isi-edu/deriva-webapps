@@ -51,9 +51,9 @@ const Heatmap = ({
   // since we're using strict mode, the useEffect is getting called twice in dev mode
   // this is to guard against it
   const setupStarted = useRef<boolean>(false);
-  const [invalidConfigs, setInvalidConfigs] = useState<string>(['']);
+  const [invalidConfigs, setInvalidConfigs] = useState<string[]>(['']);
   const [configErrorsPresent, setConfigErrorsPresent] = useState<boolean>(false);
-  const [heatmaps, setHeatmaps] = useState<any>([]);
+  const [heatmaps, setHeatmaps] = useState<any[]>([]);
   const [NCBIGeneID, setNCBIGeneID] = useState<string>('');
   const [header, setHeader] = useState<any>({});
   const [facet, setFacet] = useState<any>({});
