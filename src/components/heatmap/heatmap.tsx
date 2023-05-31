@@ -1,3 +1,5 @@
+import '@isrd-isi-edu/deriva-webapps/src/assets/scss/_heatmap.scss';
+
 // hooks
 import { useEffect, useRef, useState } from 'react';
 
@@ -354,7 +356,7 @@ const Heatmap = ({
 
 
   return (
-    <div style={{ marginTop: '1%', overflow: 'auto', maxHeight: '90vh' }}>
+    <div className='heatmap-app-container'>
       <ChaiseToolTip
         placement='right'
         tooltip='View Array Data related to this Gene'

@@ -1,0 +1,9 @@
+.heatmap-app-container {
+    padding-top: 1%;
+    overflow: auto;
+    max-height: 90vh;
+  }
+  
+  .chaise-iframe .heatmap-app-container {
+    max-height: 100vh;
+  }
