@@ -43,7 +43,7 @@ The current implementation of each app makes different assumption about the loca
 
     Notes:
       - The following are alternative make targets that can be used for deployment:
-        - `deploy-w-config`: The same as `deploy` and will aslo copy all the configuration files.
+        - `deploy-w-config`: The same as `deploy` and will also copy all the configuration files.
         - `deploy-boolean-search`: Only deploy boolean-search.
         - `deploy-boolean-search-w-config`: Only deploy boolean-search and copy its configuration files.
         - `deploy-heatmap`: Only deploy boolean-search and copy its configuration files.
@@ -60,11 +60,10 @@ The current implementation of each app makes different assumption about the loca
       - If the given directory does not exist, it will first create it. So you may need to run `make deploy` with _super user_ privileges depending on the deployment directory you choose.
 
 4. Most of the apps won't work out of the box, and you need to define a configuration file for them. Please refer to each app for more information about how it should be configured.
-   - [boolean-search](../../boolean-search/booleansearch-config-sample.js)
-   - [heatmap](../../heatmap/README.md)
-   - [lineplot](../../lineplot/lineplot-config-sample.js)
+   - [boolean-search](boolean-search-app.md)
+   - [heatmap](heatmap-app.md)
    - [matrix](matrix-app.md)
-   - [plot](../../plot/README.md)
+   - [plot](plot-app.md)
    - [treeview](../../treeview/README.md)
 
 
