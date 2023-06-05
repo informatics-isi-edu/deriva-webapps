@@ -574,8 +574,77 @@ var plotConfigs = {
           },
         ],
       },
-    ],
+    ], 
   },
+  "heatmap": {
+    plots: [{
+        plot_type: "heatmap",
+        plotly: {
+            config: {
+                modeBarButtonsToRemove: ["scrollZoom", "zoom2d", "sendDataToCloud", "autoScale2d", "lasso2d", "select2d", "hoverClosestCartesian", "hoverCompareCartesian", "toggleSpikelines"],
+                displaylogo: false,
+                responsive: true
+            },
+            layout: {
+                title: "Plot Heatmap",
+                height: 1100,
+                width: 1200,
+                showLegend: true,
+                margin: {
+                    l: 100,  // left margin for lengthy data labels.
+                    b: 300   // bottom margin for lengthy data labels.
+                },
+                xaxis: {
+                  tickangle: 90,
+                  tickfont: {
+                    size: 12,
+                    family: "Lucida Console"
+                  }
+              },
+              yaxis: {
+                  tickfont: {
+                    size: 12,
+                    family:  "Lucida Console"
+                  }
+              }
+            }
+        },
+        config: {
+          /**
+           * Heatmap plot has the support for following features:
+           * title_display_markdown_pattern : markdown template string to be generated for Heatmap title, xaxis and yaxis title
+           * tick_display_markdown_pattern : markdown template string to be generated for tick label for x axis and y axis
+           * graphic_link_pattern : array of patterns to turn into links to use for clicking on the chart display
+           * */
+
+          // title_display_markdown_pattern: '[ title ](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
+          xaxis: {
+            // tick_display_markdown_pattern:
+            //   '[tick x](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
+            // title_display_markdown_pattern: '[x axis title](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+          },
+          yaxis: {
+            // tick_display_markdown_pattern:
+            //   '[tick y](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
+            // title_display_markdown_pattern: '[y axis title](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+          },
+        },
+        traces: [
+            {
+              graphic_link_pattern:
+              '[Graphic link](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
+                queryPattern: '/ermrest/catalog/2/entity/Gene_Expression:Array_Data_view/NCBI_GeneID={{{$url_parameters.Gene.data.NCBI_GeneID}}}&Section_Ordinal={{{$url_parameters.Gene.data.Section_Ordinal}}}',
+                /**
+                 * Title column added to get dynamic titles for heatmap based on the Section key
+                 */
+                title_col: 'Section',
+                x_col: ["Label"],
+                y_col: ["Probe_Set_Name"],
+                z_col: ["Value"]
+            }
+        ]
+    }]
+},
 };
 
 if (typeof module === 'object' && module.exports && typeof require === 'function') {

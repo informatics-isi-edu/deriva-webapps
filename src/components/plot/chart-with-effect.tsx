@@ -123,7 +123,6 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
       return !layout.disable_default_legend_click;
     }
   };
-
   // set click handlers for chart
   parsedData.onClick = handlePlotlyClick; // append click handler to the chart
   parsedData.onLegendClick = handlePlotlyLegendClick; // append legend click handler to the chart
