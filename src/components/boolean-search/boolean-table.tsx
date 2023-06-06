@@ -240,17 +240,3 @@ const BooleanTable = ({
 };
 
 export default BooleanTable;
-
-BooleanTable.propTypes = {
-  rows: PropTypes.array.isRequired,
-  setRows: PropTypes.func.isRequired,
-  strength: PropTypes.array.isRequired,
-  pattern: PropTypes.array.isRequired,
-  location: PropTypes.any.isRequired,
-  stageFrom: PropTypes.any.isRequired,
-  source: PropTypes.any.isRequired,
-  changeFiltersDisplayText: PropTypes.func.isRequired,
-  addClicked: PropTypes.bool.isRequired,
-  setAddClicked: PropTypes.func.isRequired,
-  handleAddRow: PropTypes.func.isRequired,
-};

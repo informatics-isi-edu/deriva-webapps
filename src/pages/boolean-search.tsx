@@ -530,7 +530,6 @@ const BooleanSearchApp = (): JSX.Element => {
         
       </div>
       <BooleanTable
-        source={source}
         setAddClicked={setAddClicked}
         addClicked={addClicked}
         location={locationData}
@@ -538,7 +537,6 @@ const BooleanSearchApp = (): JSX.Element => {
         pattern={patternData} 
         stageFrom={stageFromData}
         changeFiltersDisplayText={changeFiltersDisplayText}
-        handleAddRow={handleAddRow} 
         rows={rows} 
         setRows={setRows} />
       
