@@ -45,6 +45,11 @@ BOOLEAN_SEARCH_CONFIG=$(CONFIG)/boolean-search-config.js
 $(BOOLEAN_SEARCH_CONFIG): $(CONFIG)/boolean-search-config-sample.js
 	cp -n $(CONFIG)/boolean-search-config-sample.js $(BOOLEAN_SEARCH_CONFIG) || true
 	touch $(BOOLEAN_SEARCH_CONFIG)
+  
+HEATMAP_CONFIG=$(CONFIG)/heatmap-config.js
+$(HEATMAP_CONFIG): $(CONFIG)/heatmap-config-sample.js
+	cp -n $(CONFIG)/heatmap-config-sample.js $(HEATMAP_CONFIG) || true
+	touch $(HEATMAP_CONFIG)
 
 MATRIX_CONFIG=$(CONFIG)/matrix-config.js
 $(MATRIX_CONFIG): $(CONFIG)/matrix-config-sample.js
@@ -55,6 +60,11 @@ PLOT_CONFIG=$(CONFIG)/plot-config.js
 $(PLOT_CONFIG): $(CONFIG)/plot-config-sample.js
 	cp -n $(CONFIG)/plot-config-sample.js $(PLOT_CONFIG) || true
 	touch $(PLOT_CONFIG)
+
+TREEVIEW_CONFIG=$(CONFIG)/treeview-config.js
+$(TREEVIEW_CONFIG): $(CONFIG)/treeview-config-sample.js
+	cp -n $(CONFIG)/treeview-config-sample.js $(TREEVIEW_CONFIG) || true
+	touch $(TREEVIEW_CONFIG)
 
 # vendor files that will be treated externally in webpack
 WEBPACK_EXTERNAL_VENDOR_FILES= \
@@ -136,14 +146,12 @@ deploy-boolean-search: dont_deploy_in_root print-variables deploy-bundles
 deploy-boolean-search-w-config: dont_deploy_in_root print-variables deploy-boolean-search deploy-config-folder
 
 .PHONY: deploy-heatmap
-deploy-heatmap: dont_deploy_in_root print-variables
+deploy-heatmap: dont_deploy_in_root print-variables deploy-bundles
 	$(info - deploying heatmap)
-	@rsync -avz --exclude='/heatmap/heatmap-config*' heatmap $(WEBAPPSDIR)
+	@rsync -avz $(DIST_REACT)/heatmap/ $(WEBAPPSDIR)/heatmap/
 
 .PHONY: deploy-heatmap-w-config
-deploy-heatmap-w-config: dont_deploy_in_root print-variables
-	$(info - deploying heatmap with the existing config file(s))
-	@rsync -avz heatmap $(WEBAPPSDIR)
+deploy-heatmap-w-config: dont_deploy_in_root print-variables deploy-heatmap deploy-config-folder
 
 .PHONY: deploy-plot
 deploy-plot: dont_deploy_in_root print-variables deploy-bundles
@@ -159,9 +167,7 @@ deploy-treeview: dont_deploy_in_root print-variables
 	@rsync -avz --exclude='/treeview/treeview-config*' treeview $(WEBAPPSDIR)
 
 .PHONY: deploy-treeview-w-config
-deploy-treeview-w-config: dont_deploy_in_root print-variables
-	$(info - deploying treeview with the existing config file(s))
-	@rsync -avz treeview $(WEBAPPSDIR)
+deploy-treeview-w-config: dont_deploy_in_root print-variables deploy-treeview deploy-config-folder
 
 .PHONY: deploy-matrix
 deploy-matrix: dont_deploy_in_root print-variables deploy-bundles
@@ -173,7 +179,7 @@ deploy-matrix-w-config: dont_deploy_in_root print-variables deploy-matrix deploy
 
 # rsync the config files used by react apps.
 .PHONY: deploy-config-folder
-deploy-config-folder: dont_deploy_in_root $(BOOLEAN_SEARCH_CONFIG) $(MATRIX_CONFIG) $(PLOT_CONFIG)
+deploy-config-folder: dont_deploy_in_root $(MATRIX_CONFIG) $(PLOT_CONFIG) $(TREEVIEW_CONFIG) $(HEATMAP_CONFIG)
 	$(info - deploying the config folder)
 	@rsync -avz $(CONFIG) $(WEBAPPSDIR)
 
