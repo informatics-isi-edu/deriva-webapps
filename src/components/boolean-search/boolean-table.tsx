@@ -2,7 +2,44 @@ import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
 import { getDefaultValues  } from '@isrd-isi-edu/deriva-webapps/src/hooks/boolean-search';
-
+export type BooleanTableProps = {
+  /**
+   * rows in the table
+   */
+  rows: any[];
+  /**
+   * callback set rows
+   */
+  setRows: (rows: any[]) => void;
+  /**
+   * strength data
+   */
+  strength: any[];
+  /**
+   * pattern data
+   */
+  pattern: any[];
+  /**
+   * location data
+   */
+  location: any[];
+  /**
+   * stageFrom data
+   */
+  stageFrom: any[];
+  /**
+   * callback to change the filter query text
+   */
+  changeFiltersDisplayText: () => void;
+  /**
+   * boolean to show the add button is clicked
+   */
+  addClicked: boolean;
+  /**
+   * callback to set the add button click
+   */
+  setAddClicked: (value: boolean) => void;
+};
 const BooleanTable = ({
   rows,
   setRows,
@@ -10,11 +47,10 @@ const BooleanTable = ({
   pattern,
   location,
   stageFrom,
-  source,
   changeFiltersDisplayText,
   addClicked,
   setAddClicked
-}: any) => {
+}: BooleanTableProps) => {
   const [activeRow, setActiveRow] = useState(rows.length - 1);
   const defaultValues = getDefaultValues(stageFrom);
   const handleAddRow = () => {
