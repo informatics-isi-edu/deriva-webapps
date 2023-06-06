@@ -6,18 +6,17 @@ import TreeView from '@isrd-isi-edu/deriva-webapps/src/components/boolean-search
 import BooleanTable from '@isrd-isi-edu/deriva-webapps/src/components/boolean-search/boolean-table';
 import Modal from '@isrd-isi-edu/deriva-webapps/src/components/boolean-search/info-modal';
 import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
-
+import Title from '@isrd-isi-edu/chaise/src/components/title';
 // hooks
 import { useEffect, useRef, useState } from 'react';
 import useError from '@isrd-isi-edu/chaise/src/hooks/error';
-import DisplayValue from '@isrd-isi-edu/chaise/src/components/display-value';
-import { useBooleanData, getSourceOptions, headerInfo } from '@isrd-isi-edu/deriva-webapps/src/hooks/boolean-search';
+import { useBooleanData, getSourceOptions, headerInfo, getDefaultValues } from '@isrd-isi-edu/deriva-webapps/src/hooks/boolean-search';
 
 // utilities
 import { ID_NAMES } from '@isrd-isi-edu/chaise/src/utils/constants';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
-
+import { BooleanSearchConfig } from '@isrd-isi-edu/deriva-webapps/src/models/boolean-search-config';
 const booleanSearchSettings = {
   appName: 'app/boolean-search',
   appTitle: 'Boolean Search',
@@ -26,14 +25,17 @@ const booleanSearchSettings = {
   overrideExternalLinkBehavior: false
 };
 export type BooleanSearchProps = {
-  config: any
+  config: BooleanSearchConfig
 };
 
 const BooleanSearchApp = (): JSX.Element => {
 
   const { dispatchError, errors } = useError();
   const [treeviewOpen, setTreeviewOpen] = useState(true);
-
+  const displayname = {
+    value: 'Boolean Search',
+    isHTML: true
+  }
   const [source, setSource] = useState('p{in "" TS17..TS28}');
   const [booleanSearchProps, setBooleanSearchProps] = useState<BooleanSearchProps | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -83,26 +85,9 @@ const BooleanSearchApp = (): JSX.Element => {
    * Handles adding row
    */
   const handleAddRow = () => {
-    const newRow = {
-      strength: 'present',
-      source: {
-        name: ''
-      },
-      stageFrom: {
-        Name: 'TS16',
-        Ordinal: 16
-    },
-    stageTo: {
-        Name: 'P110',
-        Ordinal: 110
-    },
-      pattern: '',
-      location: '',
-      sourceInvalid: false,
-      toStageOptions: stageFromData.slice(17)
-    };
     setAddClicked(true);
-    setRows([...rows, newRow]);
+    const defaultValues = getDefaultValues(stageFromData);
+    setRows([...rows, defaultValues]);
   };
 
   /**
@@ -133,7 +118,7 @@ const BooleanSearchApp = (): JSX.Element => {
    */
   const formQuery =() => {
     let query = '';
-    rows.forEach(function (row) {
+    rows.forEach( (row) => {
         const pattern = row.pattern === '' || row.pattern === null ? '' : '&Pattern=' + row.pattern;
         const location = row.location === '' || row.location === null ? '' : '&Pattern_Location=' + row.location;
         query = query + '/(Stage_ID)=(Vocabulary:Developmental_Stage:ID)/Ordinal::geq::' +
@@ -169,7 +154,7 @@ const BooleanSearchApp = (): JSX.Element => {
       location: []
     };
   
-    rows.forEach(function (row: any, index: number) {
+    rows.forEach( (row: any, index: number) => {
       if (!strengthData.some((item: any) => item.Strength === row.strength)) {
         valid = false;
         invalid.strength.push(row.strength);
@@ -192,41 +177,36 @@ const BooleanSearchApp = (): JSX.Element => {
   
   const validateSourceParam = (submitQuery: boolean) => {
     const sources: any[] = [];
-    rows.forEach(function (row) {
+    rows.forEach( (row) => {
       sources.push(row.source.name);
     });
-    
+  
     const invalidSource: any[] = [];
-    
-    getSourceOptions(sources).then(function (data) {
-      rows.map(function (row: any, index: any) {
-        const updatedRows = [...rows];
-        const updatedRow = { ...updatedRows[index] };
-        const match = data.filter(function (source: any) {
+  
+    getSourceOptions(sources).then( (data) => {
+      const updatedRows = rows.map( (row: any, index: any) => {
+        const updatedRow = { ...row };
+        const match = data.filter( (source: any) => {
           return source.Name === row.source.name;
         });
   
         if (match.length === 0) {
           invalidSource.push(row.source.name);
-          
-          
-        updatedRow['sourceInvalid'] = true;
-        updatedRows[index] = updatedRow;
-        setRows(updatedRows);
+          updatedRow.sourceInvalid = true;
         } else {
-         
-          updatedRow['sourceInvalid'] = false;
-          updatedRow['source']['id'] =  match[0].ID;
-        updatedRows[index] = updatedRow;
-          setRows(updatedRows);
+          updatedRow.sourceInvalid = false;
+          updatedRow.source.id = match[0].ID;
         }
   
-        if (index === rows.length - 1) {
-          validateOtherParams(invalidSource, submitQuery);
-        }
+        return updatedRow;
       });
+  
+      setRows(updatedRows);
+  
+      validateOtherParams(invalidSource, submitQuery);
     });
   };
+  
   
 
   /**
@@ -242,6 +222,7 @@ const BooleanSearchApp = (): JSX.Element => {
         displayname += ' AND ';
       }
 
+      // Strength can have 3 values and also the translation is used in parseQueryText()
       switch (row.strength) {
         case 'present':
           displayname += 'p';
@@ -428,11 +409,18 @@ const BooleanSearchApp = (): JSX.Element => {
   return (<>
   <Modal showModal={showModal} handleModalClose={handleModalClose}/>
   <div className='boolean-container'>
-    <div className='title-container'>
+    <div className='top-panel-container'>
+      <div className='top-flex-panel'>
+        <div className='top-left-panel'>
+        <h1><Title displayname={displayname} /></h1>
+        </div>
+      </div>
+    </div>
+    {/* <div className='title-container'>
         <h1>
            <DisplayValue addClass value={{ value: 'Boolean Search', isHTML: true }} />
         </h1>
-    </div>
+    </div> */}
     <div className='bottom-panel-container'>
       <div className={`resizable-panel resizable ${treeviewOpen ? 'open-panel' : 'close-panel'}`}>
         <div className='treeview-panel'>
@@ -455,32 +443,39 @@ const BooleanSearchApp = (): JSX.Element => {
       <div className={`right-panel-container ${!treeviewOpen ? 'right-panel-container-fullwidth' : ''}`}>
         <div className='boolean-header-btn'>
           <div className='search-icons'>
-            <input
-              value={source}
-              onChange={changeSearch}
-              className={`main-search-input ${!treeviewOpen ? 'input-fullwidth' : ''}`}
-            />
-            <button
-              id='clear-filter-btn'
-              className='chaise-btn chaise-btn-primary fa fa-close'
-              onClick={() => {clearSearch()}}
-              type='button'
-              data-toggle='tooltip'
-              data-placement='auto top'
-              title='Clear all filters' />
-            <button
-              id='submit-button'
-              className='chaise-btn chaise-btn-primary'
-              type='submit'
-              disabled={false}
-              onClick={() => {handleValidate(true)}}
-              data-toggle='tooltip'
-              title='Submit query to search specimens'
-          >
-            Search Specimen
-          </button>
+            <div className='chaise-input-group'>
+              <div className='chaise-input-control'>
+                <input
+                  value={source}
+                  onChange={changeSearch}
+                  className={`main-search-input ${!treeviewOpen ? 'input-fullwidth' : ''}`}
+                />
+             </div>
+              <div className='chaise-input-group-append'>
+              <button
+                id='clear-filter-btn'
+                className='chaise-btn chaise-btn-primary fa fa-close'
+                onClick={() => {clearSearch()}}
+                type='button'
+                data-toggle='tooltip'
+                data-placement='auto top'
+                title='Clear all filters' />
+              </div>
+              <div className='chaise-input-group-append'>
+              <button
+                id='submit-button'
+                className='chaise-btn chaise-btn-primary'
+                type='submit'
+                disabled={false}
+                onClick={() => {handleValidate(true)}}
+                data-toggle='tooltip'
+                title='Submit query to search specimens'>
+                Search Specimen
+              </button>
+              </div>
+          </div>
       </div>
-      <div className='boolean-action-btn'>
+      <div className='boolean-action-btn chaise-btn-group'>
           <button
             id='validate-filter-btn'
             className='chaise-btn chaise-btn-primary'

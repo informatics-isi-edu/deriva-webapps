@@ -3,6 +3,25 @@ import useError from '@isrd-isi-edu/chaise/src/hooks/error';
 import { getQueryParams } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
 
+export const getDefaultValues = (stageFrom: any) => ({
+  strength: 'present',
+  source: {
+    name: ''
+  },
+  stageFrom: {
+    Name: 'TS16',
+    Ordinal: 16
+  },
+  stageTo: {
+    Name: 'P110',
+    Ordinal: 110
+  },
+  pattern: '',
+  location: '',
+  sourceInvalid: false,
+  toStageOptions: stageFrom.slice(17)
+});
+
 const logObj: any = ConfigService.contextHeaderParams;
 export const headerInfo = {
   pid: logObj?.pid,

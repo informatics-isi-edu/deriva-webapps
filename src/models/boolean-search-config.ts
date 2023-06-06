@@ -1,3 +1,4 @@
 export type BooleanSearchConfig = {
-  // TODO:
+  date: any,
+presentation: any
 };

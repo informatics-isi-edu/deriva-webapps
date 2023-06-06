@@ -1,5 +1,5 @@
 import { Modal } from 'react-bootstrap';
-
+import '@isrd-isi-edu/deriva-webapps/src/assets/scss/_modal.scss';
 export type InfoModalProps = {
     /**
      * flag to show the modal
@@ -20,11 +20,9 @@ const InfoModal = ({ handleModalClose, showModal }: InfoModalProps): JSX.Element
 
   return (
     <>
-      <Modal show={showModal} onHide={handleModalClose}>
+      <Modal size='lg' show={showModal} onHide={handleModalClose}>
         <Modal.Header closeButton>
-          <Modal.Title id='myModalLabel'>
-            <strong>How to perform boolean search</strong>
-          </Modal.Title>
+        <h3 className='modal-title text-center' id='myModalLabel'/><strong className='header'>How to perform boolean search</strong>
         </Modal.Header>
         <Modal.Body>
           <div style={{ maxHeight: '80vh', overflowY: 'auto' }} className='modal-body info-modal'>
