@@ -2,6 +2,7 @@ import '@isrd-isi-edu/deriva-webapps/src/assets/scss/_heatmap.scss';
 
 // hooks
 import { useEffect, useRef, useState } from 'react';
+import useError from '@isrd-isi-edu/chaise/src/hooks/error';
 
 // utilties
 import { chaiseURItoErmrestURI, getQueryParams, getCatalogId } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
@@ -14,6 +15,8 @@ import ChaiseToolTip from '@isrd-isi-edu/chaise/src/components/tooltip';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
 import HeatmapPlot from '@isrd-isi-edu/deriva-webapps/src/components/heatmap/heatmap-plot';
 import { HeatmapConfig } from '@isrd-isi-edu/deriva-webapps/src/models/heatmap-config';
+import { ChaiseError } from '@isrd-isi-edu/chaise/src/models/errors';
+import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
 
 
 export type HeatmapProps = {
@@ -30,20 +33,20 @@ export type inputParamsType = {
 }
 
 export type layoutParamsType = {
-    height: number,
-    width: number,
-    margin: {
-      t: number,
-      r: number,
-      b: number,
-      l: number,
-    },
-    xTickAngle: number,
-    yTickAngle: number,
-    tickFont: {
-      family: string,
-      size: number
-    }
+  height: number,
+  width: number,
+  margin: {
+    t: number,
+    r: number,
+    b: number,
+    l: number,
+  },
+  xTickAngle: number,
+  yTickAngle: number,
+  tickFont: {
+    family: string,
+    size: number
+  }
 }
 
 const Heatmap = ({
@@ -56,9 +59,13 @@ const Heatmap = ({
   const [invalidConfigs, setInvalidConfigs] = useState<string[]>(['']);
   const [configErrorsPresent, setConfigErrorsPresent] = useState<boolean>(false);
   const [heatmaps, setHeatmaps] = useState<any[]>([]);
+  const [noData, setNoData] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [NCBIGeneID, setNCBIGeneID] = useState<string>('');
   const [header, setHeader] = useState<any>({});
   const [facet, setFacet] = useState<any>({});
+  const { dispatchError } = useError();
+
 
 
 
@@ -84,32 +91,48 @@ const Heatmap = ({
         'hide_null_choice': true
       }]
     });
-
-    ConfigService.ERMrest.resolve(ermrestURI.ermrestUri, header).then((response: any) => {
-      const reference = response.contextualize.compact;
-      verifyConfiguration(reference);
-      if (!configErrorsPresent) {
-        const sortBy = typeof Object(config).data.sortBy !== 'undefined' ? Object(config).data.sortBy : [];
-        const ref = reference.sort(sortBy);
-        setHeader((prevHeader: any) => ({ ...prevHeader, action: 'main' }));
-        const pcid = getQueryParams(location.href).pcid
-        const ppid = getQueryParams(location.href).ppid
-        if (pcid || ppid){
-          let tempHeader = {...header}
-          if(pcid)
-            tempHeader.pcid=pcid
-          if(ppid)
-            tempHeader.ppid=ppid
-          setHeader(() => (tempHeader));
+    const geneId = location.hash.split('/')[2];
+    // try to fetch the resolver link to see if the path resolves before sending the user
+    ConfigService.http.get(`/ermrest/catalog/2/entity/Common:Gene/${geneId}`,
+      { headers: header }).then((response: any) => {
+        setIsLoading((prevLoading) => !prevLoading);
+        if (response.data?.length > 0) {
+          if (response.data[0].Array_Data) {
+            ConfigService.ERMrest.resolve(ermrestURI.ermrestUri, header).then((response: any) => {
+              const reference = response.contextualize.compact;
+              verifyConfiguration(reference);
+              if (!configErrorsPresent) {
+                const sortBy = typeof Object(config).data.sortBy !== 'undefined' ? Object(config).data.sortBy : [];
+                const ref = reference.sort(sortBy);
+                setHeader((prevHeader: any) => ({ ...prevHeader, action: 'main' }));
+                const pcid = getQueryParams(location.href).pcid
+                const ppid = getQueryParams(location.href).ppid
+                if (pcid || ppid) {
+                  let tempHeader = { ...header }
+                  if (pcid)
+                    tempHeader.pcid = pcid
+                  if (ppid)
+                    tempHeader.ppid = ppid
+                  setHeader(() => (tempHeader));
+                }
+                ref.read(1000, header).then((page: any) => {
+                  readAll(page);
+                }).catch(() => {
+                  setInvalidConfigs(['Error while reading data from Ermrestjs']);
+                  setConfigErrorsPresent(true);
+                });
+              }
+            });
+          } else {
+            throw new ChaiseError('Data not available', 'No heatmap data available for the given Id<br>');
+          }
+        } else {
+          throw new ChaiseError('Record not found', 'No matching record found for the given Id<br>');
         }
-        ref.read(1000, header).then((page: any) => {
-          readAll(page);
-        }).catch(() => {
-          setInvalidConfigs(['Error while reading data from Ermrestjs']);
-          setConfigErrorsPresent(true);
-        });
-      }
-    });
+      }).catch((err: any) => {
+        setNoData(() => true);
+        dispatchError({ error: err, isDismissible: true });
+      });
 
   }, []);
 
@@ -126,7 +149,6 @@ const Heatmap = ({
     });
   }, [NCBIGeneID]);
 
-
   const verifyConfiguration = (reference: any) => {
     const columns = ['titleColumn', 'idColumn', 'xColumn', 'yColumn', 'zColumn'];
     let tempInvalidConfigs = [...invalidConfigs];
@@ -136,7 +158,7 @@ const Heatmap = ({
       try {
         reference.getColumnByName(Object(config).data[columns[i]]);
       } catch (error) {
-          tempInvalidConfigs.push('Column \'' + Object(config).data[columns[i]] + 
+        tempInvalidConfigs.push('Column \'' + Object(config).data[columns[i]] +
           '\' does not exist. Give a valid value for the ' + columns[i] + '.');
       }
     }
@@ -157,7 +179,7 @@ const Heatmap = ({
   }
 
   /**
-   * @param page : Page object fecthed from response of ermrestURI
+   * @param page : Page object fetched from response of ermrestURI
    */
   const readAll = (page: any) => {
     for (let i = 0; i < page.tuples.length; i++) {
@@ -171,8 +193,11 @@ const Heatmap = ({
       });
     } else {
       setHeatmaps(() => (heatmaps));
+      setIsLoading((prevLoading) => !prevLoading);
     }
-    setNCBIGeneID(() => (page.tuples[0].data.NCBI_GeneID));
+    if (page.tuples && page.tuples.length > 0) {
+      setNCBIGeneID(() => (page.tuples[0].data?.NCBI_GeneID));
+    }
   }
   /**
    * 
@@ -354,9 +379,14 @@ const Heatmap = ({
     return { plot, layout };
   }
 
+  if (isLoading) {
+    <ChaiseSpinner />;
+  }
 
-  return (
-    <div className='heatmap-app-container'>
+
+  return (noData
+    ? <></>
+    : <div className='heatmap-app-container'>
       <ChaiseToolTip
         placement='right'
         tooltip='View Array Data related to this Gene'
@@ -367,7 +397,7 @@ const Heatmap = ({
           View Array Data Table</a>
       </ChaiseToolTip>
       {/* Iterating over the heatmaps fetched for the given NCBIGeneID */}
-      {heatmaps.map((heatmap: any,index: number): JSX.Element => {
+      {heatmaps.map((heatmap: any, index: number): JSX.Element => {
         const { plot, layout } = createPlotLayoutParams(heatmap);
         return <div id={`heatmap_${heatmap.id}`} key={`heatmap_${index}`}>
           <HeatmapPlot data={plot?.rows} layout={layout} />
