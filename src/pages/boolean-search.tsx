@@ -252,7 +252,7 @@ const BooleanSearchApp = (): JSX.Element => {
   };
   
   const setClass = () => {
-    return treeviewOpen ? 'fa fa-chevron-left' : 'fa fa-chevron-right';
+    return treeviewOpen ? 'fa fa-caret-left' : 'fa fa-caret-right';
   };
 
   /**
