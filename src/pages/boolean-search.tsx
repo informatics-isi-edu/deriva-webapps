@@ -408,8 +408,7 @@ const BooleanSearchApp = (): JSX.Element => {
 
   return (<>
   <Modal showModal={showModal} handleModalClose={handleModalClose}/>
-<div className='app-container'>
-  <div className='boolean-search-container'>
+  <div className='boolean-search-container app-container'>
     <div className='top-panel-container'>
       <div className='top-flex-panel'>
         <div className='top-left-panel'>
@@ -539,7 +538,6 @@ const BooleanSearchApp = (): JSX.Element => {
       </div>   
     </div>
   </div> 
-</div>
  </>);
 };
 
