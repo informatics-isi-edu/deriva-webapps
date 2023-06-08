@@ -210,7 +210,6 @@ export const useChartData = (plot: Plot) => {
         Gene: {
           data: {
             NCBI_GeneID: getQueryParam(windowRef.location.href, 'NCBI_GeneID') || 1, // TODO: deal with default value
-            Section_Ordinal: getQueryParam(windowRef.location.href, 'Section_Ordinal') || 1, // TODO: deal with default value
           },
         },
         Study: [],
@@ -393,8 +392,8 @@ const parsePlotData = (
       additionalLayout = layout;
       return parseResult;
     } else if (plot.plot_type === 'heatmap') {
-      const heatmapData = parseHeatmapResponse(currTrace, plot, responseData, additionalLayout);
-      additionalLayout = heatmapData.additionalLayout;
+      const heatmapData = parseHeatmapResponse(currTrace, plot, responseData);
+      additionalLayout={ ...heatmapData.layoutParams };
       return heatmapData.result;
     }
   });
@@ -568,21 +567,14 @@ const updatePlotlyLayout = (
     result.layout.modebar = { remove: plot?.plotly?.config?.modeBarButtonsToRemove };
   }
   if (plot.plot_type === 'heatmap') {
-    result.layout = {
-      ...result.layout,
-      ...additionalLayout,
-      title: result.layout.title || additionalLayout.title,
-      xaxis: {
-        ...additionalLayout.xaxis,
-        ...result.layout.xaxis,
-      },
-      yaxis: {
-        ...additionalLayout.yaxis,
-        ...result.layout.yaxis,
-      }
+    result.layout.margin = additionalLayout.margin;
+    result.layout.height = additionalLayout.height;
+    result.layout.width = additionalLayout.width;
+    result.data[0]['colorbar'] = {
+      lenmode: 'pixels',
+      len: additionalLayout.height - 40 < 100 ? additionalLayout.height - 40 : 100
     }
   }
-
   result.layout.autoresize = true;
 };
 
@@ -891,7 +883,7 @@ const parseBarResponse = (trace: Trace, plot: Plot, responseData: ResponseData) 
  * @param responseData data received from request to be parsed
  * @returns
  */
-const parseHeatmapResponse = (trace: Trace, plot: Plot, responseData: ResponseData, additionalLayout: any) => {
+const parseHeatmapResponse = (trace: Trace, plot: Plot, responseData: ResponseData) => {
   const result: Partial<TraceConfig> & Partial<PlotlyPlotData> & PlotResultData & ClickableLinks & HeatmapZData = {
     ...trace,
     type: plot.plot_type,
@@ -902,68 +894,53 @@ const parseHeatmapResponse = (trace: Trace, plot: Plot, responseData: ResponseDa
     legend_clickable_links: [], // array of links for when clicking legend
     graphic_clickable_links: [], // array of links for when clicking graph
   };
-  let layoutParams = {};
   let yIndex = 0;
+  let layoutParams={};
+  let longestXTick='';
+  let longestYTick='';
   const { config, plotly } = plot;
-  const { xaxis, yaxis, format_data_x = false, format_data_y = false } = config; // why is format_data_x not in xaxis?
-  responseData.forEach((item: any) => {
+  const { xaxis, yaxis, format_data_x = false, format_data_y = false } = config;
+  responseData.forEach((item: any, i:number) => {
+    updateWithTraceColData(result, trace, item, i);
     // Add the y values for the heatmap plot
     trace?.y_col?.forEach((colName: string, i: number) => {
       const value = getValue(item, colName, yaxis, format_data_y, plot);
       // Adds the y value for the heatmap plot if it is not added yet in y array
       if (result.y.indexOf(value.toString()) < 0) {
         result.y.push(value.toString());
+        if(item[colName].toString().length > longestYTick?.length){
+          longestYTick=item[colName].toString();
+        }
         result.z.push([]);
       }
       // Fetching the index of added y value to add corresponding z value
       yIndex = result.y.indexOf(value.toString())
     });
     // Add the z values for the heatmap plot based on y val's index
-    trace?.z_col?.forEach((colName: string, i: number) => {
+    trace?.z_col?.forEach((colName: string) => {
       const zValue = item[colName];
       result?.z[yIndex]?.push(zValue);
 
     });
     // Add the x values for the heatmap plot if its not added yet
-    trace?.x_col?.forEach((colName: string, i: number) => {
+    trace?.x_col?.forEach((colName: string) => {
       const value = getValue(item, colName, xaxis, format_data_x, plot);
       if (result.x.indexOf(value.toString()) < 0) {
+        if(item[colName].toString().length > longestXTick?.length){
+          longestXTick=item[colName].toString();
+        }
         result.x.push(value.toString());
       }
     });
+
     // Getting the longest x tick in the given data to determine margin and height values in getHeatmapLayoutParams function
-    const longestXTick = result.x.reduce((a: any, b: any) => { return a?.length > b?.length ? a : b; });
-    const longestYTick = result.y.reduce((a: any, b: any) => { return a?.length > b?.length ? a : b; });
     const inputParams = {
       width: typeof plotly?.layout.width !== 'undefined' ? plotly?.layout.width : 1200,
       xTickAngle: typeof plotly?.layout.xaxis?.tickangle !== 'undefined' ? plotly?.layout.xaxis?.tickangle : 50,
     }
     layoutParams = getHeatmapLayoutParams(inputParams, longestXTick?.length, longestYTick?.length, result.y?.length);
-    additionalLayout = {
-      ...additionalLayout,
-      title: item[Object(trace).title_col],
-      margin: Object(layoutParams).margin,
-      height: Object(layoutParams).height,
-      width: Object(layoutParams).width,
-      xaxis: {
-        ...additionalLayout.xaxis,
-        tickangle: Object(layoutParams).xTickAngle,
-        tickvals: result.x,
-        ticktext: result.x,
-      },
-      yaxis: {
-        ...additionalLayout.yaxis,
-        tickangle: Object(layoutParams).yTickAngle,
-        tickvals: result.y,
-        ticktext: result.y,
-      },
-    }
   });
-  result['colorbar'] = {
-    lenmode: 'pixels',
-    len: Object(layoutParams).height - 40 < 100 ? Object(layoutParams).height - 40 : 100
-  }
-  return { additionalLayout, result };
+  return {layoutParams, result};
 };
 
 /**
@@ -996,7 +973,6 @@ const getHeatmapLayoutParams = (input: inputParamsType, longestXTick: number, lo
   let yTickAngle;
   const tMargin = 25;
   let rMargin, bMargin, lMargin;
-
   if (longestXTick <= 18) {
     height = longestXTick * 9 + lengthY * 10 + 50;
     bMargin = 8.4 * longestXTick;

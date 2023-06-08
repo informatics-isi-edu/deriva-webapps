@@ -612,32 +612,26 @@ var plotConfigs = {
       config: {
         /**
          * Heatmap plot has the support for following features:
-         * title_display_markdown_pattern : markdown template string to be generated for Heatmap title, xaxis and yaxis title
-         * tick_display_markdown_pattern : markdown template string to be generated for tick label for x axis and y axis
-         * graphic_link_pattern : array of patterns to turn into links to use for clicking on the chart display
+         * title_display_markdown_pattern : Custom Heatmap title, xaxis and yaxis title(clickable)
+         * tick_display_markdown_pattern : Custom tick text(clickable) for x axis and y axis
          * */
-
         // title_display_markdown_pattern: '[ title ](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
         xaxis: {
           // tick_display_markdown_pattern:
-          //   '[tick x](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
-          // title_display_markdown_pattern: '[x axis title](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+          //   '[{{$self.data.Label}}](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
+          // title_display_markdown_pattern: '[ title x ](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
         },
         yaxis: {
           // tick_display_markdown_pattern:
-          //   '[tick y](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
-          // title_display_markdown_pattern: '[y axis title](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+          //   '[{{$self.data.Probe_Set_Name}}](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
+          // title_display_markdown_pattern: '[ title y ](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
         },
       },
       traces: [
         {
           graphic_link_pattern:
-            '[Graphic link](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
-          queryPattern: '/ermrest/catalog/2/entity/Gene_Expression:Array_Data_view/NCBI_GeneID={{{$url_parameters.Gene.data.NCBI_GeneID}}}&Section_Ordinal={{{$url_parameters.Gene.data.Section_Ordinal}}}',
-          /**
-           * Title column added to get dynamic titles for heatmap based on the Section key
-           */
-          title_col: 'Section',
+            ['/chaise/recordset/#2/RNASeq:Replicate_Expression'],
+          queryPattern: '/ermrest/catalog/2/entity/Gene_Expression:Array_Data_view/NCBI_GeneID={{{$url_parameters.Gene.data.NCBI_GeneID}}}&Section_Ordinal=3',
           x_col: ["Label"],
           y_col: ["Probe_Set_Name"],
           z_col: ["Value"]

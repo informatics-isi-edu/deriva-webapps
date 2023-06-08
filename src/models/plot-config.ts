@@ -102,7 +102,6 @@ export type TraceConfig = {
   x_col?: string[];
   y_col?: string[];
   z_col?: string[];
-  title_col?: string;
   legendwidth?: number;
   queryPattern?: string;
 };
