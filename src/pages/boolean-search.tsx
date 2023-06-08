@@ -408,7 +408,7 @@ const BooleanSearchApp = (): JSX.Element => {
 
   return (<>
   <Modal showModal={showModal} handleModalClose={handleModalClose}/>
-  <div className='boolean-search-container app-container'>
+  <div className='boolean-search-container app-content-container'>
     <div className='top-panel-container'>
       <div className='top-flex-panel'>
         <div className='top-left-panel'>
