@@ -101,7 +101,7 @@ const BooleanSearchApp = (): JSX.Element => {
    * Handles changing the search input field
    * @param {any} event- change event
    */
-  const changeSearch = (event: any) => {
+  const changeSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSource(event.target.value);
   };
 
@@ -138,7 +138,7 @@ const BooleanSearchApp = (): JSX.Element => {
     
   }
 
-  const validateOtherParams = (invalidSource: any, submitQuery: boolean) => {
+  const validateOtherParams = (invalidSource: any[], submitQuery: boolean) => {
     let valid = true;
   
     if (invalidSource.length > 0) {
@@ -408,7 +408,8 @@ const BooleanSearchApp = (): JSX.Element => {
 
   return (<>
   <Modal showModal={showModal} handleModalClose={handleModalClose}/>
-  <div className='boolean-container'>
+<div className='app-container'>
+  <div className='boolean-search-container'>
     <div className='top-panel-container'>
       <div className='top-flex-panel'>
         <div className='top-left-panel'>
@@ -416,11 +417,6 @@ const BooleanSearchApp = (): JSX.Element => {
         </div>
       </div>
     </div>
-    {/* <div className='title-container'>
-        <h1>
-           <DisplayValue addClass value={{ value: 'Boolean Search', isHTML: true }} />
-        </h1>
-    </div> */}
     <div className='bottom-panel-container'>
       <div className={`resizable-panel resizable ${treeviewOpen ? 'open-panel' : 'close-panel'}`}>
         <div className='treeview-panel'>
@@ -439,7 +435,7 @@ const BooleanSearchApp = (): JSX.Element => {
           </button>
         </div>
    
-       </div>
+      </div>
       <div className={`right-panel-container ${!treeviewOpen ? 'right-panel-container-fullwidth' : ''}`}>
         <div className='boolean-header-btn'>
           <div className='search-icons'>
@@ -542,7 +538,8 @@ const BooleanSearchApp = (): JSX.Element => {
       
       </div>   
     </div>
- </div> 
+  </div> 
+</div>
  </>);
 };
 

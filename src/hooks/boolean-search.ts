@@ -3,7 +3,7 @@ import useError from '@isrd-isi-edu/chaise/src/hooks/error';
 import { getQueryParams } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
 
-export const getDefaultValues = (stageFrom: any) => ({
+export const getDefaultValues = (stageFrom: any[]) => ({
   strength: 'present',
   source: {
     name: ''
@@ -195,7 +195,7 @@ export const useBooleanData = (): BooleanData => {
   };
 };
 
-export const getSourceOptions = async (sources: any) => {
+export const getSourceOptions = async (sources: any[]) => {
   const sourceHeaders: any = {};
   sourceHeaders[ConfigService.ERMrest.contextHeaderName] = getHeader();
   sourceHeaders[ConfigService.ERMrest.contextHeaderName].schema_table = 'Vocabulary:Anatomy';

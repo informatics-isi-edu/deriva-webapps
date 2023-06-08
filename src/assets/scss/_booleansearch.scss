@@ -1,4 +1,4 @@
-.boolean-container {
+.boolean-search-container {
 
     .title-container {
         padding: 20px;
@@ -130,7 +130,7 @@
         }
         .resize-btn {
             top: 100px;
-            right: -32px;
+            right: -21px;
             z-index:2;
             position: absolute;
         }
@@ -139,6 +139,7 @@
             border-radius:0px 15px 15px 0px !important;
             height: 40px;
             width: 21px;
+            min-width: 0;
             font-size: 20px;
             padding: 4px 4px 0 0;
             cursor: pointer;

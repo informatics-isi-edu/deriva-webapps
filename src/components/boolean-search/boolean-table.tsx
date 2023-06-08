@@ -85,13 +85,13 @@ const BooleanTable = ({
 
   }, [rows, activeRow]);
 
-  const handleRemoveRow = (evt: any, index: any) => {
+  const handleRemoveRow = (evt: React.MouseEvent<HTMLButtonElement>, index: number) => {
     const updatedRows = rows.slice(0, index).concat(rows.slice(index + 1));
     setRows(updatedRows);
     evt.stopPropagation();
   };
 
-  const handleClearFilter = (e: any, index: number) => {
+  const handleClearFilter = (e: React.MouseEvent<HTMLButtonElement>, index: number) => {
     const updatedRows = [...rows];
     updatedRows[index] = {
       ...defaultValues
@@ -99,7 +99,7 @@ const BooleanTable = ({
     setRows(updatedRows);
   };
 
-  const handleChange = (index: any, field: string, value: any) => {
+  const handleChange = (index: number, field: string, value: string) => {
     const updatedRows = [...rows];
     const updatedRow = { ...updatedRows[index] };
 
@@ -108,9 +108,13 @@ const BooleanTable = ({
 
       const pos = stageFrom.findIndex((obj: any) => obj.Name === updatedRow.stageFrom.Name);
       updatedRow.toStageOptions = stageFrom.slice(pos);
-      updatedRow.stageTo = { ...updatedRow.stageTo, Name: updatedRow.toStageOptions[0].Name, Ordinal: updatedRow.toStageOptions[0].Ordinal };
+      updatedRow.stageTo = { ...updatedRow.stageTo,
+        Name: updatedRow.toStageOptions[0].Name,
+        Ordinal: updatedRow.toStageOptions[0].Ordinal };
+        
     } else if (field === 'stageTo') {
       updatedRow.stageTo = { ...updatedRow.stageTo, Name: value };
+
     } else {
       updatedRow[field] = value;
     }
@@ -119,7 +123,7 @@ const BooleanTable = ({
     setRows(updatedRows);
   };
 
-  const handleActiveRow = (e: any, index: number) => {
+  const handleActiveRow = (e: React.MouseEvent<HTMLTableRowElement>, index: number) => {
     setActiveRow(index);
   };
 
