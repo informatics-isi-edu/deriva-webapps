@@ -576,6 +576,69 @@ var plotConfigs = {
       },
     ],
   },
+  "heatmap": {
+    plots: [{
+      plot_type: "heatmap",
+      plotly: {
+        config: {
+          modeBarButtonsToRemove: ["scrollZoom", "zoom2d", "sendDataToCloud", "autoScale2d", "lasso2d", "select2d", "hoverClosestCartesian", "hoverCompareCartesian", "toggleSpikelines"],
+          displaylogo: false,
+          responsive: true
+        },
+        layout: {
+          title: "Plot Heatmap",
+          height: 1100,
+          width: 1200,
+          showLegend: true,
+          margin: {
+            l: 100,  // left margin for lengthy data labels.
+            b: 300   // bottom margin for lengthy data labels.
+          },
+          xaxis: {
+            tickangle: 90,
+            tickfont: {
+              size: 12,
+              family: "Lucida Console"
+            }
+          },
+          yaxis: {
+            tickfont: {
+              size: 12,
+              family: "Lucida Console"
+            }
+          }
+        }
+      },
+      config: {
+        /**
+         * Heatmap plot has the support for following features:
+         * title_display_markdown_pattern : Custom Heatmap title, xaxis and yaxis title(clickable)
+         * tick_display_markdown_pattern : Custom tick text(clickable) for x axis and y axis
+         * */
+        // title_display_markdown_pattern: '[ title ](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
+        xaxis: {
+          // tick_display_markdown_pattern:
+          //   '[{{$self.data.Label}}](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
+          // title_display_markdown_pattern: '[ title x ](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+        },
+        yaxis: {
+          // tick_display_markdown_pattern:
+          //   '[{{$self.data.Probe_Set_Name}}](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
+          // title_display_markdown_pattern: '[ title y ](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+        },
+      },
+      traces: [
+        {
+          graphic_link_pattern:
+            ['/chaise/recordset/#2/RNASeq:Replicate_Expression'],
+          queryPattern: '/ermrest/catalog/2/entity/Gene_Expression:Array_Data_view/NCBI_GeneID={{{$url_parameters.Gene.data.NCBI_GeneID}}}&Section_Ordinal=3',
+          x_col: ["Label"],
+          y_col: ["Probe_Set_Name"],
+          z_col: ["Value"]
+        }
+      ]
+    }]
+  },
 };
 
 if (typeof module === 'object' && module.exports && typeof require === 'function') {

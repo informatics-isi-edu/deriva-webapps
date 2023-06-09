@@ -25,7 +25,7 @@ export type DataConfig = {
  * Specific plot
  */
 export type Plot = {
-  plot_type: 'bar' & 'violin' & 'pie' & 'scatter' & 'histogram';
+  plot_type: 'bar' & 'violin' & 'pie' & 'scatter' & 'histogram' & 'heatmap';
   config: PlotConfigConfig;
   traces: Trace[];
   gene_uri_pattern?: string;
@@ -72,6 +72,7 @@ export type PlotConfigAxis = {
   tick_display_markdown_pattern?: string;
   range?: number[];
   ticksuffix?: string;
+  tickangle?: number;
   group_key?: string;
   group_keys?: PlotConfigAxisGroupKey[];
   default_all_studies_group?: string;
@@ -100,6 +101,7 @@ export type TraceConfig = {
   legend?: string[];
   x_col?: string[];
   y_col?: string[];
+  z_col?: string[];
   legendwidth?: number;
   queryPattern?: string;
 };
