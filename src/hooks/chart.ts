@@ -393,7 +393,7 @@ const parsePlotData = (
       return parseResult;
     } else if (plot.plot_type === 'heatmap') {
       const heatmapData = parseHeatmapResponse(currTrace, plot, responseData);
-      additionalLayout={ ...heatmapData.layoutParams };
+      additionalLayout = { ...heatmapData.layoutParams };
       return heatmapData.result;
     }
   });
@@ -492,6 +492,7 @@ const updatePlotlyLayout = (
 ): void => {
   // title
   let title = '';
+
   if (plot.config.title_display_markdown_pattern) {
     // use the title_display_markdown_pattern if it exists
     title = createLink(plot.config.title_display_markdown_pattern, templateParams);
@@ -500,7 +501,9 @@ const updatePlotlyLayout = (
     // TODO: remove this hack
     title = 'No Data';
   }
-  result.layout.title = title;
+  if (title) {
+    result.layout.title = title;
+  }
 
   // x axis
   if (!result.layout.xaxis) {
@@ -895,12 +898,12 @@ const parseHeatmapResponse = (trace: Trace, plot: Plot, responseData: ResponseDa
     graphic_clickable_links: [], // array of links for when clicking graph
   };
   let yIndex = 0;
-  let layoutParams={};
-  let longestXTick='';
-  let longestYTick='';
+  let layoutParams = {};
+  let longestXTick = '';
+  let longestYTick = '';
   const { config, plotly } = plot;
   const { xaxis, yaxis, format_data_x = false, format_data_y = false } = config;
-  responseData.forEach((item: any, i:number) => {
+  responseData.forEach((item: any, i: number) => {
     updateWithTraceColData(result, trace, item, i);
     // Add the y values for the heatmap plot
     trace?.y_col?.forEach((colName: string, i: number) => {
@@ -908,8 +911,8 @@ const parseHeatmapResponse = (trace: Trace, plot: Plot, responseData: ResponseDa
       // Adds the y value for the heatmap plot if it is not added yet in y array
       if (result.y.indexOf(value.toString()) < 0) {
         result.y.push(value.toString());
-        if(item[colName].toString().length > longestYTick?.length){
-          longestYTick=item[colName].toString();
+        if (item[colName].toString().length > longestYTick?.length) {
+          longestYTick = item[colName].toString();
         }
         result.z.push([]);
       }
@@ -926,21 +929,20 @@ const parseHeatmapResponse = (trace: Trace, plot: Plot, responseData: ResponseDa
     trace?.x_col?.forEach((colName: string) => {
       const value = getValue(item, colName, xaxis, format_data_x, plot);
       if (result.x.indexOf(value.toString()) < 0) {
-        if(item[colName].toString().length > longestXTick?.length){
-          longestXTick=item[colName].toString();
+        if (item[colName].toString().length > longestXTick?.length) {
+          longestXTick = item[colName].toString();
         }
         result.x.push(value.toString());
       }
     });
-
-    // Getting the longest x tick in the given data to determine margin and height values in getHeatmapLayoutParams function
-    const inputParams = {
-      width: typeof plotly?.layout.width !== 'undefined' ? plotly?.layout.width : 1200,
-      xTickAngle: typeof plotly?.layout.xaxis?.tickangle !== 'undefined' ? plotly?.layout.xaxis?.tickangle : 50,
-    }
-    layoutParams = getHeatmapLayoutParams(inputParams, longestXTick?.length, longestYTick?.length, result.y?.length);
   });
-  return {layoutParams, result};
+  // Getting the longest x tick in the given data to determine margin and height values in getHeatmapLayoutParams function
+  const inputParams = {
+    width: typeof plotly?.layout.width !== 'undefined' ? plotly?.layout.width : 1200,
+    xTickAngle: typeof plotly?.layout.xaxis?.tickangle !== 'undefined' ? plotly?.layout.xaxis?.tickangle : 50,
+  }
+  layoutParams = getHeatmapLayoutParams(inputParams, longestXTick?.length, longestYTick?.length, result.y?.length);
+  return { layoutParams, result };
 };
 
 /**
