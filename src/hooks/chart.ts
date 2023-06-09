@@ -501,9 +501,7 @@ const updatePlotlyLayout = (
     // TODO: remove this hack
     title = 'No Data';
   }
-  if (title) {
-    result.layout.title = title;
-  }
+  if (title) result.layout.title = title;
 
   // x axis
   if (!result.layout.xaxis) {
@@ -761,13 +759,13 @@ const parseScatterResponse = (trace: Trace, plot: Plot, responseData: ResponseDa
     // Add X data
     trace?.x_col?.forEach((colName: string) => {
       const value = getValue(item, colName, xaxis, format_data_x, plot);
-      x.push(value.toString());
+      x.push(value?.toString());
     });
 
     // Add Y data
     trace?.y_col?.forEach((colName: string) => {
       const value = getValue(item, colName, yaxis, format_data_y, plot);
-      y.push(value.toString());
+      y.push(value?.toString());
     });
   });
 

@@ -41,6 +41,11 @@ REACT_BUNDLES=$(DIST_REACT)/$(REACT_BUNDLES_FOLDERNAME)
 CONFIG=config
 
 # create default app-specific config files
+HEATMAP_CONFIG=$(CONFIG)/heatmap-config.js
+$(HEATMAP_CONFIG): $(CONFIG)/heatmap-config-sample.js
+	cp -n $(CONFIG)/heatmap-config-sample.js $(HEATMAP_CONFIG) || true
+	touch $(HEATMAP_CONFIG)
+
 MATRIX_CONFIG=$(CONFIG)/matrix-config.js
 $(MATRIX_CONFIG): $(CONFIG)/matrix-config-sample.js
 	cp -n $(CONFIG)/matrix-config-sample.js $(MATRIX_CONFIG) || true
@@ -89,10 +94,10 @@ npm-install-modules:
 	@npm clean-install
 
 # install packages needed for production and development (including testing)
-# --production=false makes sure to ignore NODE_ENV and install everything
+# --include=dev makes sure to ignore NODE_ENV and install everything
 .PHONY: npm-install-all-modules
 npm-install-all-modules:
-	@npm clean-install --production=false
+	@npm clean-install --include=dev
 
 # install packages (honors NOD_ENV)
 # using clean-install instead of install to ensure usage of pacakge-lock.json
@@ -138,14 +143,12 @@ deploy-boolean-search-w-config: dont_deploy_in_root print-variables
 	@rsync -avz boolean-search $(WEBAPPSDIR)
 
 .PHONY: deploy-heatmap
-deploy-heatmap: dont_deploy_in_root print-variables
+deploy-heatmap: dont_deploy_in_root print-variables deploy-bundles
 	$(info - deploying heatmap)
-	@rsync -avz --exclude='/heatmap/heatmap-config*' heatmap $(WEBAPPSDIR)
+	@rsync -avz $(DIST_REACT)/heatmap/ $(WEBAPPSDIR)/heatmap/
 
 .PHONY: deploy-heatmap-w-config
-deploy-heatmap-w-config: dont_deploy_in_root print-variables
-	$(info - deploying heatmap with the existing config file(s))
-	@rsync -avz heatmap $(WEBAPPSDIR)
+deploy-heatmap-w-config: dont_deploy_in_root print-variables deploy-heatmap deploy-config-folder
 
 .PHONY: deploy-plot
 deploy-plot: dont_deploy_in_root print-variables deploy-bundles
@@ -173,7 +176,8 @@ deploy-matrix-w-config: dont_deploy_in_root print-variables deploy-matrix deploy
 
 # rsync the config files used by react apps.
 .PHONY: deploy-config-folder
-deploy-config-folder: dont_deploy_in_root $(MATRIX_CONFIG) $(PLOT_CONFIG) $(TREEVIEW_CONFIG) 
+
+deploy-config-folder: dont_deploy_in_root $(MATRIX_CONFIG) $(PLOT_CONFIG) $(TREEVIEW_CONFIG) $(HEATMAP_CONFIG)
 	$(info - deploying the config folder)
 	@rsync -avz $(CONFIG) $(WEBAPPSDIR)
 
