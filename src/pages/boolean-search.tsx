@@ -7,6 +7,7 @@ import BooleanTable from '@isrd-isi-edu/deriva-webapps/src/components/boolean-se
 import Modal from '@isrd-isi-edu/deriva-webapps/src/components/boolean-search/info-modal';
 import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
 import Title from '@isrd-isi-edu/chaise/src/components/title';
+import { CustomError } from '@isrd-isi-edu/chaise/src/models/errors';
 // hooks
 import { useEffect, useRef, useState } from 'react';
 import useError from '@isrd-isi-edu/chaise/src/hooks/error';
@@ -112,7 +113,60 @@ const BooleanSearchApp = (): JSX.Element => {
     setSource('p{in "" TS17..TS28}');
     setRows([]);
   }
+  
+  /**
+   * type for invalid param
+   */
+  type invalid ={
+    strength: any[];
+    source: any[];
+    fromStage: any[];
+    toStage: any[];
+    pattern: any[];
+    location: any[];
+  }
+  /**
+   * forms the error message
+   */
+  const formErrorMessage = (invalid: invalid) => {
+    let message = '';
+    if (invalid.strength.length > 0) {
+        message += errorMessageHelper(invalid.strength, 'Strength');
+    }
+    if (invalid.source.length > 0) {
+        message += errorMessageHelper(invalid.source, 'Anatomical Source');
+    }
+    if (invalid.fromStage.length > 0) {
+        message += errorMessageHelper(invalid.fromStage, 'From Stage');
+    }
+    if (invalid.toStage.length > 0) {
+        message += errorMessageHelper(invalid.toStage, 'To Stage');
+    }
+    if (invalid.pattern.length > 0) {
+        message += errorMessageHelper(invalid.pattern, 'Pattern');
+    }
+    if (invalid.location.length > 0) {
+        message += errorMessageHelper(invalid.location, 'Location');
+    }
+    return message;
+  }
 
+  /**
+   * Helper function to form the error messgae
+   */
+  const errorMessageHelper = (param: any[], name: string) => {
+    let message = '<li>Invalid "' + name;
+    if (param.length > 1) {
+        message += '" values : ';
+    } else {
+        message += '" value : ';
+    }
+
+    message += '<b>';
+    message += (param.join(', '));
+    message += '</b></li>';
+    return message;
+  }
   /**
    * forms the query for the search
    */
@@ -137,7 +191,12 @@ const BooleanSearchApp = (): JSX.Element => {
     window.open(url, '_blank');
     
   }
-
+  /**
+   * calling the chaise custom error model
+   */
+  const throwCustomError = (header: string, message: string, okActionMessage: string) => {
+    throw new CustomError(header, message, undefined, okActionMessage, true);
+  }
   const validateOtherParams = (invalidSource: any[], submitQuery: boolean) => {
     let valid = true;
   
@@ -154,7 +213,7 @@ const BooleanSearchApp = (): JSX.Element => {
       location: []
     };
   
-    rows.forEach( (row: any, index: number) => {
+    rows.map( (row: any, index: number) => {
       if (!strengthData.some((item: any) => item.Strength === row.strength)) {
         valid = false;
         invalid.strength.push(row.strength);
@@ -162,6 +221,40 @@ const BooleanSearchApp = (): JSX.Element => {
       } else {
         row.strengthInvalid = false;
       }
+
+    if (stageFromData.filter( (fromStage) => {
+        return fromStage.Name === row.stageFrom.Name && fromStage.Ordinal === row.stageFrom.Ordinal;
+    }).length === 0) {
+        valid = false;
+        invalid.fromStage.push(row.stageFrom.Name);
+        row.stageFromInvalid = true;
+    } else {
+        row.stageFromInvalid = false;
+    }
+
+    if (stageFromData.filter( (toStage) => {
+        return toStage.Name === row.stageTo.Name && toStage.Ordinal === row.stageTo.Ordinal;
+    }).length === 0) {
+        valid = false;
+        invalid.toStage.push(row.stageTo.Name);
+        row.stageToInvalid = true;
+    } else {
+        row.stageToInvalid = false;
+    }
+    if (row.pattern !== '' && !patternData.some((item: any) => item.Pattern === row.pattern)) {
+        valid = false;
+        invalid.pattern.push(row.pattern);
+        row.patternInvalid = true;
+    } else {
+        row.patternInvalid = false;
+    }
+    if (row.location !== '' && !locationData.some((item: any) => item.Pattern_Location === row.location)) {
+        valid = false;
+        invalid.location.push(row.location);
+        row.locationInvalid = true;
+    } else {
+        row.locationInvalid = false;
+    }
   
       if (index === rows.length - 1) {
         if (valid) {
@@ -170,9 +263,19 @@ const BooleanSearchApp = (): JSX.Element => {
           } else {
             alert('All parameters are valid');
           }
-        }
+        } else {
+          let message = 'Following errors exist in the query:<ul>';
+          const err = formErrorMessage(invalid);
+          message += err;
+          message += '</ul>';
+          const okActionMessage = 'Click OK to <b>go back</b> to the page.';
+          if(row.source.name !== '') {
+          throwCustomError('Invalid Query', message, okActionMessage);
+          }
+      }
       }
     });
+    setRows(rows);
   };
   
   const validateSourceParam = (submitQuery: boolean) => {
@@ -184,24 +287,23 @@ const BooleanSearchApp = (): JSX.Element => {
     const invalidSource: any[] = [];
   
     getSourceOptions(sources).then( (data) => {
-      const updatedRows = rows.map( (row: any, index: any) => {
-        const updatedRow = { ...row };
+      rows.map( (row: any) => {
         const match = data.filter( (source: any) => {
           return source.Name === row.source.name;
         });
   
         if (match.length === 0) {
           invalidSource.push(row.source.name);
-          updatedRow.sourceInvalid = true;
+          row.sourceInvalid = true;
         } else {
-          updatedRow.sourceInvalid = false;
-          updatedRow.source.id = match[0].ID;
+          row.sourceInvalid = false;
+          row.source.id = match[0].ID;
         }
   
-        return updatedRow;
+        return row;
       });
   
-      setRows(updatedRows);
+      setRows(rows);
   
       validateOtherParams(invalidSource, submitQuery);
     });
@@ -288,6 +390,12 @@ const BooleanSearchApp = (): JSX.Element => {
           break;
         default:
           strength = filter.substring(0, filter.indexOf('{'));
+      }
+
+      if (!rows[index]) {
+        const defaultValues = getDefaultValues(stageFromData);
+        const row = defaultValues;
+        rows[index] = row;
       }
 
       const row = rows[index];

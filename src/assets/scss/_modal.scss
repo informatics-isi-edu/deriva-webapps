@@ -4,8 +4,11 @@
 .header {
     font-size: 21px;
 }
-div.modal-header {
+.info-modal-header {
     margin: auto;
+    li {
+        list-style-type: none;
+    }
 }
 
 .modal-header .btn-close {

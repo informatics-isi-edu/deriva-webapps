@@ -63,6 +63,9 @@ const BooleanTable = ({
     if (rows.length === 0 && stageFrom.length > 0) {
       handleAddRow();
     }
+    if (rows.length === 1) {
+      setActiveRow(0);
+    }
     changeFiltersDisplayText();
   }, [rows, stageFrom]);
 
@@ -111,12 +114,21 @@ const BooleanTable = ({
       updatedRow.stageTo = { ...updatedRow.stageTo,
         Name: updatedRow.toStageOptions[0].Name,
         Ordinal: updatedRow.toStageOptions[0].Ordinal };
+        updatedRow['stageFromInvalid'] = false;
         
     } else if (field === 'stageTo') {
       updatedRow.stageTo = { ...updatedRow.stageTo, Name: value };
+      updatedRow['stageToInvalid'] = false;
 
     } else {
       updatedRow[field] = value;
+      if (field === 'pattern') {
+        updatedRow['patternInvalid'] = false;
+      } else if(field === 'location') {
+        updatedRow['locationInvalid'] = false;
+      } else if(field === 'strength') {
+        updatedRow['strengthInvalid'] = false;
+      }
     }
 
     updatedRows[index] = updatedRow;
@@ -156,11 +168,12 @@ const BooleanTable = ({
                     <option key={index}>{option.Strength}</option>
                   ))}
                 </select>
+                {row.strengthInvalid ? <div className='red-text'>Invalid Strength.</div> : null}
               </td>
               <td>
                 <>
                   <input
-                    className='red-text'
+                    className='source-text'
                     value={row.source.name || ''}
                     disabled
                     required
@@ -181,6 +194,7 @@ const BooleanTable = ({
                       <option key={index}>{option.Name}</option>
                     ))}
                   </select>
+                  {row.stageFromInvalid ? <div className='red-text'>Invalid From Stage</div> : null}
                   <span className='to-dropdown'>To: </span>
                   <select
                     className='stageDropdown'
@@ -191,6 +205,7 @@ const BooleanTable = ({
                       <option key={index}>{option.Name}</option>
                     ))}
                   </select>
+                  {row.stageToInvalid ? <div className='red-text'>Invalid To Stage.</div> : null}
                 </>
               </td>
               <td>
@@ -203,6 +218,7 @@ const BooleanTable = ({
                     <option key={index}>{option.Pattern}</option>
                   ))}
                 </select>
+                {row.patternInvalid ? <div className='red-text'>Invalid Pattern.</div> : null}
               </td>
               <td>
                 <select
@@ -214,6 +230,7 @@ const BooleanTable = ({
                     <option key={index}>{option.Pattern_Location}</option>
                   ))}
                 </select>
+                {row.locationInvalid ? <div className='red-text'>Invalid Pattern Location.</div> : null}
               </td>
               <td>
                 <div className='actions-button-wrapper'>

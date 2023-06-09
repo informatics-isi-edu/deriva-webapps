@@ -21,7 +21,7 @@ const InfoModal = ({ handleModalClose, showModal }: InfoModalProps): JSX.Element
   return (
     <>
       <Modal size='lg' show={showModal} onHide={handleModalClose}>
-        <Modal.Header closeButton>
+        <Modal.Header className='info-modal-header' closeButton>
         <h3 className='modal-title text-center' id='myModalLabel'/><strong className='header'>How to perform boolean search</strong>
         </Modal.Header>
         <Modal.Body>
