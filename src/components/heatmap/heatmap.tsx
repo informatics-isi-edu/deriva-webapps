@@ -15,7 +15,7 @@ import ChaiseToolTip from '@isrd-isi-edu/chaise/src/components/tooltip';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
 import HeatmapPlot from '@isrd-isi-edu/deriva-webapps/src/components/heatmap/heatmap-plot';
 import { HeatmapConfig } from '@isrd-isi-edu/deriva-webapps/src/models/heatmap-config';
-import { ChaiseError } from '@isrd-isi-edu/chaise/src/models/errors';
+import { ChaiseError, NoRecordError } from '@isrd-isi-edu/chaise/src/models/errors';
 import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
 
 
@@ -59,8 +59,8 @@ const Heatmap = ({
   const [invalidConfigs, setInvalidConfigs] = useState<string[]>(['']);
   const [configErrorsPresent, setConfigErrorsPresent] = useState<boolean>(false);
   const [heatmaps, setHeatmaps] = useState<any[]>([]);
-  const [noData, setNoData] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [noData, setNoData] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [NCBIGeneID, setNCBIGeneID] = useState<string>('');
   const [header, setHeader] = useState<any>({});
   const [facet, setFacet] = useState<any>({});
@@ -91,46 +91,53 @@ const Heatmap = ({
         'hide_null_choice': true
       }]
     });
+    /**
+     * location.hash should be of the form #<catalog-id>/<schema>:<table>/NCBI_GeneID=<value>
+     * Note: This is specifically for genes and their associated data in the Array_Data_view.
+     */
     const geneId = location.hash.split('/')[2];
     // try to fetch the resolver link to see if the path resolves before sending the user
     ConfigService.http.get(`/ermrest/catalog/2/entity/Common:Gene/${geneId}`,
       { headers: header }).then((response: any) => {
-        setIsLoading((prevLoading) => !prevLoading);
         if (response.data?.length > 0) {
-          if (response.data[0].Array_Data) {
-            ConfigService.ERMrest.resolve(ermrestURI.ermrestUri, header).then((response: any) => {
-              const reference = response.contextualize.compact;
-              verifyConfiguration(reference);
-              if (!configErrorsPresent) {
-                const sortBy = typeof Object(config).data.sortBy !== 'undefined' ? Object(config).data.sortBy : [];
-                const ref = reference.sort(sortBy);
-                setHeader((prevHeader: any) => ({ ...prevHeader, action: 'main' }));
-                const pcid = getQueryParams(location.href).pcid
-                const ppid = getQueryParams(location.href).ppid
-                if (pcid || ppid) {
-                  let tempHeader = { ...header }
-                  if (pcid)
-                    tempHeader.pcid = pcid
-                  if (ppid)
-                    tempHeader.ppid = ppid
-                  setHeader(() => (tempHeader));
+          ConfigService.ERMrest.resolve(ermrestURI.ermrestUri, header).then((response: any) => {
+            const reference = response.contextualize.compact;
+            verifyConfiguration(reference);
+            if (!configErrorsPresent) {
+              const sortBy = typeof Object(config).data.sortBy !== 'undefined' ? Object(config).data.sortBy : [];
+              const ref = reference.sort(sortBy);
+              setHeader((prevHeader: any) => ({ ...prevHeader, action: 'main' }));
+              const pcid = getQueryParams(location.href).pcid
+              const ppid = getQueryParams(location.href).ppid
+              if (pcid || ppid) {
+                let tempHeader = { ...header }
+                if (pcid)
+                  tempHeader.pcid = pcid
+                if (ppid)
+                  tempHeader.ppid = ppid
+                setHeader(() => (tempHeader));
+              }
+              ref.read(1000, header).then((page: any) => {
+                if (page.length === 0) {
+                  throw new ChaiseError('Data not available', 'No heatmap data available for the given ID<br>');
                 }
-                ref.read(1000, header).then((page: any) => {
-                  readAll(page);
-                }).catch(() => {
+                readAll(page);
+              }).catch((err: any) => {
+                if (err) {
+                  setIsLoading(() => false);
+                  dispatchError({ error: err, isDismissible: true });
+                } else {
                   setInvalidConfigs(['Error while reading data from Ermrestjs']);
                   setConfigErrorsPresent(true);
-                });
-              }
-            });
-          } else {
-            throw new ChaiseError('Data not available', 'No heatmap data available for the given Id<br>');
-          }
+                }
+              });
+            }
+          });
         } else {
-          throw new ChaiseError('Record not found', 'No matching record found for the given Id<br>');
+          throw new NoRecordError({}, '', '', 'No matching record found for the given Id<br>');
         }
       }).catch((err: any) => {
-        setNoData(() => true);
+        setIsLoading(() => false);
         dispatchError({ error: err, isDismissible: true });
       });
 
@@ -193,7 +200,8 @@ const Heatmap = ({
       });
     } else {
       setHeatmaps(() => (heatmaps));
-      setIsLoading((prevLoading) => !prevLoading);
+      setIsLoading(() => false);
+      setNoData(() => false);
     }
     if (page.tuples && page.tuples.length > 0) {
       setNCBIGeneID(() => (page.tuples[0].data?.NCBI_GeneID));
