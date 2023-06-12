@@ -190,7 +190,6 @@ var plotConfigs = {
           {
             // The request url that has to be used to fetch the data.
             queryPattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23_Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
-            // uri: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23_Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
             // legend: ["Browser All Events 1","Browser All Events 2"],   // name of traces in legend
             data_col: '#_Released', // name of the attribute of the data column
             legend_col: 'Data_Type', // name of the attribute of the legend column
@@ -262,7 +261,6 @@ var plotConfigs = {
           {
             // The request url that has to be used to fetch the data.
             queryPattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23_Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
-            // uri: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23_Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
             legend: ['#_Released'], // name of traces in legend
             legend_markdown_pattern: [
               '[#Released](/chaise/recordset/#2/Antibody:Antibody_Tests/){target=_blank}',
@@ -332,7 +330,6 @@ var plotConfigs = {
           {
             // The request url that has to be used to fetch the data.
             queryPattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23_Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
-            // uri: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23_Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
             legend: ['#_Released'], // name of traces in legend
             x_col: ['Data_Type'], // column name to use for x values
             y_col: ['#_Released'], // array of column names to use for y values
@@ -380,7 +377,6 @@ var plotConfigs = {
           {
             // The request url that has to be used to fetch the data.
             queryPattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23_Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
-            // uri: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23_Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
             legend: ['#_Released'], // name of traces in legend
             x_col: ['#_Released'], // column name to use for x values
             y_col: ['Data_Type'], // array of column names to use for y values
@@ -462,7 +458,6 @@ var plotConfigs = {
         traces: [
           {
             queryPattern: '/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/stage:=left(Stage_ID)=(Vocabulary:Developmental_Stage:ID)/$M/Assay_Type,stage:Name',
-            // uri: '/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/stage:=left(Stage_ID)=(Vocabulary:Developmental_Stage:ID)/$M/Assay_Type,stage:Name',
             x_col: ['Assay_Type'],
             y_col: ['Name'],
             legend: ['Name 1', 'Name 2'],
@@ -515,14 +510,12 @@ var plotConfigs = {
         traces: [
           {
             queryPattern: '/ermrest/catalog/2/entity/Gene_Expression:Specimen@sort(RCT::desc::)?limit=10000',
-            // uri: '/ermrest/catalog/2/entity/Gene_Expression:Specimen@sort(RCT::desc::)?limit=10000',
             data_col: 'RCT',
             orientation: 'v',
             nbinsx: 50,
           },
           {
             queryPattern: '/ermrest/catalog/2/entity/Gene_Expression:Specimen@sort(RCT::desc::)?limit=10000',
-            // uri: '/ermrest/catalog/2/entity/Gene_Expression:Specimen@sort(RCT::desc::)?limit=10000',
             data_col: 'RCT',
             orientation: 'v',
             nbinsx: 50,
@@ -575,7 +568,6 @@ var plotConfigs = {
         traces: [
           {
             querPattern: '/ermrest/catalog/2/entity/Gene_Expression:Specimen@sort(RCT::desc::)?limit=10000',
-            // uri: '/ermrest/catalog/2/entity/Gene_Expression:Specimen@sort(RCT::desc::)?limit=10000',
             data_col: 'RCT',
             orientation: 'h',
             nbinsy: 50,

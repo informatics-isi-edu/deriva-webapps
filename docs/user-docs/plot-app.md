@@ -68,7 +68,7 @@ Each object in the `plots` array can have the following parameters:
 10. `traces`: Contains the information about each each trace.
     1. Properties available to most plot types:
         1. `queryPattern`: The url from which the data has to be fetched after applying handlebars templating
-        2. `uri`: The url from which the data has to be fetched.
+        2. `uri`: The url from which the data has to be fetched. DEPRECATED, use `traces.queryPattern` instead
         3. `legend`: The value of legend to be shown for this trace.
         4. `x_col`: The column name for the x values
         5. `y_col`: An array of column name for the y values
