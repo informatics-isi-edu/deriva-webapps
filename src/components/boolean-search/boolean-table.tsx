@@ -164,6 +164,7 @@ const BooleanTable = ({
                   value={row.strength || defaultValues.strength}
                   onChange={(e) => handleChange(index, 'strength', e.target.value)}
                 >
+                  <option selected value=''></option>
                   {strength.map((option: any, index: number) => (
                     <option key={index}>{option.Strength}</option>
                   ))}
@@ -180,6 +181,7 @@ const BooleanTable = ({
                     onChange={(e) => handleChange(index, 'source', e.target.value)}
                   />
                   {row.sourceInvalid ? <div className='red-text'>Please enter a value for this field.</div> : null}
+                  {row.noMatchSource ? <div className='red-text'>Invalid Source.</div> : null}
                 </>
               </td>
               <td>
@@ -190,6 +192,7 @@ const BooleanTable = ({
                     value={row.stageFrom.Name || defaultValues.stageFrom.Name}
                     onChange={(e) => handleChange(index, 'stageFrom', e.target.value)}
                   >
+                    <option selected value=''></option>
                     {stageFrom.map((option: any, index: number) => (
                       <option key={index}>{option.Name}</option>
                     ))}
@@ -201,6 +204,7 @@ const BooleanTable = ({
                     value={row.stageTo.Name || defaultValues.stageTo.Name}
                     onChange={(e) => handleChange(index, 'stageTo', e.target.value)}
                   >
+                    <option selected value=''></option>
                     {row.toStageOptions.map((option: any, index: number) => (
                       <option key={index}>{option.Name}</option>
                     ))}

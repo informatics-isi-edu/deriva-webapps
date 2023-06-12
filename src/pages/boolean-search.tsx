@@ -294,9 +294,15 @@ const BooleanSearchApp = (): JSX.Element => {
   
         if (match.length === 0) {
           invalidSource.push(row.source.name);
-          row.sourceInvalid = true;
+          if(row.source.name === '') {
+            row.sourceInvalid = true;
+          } else {
+            row.noMatchSource = true;
+          }
+          
         } else {
           row.sourceInvalid = false;
+          row.noMatchSource = false;
           row.source.id = match[0].ID;
         }
   
@@ -334,10 +340,11 @@ const BooleanSearchApp = (): JSX.Element => {
           break;
         case 'uncertain':
           displayname += 'u';
+        default: displayname += row.strength
           break;
       }
 
-      displayname += `{in '${row.source?.name}' ${row.stageFrom.Name}..${row.stageTo.Name}`;
+      displayname += `{in "${row.source?.name}" ${row.stageFrom.Name}..${row.stageTo.Name}`;
 
       if (pattern !== '') {
         displayname += ` pt=${pattern}`;
@@ -405,8 +412,8 @@ const BooleanSearchApp = (): JSX.Element => {
         row.source.name = {};
       }
 
-      const sourceStart = filter.indexOf('\'');
-      const sourceEnd = filter.lastIndexOf('\'');
+      const sourceStart = filter.indexOf('\"');
+      const sourceEnd = filter.lastIndexOf('\"');
       let sourceName = filter.substring(sourceStart + 1, sourceEnd);
 
       if (sourceName.indexOf(':') >= 0) {
@@ -417,11 +424,7 @@ const BooleanSearchApp = (): JSX.Element => {
         row.source.id = id;
       }
 
-      if(row.source && row.source.name) {
-        row.source.name = sourceName;
-      }
-      
-
+      row.source.name = sourceName;
       const stageCompStart = sourceEnd + 2;
       let stageCompEnd;
 
