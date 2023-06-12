@@ -1,6 +1,7 @@
 export type MatrixDefaultConfig = {
   xURL: string;
   yURL: string;
+  yTreeURL?: string;
   zURL: string;
   xysURL: string;
   xFacetColumn: string;

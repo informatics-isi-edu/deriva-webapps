@@ -7,19 +7,19 @@ var baseUri =
 var matrixConfigs = {
   '*': {
     /**
-     * API for the x axis data
+     * API for the x axis data (must return id and title. other projected columns will be ignored.)
      */
     xURL: baseUri + '/sort_key:=X:sort_key,id:=X:id,title:=X:name@sort(sort_key)',
     /**
-     * API for the y axis data
+     * API for the y axis data (must return id and title. other projected columns will be ignored.)
      */
     yURL: baseUri + '/id:=Y:id,title:=Y:name@sort(title)',
     /**
-     * API for the z axis data (color axis)
+     * API for the z axis data (color axis) (must return id and title. other projected columns will be ignored.)
      */
     zURL: baseUri + '/id:=Z:id,title:=Z:name@sort(title)',
     /**
-     * API for xyz axis
+     * API for xyz axis (must return xid, yid, and zid. other projected columns will be ignored.)
      */
     xysURL: baseUri + '/xid:=X:id,yid:=Y:id;zid:=array(Z:name)',
     /**

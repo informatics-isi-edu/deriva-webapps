@@ -50,6 +50,11 @@ export type MatrixXYZDatum = {
   zid: Array<string>;
 };
 
+export type MatrixTreeDatum = {
+  parent_id: string;
+  child_id: string;
+}
+
 /**
  * Resolved response from Matrix API request
  */
@@ -69,7 +74,11 @@ export type MatrixResponse = [
   /**
    * XYZ data points
    */
-  { data: Array<MatrixXYZDatum> }
+  { data: Array<MatrixXYZDatum> },
+  /**
+   * Y tree data
+   */
+  { data: Array<MatrixTreeDatum> }
 ];
 
 /**
@@ -239,11 +248,19 @@ export const useMatrixData = (matrixConfigs: MatrixConfig): MatrixData => {
     const fetchMatrixData = async (config: MatrixDefaultConfig) => {
       const xPromise = ConfigService.http.get(config.xURL);
       const yPromise = ConfigService.http.get(config.yURL);
+
+      let yTreePromise;
+      if (config.yTreeURL) {
+        yTreePromise = ConfigService.http.get(config.yTreeURL);
+      } else {
+        yTreePromise = new Promise((resolve) => resolve({data: {}}));
+      }
+
       const zPromise = ConfigService.http.get(config.zURL);
       const xyzPromise = ConfigService.http.get(config.xysURL);
 
       // Batch the requests in Promise.all so they can run in parallel:
-      const data = await Promise.all([xPromise, yPromise, zPromise, xyzPromise]);
+      const data = await Promise.all([xPromise, yPromise, zPromise, xyzPromise, yTreePromise]);
       const parsedData = parseMatrixData(config, data);
 
       // Set state after the request completes
@@ -301,7 +318,18 @@ export type ParsedMatrixData = {
  * @returns parsed data used by matrix visualization component
  */
 const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse): ParsedMatrixData => {
-  const [{ data: xData }, { data: yData }, { data: zData }, { data: xyzData }] = response;
+  const [{ data: xData }, { data: yData }, { data: zData }, { data: xyzData }, { data: yTreeData } ] = response;
+
+  /**
+   * TODO Junmeng
+   *
+   * this function is responsible for turning the data that we get from server (the json files under local-test in your case)
+   * into the data structure that we expect for the grid.
+   *
+   * `yTreeData` is the returned tree data. be mindful that this value is optional.
+   * so if it won't make your code more difficult, you should switch to the existing behavior
+   * when `yTreeData` is not available.
+   */
 
   // Create XYZ Map
   const xyzMap: any = {};
