@@ -340,6 +340,7 @@ const BooleanSearchApp = (): JSX.Element => {
           break;
         case 'uncertain':
           displayname += 'u';
+          break;
         default: displayname += row.strength
           break;
       }
@@ -438,7 +439,7 @@ const BooleanSearchApp = (): JSX.Element => {
 
       const stageComp = filter.substring(stageCompStart, stageCompEnd);
       const stages = stageComp.split('..');
-      const stageFromName = stages.length === 2 ? stages[0] : 'unknown';
+      const stageFromName = stages.length === 2 ? stages[0] : '';
       let stageFrom;
 
       for (let i = 0; i < stageFromData.length; i++) {
@@ -457,7 +458,7 @@ const BooleanSearchApp = (): JSX.Element => {
         row.stageFrom = stageFrom;
       }
 
-      const stageToName = stages.length === 2 ? stages[1].replace('}', '') : 'unknown';
+      const stageToName = stages.length === 2 ? stages[1].replace('}', '') : '';
       let stageTo;
 
       for (let i = 0; i < stageFromData.length; i++) {

@@ -161,7 +161,7 @@ const BooleanTable = ({
               <td>{index === 0 ? '' : 'AND'}</td>
               <td>
                 <select
-                  value={row.strength || defaultValues.strength}
+                  value={row.strength}
                   onChange={(e) => handleChange(index, 'strength', e.target.value)}
                 >
                   <option selected value=''></option>
@@ -189,7 +189,7 @@ const BooleanTable = ({
                   <span>From: </span>
                   <select
                     className='stageDropdown'
-                    value={row.stageFrom.Name || defaultValues.stageFrom.Name}
+                    value={row.stageFrom.Name}
                     onChange={(e) => handleChange(index, 'stageFrom', e.target.value)}
                   >
                     <option selected value=''></option>
@@ -201,7 +201,7 @@ const BooleanTable = ({
                   <span className='to-dropdown'>To: </span>
                   <select
                     className='stageDropdown'
-                    value={row.stageTo.Name || defaultValues.stageTo.Name}
+                    value={row.stageTo.Name}
                     onChange={(e) => handleChange(index, 'stageTo', e.target.value)}
                   >
                     <option selected value=''></option>
@@ -214,7 +214,7 @@ const BooleanTable = ({
               </td>
               <td>
                 <select
-                  value={row.pattern || defaultValues.pattern || ''}
+                  value={row.pattern}
                   onChange={(e) => handleChange(index, 'pattern', e.target.value)}
                 >
                   <option selected value=''></option>
@@ -226,7 +226,7 @@ const BooleanTable = ({
               </td>
               <td>
                 <select
-                  value={row.location || defaultValues.location || ''}
+                  value={row.location}
                   onChange={(e) => handleChange(index, 'location', e.target.value)}
                 >
                   <option selected value=''></option>
