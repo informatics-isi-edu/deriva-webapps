@@ -1,0 +1,175 @@
+.boolean-search-container {
+
+    .title-container {
+        padding: 20px;
+    }
+
+    .top-panel-container {
+        padding-top: 20px;
+      }
+    .chaise-btn {
+        cursor: pointer;
+        padding: 4px 11px;
+    }
+    .bottom-panel-container {
+        display: flex;
+        flex-direction: row;
+        .resizable-panel {
+            width: 40%;
+            text-align: center;
+        }
+        .right-panel-container {
+            margin: 20px;
+             width: 100%;
+            display: flex;
+            flex-direction: column;
+
+            .chaise-search-box {
+                height: 30px;
+                width: 25vw;
+            }
+
+            .chaise-btn.chaise-btn-primary {
+                border-color: white;
+            }
+
+            .search-icons {
+                height: 30px;
+                display: flex;
+            }
+
+            .chaise-search-btn {
+                display: none;
+            }
+            .boolean-action-btn {
+                height: 30px;
+                display: grid;
+                flex-direction: row;
+                height: 30px;
+                margin-left: 15px;
+                justify-content: space-evenly;
+                grid-template-columns: auto auto auto;
+                
+            }
+
+            .boolean-header-btn {
+                display: flex;
+                .add-button {
+                    height: 30px;
+                    position: absolute;
+                    right: 0;
+                    margin-right: 20px;
+                }
+                .main-search-input {
+                    width: 25vw;
+                }
+                .input-fullwidth {
+                    width: 45vw;
+                }
+            }
+            .form-container {
+                margin-top: 10px;
+                .boolean-table {
+                    border: 1px solid #ddd;
+                    width: 100%;
+
+                    .active-row {
+                        background-color: #FCF8E3;
+                    }
+                    .red-text {
+                        color: #a94442;
+                    }
+                    .source-text {
+                        color:red
+                    }
+                    tr {
+                        border: 1px solid #ddd;
+                    }
+                    td {
+                        padding: 8px 2px;
+                        line-height: 1.5;
+                        vertical-align: top;
+                        border-top: 1px solid #ddd;
+                    }
+                    tr:hover {
+                        background-color: #f5f5f5;
+                      }
+                    th, td {
+                        text-align: center;
+                    }
+                    .actions-button-wrapper {
+                        flex-direction: column;
+                        .action-button {
+                            width: 24px;
+                            padding: 1px 8px;
+                            height: 24px;
+                        }
+                        .disable-trash {
+                            pointer-events: none;
+                            opacity: 0.7;
+                        }
+                    }
+                    .to-dropdown {
+                        margin-left: 7px;
+                    }
+                }
+            }
+            }
+        }
+        .resizable-panel.open-panel{
+            flex:0 0 38vw;
+            padding-left:5px;
+            min-width: 580px;
+        }
+        
+        .resizable-panel {
+            padding-top:5px;
+            position: relative;
+            max-width: 710px;
+            z-index: 2;
+            height: 100%;
+        }
+        .treeview-panel {
+            transition: all 1s;
+            height: 100vh;
+            border-right: 1px solid #2e6da4;
+        }
+        .resize-btn {
+            top: 100px;
+            right: -21px;
+            z-index:2;
+            position: absolute;
+        }
+        .sidePanFiddler {
+            border-left:none;
+            border-radius:0px 15px 15px 0px !important;
+            height: 40px;
+            width: 21px;
+            min-width: 0;
+            font-size: 24px;
+            padding: 0px 2px 0 0;
+            cursor: pointer;
+            overflow: hidden;
+        }
+        .resizable-panel.open-panel {
+            margin-right: 30px;
+        }
+        .resizable-panel.close-panel{
+            width:0px;
+            flex-basis:0px !important;
+            margin-right: 20px;
+        }
+        .resizable-panel.close-panel .treeView {
+            width:0px;
+        }
+        .right-panel-container-fullwidth {
+            width: 100%;
+        }
+    }
+    
+    
+.modal-body {
+    li {
+        list-style-type: disc;
+    }
+}
