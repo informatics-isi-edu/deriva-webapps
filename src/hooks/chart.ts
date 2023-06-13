@@ -31,6 +31,7 @@ import {
 } from '@isrd-isi-edu/deriva-webapps/src/models/plot-config';
 import useIsFirstRender from '@isrd-isi-edu/chaise/src/hooks/is-first-render';
 import { getQueryParam } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
+import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
 
 /**
  * Data received from API request
@@ -69,6 +70,13 @@ export type PlotResultData = {
   text?: string[];
 };
 
+export type HeatmapZData = {
+  /**
+ * Data for the z axis
+ */
+  z: any[];
+}
+
 export type ClickableLinks = {
   /**
    * Links for the plot graphic
@@ -106,6 +114,46 @@ export type PlotTemplateParams = {
    */
   noData: boolean;
 };
+
+export type inputParamsType = {
+  /**
+   * Width of heatmap plot
+   */
+  width: number,
+  /**
+   * x axis tick text angle
+  */
+  xTickAngle: number | 'auto',
+}
+
+export type layoutParamsType = {
+  /**
+  * Height of heatmap plot
+  */
+  height: number,
+  /**
+  * Width of heatmap plot
+  */
+  width: number,
+  /**
+  * Margin values of heatmap plot
+  */
+  margin: {
+    t: number,
+    r: number,
+    b: number,
+    l: number,
+  },
+  /**
+   * x axis tick text angle
+  */
+  xTickAngle: number | 'auto',
+  /**
+   * y axis tick text angle
+  */
+  yTickAngle: number,
+}
+
 
 /**
  * Sets the plot configs
@@ -161,7 +209,7 @@ export const useChartData = (plot: Plot) => {
       $url_parameters: {
         Gene: {
           data: {
-            NCBI_GeneID: '1', // TODO: deal with default value
+            NCBI_GeneID: getQueryParam(windowRef.location.href, 'NCBI_GeneID') || 1, // TODO: deal with default value
           },
         },
         Study: [],
@@ -195,14 +243,14 @@ export const useChartData = (plot: Plot) => {
     const plotResponses: Array<Response> = await Promise.all(
       // request for each trace
       plot.traces.map((trace) => {
-        if (trace.uri) {
-          // console.log(trace.uri);
-          return ConfigService.http.get(trace.uri);
-        } else if (trace.queryPattern) {
-          // console.log(trace.queryPattern);
+        // Check for queryPattern(dynamic link) parameter in traces, if not defined then check for uri(static link)
+        if (trace.queryPattern) {
           const { uri, headers } = getPatternUri(trace.queryPattern, templateParams);
           return ConfigService.http.get(uri, { headers });
-        } else {
+        }
+        else if (trace.uri) {
+          return ConfigService.http.get(trace.uri);
+        }  else {
           return { data: [] };
         }
       })
@@ -221,7 +269,6 @@ export const useChartData = (plot: Plot) => {
         const initialSelectData = await fetchSelectData(selectGrid); // fetch the data needed for the select grid
         setSelectData(initialSelectData); // set the data for the select grid
       }
-
       const plotData = await fetchData(); // fetch the data for the plot
       setData(plotData); // set the data for the plot
       setIsInitLoading(false); // set loading to false
@@ -346,6 +393,10 @@ const parsePlotData = (
       );
       additionalLayout = layout;
       return parseResult;
+    } else if (plot.plot_type === 'heatmap') {
+      const heatmapData = parseHeatmapResponse(currTrace, plot, responseData);
+      additionalLayout = { ...heatmapData.layoutParams };
+      return heatmapData.result;
     }
   });
 
@@ -443,6 +494,7 @@ const updatePlotlyLayout = (
 ): void => {
   // title
   let title = '';
+
   if (plot.config.title_display_markdown_pattern) {
     // use the title_display_markdown_pattern if it exists
     title = createLink(plot.config.title_display_markdown_pattern, templateParams);
@@ -517,7 +569,15 @@ const updatePlotlyLayout = (
   if (plot?.plotly?.config?.modeBarButtonsToRemove) {
     result.layout.modebar = { remove: plot?.plotly?.config?.modeBarButtonsToRemove };
   }
-
+  if (plot.plot_type === 'heatmap') {
+    result.layout.margin = additionalLayout.margin;
+    result.layout.height = additionalLayout.height;
+    result.layout.width = additionalLayout.width;
+    result.data[0]['colorbar'] = {
+      lenmode: 'pixels',
+      len: additionalLayout.height - 40 < 100 ? additionalLayout.height - 40 : 100
+    }
+  }
   result.layout.autoresize = true;
 };
 
@@ -816,6 +876,143 @@ const parseBarResponse = (trace: Trace, plot: Plot, responseData: ResponseData) 
   });
   return result;
 };
+
+
+/**
+ * Parses response data obtained for every trace within the plot
+ *
+ * @param trace current trace the plot config
+ * @param plot plot config
+ * @param responseData data received from request to be parsed
+ * @returns
+ */
+const parseHeatmapResponse = (trace: Trace, plot: Plot, responseData: ResponseData) => {
+  const result: Partial<TraceConfig> & Partial<PlotlyPlotData> & PlotResultData & ClickableLinks & HeatmapZData = {
+    ...trace,
+    type: plot.plot_type,
+    x: [], // x data
+    y: [], // y data
+    z: [], // z data
+    text: [], // text data
+    legend_clickable_links: [], // array of links for when clicking legend
+    graphic_clickable_links: [], // array of links for when clicking graph
+  };
+  let yIndex = 0;
+  let layoutParams = {};
+  let longestXTick = '';
+  let longestYTick = '';
+  const { config, plotly } = plot;
+  const { xaxis, yaxis, format_data_x = false, format_data_y = false } = config;
+  responseData.forEach((item: any, i: number) => {
+    updateWithTraceColData(result, trace, item, i);
+    // Add the y values for the heatmap plot
+    trace?.y_col?.forEach((colName: string, i: number) => {
+      const value = getValue(item, colName, yaxis, format_data_y, plot);
+      // Adds the y value for the heatmap plot if it is not added yet in y array
+      if (result.y.indexOf(value.toString()) < 0) {
+        result.y.push(value.toString());
+        if (item[colName].toString().length > longestYTick?.length) {
+          longestYTick = item[colName].toString();
+        }
+        result.z.push([]);
+      }
+      // Fetching the index of added y value to add corresponding z value
+      yIndex = result.y.indexOf(value.toString())
+    });
+    // Add the z values for the heatmap plot based on y val's index
+    trace?.z_col?.forEach((colName: string) => {
+      const zValue = item[colName];
+      result?.z[yIndex]?.push(zValue);
+
+    });
+    // Add the x values for the heatmap plot if its not added yet
+    trace?.x_col?.forEach((colName: string) => {
+      const value = getValue(item, colName, xaxis, format_data_x, plot);
+      if (result.x.indexOf(value.toString()) < 0) {
+        if (item[colName].toString().length > longestXTick?.length) {
+          longestXTick = item[colName].toString();
+        }
+        result.x.push(value.toString());
+      }
+    });
+  });
+  // Getting the longest x tick in the given data to determine margin and height values in getHeatmapLayoutParams function
+  const inputParams = {
+    width: typeof plotly?.layout.width !== 'undefined' ? plotly?.layout.width : 1200,
+    xTickAngle: typeof plotly?.layout.xaxis?.tickangle !== 'undefined' ? plotly?.layout.xaxis?.tickangle : 50,
+  }
+  layoutParams = getHeatmapLayoutParams(inputParams, longestXTick?.length, longestYTick?.length, result.y?.length);
+  return { layoutParams, result };
+};
+
+/**
+ * 
+ * @param input : Input parameters of heatmap directive
+ * @param longestXTick : Length of longest X axis label
+ * @param longestYTick : Length of longest Y axis label
+ * @param lengthY : Number of Y values
+ * @returns 
+ * Calculates the height and margins of the heatmap based on the number of y values and length of the longest X label
+ * so that the labels do not get clipped and the bar height is adjusted accordingly.
+ * Return an object with all the required layout parameters.
+ * @example
+ * {
+ * 	height: height of the heatmap,
+ * 	width: width of the heatmap,
+ * 	margin: {
+ * 		t: top margin of the heatmap,
+ * 		r: right margin of the heatmap,
+ * 		b: bottom margin of the heatmap,
+ * 		l: left of the heatmap
+ * 	},
+ * 	xTickAngle: inclination of x axis labels,
+ *  yTickAngle: inclination of y axis labels,
+ * 	tickFont: font to be used in labels
+ * }
+ */
+const getHeatmapLayoutParams = (input: inputParamsType, longestXTick: number, longestYTick: number, lengthY: number) => {
+  let height;
+  let yTickAngle;
+  const tMargin = 25;
+  let rMargin, bMargin, lMargin;
+  if (longestXTick <= 18) {
+    height = longestXTick * 9 + lengthY * 10 + 50;
+    bMargin = 8.4 * longestXTick;
+  } else if (longestXTick <= 22) {
+    height = longestXTick * 9 + lengthY * 10 + 55;
+    bMargin = 8.4 * longestXTick;
+  } else if (longestXTick <= 30) {
+    height = longestXTick * 8.8 + lengthY * 10 + 55;
+    bMargin = 8.2 * longestXTick;
+  } else {
+    height = longestXTick * 8.8 + lengthY * 10 + 45;
+    bMargin = 8 * longestXTick;
+  }
+
+  if (lengthY === 1) {
+    yTickAngle = -90;
+    lMargin = 30;
+    rMargin = 20;
+  } else {
+    yTickAngle = 0;
+    lMargin = 20 + longestYTick * 7;
+    rMargin = 5;
+  }
+
+  const layoutParams: layoutParamsType = {
+    height: height,
+    width: input.width,
+    margin: {
+      t: tMargin,
+      r: rMargin,
+      b: bMargin,
+      l: lMargin,
+    },
+    xTickAngle: input.xTickAngle,
+    yTickAngle: yTickAngle,
+  };
+  return layoutParams;
+}
 
 /**
  * Gets the value in the form of a link from the given markdown pattern.

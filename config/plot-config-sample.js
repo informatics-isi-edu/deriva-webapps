@@ -189,7 +189,7 @@ var plotConfigs = {
         traces: [
           {
             // The request url that has to be used to fetch the data.
-            uri: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23_Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
+            queryPattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23_Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
             // legend: ["Browser All Events 1","Browser All Events 2"],   // name of traces in legend
             data_col: '#_Released', // name of the attribute of the data column
             legend_col: 'Data_Type', // name of the attribute of the legend column
@@ -260,7 +260,7 @@ var plotConfigs = {
         traces: [
           {
             // The request url that has to be used to fetch the data.
-            uri: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23_Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
+            queryPattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23_Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
             legend: ['#_Released'], // name of traces in legend
             legend_markdown_pattern: [
               '[#Released](/chaise/recordset/#2/Antibody:Antibody_Tests/){target=_blank}',
@@ -329,7 +329,7 @@ var plotConfigs = {
         traces: [
           {
             // The request url that has to be used to fetch the data.
-            uri: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23_Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
+            queryPattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23_Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
             legend: ['#_Released'], // name of traces in legend
             x_col: ['Data_Type'], // column name to use for x values
             y_col: ['#_Released'], // array of column names to use for y values
@@ -376,7 +376,7 @@ var plotConfigs = {
         traces: [
           {
             // The request url that has to be used to fetch the data.
-            uri: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23_Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
+            queryPattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23_Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
             legend: ['#_Released'], // name of traces in legend
             x_col: ['#_Released'], // column name to use for x values
             y_col: ['Data_Type'], // array of column names to use for y values
@@ -457,7 +457,7 @@ var plotConfigs = {
         },
         traces: [
           {
-            uri: '/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/stage:=left(Stage_ID)=(Vocabulary:Developmental_Stage:ID)/$M/Assay_Type,stage:Name',
+            queryPattern: '/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/stage:=left(Stage_ID)=(Vocabulary:Developmental_Stage:ID)/$M/Assay_Type,stage:Name',
             x_col: ['Assay_Type'],
             y_col: ['Name'],
             legend: ['Name 1', 'Name 2'],
@@ -509,13 +509,13 @@ var plotConfigs = {
         },
         traces: [
           {
-            uri: '/ermrest/catalog/2/entity/Gene_Expression:Specimen@sort(RCT::desc::)?limit=10000',
+            queryPattern: '/ermrest/catalog/2/entity/Gene_Expression:Specimen@sort(RCT::desc::)?limit=10000',
             data_col: 'RCT',
             orientation: 'v',
             nbinsx: 50,
           },
           {
-            uri: '/ermrest/catalog/2/entity/Gene_Expression:Specimen@sort(RCT::desc::)?limit=10000',
+            queryPattern: '/ermrest/catalog/2/entity/Gene_Expression:Specimen@sort(RCT::desc::)?limit=10000',
             data_col: 'RCT',
             orientation: 'v',
             nbinsx: 50,
@@ -567,7 +567,7 @@ var plotConfigs = {
         },
         traces: [
           {
-            uri: '/ermrest/catalog/2/entity/Gene_Expression:Specimen@sort(RCT::desc::)?limit=10000',
+            querPattern: '/ermrest/catalog/2/entity/Gene_Expression:Specimen@sort(RCT::desc::)?limit=10000',
             data_col: 'RCT',
             orientation: 'h',
             nbinsy: 50,
@@ -575,6 +575,69 @@ var plotConfigs = {
         ],
       },
     ],
+  },
+  "heatmap": {
+    plots: [{
+      plot_type: "heatmap",
+      plotly: {
+        config: {
+          modeBarButtonsToRemove: ["scrollZoom", "zoom2d", "sendDataToCloud", "autoScale2d", "lasso2d", "select2d", "hoverClosestCartesian", "hoverCompareCartesian", "toggleSpikelines"],
+          displaylogo: false,
+          responsive: true
+        },
+        layout: {
+          title: "Plot Heatmap",
+          height: 1100,
+          width: 1200,
+          showLegend: true,
+          margin: {
+            l: 100,  // left margin for lengthy data labels.
+            b: 300   // bottom margin for lengthy data labels.
+          },
+          xaxis: {
+            tickangle: 90,
+            tickfont: {
+              size: 12,
+              family: "Lucida Console"
+            }
+          },
+          yaxis: {
+            tickfont: {
+              size: 12,
+              family: "Lucida Console"
+            }
+          }
+        }
+      },
+      config: {
+        /**
+         * Heatmap plot has the support for following features:
+         * title_display_markdown_pattern : Custom Heatmap title, xaxis and yaxis title(clickable)
+         * tick_display_markdown_pattern : Custom tick text(clickable) for x axis and y axis
+         * */
+        // title_display_markdown_pattern: '[ title ](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
+        xaxis: {
+          // tick_display_markdown_pattern:
+          //   '[{{$self.data.Label}}](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
+          // title_display_markdown_pattern: '[ title x ](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+        },
+        yaxis: {
+          // tick_display_markdown_pattern:
+          //   '[{{$self.data.Probe_Set_Name}}](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
+          // title_display_markdown_pattern: '[ title y ](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+        },
+      },
+      traces: [
+        {
+          graphic_link_pattern:
+            ['/chaise/recordset/#2/RNASeq:Replicate_Expression'],
+          queryPattern: '/ermrest/catalog/2/entity/Gene_Expression:Array_Data_view/NCBI_GeneID={{{$url_parameters.Gene.data.NCBI_GeneID}}}&Section_Ordinal=3',
+          x_col: ["Label"],
+          y_col: ["Probe_Set_Name"],
+          z_col: ["Value"]
+        }
+      ]
+    }]
   },
 };
 

@@ -67,12 +67,13 @@ Each object in the `plots` array can have the following parameters:
 9. `study_uri_pattern`: For violin plot only. The url from which the study data is fetched after applying handlebars templating. This parameter is required to fetch the data for the study selector and display and to initialize the plot.
 10. `traces`: Contains the information about each each trace.
     1. Properties available to most plot types:
-        1. `uri`: The url from which the data has to be fetched.
-        2. `legend`: The value of legend to be shown for this trace.
-        3. `x_col`: The column name for the x values
-        4. `y_col`: An array of column name for the y values
-        5. `orientation`: Optional parameter for displaying the bar chart horizontally // default: 'h'
-        6. `textfont`: It will work till the bar size can accommodate the font size
+        1. `queryPattern`: The url from which the data has to be fetched after applying handlebars templating
+        2. `uri`: The url from which the data has to be fetched. DEPRECATED, use `traces.queryPattern` instead
+        3. `legend`: The value of legend to be shown for this trace.
+        4. `x_col`: The column name for the x values
+        5. `y_col`: An array of column name for the y values
+        6. `orientation`: Optional parameter for displaying the bar chart horizontally // default: 'h'
+        7. `textfont`: It will work till the bar size can accommodate the font size
     2. Extra properties for pie and histogram charts:
         1. `data_col`: The column name for the data aggregation. used instead of x_col or y_xol
         2. `legend_col`: The column name to use for display in the legend column
