@@ -174,6 +174,11 @@ export const getPatternUri = (queryPattern: string, templateParams: any) => {
   return { uri, headers };
 };
 
+/**
+ * Extracts the text from the given markdown string pattern, otherwise returns false if no text was found
+ * @param pattern markdown pattern 
+ * @returns 
+ */
 export const extractValue = (pattern: string): string | false => {
   let extractedValue: string | boolean = false;
   let match = null;

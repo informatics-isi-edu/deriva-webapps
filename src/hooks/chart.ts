@@ -370,6 +370,7 @@ const parsePlotData = (
 ) => {
   const result: any = { data: [] };
   result.config = { ...plot?.plotly?.config };
+  let hovertemplate_display_pattern;
   result.layout = {
     ...plot.plotly?.layout,
     width: undefined, // undefined to allow for responsive layout
@@ -381,6 +382,7 @@ const parsePlotData = (
   let additionalLayout = {};
   result.data = unpackedResponses.map((responseData: ResponseData, index: number) => {
     const currTrace = plot.traces[index];
+    hovertemplate_display_pattern = currTrace.hovertemplate_display_pattern; //use trace info
     if (plot.plot_type === 'bar') {
       return parseBarResponse(currTrace, plot, responseData);
     } else if (plot.plot_type === 'pie') {
@@ -408,7 +410,10 @@ const parsePlotData = (
 
   updatePlotlyConfig(plot, result); // update the config
   updatePlotlyLayout(plot, result, templateParams, additionalLayout, selectDataGrid); // update the layout
-  defaultHoverTemplateDisplay(result); // default hover template
+  //If hovertemplate_display_pattern is not configured, set default hover text for plot
+  if(!hovertemplate_display_pattern){
+    defaultHoverTemplateDisplay(result); // default hover template
+  }
   // width and heigh are set in the css
 
   return result;
@@ -911,7 +916,7 @@ const parseHeatmapResponse = (trace: Trace, plot: Plot, responseData: ResponseDa
 
   const { config, plotly } = plot;
   const { xaxis, yaxis, format_data_x = false, format_data_y = false } = config;
-  const hovertemplate_display_pattern = trace.hovertemplate_display_pattern; // use either the trace or extraInfo
+  const hovertemplate_display_pattern = trace.hovertemplate_display_pattern; //use trace info
   responseData.forEach((item: any, i: number) => {
     updateWithTraceColData(result, trace, item, i);
     // Add the y values for the heatmap plot
@@ -935,6 +940,7 @@ const parseHeatmapResponse = (trace: Trace, plot: Plot, responseData: ResponseDa
       const zValue = item[colName];
       result?.z[yIndex]?.push(zValue);
       if (hovertemplate_display_pattern) {
+        result.hoverinfo='text';
         const link = ConfigService.ERMrest._renderHandlebarsTemplate(hovertemplate_display_pattern, { $self: { data: item }, $row: item });
         if (link) {
           if(result.text){
@@ -961,6 +967,7 @@ const parseHeatmapResponse = (trace: Trace, plot: Plot, responseData: ResponseDa
     width: typeof plotly?.layout.width !== 'undefined' ? plotly?.layout.width : 1200,
     xTickAngle: typeof plotly?.layout.xaxis?.tickangle !== 'undefined' ? plotly?.layout.xaxis?.tickangle : 50,
   }
+  result.text=tempText;
   layoutParams = getHeatmapLayoutParams(inputParams, longestXTick?.length, longestYTick?.length, result.y?.length);
   return { layoutParams, result };
 };
@@ -1114,6 +1121,9 @@ const updateWithTraceColData = (
 };
 
 /**
+ * Adds default hover text to the result object when hovertemplate_display_pattern is not configured 
+ * Note: This fixes the issue of displaying link in hover text when tick_display is configured for x or y axis 
+ * which was making the text hard to read in some plot types
  * @param result trace object to be updated
  */
 const defaultHoverTemplateDisplay = (

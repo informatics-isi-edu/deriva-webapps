@@ -631,6 +631,7 @@ var plotConfigs = {
         {
           graphic_link_pattern:
             ['/chaise/recordset/#2/RNASeq:Replicate_Expression'],
+          hovertemplate_display_pattern: "/chaise/recordset/#2/RNASeq:Replicate_Expression",
           queryPattern: '/ermrest/catalog/2/entity/Gene_Expression:Array_Data_view/NCBI_GeneID={{{$url_parameters.Gene.data.NCBI_GeneID}}}&Section_Ordinal=3',
           x_col: ["Label"],
           y_col: ["Probe_Set_Name"],
