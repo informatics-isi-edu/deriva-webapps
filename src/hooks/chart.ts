@@ -334,7 +334,6 @@ export const useChartData = (plot: Plot) => {
   useEffect(() => {
     if (data && !isDataLoading && !isInitLoading && !isFetchSelected) {
       const parsedPlotData = parsePlotData(plot, data, selectData, templateParams);
-      console.log(parsedPlotData);
       setParsedData(parsedPlotData);
       setIsParseLoading(false); // set loading to false after parsing
     }
@@ -897,7 +896,6 @@ const parseHeatmapResponse = (trace: Trace, plot: Plot, responseData: ResponseDa
   const result: Partial<TraceConfig> & Partial<PlotlyPlotData> & PlotResultData & ClickableLinks & HeatmapZData = {
     ...trace,
     type: plot.plot_type,
-    // hoverinfo: 'text',
     x: [], // x data
     y: [], // y data
     z: [], // z data
@@ -918,7 +916,7 @@ const parseHeatmapResponse = (trace: Trace, plot: Plot, responseData: ResponseDa
   responseData.forEach((item: any, i: number) => {
     updateWithTraceColData(result, trace, item, i);
     // Add the y values for the heatmap plot
-    trace?.y_col?.forEach((colName: string, ) => {
+    trace?.y_col?.forEach((colName: string) => {
       const value = getValue(item, colName, yaxis, format_data_y, plot);
       // Adds the y value for the heatmap plot if it is not added yet in y array
       if (result.y.indexOf(value.toString()) < 0) {
