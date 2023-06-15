@@ -41,6 +41,11 @@ REACT_BUNDLES=$(DIST_REACT)/$(REACT_BUNDLES_FOLDERNAME)
 CONFIG=config
 
 # create default app-specific config files
+BOOLEAN_SEARCH_CONFIG=$(CONFIG)/boolean-search-config.js
+$(BOOLEAN_SEARCH_CONFIG): $(CONFIG)/boolean-search-config-sample.js
+	cp -n $(CONFIG)/boolean-search-config-sample.js $(BOOLEAN_SEARCH_CONFIG) || true
+	touch $(BOOLEAN_SEARCH_CONFIG)
+  
 HEATMAP_CONFIG=$(CONFIG)/heatmap-config.js
 $(HEATMAP_CONFIG): $(CONFIG)/heatmap-config-sample.js
 	cp -n $(CONFIG)/heatmap-config-sample.js $(HEATMAP_CONFIG) || true
@@ -133,14 +138,12 @@ deploy: dont_deploy_in_root print-variables deploy-boolean-search deploy-heatmap
 deploy-w-config:dont_deploy_in_root print-variables deploy-boolean-search-w-config deploy-heatmap-w-config deploy-plot-w-config deploy-treeview-w-config deploy-matrix-w-config
 
 .PHONY: deploy-boolean-search
-deploy-boolean-search: dont_deploy_in_root print-variables
+deploy-boolean-search: dont_deploy_in_root print-variables deploy-bundles
 	$(info - deploying boolean-search)
-	@rsync -avz --exclude='/boolean-search/booleansearch-config*' boolean-search $(WEBAPPSDIR)
+	@rsync -avz $(DIST_REACT)/boolean-search/ $(WEBAPPSDIR)/boolean-search/
 
 .PHONY: deploy-boolean-search-w-config
-deploy-boolean-search-w-config: dont_deploy_in_root print-variables
-	$(info - deploying boolean-search with the existing config file(s))
-	@rsync -avz boolean-search $(WEBAPPSDIR)
+deploy-boolean-search-w-config: dont_deploy_in_root print-variables deploy-boolean-search deploy-config-folder
 
 .PHONY: deploy-heatmap
 deploy-heatmap: dont_deploy_in_root print-variables deploy-bundles
@@ -176,7 +179,6 @@ deploy-matrix-w-config: dont_deploy_in_root print-variables deploy-matrix deploy
 
 # rsync the config files used by react apps.
 .PHONY: deploy-config-folder
-
 deploy-config-folder: dont_deploy_in_root $(MATRIX_CONFIG) $(PLOT_CONFIG) $(TREEVIEW_CONFIG) $(HEATMAP_CONFIG)
 	$(info - deploying the config folder)
 	@rsync -avz $(CONFIG) $(WEBAPPSDIR)

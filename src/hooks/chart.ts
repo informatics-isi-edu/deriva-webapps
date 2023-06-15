@@ -249,12 +249,14 @@ export const useChartData = (plot: Plot) => {
     const plotResponses: Array<Response> = await Promise.all(
       // request for each trace
       plot.traces.map((trace) => {
-        if (trace.uri) {
-          return ConfigService.http.get(trace.uri);
-        } else if (trace.queryPattern) {
+        // Check for queryPattern(dynamic link) parameter in traces, if not defined then check for uri(static link)
+        if (trace.queryPattern) {
           const { uri, headers } = getPatternUri(trace.queryPattern, templateParams);
           return ConfigService.http.get(uri, { headers });
-        } else {
+        }
+        else if (trace.uri) {
+          return ConfigService.http.get(trace.uri);
+        }  else {
           return { data: [] };
         }
       })

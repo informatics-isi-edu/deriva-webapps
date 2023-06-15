@@ -18,6 +18,11 @@ module.exports = (env) => {
   return getWebPackConfig(
     [
       {
+        appName: 'boolean-search',
+        appTitle: 'Boolean Search',
+        appConfigLocation: `${WEBAPPS_BASE_PATH}config/boolean-search-config.js`,
+      },
+      {
         appName: 'heatmap',
         appTitle: 'Heatmap',
         appConfigLocation: `${WEBAPPS_BASE_PATH}config/heatmap-config.js`,
