@@ -900,7 +900,6 @@ const parseHeatmapResponse = (trace: Trace, plot: Plot, responseData: ResponseDa
     y: [], // y data
     z: [], // z data
     text: [], // text data
-    customdata: [],
     legend_clickable_links: [], // array of links for when clicking legend
     graphic_clickable_links: [], // array of links for when clicking graph
   };
