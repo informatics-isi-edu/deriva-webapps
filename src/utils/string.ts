@@ -173,3 +173,29 @@ export const getPatternUri = (queryPattern: string, templateParams: any) => {
 
   return { uri, headers };
 };
+
+export const extractValue = (pattern: string): string | false => {
+  let extractedValue: string | boolean = false;
+  let match = null;
+
+  // Defined regex to extract value from the anchor tag in the given pattern
+  // Example: <a href="/deriva-webapps/plot/?config=gudmap-todate-pie" target="_blank">prostate gland</a>
+  // extractedValue = prostate gland
+  // Extracts the text between the opening and closing anchor tags
+  // "<a[^>]*>" : matches the opening anchor tag
+  // "(.*?)" : captures the content between the opening and closing anchor tags
+  // "</a>" : matches the closing anchor tag
+  const anchorRegex = /<a[^>]*>(.*?)<\/a>/gi;
+  match = anchorRegex.exec(pattern);
+  extractedValue = match ? match[1] : false;
+
+  // Return false if no extracted value
+  return extractedValue;
+};
+
+
+
+
+
+
+

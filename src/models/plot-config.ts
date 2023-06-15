@@ -98,6 +98,7 @@ export type TraceConfig = {
   legend_col?: string;
   legend_markdown_pattern?: string | string[];
   graphic_link_pattern?: string[] | string;
+  hovertemplate_display_pattern?: string;
   legend?: string[];
   x_col?: string[];
   y_col?: string[];

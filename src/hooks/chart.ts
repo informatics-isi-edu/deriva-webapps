@@ -11,6 +11,8 @@ import {
   createLink,
   getPatternUri,
   createLinkWithContextParams,
+  extractLink,
+  extractValue,
 } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 import { flatten2DArray } from '@isrd-isi-edu/deriva-webapps/src/utils/data';
 
@@ -67,10 +69,14 @@ export type PlotResultData = {
   /**
    * text hover for the plot
    */
-  text?: string[];
+  text?: any[] | string[];
 };
 
 export type HeatmapZData = {
+    /**
+   * text hover for the plot
+   */
+  text?:  any[][];
   /**
  * Data for the z axis
  */
@@ -326,6 +332,7 @@ export const useChartData = (plot: Plot) => {
   useEffect(() => {
     if (data && !isDataLoading && !isInitLoading && !isFetchSelected) {
       const parsedPlotData = parsePlotData(plot, data, selectData, templateParams);
+      console.log(parsedPlotData);
       setParsedData(parsedPlotData);
       setIsParseLoading(false); // set loading to false after parsing
     }
@@ -400,7 +407,7 @@ const parsePlotData = (
 
   updatePlotlyConfig(plot, result); // update the config
   updatePlotlyLayout(plot, result, templateParams, additionalLayout, selectDataGrid); // update the layout
-
+  defaultHoverTemplateDisplay(result); // default hover template
   // width and heigh are set in the css
 
   return result;
@@ -888,10 +895,12 @@ const parseHeatmapResponse = (trace: Trace, plot: Plot, responseData: ResponseDa
   const result: Partial<TraceConfig> & Partial<PlotlyPlotData> & PlotResultData & ClickableLinks & HeatmapZData = {
     ...trace,
     type: plot.plot_type,
+    // hoverinfo: 'text',
     x: [], // x data
     y: [], // y data
     z: [], // z data
     text: [], // text data
+    customdata: [],
     legend_clickable_links: [], // array of links for when clicking legend
     graphic_clickable_links: [], // array of links for when clicking graph
   };
@@ -899,12 +908,15 @@ const parseHeatmapResponse = (trace: Trace, plot: Plot, responseData: ResponseDa
   let layoutParams = {};
   let longestXTick = '';
   let longestYTick = '';
+  const tempText: any[] = [];
+
   const { config, plotly } = plot;
   const { xaxis, yaxis, format_data_x = false, format_data_y = false } = config;
+  const hovertemplate_display_pattern = trace.hovertemplate_display_pattern; // use either the trace or extraInfo
   responseData.forEach((item: any, i: number) => {
     updateWithTraceColData(result, trace, item, i);
     // Add the y values for the heatmap plot
-    trace?.y_col?.forEach((colName: string, i: number) => {
+    trace?.y_col?.forEach((colName: string, ) => {
       const value = getValue(item, colName, yaxis, format_data_y, plot);
       // Adds the y value for the heatmap plot if it is not added yet in y array
       if (result.y.indexOf(value.toString()) < 0) {
@@ -912,16 +924,25 @@ const parseHeatmapResponse = (trace: Trace, plot: Plot, responseData: ResponseDa
         if (item[colName].toString().length > longestYTick?.length) {
           longestYTick = item[colName].toString();
         }
+        tempText.push([]);
         result.z.push([]);
       }
       // Fetching the index of added y value to add corresponding z value
-      yIndex = result.y.indexOf(value.toString())
+      yIndex = result.y.indexOf(value.toString());
     });
+    
     // Add the z values for the heatmap plot based on y val's index
     trace?.z_col?.forEach((colName: string) => {
       const zValue = item[colName];
       result?.z[yIndex]?.push(zValue);
-
+      if (hovertemplate_display_pattern) {
+        const link = ConfigService.ERMrest._renderHandlebarsTemplate(hovertemplate_display_pattern, { $self: { data: item }, $row: item });
+        if (link) {
+          if(result.text){
+            tempText[yIndex].push(link);
+          }
+        }
+      }
     });
     // Add the x values for the heatmap plot if its not added yet
     trace?.x_col?.forEach((colName: string) => {
@@ -933,6 +954,8 @@ const parseHeatmapResponse = (trace: Trace, plot: Plot, responseData: ResponseDa
         result.x.push(value.toString());
       }
     });
+
+
   });
   // Getting the longest x tick in the given data to determine margin and height values in getHeatmapLayoutParams function
   const inputParams = {
@@ -1088,4 +1111,34 @@ const updateWithTraceColData = (
       }
     }
   }
+
 };
+
+/**
+ * @param result trace object to be updated
+ */
+const defaultHoverTemplateDisplay = (
+  result: any,
+): void => {
+  const tempText: any[]=[];
+  if (result.data[0].type==='heatmap') {
+    result.data[0].hoverinfo= 'text';
+    result.data[0].z.forEach((zArr: any[],index: number)=>{
+      tempText.push([]);
+      zArr.forEach((val: any,i: number)=>{
+        tempText[index].push(`x: ${extractValue(result.data[0].x[i])}`+'<br>'+`y: ${extractValue(result.data[0].y[index])}`+'<br>'+`z: ${val}`);
+      })
+    });
+    result.data[0].text=tempText;
+  }else if(result.data[0].type==='scatter'){
+    result.data[0].hoverinfo= 'text';
+    result.data[0].x.forEach((xVal:string)=>{
+        tempText.push(`(${extractValue(xVal)}`);
+    });
+    result.data[0].y.forEach((yVal:string,ind:number)=>{
+      const xValue = tempText[ind];
+      tempText[ind]=`${xValue}, ${extractValue(yVal)})`;
+    });
+    result.data[0].text=tempText;
+  }
+}
