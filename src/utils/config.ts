@@ -4,7 +4,7 @@ import { CustomError } from '@isrd-isi-edu/chaise/src/models/errors';
 import { isObjectAndNotNull, isStringAndNotEmpty } from '@isrd-isi-edu/chaise/src/utils/type-utils';
 import { getQueryParam } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
-import { PlotConfig } from '../models/plot-config';
+import { PlotConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot-config';
 
 const throwCustomError = (header: string, message: string) => {
   throw new CustomError(header, message);
@@ -15,7 +15,7 @@ const throwCustomError = (header: string, message: string) => {
  *
  * Will throw an error if the config was missing or had issues.
  */
-export const getConfigObject = (configObj: any) => {
+export const getConfigObject = (configObj: any): PlotConfig => {
   const errorHeader = 'Invalid Config';
   const defaultConfig = '*';
 
