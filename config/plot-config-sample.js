@@ -134,6 +134,9 @@ var plotConfigs = {
         },
         traces: [
           {
+            //defining hovertemplate_display_pattern will override the tooltip display for each individual data point and remove the default tooltips that show statistical data	
+            // hovertemplate_display_pattern: "Custom hover text: {{{$row.Experiment}}}",
+            
             // The request url that has to be used to fetch the data.
             // assumes $url_parameters.Study is a set of Tuples
             // -- join Experiment to get the Experiment_Internal_ID
@@ -188,6 +191,7 @@ var plotConfigs = {
         },
         traces: [
           {
+            hovertemplate_display_pattern: "Released: {{#if true}}{{{$row.[#_Released]}}}{{/if}}<br>Data Type: {{{$row.Data_Type}}}",
             // The request url that has to be used to fetch the data.
             queryPattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23_Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
             // legend: ["Browser All Events 1","Browser All Events 2"],   // name of traces in legend
@@ -259,6 +263,7 @@ var plotConfigs = {
         },
         traces: [
           {
+            hovertemplate_display_pattern: "Released Horizontal: {{#if true}}{{{$row.[#_Released]}}}{{/if}}",
             // The request url that has to be used to fetch the data.
             queryPattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23_Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
             legend: ['#_Released'], // name of traces in legend
@@ -328,6 +333,7 @@ var plotConfigs = {
         },
         traces: [
           {
+            hovertemplate_display_pattern: "Released Vertical: {{#if true}}{{{$row.[#_Released]}}}{{/if}}",
             // The request url that has to be used to fetch the data.
             queryPattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23_Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
             legend: ['#_Released'], // name of traces in legend
@@ -375,6 +381,7 @@ var plotConfigs = {
         },
         traces: [
           {
+            hovertemplate_display_pattern: "Released Horizontal Summary: {{#if true}}{{{$row.[#_Released]}}}{{/if}}",
             // The request url that has to be used to fetch the data.
             queryPattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23_Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
             legend: ['#_Released'], // name of traces in legend
@@ -457,6 +464,7 @@ var plotConfigs = {
         },
         traces: [
           {
+            hovertemplate_display_pattern: "Released Horizontal Summary: {{#if true}}{{{$row.[#_Released]}}}{{/if}}",
             queryPattern: '/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/stage:=left(Stage_ID)=(Vocabulary:Developmental_Stage:ID)/$M/Assay_Type,stage:Name',
             x_col: ['Assay_Type'],
             y_col: ['Name'],
@@ -509,12 +517,14 @@ var plotConfigs = {
         },
         traces: [
           {
+            hovertemplate_display_pattern: "Creation Date: {{{$row.RCT}}}<br>Trace1",
             queryPattern: '/ermrest/catalog/2/entity/Gene_Expression:Specimen@sort(RCT::desc::)?limit=10000',
             data_col: 'RCT',
             orientation: 'v',
             nbinsx: 50,
           },
           {
+            hovertemplate_display_pattern: "Creation Date: {{{$row.RCT}}}<br>Trace2",
             queryPattern: '/ermrest/catalog/2/entity/Gene_Expression:Specimen@sort(RCT::desc::)?limit=10000',
             data_col: 'RCT',
             orientation: 'v',
@@ -567,6 +577,7 @@ var plotConfigs = {
         },
         traces: [
           {
+            hovertemplate_display_pattern: "Creation Date: {{{$row.RCT}}}<br>Vertical",
             querPattern: '/ermrest/catalog/2/entity/Gene_Expression:Specimen@sort(RCT::desc::)?limit=10000',
             data_col: 'RCT',
             orientation: 'h',
@@ -631,7 +642,7 @@ var plotConfigs = {
         {
           graphic_link_pattern:
             ['/chaise/recordset/#2/RNASeq:Replicate_Expression'],
-          hovertemplate_display_pattern: "/chaise/recordset/#2/RNASeq:Replicate_Expression",
+          hovertemplate_display_pattern: "Label: {{{$row.Label}}}<br>Probe Name: {{{$row.Probe_Set_Name}}}<br>Value: {{{$row.Value}}}<br>Gene ID: {{{$url_parameters.Gene.data.NCB}}}",
           queryPattern: '/ermrest/catalog/2/entity/Gene_Expression:Array_Data_view/NCBI_GeneID={{{$url_parameters.Gene.data.NCBI_GeneID}}}&Section_Ordinal=3',
           x_col: ["Label"],
           y_col: ["Probe_Set_Name"],

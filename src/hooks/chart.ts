@@ -74,10 +74,6 @@ export type PlotResultData = {
 };
 
 export type HeatmapZData = {
-    /**
-   * text hover for the plot
-   */
-  text?:  any[][];
   /**
  * Data for the z axis
  */
