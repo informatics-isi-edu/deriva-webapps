@@ -13,6 +13,7 @@ import {
   createLinkWithContextParams,
   extractLink,
   extractValue,
+  extractAndFormatDate,
 } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 import { flatten2DArray } from '@isrd-isi-edu/deriva-webapps/src/utils/data';
 
@@ -323,7 +324,7 @@ export const useChartData = (plot: Plot) => {
   }, [
     isFirstRender,
     isFetchSelected,
-    setIsFetchSelected,
+    setIsFetchSelected, 
     selectData,
     templateParams,
     fetchData,
@@ -338,7 +339,6 @@ export const useChartData = (plot: Plot) => {
       setIsParseLoading(false); // set loading to false after parsing
     }
   }, [plot, data, isDataLoading, isFetchSelected, isInitLoading, selectData, templateParams]);
-
   return {
     isInitLoading,
     isDataLoading,
@@ -402,7 +402,7 @@ const parsePlotData = (
       additionalLayout = layout;
       return parseResult;
     } else if (plot.plot_type === 'heatmap') {
-      const heatmapData = parseHeatmapResponse(currTrace, plot, responseData);
+      const heatmapData = parseHeatmapResponse(currTrace, plot, responseData, templateParams);
       additionalLayout = { ...heatmapData.layoutParams };
       return heatmapData.result;
     }
@@ -415,7 +415,6 @@ const parsePlotData = (
     defaultHoverTemplateDisplay(result); // default hover template
   }
   // width and heigh are set in the css
-
   return result;
 };
 
@@ -652,6 +651,7 @@ const parseViolinResponse = (
     const x: any[] = [];
     const y: any[] = [];
     const xTicks: any[] = [];
+    let tempText:any[]=[];
     responseData.forEach((item: any, i: number) => {
       if (xGroupBy) {
         const groupByKey = xGroupBy.value.value;
@@ -685,10 +685,13 @@ const parseViolinResponse = (
           }
         }
       }
+      tempText=updateHoverTemplateData(result,trace,item,tempText);
     });
 
     result.x = x;
     result.y = y;
+    //sets the hovertext array and hoverinfo
+    setHoverText(result,tempText,trace);
 
     // group by x
     result.transforms = [
@@ -724,13 +727,14 @@ const parseHistogramResponse = (trace: Trace, plot: Plot, responseData: Response
 
   const { config } = plot;
   const { format_data = false } = config;
-
+  let tempText:any[]=[];
   const dataPoints: Array<any> = [];
   responseData.forEach((item: any) => {
     if (trace.data_col) {
       const value = getValue(item, trace.data_col, undefined, format_data, plot);
       dataPoints.push(value);
     }
+    tempText=updateHoverTemplateData(result,trace,item,tempText);
   });
 
   // Add data to correct axis depending on orientation
@@ -740,6 +744,8 @@ const parseHistogramResponse = (trace: Trace, plot: Plot, responseData: Response
     result.x = dataPoints;
   }
 
+  //sets the hovertext array and hoverinfo
+  setHoverText(result,tempText,trace);
   return result;
 };
 
@@ -766,6 +772,7 @@ const parseScatterResponse = (trace: Trace, plot: Plot, responseData: ResponseDa
 
   const x: string[] = [];
   const y: string[] = [];
+  let tempText: any[] =[];
   responseData.forEach((item: any, i: number) => {
     updateWithTraceColData(result, trace, item, i);
 
@@ -780,11 +787,12 @@ const parseScatterResponse = (trace: Trace, plot: Plot, responseData: ResponseDa
       const value = getValue(item, colName, yaxis, format_data_y, plot);
       y.push(value?.toString());
     });
+    tempText=updateHoverTemplateData(result,trace,item,tempText);
   });
-
+  //sets the hovertext array and hoverinfo
+  setHoverText(result,tempText,trace);
   result.x = x;
   result.y = y;
-
   return result;
 };
 
@@ -811,6 +819,7 @@ const parsePieResponse = (trace: Trace, plot: Plot, responseData: ResponseData) 
 
   const { config } = plot;
   const { format_data = false } = config;
+  let tempText:any[]=[]; //use trace info
   responseData.forEach((item: any, i: number) => {
     updateWithTraceColData(result, trace, item, i);
     // Add data
@@ -831,8 +840,9 @@ const parsePieResponse = (trace: Trace, plot: Plot, responseData: ResponseData) 
       result.text.push(textValue);
       result.labels.push(labelValue);
     }
+    tempText=updateHoverTemplateData(result,trace,item,tempText);
   });
-
+  setHoverText(result,tempText,trace);
   return result;
 };
 
@@ -859,7 +869,7 @@ const parseBarResponse = (trace: Trace, plot: Plot, responseData: ResponseData) 
 
   const { config } = plot;
   const { xaxis, yaxis, format_data_x = false, format_data_y = false } = config; // why is format_data_x not in xaxis?
-
+  let tempText:any[]=[];
   responseData.forEach((item: any) => {
     // Add the x values for the bar plot
     trace?.x_col?.forEach((colName: string, i: number) => {
@@ -884,7 +894,10 @@ const parseBarResponse = (trace: Trace, plot: Plot, responseData: ResponseData) 
       const value = getValue(item, colName, yaxis, format_data_y, plot);
       result.y.push(value.toString());
     });
+    tempText=updateHoverTemplateData(result,trace,item,tempText);
   });
+  //sets the hovertext array and hoverinfo
+  setHoverText(result,tempText,trace);
   return result;
 };
 
@@ -895,9 +908,10 @@ const parseBarResponse = (trace: Trace, plot: Plot, responseData: ResponseData) 
  * @param trace current trace the plot config
  * @param plot plot config
  * @param responseData data received from request to be parsed
+ * @param templateParams url parameters
  * @returns
  */
-const parseHeatmapResponse = (trace: Trace, plot: Plot, responseData: ResponseData) => {
+const parseHeatmapResponse = (trace: Trace, plot: Plot, responseData: ResponseData, templateParams: PlotTemplateParams) => {
   const result: Partial<TraceConfig> & Partial<PlotlyPlotData> & PlotResultData & ClickableLinks & HeatmapZData = {
     ...trace,
     type: plot.plot_type,
@@ -912,11 +926,10 @@ const parseHeatmapResponse = (trace: Trace, plot: Plot, responseData: ResponseDa
   let layoutParams = {};
   let longestXTick = '';
   let longestYTick = '';
-  const tempText: any[] = [];
+  let tempText: any[] = [];
 
   const { config, plotly } = plot;
   const { xaxis, yaxis, format_data_x = false, format_data_y = false } = config;
-  const hovertemplate_display_pattern = trace.hovertemplate_display_pattern; //use trace info
   responseData.forEach((item: any, i: number) => {
     updateWithTraceColData(result, trace, item, i);
     // Add the y values for the heatmap plot
@@ -939,15 +952,7 @@ const parseHeatmapResponse = (trace: Trace, plot: Plot, responseData: ResponseDa
     trace?.z_col?.forEach((colName: string) => {
       const zValue = item[colName];
       result?.z[yIndex]?.push(zValue);
-      if (hovertemplate_display_pattern) {
-        result.hoverinfo='text';
-        const link = ConfigService.ERMrest._renderHandlebarsTemplate(hovertemplate_display_pattern, { $self: { data: item }, $row: item });
-        if (link) {
-          if(result.text){
-            tempText[yIndex].push(link);
-          }
-        }
-      }
+      tempText=updateHoverTemplateData(result,trace,item,tempText,yIndex,templateParams);
     });
     // Add the x values for the heatmap plot if its not added yet
     trace?.x_col?.forEach((colName: string) => {
@@ -967,7 +972,9 @@ const parseHeatmapResponse = (trace: Trace, plot: Plot, responseData: ResponseDa
     width: typeof plotly?.layout.width !== 'undefined' ? plotly?.layout.width : 1200,
     xTickAngle: typeof plotly?.layout.xaxis?.tickangle !== 'undefined' ? plotly?.layout.xaxis?.tickangle : 50,
   }
-  result.text=tempText;
+  //sets the hovertext array and hoverinfo
+  setHoverText(result,tempText,trace);
+
   layoutParams = getHeatmapLayoutParams(inputParams, longestXTick?.length, longestYTick?.length, result.y?.length);
   return { layoutParams, result };
 };
@@ -1121,6 +1128,49 @@ const updateWithTraceColData = (
 };
 
 /**
+ * 
+ * @param result data object to be updated
+ * @param trace from plot configs
+ * @param item from response object
+ * @param textArray array for hover text
+ * @param index provided for heatmap case for corresponding y axis values
+ * @param templateParams provided for heatmap to access url_parameters
+ * @returns 
+ */
+const updateHoverTemplateData = (result: any,  trace: Trace, item: any, textArray: any[], index: number=0, templateParams?: PlotTemplateParams) => {
+  const hovertemplate_display_pattern = trace.hovertemplate_display_pattern; // use trace info
+  if(hovertemplate_display_pattern){
+    const link = ConfigService.ERMrest._renderHandlebarsTemplate(hovertemplate_display_pattern, { $self: { data: item }, 
+      $row: item, 
+      $url_parameters: templateParams?.$url_parameters
+    });
+    if(link){
+      switch(result.type){
+        case 'bar':
+        case 'scatter':
+          textArray.push(link);
+          break;
+        case 'violin':
+          textArray.push(link);
+          break;
+        case 'pie':
+          textArray.push(link);
+          break;
+        case 'histogram':
+          textArray.push(extractAndFormatDate(link));
+          break;
+        case 'heatmap':
+          textArray[index].push(link);
+          break;
+        default:
+          break;   
+      }
+    }
+  }
+  return textArray;
+}
+
+/**
  * Adds default hover text to the result object when hovertemplate_display_pattern is not configured 
  * Note: This fixes the issue of displaying link in hover text when tick_display is configured for x or y axis 
  * which was making the text hard to read in some plot types
@@ -1142,12 +1192,26 @@ const defaultHoverTemplateDisplay = (
   }else if(result.data[0].type==='scatter'){
     result.data[0].hoverinfo= 'text';
     result.data[0].x.forEach((xVal:string)=>{
-        tempText.push(`(${extractValue(xVal)}`);
+        tempText.push(`(${extractValue(xVal)||''}`);
     });
     result.data[0].y.forEach((yVal:string,ind:number)=>{
       const xValue = tempText[ind];
-      tempText[ind]=`${xValue}, ${extractValue(yVal)})`;
+      tempText[ind]=`${xValue}, ${extractValue(yVal)||''})`;
     });
     result.data[0].text=tempText;
+  }
+}
+
+/**
+ * Sets the hovertext array and hoverinfo for all plots when hovertemplate_display_pattern is configured
+ * @param result data object to be updated
+ * @param textArray array of hover text
+ * @param trace from plot configs
+ */
+const setHoverText = (result: any, textArray: any, trace:Trace) => {
+  const hovertemplate_display_pattern = trace.hovertemplate_display_pattern; // use trace info
+  if(hovertemplate_display_pattern){
+    result.hovertext=textArray;
+    result.hoverinfo='text';
   }
 }
