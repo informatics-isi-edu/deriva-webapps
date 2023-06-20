@@ -184,7 +184,6 @@ export const getPatternUri = (queryPattern: string, templateParams: any) => {
  * @returns 
  */
 export const extractValue = (pattern: string): string | false => {
-  let extractedValue: string | boolean = false;
   let match = null;
 
   // Defined regex to extract value from the anchor tag in the given pattern
@@ -196,7 +195,7 @@ export const extractValue = (pattern: string): string | false => {
   // "</a>" : matches the closing anchor tag
   const anchorRegex = /<a[^>]*>(.*?)<\/a>/gi;
   match = anchorRegex.exec(pattern);
-  extractedValue = match ? match[1] : false;
+  const extractedValue = match ? match[1] : pattern;
 
   // Return false if no extracted value
   return extractedValue;
