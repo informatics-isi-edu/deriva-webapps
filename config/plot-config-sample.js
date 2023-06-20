@@ -579,7 +579,7 @@ var plotConfigs = {
         },
         traces: [
           {
-            hovertemplate_display_pattern: "Creation Date: {{{$row.RCT}}}<br>Vertical",
+            hovertemplate_display_pattern: "Creation Date: {{{$row.RCT}}}<br>Horizontal",
             querPattern: '/ermrest/catalog/2/entity/Gene_Expression:Specimen@sort(RCT::desc::)?limit=10000',
             data_col: 'RCT',
             orientation: 'h',
