@@ -136,7 +136,7 @@ var plotConfigs = {
           {
             //defining hovertemplate_display_pattern will override the tooltip display for each individual data point and remove the default tooltips that show statistical data	
             // hovertemplate_display_pattern: "Custom hover text: {{{$row.Experiment}}}",
-            
+
             // The request url that has to be used to fetch the data.
             // assumes $url_parameters.Study is a set of Tuples
             // -- join Experiment to get the Experiment_Internal_ID
@@ -357,54 +357,56 @@ var plotConfigs = {
         config: {
           format_data_x: true, // defualt : false - to use hack or not
         },
-        plotly_config: {
-          title: 'Number of GUDMAP resources released to date (log scale)',
-          margin: {
-            t: 40,
-            r: 0,
-            b: 35,
-            l: 280, // left margin for lengthy data labels.
-          },
-          legend: {
-            traceorder: 'reversed', // order of the legend is reversed
-          },
-          xaxis: {
-            title: 'Number of Records', // plot x_axis label
-            // tickformat: ',d',     // format for the ticks. For more formatting types, see: https://github.com/d3/d3-format/blob/master/README.md#locale_format
-            type: 'log', // optional value: tickformat should compatible with type
-            range: [0, 4.6],
-          },
-          yaxis: {
-            ticksuffix: '  ',
-            title: 'Data_Types', // plot y_axis label
-          },
-        },
-        traces: [
-          {
-            hovertemplate_display_pattern: "Released Horizontal Summary: {{#if true}}{{{$row.[#_Released]}}}{{/if}}",
-            // The request url that has to be used to fetch the data.
-            queryPattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23_Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
-            legend: ['#_Released'], // name of traces in legend
-            x_col: ['#_Released'], // column name to use for x values
-            y_col: ['Data_Type'], // array of column names to use for y values
-            orientation: 'h', // Optional parameter for displaying the bar chart horizontally
-            textfont: {
-              size: 10, // It will work till the bar size can accomodate the font size
+        plotly: {
+          layout: {
+            title: 'Number of GUDMAP resources released to date (log scale)',
+            margin: {
+              t: 40,
+              r: 0,
+              b: 35,
+              l: 280, // left margin for lengthy data labels.
+            },
+            legend: {
+              traceorder: 'reversed', // order of the legend is reversed
+            },
+            xaxis: {
+              title: 'Number of Records', // plot x_axis label
+              // tickformat: ',d',     // format for the ticks. For more formatting types, see: https://github.com/d3/d3-format/blob/master/README.md#locale_format
+              type: 'log', // optional value: tickformat should compatible with type
+              range: [0, 4.6],
+            },
+            yaxis: {
+              ticksuffix: '  ',
+              title: 'Data_Types', // plot y_axis label
             },
           },
-        ],
-        // Plotly defualt buttons/actions to be removed
-        plotlyDefaultButtonsToRemove: [
-          'scrollZoom',
-          'zoom2d',
-          'sendDataToCloud',
-          'autoScale2d',
-          'lasso2d',
-          'select2d',
-          'hoverClosestCartesian',
-          'hoverCompareCartesian',
-          'toggleSpikelines',
-        ],
+          traces: [
+            {
+              hovertemplate_display_pattern: "Released Horizontal Summary: {{#if true}}{{{$row.[#_Released]}}}{{/if}}",
+              // The request url that has to be used to fetch the data.
+              queryPattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23_Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
+              legend: ['#_Released'], // name of traces in legend
+              x_col: ['#_Released'], // column name to use for x values
+              y_col: ['Data_Type'], // array of column names to use for y values
+              orientation: 'h', // Optional parameter for displaying the bar chart horizontally
+              textfont: {
+                size: 10, // It will work till the bar size can accomodate the font size
+              },
+            },
+          ],
+          // Plotly defualt buttons/actions to be removed
+          plotlyDefaultButtonsToRemove: [
+            'scrollZoom',
+            'zoom2d',
+            'sendDataToCloud',
+            'autoScale2d',
+            'lasso2d',
+            'select2d',
+            'hoverClosestCartesian',
+            'hoverCompareCartesian',
+            'toggleSpikelines',
+          ],
+        },
       },
     ],
   },

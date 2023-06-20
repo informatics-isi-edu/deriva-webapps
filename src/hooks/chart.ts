@@ -403,7 +403,6 @@ const parsePlotData = (
       return heatmapData.result;
     }
   });
-
   updatePlotlyConfig(plot, result); // update the config
   updatePlotlyLayout(plot, result, templateParams, additionalLayout, selectDataGrid); // update the layout
   //If hovertemplate_display_pattern is not configured, set default hover text for plot
@@ -411,7 +410,6 @@ const parsePlotData = (
     defaultHoverTemplateDisplay(result); // default hover template
   }
   // width and heigh are set in the css
-  console.log(result);
   return result;
 };
 
@@ -1177,7 +1175,6 @@ const defaultHoverTemplateDisplay = (
   result: any,
 ): void => {
   const tempText: any[]=[];
-  // console.log(result);
   if (result.data[0].type==='heatmap') {
     result.data[0].hoverinfo= 'text';
     result.data[0].z.forEach((zArr: any[],index: number)=>{
@@ -1198,7 +1195,6 @@ const defaultHoverTemplateDisplay = (
     });
     result.data[0].text=tempText;
   }
-  console.log(result);
 }
 
 /**
