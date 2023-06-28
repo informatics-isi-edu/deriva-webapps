@@ -173,3 +173,73 @@ export const getPatternUri = (queryPattern: string, templateParams: any) => {
 
   return { uri, headers };
 };
+export const extractValue = (pattern: string, width: number, wrapLimit: number) => {
+  const anchorTagRegex = /<a\b[^>]*>(.*?)<\/a>/g;
+  let messageText;
+  const match = pattern.match(anchorTagRegex);
+  if (match) {
+    const anchorTags = pattern.split(anchorTagRegex);
+    const extractedTexts = anchorTags.filter(text => text !== '');
+    messageText = pattern.replace(extractedTexts[1], wrapText(extractedTexts[1], width, wrapLimit));
+  } else {
+    messageText = wrapText(pattern, width, wrapLimit);
+  }
+
+  return messageText || [];
+};
+export const truncateText = (text: string) => {
+  let truncatedText = text;
+  if (truncatedText?.length > 20) {
+    truncatedText = text.slice(0, 10) + '...';
+  }
+  return truncatedText;
+}
+export const breakText = (str: string) => {
+  const breakLength = 25;
+  if (str.length <= breakLength) {
+    return str;
+  }
+  let truncatedStr = str.substring(0, breakLength);
+  truncatedStr += '<br>';
+  const remainingStr = str.substring(breakLength);
+  let subRemainingStr = '';
+  if (remainingStr.length > breakLength) {
+    subRemainingStr = remainingStr.substring(0, breakLength);
+    subRemainingStr += '...';
+  }
+  truncatedStr += subRemainingStr;
+  return truncatedStr;
+}
+export const wrapText = (text: string, width: number, wrapLimit: number) => {
+  const words = text?.split(' ');
+  let currentLine = '';
+  let wrappedText = '';
+  let brCount = 0;
+  let i;
+  if (text?.length <= width) {
+    return text;
+  }
+  for (i = 0; i < words?.length; i++) {
+    const word = words[i];
+    const wordWithSpace = (currentLine ? ' ' : '') + word;
+
+    if (currentLine?.length + wordWithSpace?.length <= width) {
+      currentLine += wordWithSpace;
+    } else {
+      if (brCount === wrapLimit - 1) {
+        break;
+      }
+      wrappedText += (wrappedText ? '<br>' : '') + currentLine;
+      currentLine = word;
+      brCount++;
+    }
+  }
+  wrappedText += (wrappedText ? '<br>' : '') + currentLine;
+  if (i <= words?.length - 1) {
+    wrappedText += '...';
+  }
+  return wrappedText;
+}
+
+
+

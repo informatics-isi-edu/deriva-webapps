@@ -11,6 +11,10 @@ import {
   createLink,
   getPatternUri,
   createLinkWithContextParams,
+  extractValue,
+  truncateText,
+  breakText,
+  wrapText,
 } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 import { flatten2DArray } from '@isrd-isi-edu/deriva-webapps/src/utils/data';
 
@@ -404,7 +408,7 @@ const parsePlotData = (
   updatePlotlyLayout(plot, result, templateParams, additionalLayout, selectDataGrid); // update the layout
 
   // width and heigh are set in the css
-
+  console.log(result);
   return result;
 };
 
@@ -504,7 +508,7 @@ const updatePlotlyLayout = (
     title = 'No Data';
   }
   if (title) result.layout.title = title;
-
+  console.log(result);
   // x axis
   if (!result.layout.xaxis) {
     // initialize xaxis if it doesn't exist
@@ -518,10 +522,10 @@ const updatePlotlyLayout = (
     // use the tickvals if it exists
     result.layout.xaxis.tickvals = additionalLayout.xaxis.tickvals;
   }
-  // if (additionalLayout?.xaxis?.ticktext) {
-  //   // use the ticktext if it exists
-  //   result.layout.xaxis.ticktext = additionalLayout.xaxis.ticktext;
-  // }
+  if (additionalLayout?.xaxis?.ticktext) {
+    // use the ticktext if it exists
+    result.layout.xaxis.ticktext = additionalLayout.xaxis.ticktext;
+  }
   if (selectDataGrid) {
     // use the groupby axis title if it exists
     const xaxisTitle = getSelectGroupByAxisTitle(selectDataGrid, 'x');
@@ -560,6 +564,16 @@ const updatePlotlyLayout = (
     if (result.layout.yaxis.zeroline === undefined) {
       result.layout.yaxis.zeroline = false;
     }
+    // result.layout.legend= {
+    // x: 1,
+    // xanchor: 'right',
+    // y: 1
+    // };
+    // result.layout.hoverlabel={
+    //   font:{
+    //     color: 'white !important',
+    //   },
+    // };
   }
 
   result.layout.yaxis.automargin = true;
@@ -599,13 +613,13 @@ const parseViolinResponse = (
   const { ...plotlyTrace } = trace;
   const result: Partial<TraceConfig> &
     Partial<PlotlyViolinData> &
-    Partial<{ transforms: any[] }> &
+    Partial<PlotlyPlotData> &
     Partial<ClickableLinks> = {
     ...plotlyTrace,
     type: 'violin',
     x: [], // x data
     y: [], // y data
-
+    
     // TODO: migrate all these params options to config
     points: 'all', // show all points on violin plot
     pointpos: 0, // position of points on violin plot
@@ -641,20 +655,20 @@ const parseViolinResponse = (
     const x: any[] = [];
     const y: any[] = [];
     const xTicks: any[] = [];
+    const legendNames: any[] =[];
     responseData.forEach((item: any, i: number) => {
       if (xGroupBy) {
         const groupByKey = xGroupBy.value.value;
         const xGroupItem = xGroupBy.groupKeysMap[groupByKey];
         updateWithTraceColData(result, trace, item, i, xGroupItem);
-
         const xVal = xGroupItem?.legend_markdown_pattern
           ? createLink(xGroupItem?.legend_markdown_pattern[0], { $row: item })
-          : (item[groupByKey] || 'N/A');
-
+          : item[groupByKey] || 'N/A';
         const xTick = xGroupItem?.tick_display_markdown_pattern
-          ? createLink(xGroupItem?.tick_display_markdown_pattern, { $row: item })
-          : 'N/A';
-
+            ? extractValue(createLink(xGroupItem?.tick_display_markdown_pattern, { $row: item }),25,2)
+            // ? createLink(xGroupItem?.tick_display_markdown_pattern, { $row: item })
+            : item[groupByKey] || 'N/A';
+        legendNames.push(xGroupItem?.legend_markdown_pattern ? extractValue(xVal,25,999) : wrapText(xVal,25,999) );
         x.push(xVal);
         xTicks.push(xTick);
       }
@@ -683,7 +697,7 @@ const parseViolinResponse = (
     result.transforms = [
       {
         type: 'groupby',
-        groups: result.x,
+        groups: legendNames,
       },
     ];
 
@@ -973,20 +987,20 @@ const parseHeatmapResponse = (trace: Trace, plot: Plot, responseData: ResponseDa
 const getHeatmapLayoutParams = (input: inputParamsType, longestXTick: number, longestYTick: number, lengthY: number) => {
   let height;
   let yTickAngle;
-  const tMargin = 25;
-  let rMargin, bMargin, lMargin;
+  const bMargin = 25;
+  let rMargin, tMargin, lMargin;
   if (longestXTick <= 18) {
     height = longestXTick * 9 + lengthY * 10 + 50;
-    bMargin = 8.4 * longestXTick;
+    tMargin = 8.4 * longestXTick;
   } else if (longestXTick <= 22) {
     height = longestXTick * 9 + lengthY * 10 + 55;
-    bMargin = 8.4 * longestXTick;
+    tMargin = 8.4 * longestXTick;
   } else if (longestXTick <= 30) {
     height = longestXTick * 8.8 + lengthY * 10 + 55;
-    bMargin = 8.2 * longestXTick;
+    tMargin = 8.2 * longestXTick;
   } else {
     height = longestXTick * 8.8 + lengthY * 10 + 45;
-    bMargin = 8 * longestXTick;
+    tMargin = 8 * longestXTick;
   }
 
   if (lengthY === 1) {
