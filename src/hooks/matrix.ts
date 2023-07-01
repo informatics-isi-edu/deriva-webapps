@@ -50,10 +50,36 @@ export type MatrixXYZDatum = {
   zid: Array<string>;
 };
 
+/**
+ * The tree datum to be parsed
+ */
 export type MatrixTreeDatum = {
+  /**
+   * yid of parent data point
+   */
   parent_id: string;
+  /**
+   * yid of child data point
+   */
   child_id: string;
-}
+};
+
+/**
+ * The tree node datum to be parsed
+ */
+export type TreeNode = {
+  title: string;
+  key: string;
+  link: string;
+  children: TreeNode[];
+};
+
+/**
+ * The tree node datum dictionary to be parsed
+ */
+export type TreeNodeMap = { 
+  [key: string]: TreeNode;
+};
 
 /**
  * Resolved response from Matrix API request
@@ -140,6 +166,26 @@ export type GridDataMap = {
      * index on the row or column
      */
     index: number;
+  };
+};
+
+/**
+ * Grid map data for tree used to search rows and columns
+ * Here we need an id to track entry so that it can filter id when search
+ */
+export type GridDataTreeMap = {
+  /**
+   * unique identifier for grid row or column
+   */
+  [key: string]: {
+    /**
+     * corresponding type of grid row or column
+     */
+    type: 'row' | 'col';
+    /**
+     * id on the row or column
+     */
+    id: string;
   };
 };
 
@@ -304,9 +350,26 @@ export const useMatrixData = (matrixConfigs: MatrixConfig): MatrixData => {
  */
 export type ParsedMatrixData = {
   gridData: Array<Array<ParsedGridCell>>;
+  yTreeData?: Array<MatrixTreeDatum>;
+  yTreeNodes?: TreeNode[];
+  yTreeNodesMap?: TreeNodeMap;
   legendData: Array<LegendDatum>;
   gridDataMap: GridDataMap;
+  gridDataTreeMap?: GridDataTreeMap;
   options: Array<Option>;
+};
+
+/**
+ * Flatten the nodes in a tree structure to a flatList
+ */
+const flattenTree = (tree: TreeNode[], flatList: string[] = []): string[] => {
+  tree.forEach((node) => {
+    flatList.push(node.key);
+    if (Array.isArray(node.children)) {
+      flattenTree(node.children, flatList);
+    }
+  });
+  return flatList;
 };
 
 /**
@@ -429,7 +492,6 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
     link: '',
     colors: [],
   });
-  gridData.push(emptyRow);
 
   // Create the options and datamap used for the matrix search feature
   const options: Array<Option> = [];
@@ -443,14 +505,118 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
     gridDataMap[x.title.toLowerCase()] = { type: 'col', index: col };
   });
 
-  const parsedData: ParsedMatrixData = {
-    gridData,
-    legendData,
-    gridDataMap,
-    options,
-  };
+  // construct tree data and nodes
+  const yTreeNodes: TreeNode[] = [];
+  const yTreeNodesMap: { [key: string]: TreeNode } = {};
+  const referenceNodesMap: {[key: string]: {title: string, link: string}} = {};
 
-  return parsedData;
+  gridData.forEach((element: any) => {
+    if(element[0]["row"]["id"]){
+      const referenceNode = {
+        title: element[0]["row"]["title"],
+        link: element[0]["row"]["link"],
+      }
+      referenceNodesMap[element[0]["row"]["id"]] = referenceNode;
+    }
+  });
+
+  if(Object.keys(yTreeData).length !== 0){
+    yTreeData.forEach((item) => {
+      const { child_id, parent_id } = item;
+    
+      const childTitle = child_id in referenceNodesMap ? referenceNodesMap[child_id].title : "None";
+      const childLink = child_id in referenceNodesMap ? referenceNodesMap[child_id].link : "";
+      const childNode = child_id in yTreeNodesMap
+        ? yTreeNodesMap[child_id]
+        : {
+            title: childTitle,
+            key: child_id,
+            link: childLink,
+            children: [],
+          };
+    
+      yTreeNodesMap[child_id] = childNode;
+    
+      const parentTitle = parent_id in referenceNodesMap ? referenceNodesMap[parent_id].title: "None";
+      const parentLink = child_id in referenceNodesMap ? referenceNodesMap[child_id].link : "";
+      const parentNode = parent_id in yTreeNodesMap
+        ? yTreeNodesMap[parent_id]
+        : {
+            title: parentTitle,
+            key: parent_id,
+            link: parentLink,
+            children: [],
+          };
+    
+      parentNode.children.push(childNode);
+      yTreeNodesMap[parent_id] = parentNode;
+    });
+  
+    // Assume all top nodes' parent_id is "None"
+    const node = yTreeNodesMap["None"];
+    if (node) {
+      if (node.children.length > 0) {
+        for (const child of node.children) {
+          yTreeNodes.push(child);
+        }
+      }
+    }
+      
+    // Sort the gridData for the synchronization of expand and collapse of tree
+    const flatKeys = flattenTree(yTreeNodes);
+    gridData.sort((a, b) => {
+      return flatKeys.indexOf(a[0].row.id) - flatKeys.indexOf(b[0].row.id);
+    });
+  }
+  
+
+  // Add the empty row to the last
+  gridData.push(emptyRow);
+
+  // Create the tree datamap used for the matrix search feature
+  const gridDataTreeMap: GridDataTreeMap = {};
+  yData.forEach((y: MatrixDatum) => {
+    gridDataTreeMap[y.title.toLowerCase()] = { type: 'row', id: y.id };
+  });
+  xData.forEach((x: MatrixDatum) => {
+    gridDataTreeMap[x.title.toLowerCase()] = { type: 'col', id: x.id };
+  });
+
+  if(Object.keys(yTreeData).length === 0){
+    const parsedData: ParsedMatrixData = {
+      gridData,
+      legendData,
+      gridDataMap,
+      options,
+    };
+  
+    return parsedData;
+  }else{
+    const parsedData: ParsedMatrixData = {
+      gridData,
+      yTreeData,
+      yTreeNodes,
+      yTreeNodesMap,
+      legendData,
+      gridDataMap,
+      gridDataTreeMap,
+      options,
+    };
+  
+    return parsedData;
+  }
+  // const parsedData: ParsedMatrixData = {
+  //   gridData,
+  //   yTreeData,
+  //   yTreeNodes,
+  //   yTreeNodesMap,
+  //   legendData,
+  //   gridDataMap,
+  //   gridDataTreeMap,
+  //   options,
+  // };
+
+  // return parsedData;
 };
 
 /**

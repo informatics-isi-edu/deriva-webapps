@@ -28,7 +28,11 @@
     "webpack-bundle-analyzer": "^4.5.0"
   },
   "dependencies": {
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
     "@isrd-isi-edu/chaise": "0.0.12",
+    "@mui/lab": "^5.0.0-alpha.134",
+    "@mui/material": "^5.13.6",
     "plotly.js-cartesian-dist-min": "^2.18.2",
     "react-select": "^5.7.0",
     "react-window": "^1.8.8"
