@@ -352,16 +352,46 @@ const parsePlotData = (
   if (plot.plot_type === 'heatmap') {
     result.data = [
       {
-        x: ['a', 'b', 'c', 'd'],
-        y: [1, 2, 3, 4],
-        z: [[1,2,3,4], [1,23,34,21], [2, 5, 27, 4], [12,14,26,22]],
-        xgap: 5,
-        ygap: 5,
-        type: 'heatmap',
-        hoverinfo: 'text',
-        text: [['z1=1<br>z2=3<br>z3=26', 'Text B', 'Text C', 'Text D'], ['Text A', 'Text B', 'Text C', 'Text D'], ['Text A', 'Text B', 'Text C', 'Text D'], ['Text A', 'Text B', 'Text C', 'Text D']]
+        x: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+        y: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'],
+        z: [
+          [821, 1108, 1312, 1164, 1198, 1278, 1139, 1073, 1222, 1315, 1194, 691],
+          [1472, 117203, 95992, 54773, 43757, 99875, 24687, 40649, 71033, 94595, 98930, 1306], 
+          [1794, 109685, 107346, 50125, 42537, 100372, 31554, 39837, 71834, 92849, 95172, 1649], 
+          [1720, 107008, 100695, 48612, 41693, 100449, 29687, 39892, 68703, 93161, 87335, 1802],
+          [1776, 105140, 92726, 42919, 43910, 104473, 27526, 34914, 51023, 89032, 96222, 1549],
+          [1733, 100957, 87453, 41616, 45354, 105182, 27181, 35740, 50918, 82714, 84377, 1557],
+          [1268, 95745, 87880, 42267, 53145, 103732, 27784, 36428, 53013, 88795, 93456, 1109],
+          [783, 968, 1157, 1125, 1310, 1268, 1169, 1202, 1131, 1257, 995, 572]
+        ],
+        xgap: 2,
+        ygap: 2,
+        type: 'heatmap'
       }
     ];
+
+    const yData = result.data[0].y;
+    const xData = result.data[0].x;
+
+    result.layout.annotations = [];
+    for ( let i = 0; i < yData.length; i++ ) {
+      for ( let j = 0; j < xData.length; j++ ) {
+        const annotationToPush = {
+          xref: 'x1',
+          yref: 'y1',
+          x: xData[j],
+          y: yData[i],
+          text: result.data[0].z[i][j],
+          font: {
+            family: 'Arial',
+            size: 12,
+            color: 'black'
+          },
+          showarrow: false
+        };
+        result.layout.annotations.push(annotationToPush);
+      }
+    }
   }
 
   updatePlotlyConfig(plot, result); // update the config
