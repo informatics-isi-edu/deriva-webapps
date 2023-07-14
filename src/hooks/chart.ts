@@ -238,70 +238,72 @@ export const useChartData = (plot: Plot) => {
   });
 
   useEffect(() => {
-    const uniqueX = parsedData?.layout?.xaxis?.tickvals?.filter(function (item: any, pos: number) {
-      return parsedData?.layout?.xaxis?.tickvals?.indexOf(item) === pos;
-    });
-    const longestString = uniqueX?.reduce((a: any, b: any) => a.length > b.length ? a : b, '');
-    const newPlot = getWidthOfDiv(parsedData?.layout?.xaxis?.tickvals, uniqueX, { width, height }, longestString);
-    if (width && width <= 1000) {
-      setParsedData((prevParsedData: { data: any, layout: any; }) => {
-        if (prevParsedData?.data?.length > 0) {
-          return {
-            ...prevParsedData,
-            data: [
-              {
-                ...prevParsedData.data[0],
-                transforms: [
-                  {
-                    ...prevParsedData.data[0].transforms[0],
-                    groups: newPlot,
-                  },
-                  ...prevParsedData.data[0].transforms?.slice(1),
-                ],
-              },
-              ...prevParsedData.data?.slice(1),
-            ],
-            layout: {
-              ...prevParsedData?.layout,
-              legend: {
-                xanchor: 'center',
-                x: 0.5,
-                y: -2,
-                orientation: 'h',
-              },
-            },
-          };
-        }
+    if (plot.plot_type === 'violin') {
+      const uniqueX = parsedData?.layout?.xaxis?.tickvals?.filter(function (item: any, pos: number) {
+        return parsedData?.layout?.xaxis?.tickvals?.indexOf(item) === pos;
       });
-    } else if (width && width > 1000) {
-      setParsedData((prevParsedData: { data: any, layout: any; }) => {
-        if (prevParsedData?.data?.length > 0) {
-          return {
-            ...prevParsedData,
-            data: [
-              {
-                ...prevParsedData.data[0],
-                transforms: [
-                  {
-                    ...prevParsedData.data[0].transforms[0],
-                    groups: newPlot,
-                  },
-                  ...prevParsedData.data[0].transforms?.slice(1),
-                ],
+      const longestString = uniqueX?.reduce((a: any, b: any) => a.length > b.length ? a : b, '');
+      const newPlot = getWidthOfDiv(parsedData?.layout?.xaxis?.tickvals, uniqueX, { width, height }, longestString);
+      if (width && width <= 1000) {
+        setParsedData((prevParsedData: { data: any, layout: any; }) => {
+          if (prevParsedData?.data?.length > 0) {
+            return {
+              ...prevParsedData,
+              data: [
+                {
+                  ...prevParsedData.data[0],
+                  transforms: [
+                    {
+                      ...prevParsedData.data[0].transforms[0],
+                      groups: newPlot,
+                    },
+                    ...prevParsedData.data[0].transforms?.slice(1),
+                  ],
+                },
+                ...prevParsedData.data?.slice(1),
+              ],
+              layout: {
+                ...prevParsedData?.layout,
+                legend: {
+                  xanchor: 'center',
+                  x: 0.5,
+                  y: -2,
+                  orientation: 'h',
+                },
               },
-              ...prevParsedData.data?.slice(1),
-            ],
-            layout: {
-              ...prevParsedData?.layout,
-              legend: {
-                orientation: 'v',
-                x: 1,
-                y: 1,
-              },
-            },
+            };
           }
-        }
-      });
+        });
+      } else if (width && width > 1000) {
+        setParsedData((prevParsedData: { data: any, layout: any; }) => {
+          if (prevParsedData?.data?.length > 0) {
+            return {
+              ...prevParsedData,
+              data: [
+                {
+                  ...prevParsedData.data[0],
+                  transforms: [
+                    {
+                      ...prevParsedData.data[0].transforms[0],
+                      groups: newPlot,
+                    },
+                    ...prevParsedData.data[0].transforms?.slice(1),
+                  ],
+                },
+                ...prevParsedData.data?.slice(1),
+              ],
+              layout: {
+                ...prevParsedData?.layout,
+                legend: {
+                  orientation: 'v',
+                  x: 1,
+                  y: 1,
+                },
+              },
+            }
+          }
+        });
+      }
     }
   }, [width]);
 
