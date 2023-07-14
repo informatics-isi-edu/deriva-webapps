@@ -190,7 +190,7 @@ export const extractValue = (pattern: string, width: number, wrapLimit: number) 
     const anchorTags = pattern?.split(anchorTagRegex);
     const extractedTexts = anchorTags?.filter(text => text !== '');
     messageText = pattern.replace(extractedTexts[1], wrapText(extractedTexts[1], width, wrapLimit));
-  } 
+  }
   //Else just wrap the given text without extracting
   else {
     messageText = wrapText(pattern, width, wrapLimit);
@@ -227,7 +227,7 @@ export const wrapText = (text: string, width: number, wrapLimit: number) => {
       currentLine += wordWithSpace;
     }
     //Else put the word in next line i.e. add word after inserting <br> tag
-     else {
+    else {
       //Break the loop if maximum lines of wrapping has reached (to not show the text content after this line)
       if (brCount === wrapLimit - 1) {
         break;

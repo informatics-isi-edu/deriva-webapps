@@ -197,7 +197,6 @@ export const useChartData = (plot: Plot) => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isInitLoading, setIsInitLoading] = useState<boolean>(false);
   const [isDataLoading, setIsDataLoading] = useState<boolean>(false);
-  const [violinCount, setViolinCount] = useState<number>(0);
   const [isParseLoading, setIsParseLoading] = useState<boolean>(false);
   const { dispatchError, errors } = useError();
   const { width = 0, height = 0 } = useWindowSize();
@@ -636,13 +635,13 @@ const updatePlotlyLayout = (
     }
     //TODO: We can configure this minimum width somewhere(may be pass it through config or have a global variable)
     //To move the legend inside the plot the the width of screen is less than 1000px on load
-    if(innerWidth<1000){
-       result.layout.legend={
-          xanchor: 'center',
-          x: 0.5,
-          y: -2,
-          orientation: 'h',
-       }
+    if (innerWidth < 1000) {
+      result.layout.legend = {
+        xanchor: 'center',
+        x: 0.5,
+        y: -2,
+        orientation: 'h',
+      }
     }
   }
 
@@ -737,6 +736,7 @@ const parseViolinResponse = (
         const xVal = xGroupItem?.legend_markdown_pattern
           ? createLink(xGroupItem?.legend_markdown_pattern[0], { $row: item })
           : item[groupByKey] || 'N/A';
+        //Adding all unique x values to array to calculate the no. of violins to be displayed on plot
         if (uniqueX.indexOf(xVal) === -1) {
           uniqueX.push(xVal);
         }
@@ -1068,20 +1068,20 @@ const parseHeatmapResponse = (trace: Trace, plot: Plot, responseData: ResponseDa
 const getHeatmapLayoutParams = (input: inputParamsType, longestXTick: number, longestYTick: number, lengthY: number) => {
   let height;
   let yTickAngle;
-  const bMargin = 25;
-  let rMargin, tMargin, lMargin;
+  const tMargin = 25;
+  let rMargin, bMargin, lMargin;
   if (longestXTick <= 18) {
     height = longestXTick * 9 + lengthY * 10 + 50;
-    tMargin = 8.4 * longestXTick;
+    bMargin = 8.4 * longestXTick;
   } else if (longestXTick <= 22) {
     height = longestXTick * 9 + lengthY * 10 + 55;
-    tMargin = 8.4 * longestXTick;
+    bMargin = 8.4 * longestXTick;
   } else if (longestXTick <= 30) {
     height = longestXTick * 8.8 + lengthY * 10 + 55;
-    tMargin = 8.2 * longestXTick;
+    bMargin = 8.2 * longestXTick;
   } else {
     height = longestXTick * 8.8 + lengthY * 10 + 45;
-    tMargin = 8 * longestXTick;
+    bMargin = 8 * longestXTick;
   }
 
   if (lengthY === 1) {
@@ -1219,28 +1219,28 @@ const getWidthOfDiv = (legendNames: any[], uniqueX: any[], dimensions: any, long
   /*If screen is less than 1000px and legend is 50% of plot area then wrap the text upto 30 characters 
   which will make the legend of minimum possible width*/
   if (plotWidth < 1000 && width / plotWidth > 0.50) {
-    legendNames = legendNames?.map((name) => name.includes('<a') 
-    ? extractValue(name, charLimit.sm, truncationLimit) : wrapText(name, charLimit.sm, truncationLimit))
-  } 
+    legendNames = legendNames?.map((name) => name.includes('<a')
+      ? extractValue(name, charLimit.sm, truncationLimit) : wrapText(name, charLimit.sm, truncationLimit))
+  }
   /*NOTE: These numbers are taken of the basis of current data and different testing scenarios considering the longest x label and 
   amount of width legend is taking as compared to the plot area*/
   /*If the number of violins is less than or equal to 7 and the width-to-plot-width ratio is greater than 0.40, 
   the legendNames array is modified similarly to the previous step, but using the charLimit.lg character limit (i.e 80).*/
   else if (noOfViolins <= 7 && width / plotWidth > 0.40) {
-    legendNames = legendNames.map((name) => name.includes('<a') 
-    ? extractValue(name, charLimit.lg, truncationLimit) : wrapText(name, charLimit.lg, truncationLimit))
+    legendNames = legendNames.map((name) => name.includes('<a')
+      ? extractValue(name, charLimit.lg, truncationLimit) : wrapText(name, charLimit.lg, truncationLimit))
   }
   /*If the number of violins is between 7 and 30 (inclusive) and the width-to-plot-width ratio is greater than 0.30, 
-  the legendNames array is modified similarly to the previous step, but using the charLimit.md character limit (i.e 65).*/ 
+  the legendNames array is modified similarly to the previous step, but using the charLimit.md character limit (i.e 65).*/
   else if ((noOfViolins > 7 && noOfViolins <= 30) && width / plotWidth > 0.3) {
-    legendNames = legendNames.map((name) => name.includes('<a') 
-    ? extractValue(name, charLimit.md, truncationLimit) : wrapText(name,charLimit.md, truncationLimit))
+    legendNames = legendNames.map((name) => name.includes('<a')
+      ? extractValue(name, charLimit.md, truncationLimit) : wrapText(name, charLimit.md, truncationLimit))
   }
   /*If the number of violins is greater than 30 and the width-to-plot-width ratio is greater than 0.3,
-   the legendNames array is modified similarly to the previous step, but using the charLimit.sm character limit (i.e 30).*/ 
+   the legendNames array is modified similarly to the previous step, but using the charLimit.sm character limit (i.e 30).*/
   else if (noOfViolins > 30 && width / plotWidth > 0.30) {
-    legendNames = legendNames.map((name) => name.includes('<a') 
-    ? extractValue(name, charLimit.sm, truncationLimit) : wrapText(name, charLimit.sm, truncationLimit))
+    legendNames = legendNames.map((name) => name.includes('<a')
+      ? extractValue(name, charLimit.sm, truncationLimit) : wrapText(name, charLimit.sm, truncationLimit))
   }
   return legendNames;
 };
