@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+import useAlert from '@isrd-isi-edu/chaise/src/hooks/alerts';
 import {
   PlotData as PlotlyPlotData,
   ViolinData as PlotlyViolinData,
@@ -35,6 +36,8 @@ import {
 import useIsFirstRender from '@isrd-isi-edu/chaise/src/hooks/is-first-render';
 import { getQueryParam } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
+import { ChaiseAlertType } from '@isrd-isi-edu/chaise/src/providers/alerts';
+
 
 /**
  * Data received from API request
@@ -198,7 +201,10 @@ export const useChartData = (plot: Plot) => {
   const [isInitLoading, setIsInitLoading] = useState<boolean>(false);
   const [isDataLoading, setIsDataLoading] = useState<boolean>(false);
   const [isParseLoading, setIsParseLoading] = useState<boolean>(false);
+  const [isAlertActive, setIsAlertActive] = useState<boolean>(false);
   const { dispatchError, errors } = useError();
+  const alertFunctions  = useAlert();
+
 
   /**
    * Template parameters for the plot
@@ -330,7 +336,7 @@ export const useChartData = (plot: Plot) => {
   // Parse data on state changes to data or selectData
   useEffect(() => {
     if (data && !isDataLoading && !isInitLoading && !isFetchSelected) {
-      const parsedPlotData = parsePlotData(plot, data, selectData, templateParams);
+      const parsedPlotData = parsePlotData(plot, data, selectData, templateParams, alertFunctions);
       setParsedData(parsedPlotData);
       setIsParseLoading(false); // set loading to false after parsing
     }
@@ -362,7 +368,8 @@ const parsePlotData = (
   plot: Plot,
   unpackedResponses: ResponseData[],
   selectDataGrid: any,
-  templateParams: any
+  templateParams: any,
+  alertFunctions: any
 ) => {
   const result: any = { data: [] };
   result.config = { ...plot?.plotly?.config };
@@ -380,25 +387,26 @@ const parsePlotData = (
     const currTrace = plot.traces[index];
     hovertemplate_display_pattern = currTrace.hovertemplate_display_pattern; //use trace info
     if (plot.plot_type === 'bar') {
-      return parseBarResponse(currTrace, plot, responseData);
+      return parseBarResponse(currTrace, plot, responseData, alertFunctions);
     } else if (plot.plot_type === 'pie') {
-      return parsePieResponse(currTrace, plot, responseData);
+      return parsePieResponse(currTrace, plot, responseData, alertFunctions);
     } else if (plot.plot_type === 'scatter') {
-      return parseScatterResponse(currTrace, plot, responseData);
+      return parseScatterResponse(currTrace, plot, responseData, alertFunctions);
     } else if (plot.plot_type === 'histogram') {
-      return parseHistogramResponse(currTrace, plot, responseData);
+      return parseHistogramResponse(currTrace, plot, responseData, alertFunctions);
     } else if (plot.plot_type === 'violin') {
       const { result: parseResult, layout } = parseViolinResponse(
         currTrace,
         plot,
         responseData,
         selectDataGrid,
+        alertFunctions,
         templateParams.noData
       );
       additionalLayout = layout;
       return parseResult;
     } else if (plot.plot_type === 'heatmap') {
-      const heatmapData = parseHeatmapResponse(currTrace, plot, responseData, templateParams);
+      const heatmapData = parseHeatmapResponse(currTrace, plot, responseData, templateParams, alertFunctions);
       additionalLayout = { ...heatmapData.layoutParams };
       return heatmapData.result;
     }
@@ -599,6 +607,7 @@ const parseViolinResponse = (
   plot: Plot,
   responseData: ResponseData,
   selectDataGrid: any,
+  alertFunctions?: any,
   noData?: boolean
 ) => {
   const { ...plotlyTrace } = trace;
@@ -680,7 +689,7 @@ const parseViolinResponse = (
           }
         }
       }
-      tempText=updateHoverTemplateData(result,trace,item,tempText);
+      tempText=updateHoverTemplateData(result,trace,item,tempText,alertFunctions);
     });
 
     result.x = x;
@@ -714,7 +723,7 @@ const parseViolinResponse = (
  * @param responseData data received from request to be parsed
  * @returns
  */
-const parseHistogramResponse = (trace: Trace, plot: Plot, responseData: ResponseData) => {
+const parseHistogramResponse = (trace: Trace, plot: Plot, responseData: ResponseData, alertFunctions: any) => {
   const result: Partial<TraceConfig> & Partial<PlotlyPlotData> = {
     ...trace,
     type: 'histogram',
@@ -729,7 +738,7 @@ const parseHistogramResponse = (trace: Trace, plot: Plot, responseData: Response
       const value = getValue(item, trace.data_col, undefined, format_data, plot);
       dataPoints.push(value);
     }
-    tempText=updateHoverTemplateData(result,trace,item,tempText);
+    tempText=updateHoverTemplateData(result,trace,item,tempText,alertFunctions);
   });
 
   // Add data to correct axis depending on orientation
@@ -752,7 +761,7 @@ const parseHistogramResponse = (trace: Trace, plot: Plot, responseData: Response
  * @param responseData data received from request to be parsed
  * @returns
  */
-const parseScatterResponse = (trace: Trace, plot: Plot, responseData: ResponseData) => {
+const parseScatterResponse = (trace: Trace, plot: Plot, responseData: ResponseData, alertFunctions: any) => {
   const result: Partial<TraceConfig> & Partial<PlotlyPlotData> = {
     ...trace,
     mode: 'markers',
@@ -782,7 +791,7 @@ const parseScatterResponse = (trace: Trace, plot: Plot, responseData: ResponseDa
       const value = getValue(item, colName, yaxis, format_data_y, plot);
       y.push(value?.toString());
     });
-    tempText=updateHoverTemplateData(result,trace,item,tempText);
+    tempText=updateHoverTemplateData(result,trace,item,tempText,alertFunctions);
   });
   //sets the hovertext array and hoverinfo
   setHoverText(result,tempText,trace);
@@ -799,7 +808,7 @@ const parseScatterResponse = (trace: Trace, plot: Plot, responseData: ResponseDa
  * @param responseData data received from request to be parsed
  * @returns
  */
-const parsePieResponse = (trace: Trace, plot: Plot, responseData: ResponseData) => {
+const parsePieResponse = (trace: Trace, plot: Plot, responseData: ResponseData, alertFunctions: any) => {
   const result: Partial<TraceConfig> & Partial<PlotlyPieData> & PieResultData & ClickableLinks = {
     ...trace,
     type: plot.plot_type,
@@ -835,7 +844,7 @@ const parsePieResponse = (trace: Trace, plot: Plot, responseData: ResponseData) 
       result.text.push(textValue);
       result.labels.push(labelValue);
     }
-    tempText=updateHoverTemplateData(result,trace,item,tempText);
+    tempText=updateHoverTemplateData(result,trace,item,tempText,alertFunctions);
   });
   setHoverText(result,tempText,trace);
   return result;
@@ -849,7 +858,7 @@ const parsePieResponse = (trace: Trace, plot: Plot, responseData: ResponseData) 
  * @param responseData data received from request to be parsed
  * @returns
  */
-const parseBarResponse = (trace: Trace, plot: Plot, responseData: ResponseData) => {
+const parseBarResponse = (trace: Trace, plot: Plot, responseData: ResponseData, alertFunctions: any) => {
   const result: Partial<TraceConfig> & Partial<PlotlyPlotData> & PlotResultData & ClickableLinks = {
     ...trace,
     type: plot.plot_type,
@@ -889,7 +898,7 @@ const parseBarResponse = (trace: Trace, plot: Plot, responseData: ResponseData) 
       const value = getValue(item, colName, yaxis, format_data_y, plot);
       result.y.push(value.toString());
     });
-    tempText=updateHoverTemplateData(result,trace,item,tempText);
+    tempText=updateHoverTemplateData(result,trace,item,tempText,alertFunctions);
   });
   //sets the hovertext array and hoverinfo
   setHoverText(result,tempText,trace);
@@ -906,7 +915,7 @@ const parseBarResponse = (trace: Trace, plot: Plot, responseData: ResponseData) 
  * @param templateParams url parameters
  * @returns
  */
-const parseHeatmapResponse = (trace: Trace, plot: Plot, responseData: ResponseData, templateParams: PlotTemplateParams) => {
+const parseHeatmapResponse = (trace: Trace, plot: Plot, responseData: ResponseData, templateParams: PlotTemplateParams, alertFunctions: any) => {
   const result: Partial<TraceConfig> & Partial<PlotlyPlotData> & PlotResultData & ClickableLinks & HeatmapZData = {
     ...trace,
     type: plot.plot_type,
@@ -947,7 +956,7 @@ const parseHeatmapResponse = (trace: Trace, plot: Plot, responseData: ResponseDa
     trace?.z_col?.forEach((colName: string) => {
       const zValue = item[colName];
       result?.z[yIndex]?.push(zValue);
-      tempText=updateHoverTemplateData(result,trace,item,tempText,yIndex,templateParams);
+      tempText=updateHoverTemplateData(result,trace,item,tempText,alertFunctions,yIndex,templateParams);
     });
     // Add the x values for the heatmap plot if its not added yet
     trace?.x_col?.forEach((colName: string) => {
@@ -1132,13 +1141,32 @@ const updateWithTraceColData = (
  * @param templateParams provided for heatmap to access url_parameters
  * @returns 
  */
-const updateHoverTemplateData = (result: any,  trace: Trace, item: any, textArray: any[], index: number=0, templateParams?: PlotTemplateParams) => {
+const updateHoverTemplateData = (
+  result: any,  
+  trace: Trace, 
+  item: any, 
+  textArray: any[], 
+  alertFunctions?: any,
+  index: number=0, 
+  templateParams?: PlotTemplateParams,
+  ) => {
   const hovertemplate_display_pattern = trace.hovertemplate_display_pattern; // use trace info
   if(hovertemplate_display_pattern){
-    const link = ConfigService.ERMrest._renderHandlebarsTemplate(hovertemplate_display_pattern, { $self: { data: item }, 
+    const validLink=ConfigService.ERMrest._renderHandlebarsTemplate(hovertemplate_display_pattern, { $self: { data: item }, 
       $row: item, 
       $url_parameters: templateParams?.$url_parameters
     });
+    /**If there are any invalid params in the hover template display pattern, the link generated will be null.
+    Therefore the following piece of code will add an alert for stating that just once*/
+    if(!validLink && (Array.isArray(textArray[0]) ? textArray[0]?.length===1 : textArray?.length===1)){
+      if(alertFunctions.alerts?.length===0){
+          alertFunctions.addAlert('Invalid key provided for hover template display pattern!', ChaiseAlertType.WARNING);
+      }
+    }
+    const link = ConfigService.ERMrest._renderHandlebarsTemplate(hovertemplate_display_pattern, { $self: { data: item }, 
+      $row: item, 
+      $url_parameters: templateParams?.$url_parameters
+    }, null, {avoidValidation: true} );
     if(link){
       switch(result.type){
         case 'bar':

@@ -85,4 +85,9 @@
     align-items: center;
     margin-right: 4px;
   }
+  
+  //To add custom styling for study violin plot hover text to improve readability of link inside the hover text
+  .main-svg .hoverlayer .hovertext text a {
+    fill: inherit;
+  }
 }

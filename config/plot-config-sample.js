@@ -526,7 +526,7 @@ var plotConfigs = {
             nbinsx: 50,
           },
           {
-            hovertemplate_display_pattern: "Creation Date: {{{$row.RCT}}}<br>Trace2",
+            hovertemplate_display_pattern: "Creation Date: {{{$row.RC}}}<br>Trace2",
             queryPattern: '/ermrest/catalog/2/entity/Gene_Expression:Specimen@sort(RCT::desc::)?limit=10000',
             data_col: 'RCT',
             orientation: 'v',
@@ -644,7 +644,7 @@ var plotConfigs = {
         {
           graphic_link_pattern:
             ['/chaise/recordset/#2/RNASeq:Replicate_Expression'],
-          hovertemplate_display_pattern: "Label: {{{$row.Label}}}<br>Probe Name: {{{$row.Probe_Set_Name}}}<br>Value: {{{$row.Value}}}<br>Gene ID: {{{$url_parameters.Gene.data.NCBI_GeneID}}}",
+          hovertemplate_display_pattern: "Label: {{{$row.Label}}}<br>Probe Name: {{{$row.Probe_Set_Name}}}<br>Value: {{{$row.Value}}}<br>Gene ID: {{{$url_parameters.Gene.data.NCBI_GeneI}}}",
           queryPattern: '/ermrest/catalog/2/entity/Gene_Expression:Array_Data_view/NCBI_GeneID={{{$url_parameters.Gene.data.NCBI_GeneID}}}&Section_Ordinal=3',
           x_col: ["Label"],
           y_col: ["Probe_Set_Name"],
