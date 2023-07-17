@@ -201,7 +201,6 @@ export const useChartData = (plot: Plot) => {
   const [isInitLoading, setIsInitLoading] = useState<boolean>(false);
   const [isDataLoading, setIsDataLoading] = useState<boolean>(false);
   const [isParseLoading, setIsParseLoading] = useState<boolean>(false);
-  const [isAlertActive, setIsAlertActive] = useState<boolean>(false);
   const { dispatchError, errors } = useError();
   const alertFunctions  = useAlert();
 
