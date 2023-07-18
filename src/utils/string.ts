@@ -173,3 +173,78 @@ export const getPatternUri = (queryPattern: string, templateParams: any) => {
 
   return { uri, headers };
 };
+
+/**
+ * 
+ * @param pattern uri link pattern
+ * @param width no. of characters to be shown in one line used by wrapText method
+ * @param wrapLimit maximum no. of lines to be shown after wrapping text used by wrapText method
+ * @returns wrapped text/link with <br> tags inserted
+ */
+export const extractValue = (pattern: string, width: number, wrapLimit: number) => {
+  const anchorTagRegex = /<a\b[^>]*>(.*?)<\/a>/g;
+  let messageText=pattern;
+  const match = pattern?.match(anchorTagRegex);
+  //If pattern has anchor tags then replace the text inside the anchor tag
+  if (match) {
+    const anchorTags = pattern?.split(anchorTagRegex);
+    const extractedTexts = anchorTags?.filter(text => text !== '');
+    messageText = pattern.replace(extractedTexts[1], wrapText(extractedTexts[1], width, wrapLimit));
+  }
+  //Else just wrap the given text without extracting
+  else {
+    messageText = wrapText(pattern, width, wrapLimit);
+  }
+
+  return messageText;
+};
+
+/**
+ * 
+ * @param text long string
+ * @param width no. of characters to be shown in one line
+ * @param wrapLimit maximum no. of lines to be shown after wrapping text
+ * @returns wrapped text with <br> tags inserted
+ */
+export const wrapText = (text: string, width: number, wrapLimit: number) => {
+  const words = text?.split(' ');
+  let currentLine = '';
+  let wrappedText = '';
+  let brCount = 0;
+  let i;
+  //Return original text when it less than wrapping width
+  if (text?.length <= width) {
+    return text;
+  }
+
+  //Loop to create the wrapped text word by word
+  for (i = 0; i < words?.length; i++) {
+    const word = words[i];
+    const wordWithSpace = (currentLine ? ' ' : '') + word;
+
+    //If current line can accomodate given word within wrapping limit then add it to the current line
+    if (currentLine?.length + wordWithSpace?.length <= width) {
+      currentLine += wordWithSpace;
+    }
+    //Else put the word in next line i.e. add word after inserting <br> tag
+    else {
+      //Break the loop if maximum lines of wrapping has reached (to not show the text content after this line)
+      if (brCount === wrapLimit - 1) {
+        break;
+      }
+      wrappedText += (wrappedText ? '<br>' : '') + currentLine;
+      currentLine = word;
+      brCount++;
+    }
+  }
+  //Append the currentline with text
+  wrappedText += (wrappedText ? '<br>' : '') + currentLine;
+  //Add ellipses at the end if the text is truncated due to limit
+  if (i <= words?.length - 1) {
+    wrappedText += '...';
+  }
+  return wrappedText;
+}
+
+
+

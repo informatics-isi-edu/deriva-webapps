@@ -4,7 +4,7 @@ import { CustomError } from '@isrd-isi-edu/chaise/src/models/errors';
 import { isObjectAndNotNull, isStringAndNotEmpty } from '@isrd-isi-edu/chaise/src/utils/type-utils';
 import { getQueryParam } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
-import { DataConfig, PlotConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot-config';
+import { DataConfig, PlotConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 
 const throwCustomError = (header: string, message: string) => {
   throw new CustomError(header, message);

@@ -11,6 +11,8 @@ import {
   createLink,
   getPatternUri,
   createLinkWithContextParams,
+  extractValue,
+  wrapText,
 } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 import { flatten2DArray } from '@isrd-isi-edu/deriva-webapps/src/utils/data';
 
@@ -28,10 +30,13 @@ import {
   DataConfig,
   Trace,
   TraceConfig,
-} from '@isrd-isi-edu/deriva-webapps/src/models/plot-config';
+  screenWidthThreshold,
+  plotAreaFraction,
+} from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 import useIsFirstRender from '@isrd-isi-edu/chaise/src/hooks/is-first-render';
 import { getQueryParam } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
+import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
 
 /**
  * Data received from API request
@@ -154,6 +159,17 @@ export type layoutParamsType = {
   yTickAngle: number,
 }
 
+export type dimensionsType = {
+  /**
+  * Width of screen
+  */
+  width: number,
+  /**
+  * Height of screen
+  */
+  height: number
+}
+
 
 /**
  * Sets the plot configs
@@ -196,6 +212,7 @@ export const useChartData = (plot: Plot) => {
   const [isDataLoading, setIsDataLoading] = useState<boolean>(false);
   const [isParseLoading, setIsParseLoading] = useState<boolean>(false);
   const { dispatchError, errors } = useError();
+  const { width = 0, height = 0 } = useWindowSize();
 
   /**
    * Template parameters for the plot
@@ -233,6 +250,84 @@ export const useChartData = (plot: Plot) => {
     setIsModalOpen,
   });
 
+
+  /**
+   * Updates the legend text and orientation for all plots for which legend is available as per the change in screen width
+   */
+  useEffect(() => {
+    if (parsedData?.data && parsedData?.data[0].transforms?.length >= 1) {
+      const uniqueX = parsedData?.layout?.xaxis?.tickvals?.filter(function (item: any, pos: number) {
+        return parsedData?.layout?.xaxis?.tickvals?.indexOf(item) === pos;
+      });
+      const longestString = uniqueX?.reduce((a: any, b: any) => a.length > b.length ? a : b, '');
+      const newPlot = getWidthOfDiv(parsedData?.layout?.xaxis?.tickvals, uniqueX, { width, height }, longestString);
+      if (width && width <= screenWidthThreshold) {
+        //Setting the wrapped legend text for plot and show the legend horizontally below the plot when the screen size is less than or equal to 1000px
+        //It overrides the settings made in plot config
+        setParsedData((prevParsedData: { data: any, layout: any; }) => {
+          if (prevParsedData?.data?.length > 0) {
+            return {
+              ...prevParsedData,
+              data: [
+                {
+                  ...prevParsedData.data[0],
+                  transforms: [
+                    {
+                      ...prevParsedData.data[0].transforms[0],
+                      //Passing the modified legend text array to group by using new legend and display the wrapped legend on plot as per screen size
+                      groups: newPlot,
+                    },
+                    ...prevParsedData.data[0].transforms?.slice(1),
+                  ],
+                },
+                ...prevParsedData.data?.slice(1),
+              ],
+              layout: {
+                ...prevParsedData?.layout,
+                legend: {
+                  xanchor: 'center',
+                  x: 0.5,
+                  y: -2,
+                  orientation: 'h',
+                },
+              },
+            };
+          }
+        });
+      } else if (width && width > screenWidthThreshold) {
+        setParsedData((prevParsedData: { data: any, layout: any; }) => {
+          if (prevParsedData?.data?.length > 0) {
+            return {
+              ...prevParsedData,
+              data: [
+                {
+                  ...prevParsedData.data[0],
+                  transforms: [
+                    {
+                      ...prevParsedData.data[0].transforms[0],
+                      //Passing the modified legend text array to group by using new legend and display the wrapped legend on plot as per screen size
+                      groups: newPlot,
+                    },
+                    ...prevParsedData.data[0].transforms?.slice(1),
+                  ],
+                },
+                ...prevParsedData.data?.slice(1),
+              ],
+              layout: {
+                ...prevParsedData?.layout,
+                legend: {
+                  orientation: 'v',
+                  x: 1,
+                  y: 1,
+                },
+              },
+            }
+          }
+        });
+      }
+    }
+  }, [width]);
+
   /**
    * Fetches data from the plot traces in the plot config and returns the data
    */
@@ -250,7 +345,7 @@ export const useChartData = (plot: Plot) => {
         }
         else if (trace.uri) {
           return ConfigService.http.get(trace.uri);
-        }  else {
+        } else {
           return { data: [] };
         }
       })
@@ -327,7 +422,7 @@ export const useChartData = (plot: Plot) => {
   // Parse data on state changes to data or selectData
   useEffect(() => {
     if (data && !isDataLoading && !isInitLoading && !isFetchSelected) {
-      const parsedPlotData = parsePlotData(plot, data, selectData, templateParams);
+      const parsedPlotData = parsePlotData(plot, data, selectData, templateParams, { width, height });
       setParsedData(parsedPlotData);
       setIsParseLoading(false); // set loading to false after parsing
     }
@@ -354,13 +449,15 @@ export const useChartData = (plot: Plot) => {
  *
  * @param plot configs for a specific plot
  * @param unpackedResponses response data
+ * @param dimensions width and height of the screen
  * @returns plotly data to be inserted into props
  */
 const parsePlotData = (
   plot: Plot,
   unpackedResponses: ResponseData[],
   selectDataGrid: any,
-  templateParams: any
+  templateParams: any,
+  dimensions: dimensionsType,
 ) => {
   const result: any = { data: [] };
   result.config = { ...plot?.plotly?.config };
@@ -389,7 +486,8 @@ const parsePlotData = (
         plot,
         responseData,
         selectDataGrid,
-        templateParams.noData
+        dimensions,
+        templateParams.noData,
       );
       additionalLayout = layout;
       return parseResult;
@@ -404,7 +502,6 @@ const parsePlotData = (
   updatePlotlyLayout(plot, result, templateParams, additionalLayout, selectDataGrid); // update the layout
 
   // width and heigh are set in the css
-
   return result;
 };
 
@@ -504,7 +601,6 @@ const updatePlotlyLayout = (
     title = 'No Data';
   }
   if (title) result.layout.title = title;
-
   // x axis
   if (!result.layout.xaxis) {
     // initialize xaxis if it doesn't exist
@@ -518,10 +614,10 @@ const updatePlotlyLayout = (
     // use the tickvals if it exists
     result.layout.xaxis.tickvals = additionalLayout.xaxis.tickvals;
   }
-  // if (additionalLayout?.xaxis?.ticktext) {
-  //   // use the ticktext if it exists
-  //   result.layout.xaxis.ticktext = additionalLayout.xaxis.ticktext;
-  // }
+  if (additionalLayout?.xaxis?.ticktext) {
+    // use the ticktext if it exists
+    result.layout.xaxis.ticktext = additionalLayout.xaxis.ticktext;
+  }
   if (selectDataGrid) {
     // use the groupby axis title if it exists
     const xaxisTitle = getSelectGroupByAxisTitle(selectDataGrid, 'x');
@@ -560,6 +656,15 @@ const updatePlotlyLayout = (
     if (result.layout.yaxis.zeroline === undefined) {
       result.layout.yaxis.zeroline = false;
     }
+    //To move the legend inside the plot the the width of screen is less than 1000px on load
+    if (innerWidth < screenWidthThreshold) {
+      result.layout.legend = {
+        xanchor: 'center',
+        x: 0.5,
+        y: -2,
+        orientation: 'h',
+      }
+    }
   }
 
   result.layout.yaxis.automargin = true;
@@ -594,12 +699,13 @@ const parseViolinResponse = (
   plot: Plot,
   responseData: ResponseData,
   selectDataGrid: any,
+  dimensions: dimensionsType,
   noData?: boolean
 ) => {
   const { ...plotlyTrace } = trace;
   const result: Partial<TraceConfig> &
     Partial<PlotlyViolinData> &
-    Partial<{ transforms: any[] }> &
+    Partial<PlotlyPlotData> &
     Partial<ClickableLinks> = {
     ...plotlyTrace,
     type: 'violin',
@@ -641,20 +747,29 @@ const parseViolinResponse = (
     const x: any[] = [];
     const y: any[] = [];
     const xTicks: any[] = [];
+    let legendNames: string[] = [];
+    const uniqueX: string[] = [];
+    let longestXTick = '';
     responseData.forEach((item: any, i: number) => {
       if (xGroupBy) {
         const groupByKey = xGroupBy.value.value;
         const xGroupItem = xGroupBy.groupKeysMap[groupByKey];
         updateWithTraceColData(result, trace, item, i, xGroupItem);
-
         const xVal = xGroupItem?.legend_markdown_pattern
           ? createLink(xGroupItem?.legend_markdown_pattern[0], { $row: item })
-          : (item[groupByKey] || 'N/A');
-
+          : item[groupByKey] || 'N/A';
+        //Adding all unique x values to array to calculate the no. of violins to be displayed on plot
+        if (uniqueX.indexOf(xVal) === -1) {
+          uniqueX.push(xVal);
+        }
+        //Extract text from xTick and wrap it upto 2 lines
         const xTick = xGroupItem?.tick_display_markdown_pattern
-          ? createLink(xGroupItem?.tick_display_markdown_pattern, { $row: item })
-          : 'N/A';
-
+          ? extractValue(createLink(xGroupItem?.tick_display_markdown_pattern, { $row: item }), 25, 2)
+          : item[groupByKey] || 'N/A';
+        if (xVal.toString().length > longestXTick?.length) {
+          longestXTick = xVal.toString();
+        }
+        legendNames.push(xVal);
         x.push(xVal);
         xTicks.push(xTick);
       }
@@ -678,12 +793,14 @@ const parseViolinResponse = (
 
     result.x = x;
     result.y = y;
+    //Calculate width of legend using hidden div
+    legendNames = getWidthOfDiv(legendNames, uniqueX, dimensions, longestXTick);
 
     // group by x
     result.transforms = [
       {
         type: 'groupby',
-        groups: result.x,
+        groups: legendNames,
       },
     ];
 
@@ -1091,3 +1208,64 @@ const updateWithTraceColData = (
     }
   }
 };
+
+/**
+ * 
+ * @param legendNames array of legend names
+ * @param uniqueX array of unique X ticks
+ * @param dimensions object of height and width of screen
+ * @param longestXTick longest X tick in the data
+ * @returns updated(wrapped) legend names array based on screen size and no. of ticks
+ */
+const getWidthOfDiv = (legendNames: string[], uniqueX: string[], dimensions: dimensionsType, longestXTick: string) => {
+  const truncationLimit = 20;
+  const charLimit = {
+    sm: 30,
+    md: 65,
+    lg: 80,
+  };
+  //Create a hidden div to check the width of the legend with the given font and size
+  const hiddenDiv = document.createElement('div');
+  hiddenDiv.id = 'hiddenDiv';
+  hiddenDiv.innerHTML = longestXTick;
+  hiddenDiv.style.visibility = 'hidden';
+  hiddenDiv.style.position = 'absolute';
+  hiddenDiv.style.fontSize = '12';
+  hiddenDiv.style.width = 'fit-content';
+  document.body.appendChild(hiddenDiv);
+  //calculate the width of this hidden div
+  const width = hiddenDiv.offsetWidth;
+  const plotWidth = plotAreaFraction * dimensions?.width;
+  //no. of unique violins to be shown on plot
+  const noOfViolins = uniqueX?.length;
+  /*If screen is less than 1000px and legend is 50% of plot area then wrap the text upto 30 characters 
+  which will make the legend of minimum possible width*/
+  if (plotWidth < screenWidthThreshold && width / plotWidth > 0.50) {
+    legendNames = legendNames?.map((name) => name.includes('<a')
+      ? extractValue(name, charLimit.sm, truncationLimit) : wrapText(name, charLimit.sm, truncationLimit))
+  }
+  /*NOTE: These numbers are taken of the basis of current data and different testing scenarios considering the longest x label and 
+  amount of width legend is taking as compared to the plot area*/
+  /*If the number of violins is less than or equal to 7 and the width-to-plot-width ratio is greater than 0.40, 
+  the legendNames array is modified similarly to the previous step, but using the charLimit.lg character limit (i.e 80).*/
+  else if (noOfViolins <= 7 && width / plotWidth > 0.40) {
+    legendNames = legendNames.map((name) => name.includes('<a')
+      ? extractValue(name, charLimit.lg, truncationLimit) : wrapText(name, charLimit.lg, truncationLimit))
+  }
+  /*If the number of violins is between 7 and 30 (inclusive) and the width-to-plot-width ratio is greater than 0.30, 
+  the legendNames array is modified similarly to the previous step, but using the charLimit.md character limit (i.e 65).*/
+  else if ((noOfViolins > 7 && noOfViolins <= 30) && width / plotWidth > 0.3) {
+    legendNames = legendNames.map((name) => name.includes('<a')
+      ? extractValue(name, charLimit.md, truncationLimit) : wrapText(name, charLimit.md, truncationLimit))
+  }
+  /*If the number of violins is greater than 30 and the width-to-plot-width ratio is greater than 0.3,
+   the legendNames array is modified similarly to the previous step, but using the charLimit.sm character limit (i.e 30).*/
+  else if (noOfViolins > 30 && width / plotWidth > 0.30) {
+    legendNames = legendNames.map((name) => name.includes('<a')
+      ? extractValue(name, charLimit.sm, truncationLimit) : wrapText(name, charLimit.sm, truncationLimit))
+  }
+  return legendNames;
+};
+
+export default getWidthOfDiv;
+

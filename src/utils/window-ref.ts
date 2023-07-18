@@ -4,7 +4,7 @@ import { BooleanSearchConfig } from '@isrd-isi-edu/deriva-webapps/src/models/boo
 
 import { HeatmapConfig } from '@isrd-isi-edu/deriva-webapps/src/models/heatmap-config';
 import { MatrixConfig } from '@isrd-isi-edu/deriva-webapps/src/models/matrix-config';
-import { PlotConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot-config';
+import { PlotConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 
 interface WebAppCustomWindow extends ICustomWindow {
   booleanSearchConfig: BooleanSearchConfig
