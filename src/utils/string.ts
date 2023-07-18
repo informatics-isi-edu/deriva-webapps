@@ -183,7 +183,7 @@ export const getPatternUri = (queryPattern: string, templateParams: any) => {
  */
 export const extractValue = (pattern: string, width: number, wrapLimit: number) => {
   const anchorTagRegex = /<a\b[^>]*>(.*?)<\/a>/g;
-  let messageText;
+  let messageText=pattern;
   const match = pattern?.match(anchorTagRegex);
   //If pattern has anchor tags then replace the text inside the anchor tag
   if (match) {
@@ -196,7 +196,7 @@ export const extractValue = (pattern: string, width: number, wrapLimit: number) 
     messageText = wrapText(pattern, width, wrapLimit);
   }
 
-  return messageText || [];
+  return messageText;
 };
 
 /**

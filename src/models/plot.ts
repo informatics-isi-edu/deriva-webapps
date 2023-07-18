@@ -7,6 +7,7 @@ import {
   PlotData,
 } from 'plotly.js';
 
+
 /**
  * Config file for the plot
  */
@@ -117,3 +118,10 @@ export type TracePlotyData = Partial<PlotlyPlotData> &
  * Trace configs
  */
 export type Trace = TraceConfig & TracePlotyData;
+
+//Note: This is currently only used for plot app. Eventually this will be changed to a parameter from plot config. It could also be reused for other apps but we don't have a use case yet.
+export const plotAreaFraction = 0.95;
+
+//NOTE: Consider moving this threshold to the useWindowSize hook if it will be utilized by other webapps.
+export const screenWidthThreshold = 1000;
+

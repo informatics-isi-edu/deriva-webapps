@@ -30,7 +30,8 @@ import {
   DataConfig,
   Trace,
   TraceConfig,
-} from '@isrd-isi-edu/deriva-webapps/src/models/plot-config';
+  screenWidthThreshold,
+} from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 import useIsFirstRender from '@isrd-isi-edu/chaise/src/hooks/is-first-render';
 import { getQueryParam } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
@@ -157,6 +158,17 @@ export type layoutParamsType = {
   yTickAngle: number,
 }
 
+export type dimensionsType= {
+  /**
+  * Width of screen
+  */
+  width: number,
+  /**
+  * Height of screen
+  */
+  height: number
+}
+
 
 /**
  * Sets the plot configs
@@ -237,14 +249,21 @@ export const useChartData = (plot: Plot) => {
     setIsModalOpen,
   });
 
+  
+  /**
+   * Updates the legend text and orientation for all plots for which legend is available as per the change in screen width
+   */
   useEffect(() => {
-    if (plot.plot_type === 'violin') {
+    console.log(parsedData?.data && parsedData?.data[0].transforms?.length>=1);
+    if (parsedData?.data && parsedData?.data[0].transforms?.length>=1) {
       const uniqueX = parsedData?.layout?.xaxis?.tickvals?.filter(function (item: any, pos: number) {
         return parsedData?.layout?.xaxis?.tickvals?.indexOf(item) === pos;
       });
       const longestString = uniqueX?.reduce((a: any, b: any) => a.length > b.length ? a : b, '');
       const newPlot = getWidthOfDiv(parsedData?.layout?.xaxis?.tickvals, uniqueX, { width, height }, longestString);
-      if (width && width <= 1000) {
+      if (width && width <= screenWidthThreshold) {
+        //Setting the wrapped legend text for plot and show the legend horizontally below the plot when the screen size is less than or equal to 1000px
+        //It overrides the settings made in plot config
         setParsedData((prevParsedData: { data: any, layout: any; }) => {
           if (prevParsedData?.data?.length > 0) {
             return {
@@ -255,6 +274,7 @@ export const useChartData = (plot: Plot) => {
                   transforms: [
                     {
                       ...prevParsedData.data[0].transforms[0],
+                      //Passing the modified legend text array to group by using new legend and display the wrapped legend on plot as per screen size
                       groups: newPlot,
                     },
                     ...prevParsedData.data[0].transforms?.slice(1),
@@ -274,7 +294,7 @@ export const useChartData = (plot: Plot) => {
             };
           }
         });
-      } else if (width && width > 1000) {
+      } else if (width && width > screenWidthThreshold) {
         setParsedData((prevParsedData: { data: any, layout: any; }) => {
           if (prevParsedData?.data?.length > 0) {
             return {
@@ -285,6 +305,7 @@ export const useChartData = (plot: Plot) => {
                   transforms: [
                     {
                       ...prevParsedData.data[0].transforms[0],
+                      //Passing the modified legend text array to group by using new legend and display the wrapped legend on plot as per screen size
                       groups: newPlot,
                     },
                     ...prevParsedData.data[0].transforms?.slice(1),
@@ -436,7 +457,7 @@ const parsePlotData = (
   unpackedResponses: ResponseData[],
   selectDataGrid: any,
   templateParams: any,
-  dimensions: any,
+  dimensions: dimensionsType,
 ) => {
   const result: any = { data: [] };
   result.config = { ...plot?.plotly?.config };
@@ -635,9 +656,8 @@ const updatePlotlyLayout = (
     if (result.layout.yaxis.zeroline === undefined) {
       result.layout.yaxis.zeroline = false;
     }
-    //TODO: We can configure this minimum width somewhere(may be pass it through config or have a global variable)
     //To move the legend inside the plot the the width of screen is less than 1000px on load
-    if (innerWidth < 1000) {
+    if (innerWidth < screenWidthThreshold) {
       result.layout.legend = {
         xanchor: 'center',
         x: 0.5,
@@ -679,7 +699,7 @@ const parseViolinResponse = (
   plot: Plot,
   responseData: ResponseData,
   selectDataGrid: any,
-  dimensions: any,
+  dimensions: dimensionsType,
   noData?: boolean
 ) => {
   const { ...plotlyTrace } = trace;
@@ -727,9 +747,9 @@ const parseViolinResponse = (
     const x: any[] = [];
     const y: any[] = [];
     const xTicks: any[] = [];
-    let legendNames: any[] = [];
+    let legendNames: string[] = [];
+    const uniqueX: string[] = [];
     let longestXTick = '';
-    const uniqueX: any[] = [];
     responseData.forEach((item: any, i: number) => {
       if (xGroupBy) {
         const groupByKey = xGroupBy.value.value;
@@ -1195,9 +1215,9 @@ const updateWithTraceColData = (
  * @param uniqueX array of unique X ticks
  * @param dimensions object of height and width of screen
  * @param longestXTick longest X tick in the data
- * @returns width of the legend div to be presented
+ * @returns updated(wrapped) legend names array based on screen size and no. of ticks
  */
-const getWidthOfDiv = (legendNames: any[], uniqueX: any[], dimensions: any, longestXTick: string) => {
+const getWidthOfDiv = (legendNames: string[], uniqueX: string[], dimensions: dimensionsType, longestXTick: string) => {
   const truncationLimit = 20;
   const charLimit = {
     sm: 30,
@@ -1220,7 +1240,7 @@ const getWidthOfDiv = (legendNames: any[], uniqueX: any[], dimensions: any, long
   const noOfViolins = uniqueX?.length;
   /*If screen is less than 1000px and legend is 50% of plot area then wrap the text upto 30 characters 
   which will make the legend of minimum possible width*/
-  if (plotWidth < 1000 && width / plotWidth > 0.50) {
+  if (plotWidth < screenWidthThreshold && width / plotWidth > 0.50) {
     legendNames = legendNames?.map((name) => name.includes('<a')
       ? extractValue(name, charLimit.sm, truncationLimit) : wrapText(name, charLimit.sm, truncationLimit))
   }
