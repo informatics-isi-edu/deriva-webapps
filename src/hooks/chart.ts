@@ -31,6 +31,7 @@ import {
   Trace,
   TraceConfig,
   screenWidthThreshold,
+  plotAreaFraction,
 } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 import useIsFirstRender from '@isrd-isi-edu/chaise/src/hooks/is-first-render';
 import { getQueryParam } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
@@ -158,7 +159,7 @@ export type layoutParamsType = {
   yTickAngle: number,
 }
 
-export type dimensionsType= {
+export type dimensionsType = {
   /**
   * Width of screen
   */
@@ -249,13 +250,12 @@ export const useChartData = (plot: Plot) => {
     setIsModalOpen,
   });
 
-  
+
   /**
    * Updates the legend text and orientation for all plots for which legend is available as per the change in screen width
    */
   useEffect(() => {
-    console.log(parsedData?.data && parsedData?.data[0].transforms?.length>=1);
-    if (parsedData?.data && parsedData?.data[0].transforms?.length>=1) {
+    if (parsedData?.data && parsedData?.data[0].transforms?.length >= 1) {
       const uniqueX = parsedData?.layout?.xaxis?.tickvals?.filter(function (item: any, pos: number) {
         return parsedData?.layout?.xaxis?.tickvals?.indexOf(item) === pos;
       });
@@ -1235,7 +1235,7 @@ const getWidthOfDiv = (legendNames: string[], uniqueX: string[], dimensions: dim
   document.body.appendChild(hiddenDiv);
   //calculate the width of this hidden div
   const width = hiddenDiv.offsetWidth;
-  const plotWidth = 0.95 * dimensions?.width;
+  const plotWidth = plotAreaFraction * dimensions?.width;
   //no. of unique violins to be shown on plot
   const noOfViolins = uniqueX?.length;
   /*If screen is less than 1000px and legend is 50% of plot area then wrap the text upto 30 characters 

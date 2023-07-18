@@ -53,13 +53,13 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
     isInitLoading,
     handleCloseModal,
     handleSubmitModal,
-  } = useChartData(config,maxWidth);
+  } = useChartData(config);
 
   if (!parsedData || isInitLoading) {
     return <ChaiseSpinner />;
   }
-  
- 
+
+
 
   /**
    * Handles the behavior when a graphic is clicked
