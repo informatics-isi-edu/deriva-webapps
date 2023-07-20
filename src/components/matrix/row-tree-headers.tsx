@@ -41,9 +41,9 @@ type RowTreeHeadersProps = {
    *  data passed to each row
    */
   itemData?: any;
-   /**
-   *  y hierarchical data passed to each row
-   */
+  /**
+  *  y hierarchical data passed to each row
+  */
   treeData?: any;
   /**
    *  y hierarchical data nodes passed to each row
@@ -73,7 +73,7 @@ const RowTreeHeaders = (
     setVisiableRowNodes, 
     hoveredRowID, 
     setHoveredRowID, 
-    setHoveredColIndex } = itemData;
+    setHoveredColID } = itemData;
 
   const [prevSearched, setPrevSearched] = useState<string | null>(null); // previous searched enrty
   const [expanded, setExpanded] = useState<string[]>([]); // all expanded nodes
@@ -81,6 +81,8 @@ const RowTreeHeaders = (
   /**
    * styles for tree view and tree items
    */
+  const iconSize = 14;
+
   const rowTreeHeadersStyles: CSSProperties = {
     position: 'absolute',
     direction: "rtl",
@@ -133,12 +135,12 @@ const RowTreeHeaders = (
         style={{
           marginRight: 6.5,
           paddingRight: 2,
-          height: 12,
-          marginTop: -12.5,
-          borderRight: `1px dashed grey`
+          height: (cellHeight-iconSize)/2,
+          marginBottom: -5,
+          borderRight: `1px dotted grey`
         }}
       />
-      <SvgIcon fontSize="inherit" style={{ width: 14, height: 14, zIndex: 1 }} {...props}>
+      <SvgIcon fontSize="inherit" style={{ width: iconSize, height: iconSize, zIndex: 1 }} {...props}>
         {/* tslint:disable-next-line: max-line-length */}
         <path d="M22.047 22.074v0 0-20.147 0h-20.12v0 20.147 0h20.12zM22.047 24h-20.12q-.803 0-1.365-.562t-.562-1.365v-20.147q0-.776.562-1.351t1.365-.575h20.147q.776 0 1.351.575t.575 1.351v20.147q0 .803-.575 1.365t-1.378.562v0zM17.873 11.023h-11.826q-.375 0-.669.281t-.294.682v0q0 .401.294 .682t.669.281h11.826q.375 0 .669-.281t.294-.682v0q0-.401-.294-.682t-.669-.281z" />
       </SvgIcon>
@@ -148,7 +150,16 @@ const RowTreeHeaders = (
           marginTop: -9,
           marginRight: 17,
           width: 8,
-          borderTop: `1px dashed grey`
+          borderTop: `1px dotted grey`
+        }}
+      />
+      <div
+        style={{
+          marginRight: 6.5,
+          paddingRight: 2,
+          height: (cellHeight-iconSize)/2,
+          marginTop: -2,
+          borderRight: `1px dotted grey`
         }}
       />
     </div>
@@ -161,12 +172,12 @@ const RowTreeHeaders = (
         style={{
           marginRight: 6.5,
           paddingRight: 2,
-          height: 12,
-          marginTop: -12.5,
-          borderRight: `1px dashed grey`
+          height: (cellHeight-iconSize)/2,
+          marginBottom: -5,
+          borderRight: `1px dotted grey`
         }}
       />
-      <SvgIcon fontSize="inherit" style={{ width: 14, height: 14 }} {...props}>
+      <SvgIcon fontSize="inherit" style={{ width: iconSize, height: iconSize }} {...props}>
         {/* tslint:disable-next-line: max-line-length */}
         <path d="M22.047 22.074v0 0-20.147 0h-20.12v0 20.147 0h20.12zM22.047 24h-20.12q-.803 0-1.365-.562t-.562-1.365v-20.147q0-.776.562-1.351t1.365-.575h20.147q.776 0 1.351.575t.575 1.351v20.147q0 .803-.575 1.365t-1.378.562v0zM17.873 12.977h-4.923v4.896q0 .401-.281.682t-.682.281v0q-.375 0-.669-.281t-.294-.682v-4.896h-4.923q-.401 0-.682-.294t-.281-.669v0q0-.401.281-.682t.682-.281h4.923v-4.896q0-.401.294-.682t.669-.281v0q.401 0 .682.281t.281.682v4.896h4.923q.401 0 .682.281t.281.682v0q0 .375-.281.669t-.682.294z" />
       </SvgIcon>
@@ -176,7 +187,16 @@ const RowTreeHeaders = (
           marginTop: -9,
           marginRight: 14,
           width: 10,
-          borderTop: `1px dashed grey`
+          borderTop: `1px dotted grey`
+        }}
+      />
+      <div
+        style={{
+          marginRight: 6.5,
+          paddingRight: 2,
+          height: (cellHeight-iconSize)/2,
+          marginTop: -2,
+          borderRight: `1px dotted grey`
         }}
       />
     </div>
@@ -187,19 +207,19 @@ const RowTreeHeaders = (
     <div style={{ zIndex: 1 }}>
       <div
         style={{
-          marginRight: 12,
+          marginRight: 16.5,
           paddingRight: 2,
-          height: 28,
-          marginTop: -10,
-          borderRight: `1px dashed grey`
+          height: cellHeight,
+          marginTop: -(cellHeight/2),
+          borderRight: `1px dotted grey`
         }}
       />
       <div
         style={{
-          marginTop: -13,
-          marginRight: 15,
-          width: 10,
-          borderTop: `1px dashed grey`
+          marginTop: -(cellHeight/2),
+          marginRight: 18,
+          width: 16,
+          borderTop: `1px dotted grey`
         }}
       />
     </div>
@@ -217,6 +237,11 @@ const RowTreeHeaders = (
   interface CustomTreeItemProps extends TreeItemProps {
     node: RenderTree;
   }
+
+  const updateRowId = (nodeId: String) => {
+    setHoveredColID(null);
+    setHoveredRowID(nodeId);
+  };
 
   // Customize tree item so that the link function and expand/collapse function are separate
   const CustomContent = forwardRef(function CustomContent(
@@ -265,6 +290,8 @@ const RowTreeHeaders = (
 
     const link = treeNodesMap[nodeId].link;
 
+    let linkClassName = nodeId === hoveredRowID ? 'hovered-header' : 'unhovered-header';
+
     return (
       // eslint-disable-next-line jsx-a11y/no-static-element-interactions
       <div
@@ -275,6 +302,7 @@ const RowTreeHeaders = (
           [classes.disabled]: disabled
         })}
         onMouseDown={handleMouseDown}
+        onMouseOver={() => updateRowId(nodeId)}
         ref={ref as React.Ref<HTMLDivElement>}
       >
         {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions */}
@@ -286,7 +314,8 @@ const RowTreeHeaders = (
           component="div"
           className={classes.label}
         >
-          <a href={link}>
+          <a href={link}
+            className={linkClassName}>
             {label}
           </a>
         </Typography>
@@ -301,15 +330,10 @@ const RowTreeHeaders = (
     // Check if the node key matches the searched row id
     const isNodeKeyMatchedSearch = node.key === searchedRowID;
 
-    const updateRowId = (node: RenderTree) => {
-      setHoveredColIndex(null);
-      setHoveredRowID(node.key);
-    };
-
     return (
       <div>
         {/* Element before TreeItem */}
-        <div className="hoverBackground" style={rowTreeItemOuterBgStyles}>
+        <div className="hoverBackground" style={rowTreeItemOuterBgStyles} onMouseOver={() => updateRowId(node.key)}>
           <div
             style={
               isNodeKeyMatchedSearch
@@ -318,7 +342,6 @@ const RowTreeHeaders = (
                 ? rowTreeItemBgStylesHover
                 : rowTreeItemBgStyles
             }
-            onMouseOver={() => updateRowId(node)}
           ></div>
         </div>
 
@@ -335,7 +358,7 @@ const RowTreeHeaders = (
     [`& .${treeItemClasses.group}`]: {
       marginRight: 19,
       paddingRight: 4,
-      borderRight: `1px dashed ${alpha(theme.palette.text.primary, 0.4)}`,
+      borderRight: `1px dotted ${alpha(theme.palette.text.primary, 0.4)}`,
     },
     [`& .${treeItemClasses.label}`]: {
       marginRight: 12,
@@ -381,7 +404,7 @@ const RowTreeHeaders = (
   // Check whether all ancestors of a node exist in visitedNode list
   const checkParentChainExist = (treeDataDict: Record<string, MatrixTreeDatum>, nodeId: string, visitedNodes: Set<string>): boolean => {
     const node = treeDataDict[nodeId];
-    if (node.parent_id === 'None') {
+    if (node.parent_id === null) {
       return true; // Reached the top of the chain
     }
     if (!visitedNodes.has(node.parent_id)) {
@@ -393,11 +416,11 @@ const RowTreeHeaders = (
   // Find all ancestor nodes of the searched node
   const getParentChain = (treeDataDict: Record<string, MatrixTreeDatum>, nodeId: string, visitedNodes: Set<string>): Set<string> => {
     let node = treeDataDict[nodeId];
-    if (node.parent_id === 'None') {
+    if (node.parent_id === null) {
       return visitedNodes; // Reached the top of the chain
     }
     node = treeDataDict[node.parent_id];
-    while (node && node.child_id !== 'None') {
+    while (node && node.child_id !== null) {
       visitedNodes.add(node.child_id);
       node = treeDataDict[node.parent_id];
     }
@@ -414,13 +437,16 @@ const RowTreeHeaders = (
   useEffect(() => {
     const newSet = new Set<string>();
     // Add all top nodes by default
-    const node = treeNodesMap["None"];
-    if (node) {
-      if (node.children.length > 0) {
-        for (const child of node.children) {
-          newSet.add(child.key);
-        }
-      }
+    // const node = treeNodesMap["None"];
+    // if (node) {
+    //   if (node.children.length > 0) {
+    //     for (const child of node.children) {
+    //       newSet.add(child.key);
+    //     }
+    //   }
+    // }
+    for (const node of treeNodes) {
+      newSet.add(node.key);
     }
     // Check visibility and add all visiable nodes to the set
     const nodesSet: Set<string> = new Set(expanded);

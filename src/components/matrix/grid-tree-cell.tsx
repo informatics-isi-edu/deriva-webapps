@@ -22,9 +22,15 @@ export type GridCellProps = {
 
 const GridCell = ({ columnIndex, rowIndex, data, style }: GridCellProps): JSX.Element => {
   const {
+    yTree,
+    xTree,
+    hoveredRowIndex,
+    setHoveredRowIndex,
     hoveredColIndex,
     setHoveredColIndex,
     searchedRowID,
+    searchedColID,
+    searchedRowIndex,
     searchedColIndex,
     hoveredRowID,
     setHoveredRowID,
@@ -35,22 +41,27 @@ const GridCell = ({ columnIndex, rowIndex, data, style }: GridCellProps): JSX.El
     colorScale,
   } = data;
 
-  const { colors, row, link, title } = gridData[rowIndex][columnIndex];
+  const { colors, row, column, link, title } = gridData[rowIndex][columnIndex];
 
   // get id for current row, use it to check hover and search states
-  const { id } = row;
+  const { id: rowId } = row;
+  // get id for current column, use it to check hover and search states
+  const { id: columnId } = column;
 
   // check whether the grid should show the current row
-  const showRow = visiableRowNodes.has(id);
+  let showRow = true;
+  if(yTree){
+    showRow = visiableRowNodes.has(rowId);
+  }
 
   // className changes based on hovered state
   let gridCellClassName =
-    hoveredRowID === id || hoveredColIndex === columnIndex
+    hoveredRowID === rowId || hoveredColID == columnId || hoveredRowIndex === rowIndex || hoveredColIndex === columnIndex
       ? 'grid-cell hovered-cell'
       : 'grid-cell unhovered-cell';
 
   // className changes based on searched state
-  if (searchedRowID === id || searchedColIndex === columnIndex) {
+  if (searchedRowID === rowId || searchedColID === columnId || searchedRowIndex === rowIndex || searchedColIndex === columnIndex) {
     gridCellClassName += ' searched-cell';
   }
 
@@ -66,8 +77,19 @@ const GridCell = ({ columnIndex, rowIndex, data, style }: GridCellProps): JSX.El
           className={gridCellClassName}
           style={style}
           onMouseEnter={() => {
-            setHoveredColIndex(columnIndex);
-            setHoveredRowID(id);
+            if(!xTree && !yTree){
+              setHoveredColIndex(columnIndex);
+              setHoveredRowIndex(rowIndex);
+            }else if(xTree && !yTree){
+              setHoveredColID(columnId);
+              setHoveredRowIndex(rowIndex);
+            }else if(!xTree && yTree){
+              setHoveredRowID(rowId);
+              setHoveredColIndex(columnIndex);
+            }else{
+              setHoveredRowID(rowId);
+              setHoveredColID(columnId);
+            }
           }}
         >
           {link ? (

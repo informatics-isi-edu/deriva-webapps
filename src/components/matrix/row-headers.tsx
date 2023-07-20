@@ -87,7 +87,7 @@ type HeaderComponentProps = {
  * Header component for each row
  */
 const HeaderComponent = ({ index, data, style }: HeaderComponentProps): JSX.Element => {
-  const { hoveredRowIndex, setHoveredRowIndex, setHoveredColIndex, searchedRowIndex, listData } =
+  const { hoveredRowIndex, setHoveredRowIndex, setHoveredColIndex, searchedRowIndex, setHoveredColID, listData } =
     data;
   let link = '';
   let title = '';
@@ -115,6 +115,7 @@ const HeaderComponent = ({ index, data, style }: HeaderComponentProps): JSX.Elem
       onMouseEnter={() => {
         setHoveredRowIndex(index);
         setHoveredColIndex(null);
+        setHoveredColID(null);
       }}
     >
       <a className={`row-header-link ${linkClassName}`} href={link} title={title}>

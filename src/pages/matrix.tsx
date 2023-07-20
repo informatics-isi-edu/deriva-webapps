@@ -63,7 +63,7 @@ const MatrixApp = (): JSX.Element => {
     return <ChaiseSpinner />;
   }
 
-  const { gridDataMap, gridDataTreeMap, gridData, yTreeData, yTreeNodes, yTreeNodesMap, legendData, options } = matrixData;
+  const { gridDataMap, gridDataTreeMap, gridData, yTreeData, yTreeNodes, yTreeNodesMap, xTreeData, xTreeNodes, xTreeNodesMap, legendData, options } = matrixData;
 
   /**
    * Handles changes to the search bar
@@ -145,11 +145,19 @@ const MatrixApp = (): JSX.Element => {
       }
 
       const selected = gridDataTreeMap[currInput.toLowerCase()];
-      const selectedOri = gridDataMap[currInput.toLowerCase()];
+      const selectedBasic = gridDataMap[currInput.toLowerCase()];
       if (selected.type === 'row') {
-        gridRef.current.searchRow(selected.id);
+        if(yTreeData){
+          gridRef.current.searchRow(selected.id);
+        }else{
+          gridRef.current.searchRowIndex(selectedBasic.index);
+        }
       } else if (selected.type === 'col') {
-        gridRef.current.searchCol(selectedOri.index);
+        if(xTreeData){
+          gridRef.current.searchCol(selected.id);
+        }else{
+          gridRef.current.searchColIndex(selectedBasic.index);
+        }
       }
 
     }else{
@@ -304,7 +312,7 @@ const MatrixApp = (): JSX.Element => {
           </div>
         </div>
         <div className='matrix-container'>
-          {yTreeData ? (
+          {yTreeData || xTreeData ? (
             <VirtualizedTreeGrid
               ref={gridRef}
               gridHeight={gridHeight}
@@ -317,6 +325,9 @@ const MatrixApp = (): JSX.Element => {
               yTree={yTreeData}
               yTreeNodes={yTreeNodes}
               yTreeNodesMap={yTreeNodesMap}
+              xTree={xTreeData}
+              xTreeNodes={xTreeNodes}
+              xTreeNodesMap={xTreeNodesMap}
               colorScale={colorScaleMap}
             />
           ) : (

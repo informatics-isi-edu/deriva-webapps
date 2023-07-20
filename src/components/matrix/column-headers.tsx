@@ -85,7 +85,7 @@ type HeaderComponentProps = {
  * Header component for each column
  */
 const HeaderComponent = ({ index, data, style }: HeaderComponentProps): JSX.Element => {
-  const { hoveredColIndex, setHoveredRowIndex, setHoveredColIndex, searchedColIndex, listData } =
+  const { hoveredColIndex, setHoveredRowIndex, setHoveredColIndex, searchedColIndex, setHoveredRowID, listData } =
     data;
 
   const { column } = listData[0][index];
@@ -100,6 +100,7 @@ const HeaderComponent = ({ index, data, style }: HeaderComponentProps): JSX.Elem
       style={style}
       onMouseEnter={() => {
         setHoveredRowIndex(null);
+        setHoveredRowID(null);
         setHoveredColIndex(index);
       }}
     >

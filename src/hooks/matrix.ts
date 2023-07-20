@@ -55,11 +55,11 @@ export type MatrixXYZDatum = {
  */
 export type MatrixTreeDatum = {
   /**
-   * yid of parent data point
+   * y/x id of parent data point
    */
   parent_id: string;
   /**
-   * yid of child data point
+   * y/x id of child data point
    */
   child_id: string;
 };
@@ -103,6 +103,10 @@ export type MatrixResponse = [
   { data: Array<MatrixXYZDatum> },
   /**
    * Y tree data
+   */
+  { data: Array<MatrixTreeDatum> },
+  /**
+   * X tree data
    */
   { data: Array<MatrixTreeDatum> }
 ];
@@ -302,11 +306,18 @@ export const useMatrixData = (matrixConfigs: MatrixConfig): MatrixData => {
         yTreePromise = new Promise((resolve) => resolve({data: {}}));
       }
 
+      let xTreePromise;
+      if (config.xTreeURL) {
+        xTreePromise = ConfigService.http.get(config.xTreeURL);
+      } else {
+        xTreePromise = new Promise((resolve) => resolve({data: {}}));
+      }
+
       const zPromise = ConfigService.http.get(config.zURL);
       const xyzPromise = ConfigService.http.get(config.xysURL);
 
       // Batch the requests in Promise.all so they can run in parallel:
-      const data = await Promise.all([xPromise, yPromise, zPromise, xyzPromise, yTreePromise]);
+      const data = await Promise.all([xPromise, yPromise, zPromise, xyzPromise, yTreePromise, xTreePromise]);
       const parsedData = parseMatrixData(config, data);
 
       // Set state after the request completes
@@ -353,6 +364,9 @@ export type ParsedMatrixData = {
   yTreeData?: Array<MatrixTreeDatum>;
   yTreeNodes?: TreeNode[];
   yTreeNodesMap?: TreeNodeMap;
+  xTreeData?: Array<MatrixTreeDatum>;
+  xTreeNodes?: TreeNode[];
+  xTreeNodesMap?: TreeNodeMap;
   legendData: Array<LegendDatum>;
   gridDataMap: GridDataMap;
   gridDataTreeMap?: GridDataTreeMap;
@@ -381,7 +395,7 @@ const flattenTree = (tree: TreeNode[], flatList: string[] = []): string[] => {
  * @returns parsed data used by matrix visualization component
  */
 const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse): ParsedMatrixData => {
-  const [{ data: xData }, { data: yData }, { data: zData }, { data: xyzData }, { data: yTreeData } ] = response;
+  const [{ data: xData }, { data: yData }, { data: zData }, { data: xyzData }, { data: yTreeData }, { data: xTreeData}, ] = response;
 
   /**
    * TODO Junmeng
@@ -505,10 +519,13 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
     gridDataMap[x.title.toLowerCase()] = { type: 'col', index: col };
   });
 
-  // construct tree data and nodes
+  /**
+   * Construct tree data and nodes
+   */
+  // Y tree data
   const yTreeNodes: TreeNode[] = [];
   const yTreeNodesMap: { [key: string]: TreeNode } = {};
-  const referenceNodesMap: {[key: string]: {title: string, link: string}} = {};
+  const yReferenceNodesMap: {[key: string]: {title: string, link: string}} = {};
 
   gridData.forEach((element: any) => {
     if(element[0]["row"]["id"]){
@@ -516,7 +533,7 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
         title: element[0]["row"]["title"],
         link: element[0]["row"]["link"],
       }
-      referenceNodesMap[element[0]["row"]["id"]] = referenceNode;
+      yReferenceNodesMap[element[0]["row"]["id"]] = referenceNode;
     }
   });
 
@@ -524,8 +541,8 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
     yTreeData.forEach((item) => {
       const { child_id, parent_id } = item;
     
-      const childTitle = child_id in referenceNodesMap ? referenceNodesMap[child_id].title : "None";
-      const childLink = child_id in referenceNodesMap ? referenceNodesMap[child_id].link : "";
+      const childTitle = child_id in yReferenceNodesMap ? yReferenceNodesMap[child_id].title : "None";
+      const childLink = child_id in yReferenceNodesMap ? yReferenceNodesMap[child_id].link : "";
       const childNode = child_id in yTreeNodesMap
         ? yTreeNodesMap[child_id]
         : {
@@ -537,38 +554,130 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
     
       yTreeNodesMap[child_id] = childNode;
     
-      const parentTitle = parent_id in referenceNodesMap ? referenceNodesMap[parent_id].title: "None";
-      const parentLink = child_id in referenceNodesMap ? referenceNodesMap[child_id].link : "";
-      const parentNode = parent_id in yTreeNodesMap
-        ? yTreeNodesMap[parent_id]
-        : {
-            title: parentTitle,
-            key: parent_id,
-            link: parentLink,
-            children: [],
-          };
-    
-      parentNode.children.push(childNode);
-      yTreeNodesMap[parent_id] = parentNode;
+      if(parent_id !== null){
+        const parentTitle = parent_id in yReferenceNodesMap ? yReferenceNodesMap[parent_id].title: "None";
+        const parentLink = parent_id in yReferenceNodesMap ? yReferenceNodesMap[parent_id].link : "";
+        const parentNode = parent_id in yTreeNodesMap
+          ? yTreeNodesMap[parent_id]
+          : {
+              title: parentTitle,
+              key: parent_id,
+              link: parentLink,
+              children: [],
+            };
+      
+        parentNode.children.push(childNode);
+        yTreeNodesMap[parent_id] = parentNode;
+      }
+      
+      if(parent_id === null){
+        yTreeNodes.push(childNode);
+      }
     });
   
     // Assume all top nodes' parent_id is "None"
-    const node = yTreeNodesMap["None"];
-    if (node) {
-      if (node.children.length > 0) {
-        for (const child of node.children) {
-          yTreeNodes.push(child);
-        }
-      }
-    }
+    // const node = yTreeNodesMap["None"];
+    // if (node) {
+    //   if (node.children.length > 0) {
+    //     for (const child of node.children) {
+    //       yTreeNodes.push(child);
+    //     }
+    //   }
+    // }
+    // console.log(yTreeNodes);
       
-    // Sort the gridData for the synchronization of expand and collapse of tree
+    // Sort the gridData in y axis for the synchronization of expand and collapse of tree
     const flatKeys = flattenTree(yTreeNodes);
     gridData.sort((a, b) => {
       return flatKeys.indexOf(a[0].row.id) - flatKeys.indexOf(b[0].row.id);
     });
   }
+
+  // X tree data
+  const xTreeNodes: TreeNode[] = [];
+  const xTreeNodesMap: { [key: string]: TreeNode } = {};
+  const xReferenceNodesMap: {[key: string]: {title: string, link: string}} = {};
+
+  xData.forEach((x: MatrixDatum) => {
+    // Parse Columns
+    const referenceNode = {
+      title: x.title,
+      link: generateLink(config, x),
+    }
+    xReferenceNodesMap[x.id] = referenceNode;
+  });
+
+  if(Object.keys(xTreeData).length !== 0){
+    xTreeData.forEach((item) => {
+      const { child_id, parent_id } = item;
+    
+      const childTitle = child_id in xReferenceNodesMap ? xReferenceNodesMap[child_id].title : "None";
+      const childLink = child_id in xReferenceNodesMap ? xReferenceNodesMap[child_id].link : "";
+      const childNode = child_id in xTreeNodesMap
+        ? xTreeNodesMap[child_id]
+        : {
+            title: childTitle,
+            key: child_id,
+            link: childLink,
+            children: [],
+          };
+    
+      xTreeNodesMap[child_id] = childNode;
+    
+      if(parent_id !== null){
+        const parentTitle = parent_id in xReferenceNodesMap ? xReferenceNodesMap[parent_id].title: "None";
+        const parentLink = parent_id in xReferenceNodesMap ? xReferenceNodesMap[parent_id].link : "";
+        const parentNode = parent_id in xTreeNodesMap
+          ? xTreeNodesMap[parent_id]
+          : {
+              title: parentTitle,
+              key: parent_id,
+              link: parentLink,
+              children: [],
+            };
+      
+        parentNode.children.push(childNode);
+        xTreeNodesMap[parent_id] = parentNode;
+      }
+      
+      if(parent_id === null){
+        xTreeNodes.push(childNode);
+      }
+    });
   
+    // Assume all top nodes' parent_id is "None"
+    // const node = xTreeNodesMap["None"];
+    // if (node) {
+    //   if (node.children.length > 0) {
+    //     for (const child of node.children) {
+    //       xTreeNodes.push(child);
+    //     }
+    //   }
+    // }
+      
+    // Sort the gridData in y axis for the synchronization of expand and collapse of tree
+    const flatKeys = flattenTree(xTreeNodes);
+    // console.log(xTreeNodes);
+    // gridData.sort((a, b) => {
+    //   return flatKeys.indexOf(a[0].row.id) - flatKeys.indexOf(b[0].row.id);
+    // });
+    // Sort each row in gridData based on the order of cell ids
+    gridData.forEach((gridRow) => {
+      gridRow.sort((a, b) => {
+        return flatKeys.indexOf(a.column.id) - flatKeys.indexOf(b.column.id);
+      });
+    });
+  }
+
+  if(Object.keys(xTreeData).length !== 0){
+    // Shift the empty cell to the last
+    gridData.forEach((gridRow) => {
+      const firstElement = gridRow.shift(); // Remove the first element
+      if(firstElement){
+        gridRow.push(firstElement);
+      }
+    });
+  }
 
   // Add the empty row to the last
   gridData.push(emptyRow);
@@ -581,12 +690,41 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
   xData.forEach((x: MatrixDatum) => {
     gridDataTreeMap[x.title.toLowerCase()] = { type: 'col', id: x.id };
   });
-
-  if(Object.keys(yTreeData).length === 0){
+  
+  if(Object.keys(yTreeData).length === 0 && Object.keys(xTreeData).length === 0){
+    // If there is no tree data, then show the basic components
     const parsedData: ParsedMatrixData = {
       gridData,
       legendData,
       gridDataMap,
+      options,
+    };
+  
+    return parsedData;
+  }else if(Object.keys(yTreeData).length === 0 && Object.keys(xTreeData).length !== 0){
+    // If x tree data exists, show the hierarchical component
+    const parsedData: ParsedMatrixData = {
+      gridData,
+      xTreeData,
+      xTreeNodes,
+      xTreeNodesMap,
+      legendData,
+      gridDataMap,
+      gridDataTreeMap,
+      options,
+    };
+  
+    return parsedData;
+  }else if(Object.keys(yTreeData).length !== 0 && Object.keys(xTreeData).length === 0){
+    // If y tree data exists, show the hierarchical component
+    const parsedData: ParsedMatrixData = {
+      gridData,
+      yTreeData,
+      yTreeNodes,
+      yTreeNodesMap,
+      legendData,
+      gridDataMap,
+      gridDataTreeMap,
       options,
     };
   
@@ -597,6 +735,9 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
       yTreeData,
       yTreeNodes,
       yTreeNodesMap,
+      xTreeData,
+      xTreeNodes,
+      xTreeNodesMap,
       legendData,
       gridDataMap,
       gridDataTreeMap,

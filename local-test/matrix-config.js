@@ -10,6 +10,10 @@ var matrixConfigs = {
      */
     xURL: baseUri + 'x_values.json',
     /**
+     * API for the tree data of the x axis (must return child_id and parent_id. other columns will be ignored.)
+     */
+    xTreeURL: baseUri + 'x_values_tree.json',
+    /**
      * API for the y axis data
      */
     yURL: baseUri + 'y_values.json',
@@ -93,7 +97,7 @@ var matrixConfigs = {
       /**
        * Height of the column headers
        */
-      colHeaderHeight: 50,
+      colHeaderHeight: 80,
       /**
        * Height of the legend
        */
