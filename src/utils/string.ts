@@ -183,7 +183,7 @@ export const getPatternUri = (queryPattern: string, templateParams: any) => {
  * @param pattern markdown pattern 
  * @returns 
  */
-export const extractValue = (pattern: string): string | false => {
+export const extractValue = (pattern: string): string => {
   let match = null;
 
   // Defined regex to extract value from the anchor tag in the given pattern
@@ -206,7 +206,7 @@ export const extractValue = (pattern: string): string | false => {
  * @param pattern markdown pattern 
  * @returns 
  */
-export const extractAndFormatDate = (message: string): string | false => {
+export const extractAndFormatDate = (message: string): string => {
   let match = null;
   let extractedDate: string;
   let modifiedString = message;
