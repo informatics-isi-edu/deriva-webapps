@@ -12,9 +12,9 @@ import {
   createLink,
   getPatternUri,
   createLinkWithContextParams,
-  extractLink,
   extractValue,
   extractAndFormatDate,
+  wrapText,
 } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 import { flatten2DArray } from '@isrd-isi-edu/deriva-webapps/src/utils/data';
 
@@ -32,13 +32,14 @@ import {
   DataConfig,
   Trace,
   TraceConfig,
-} from '@isrd-isi-edu/deriva-webapps/src/models/plot-config';
+  screenWidthThreshold,
+  plotAreaFraction,
+} from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 import useIsFirstRender from '@isrd-isi-edu/chaise/src/hooks/is-first-render';
 import { getQueryParam } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
 import { ChaiseAlertType } from '@isrd-isi-edu/chaise/src/providers/alerts';
-import error from '@isrd-isi-edu/chaise/src/providers/error';
-
+import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
 
 /**
  * Data received from API request
@@ -169,6 +170,17 @@ export type layoutParamsType = {
   yTickAngle: number,
 }
 
+export type dimensionsType = {
+  /**
+  * Width of screen
+  */
+  width: number,
+  /**
+  * Height of screen
+  */
+  height: number
+}
+
 /**
  * Sets the plot configs
  *
@@ -211,6 +223,7 @@ export const useChartData = (plot: Plot) => {
   const [isParseLoading, setIsParseLoading] = useState<boolean>(false);
   const { dispatchError, errors } = useError();
   const alertFunctions = useAlert();
+  const { width = 0, height = 0 } = useWindowSize();
 
   /**
    * Template parameters for the plot
@@ -247,6 +260,85 @@ export const useChartData = (plot: Plot) => {
     setModalProps,
     setIsModalOpen,
   });
+
+  /**
+   * Updates the legend text and orientation for all plots for which legend is available as per the change in screen width
+   */
+  useEffect(() => {
+    if (parsedData?.data && parsedData?.data[0].transforms?.length >= 1) {
+      console.log('here inside ',parsedData);
+      const uniqueX = parsedData?.data[0]?.x?.filter(function (item: any, pos: number) {
+        return  parsedData?.data[0]?.x?.indexOf(item) === pos;
+      });
+      const longestString = uniqueX?.reduce((a: any, b: any) => a.length > b.length ? a : b, '');
+      const newPlot = getWidthOfDiv( parsedData?.data[0]?.x, uniqueX, { width, height }, longestString);
+      if (width && width <= screenWidthThreshold) {
+        //Setting the wrapped legend text for plot and show the legend horizontally below the plot when the screen size is less than or equal to 1000px
+        //It overrides the settings made in plot config
+        setParsedData((prevParsedData: { data: any, layout: any; }) => {
+          if (prevParsedData?.data?.length > 0) {
+            return {
+              ...prevParsedData,
+              data: [
+                {
+                  ...prevParsedData.data[0],
+                  transforms: [
+                    {
+                      ...prevParsedData.data[0].transforms[0],
+                      //Passing the modified legend text array to group by using new legend and display the wrapped legend on plot as per screen size
+                      groups: newPlot,
+                    },
+                    ...prevParsedData.data[0].transforms?.slice(1),
+                  ],
+                },
+                ...prevParsedData.data?.slice(1),
+              ],
+              layout: {
+                ...prevParsedData?.layout,
+                legend: {
+                  xanchor: 'center',
+                  x: 0.5,
+                  y: -2,
+                  orientation: 'h',
+                },
+              },
+            };
+          }
+        });
+      } else if (width && width > screenWidthThreshold) {
+        setParsedData((prevParsedData: { data: any, layout: any; }) => {
+          if (prevParsedData?.data?.length > 0) {
+            return {
+              ...prevParsedData,
+              data: [
+                {
+                  ...prevParsedData.data[0],
+                  transforms: [
+                    {
+                      ...prevParsedData.data[0].transforms[0],
+                      //Passing the modified legend text array to group by using new legend and display the wrapped legend on plot as per screen size
+                      groups: newPlot,
+                    },
+                    ...prevParsedData.data[0].transforms?.slice(1),
+                  ],
+                },
+                ...prevParsedData.data?.slice(1),
+              ],
+              layout: {
+                ...prevParsedData?.layout,
+                legend: {
+                  orientation: 'v',
+                  x: 1,
+                  y: 1,
+                },
+              },
+            }
+          }
+        });
+      }
+    }
+  }, [width]);
+
   /**
    * Fetches data from the plot traces in the plot config and returns the data
    */
@@ -338,7 +430,382 @@ export const useChartData = (plot: Plot) => {
     dispatchError,
   ]);
 
-  /**
+  
+/**
+ * 
+ * @param legendNames array of legend names
+ * @param uniqueX array of unique X ticks
+ * @param dimensions object of height and width of screen
+ * @param longestXTick longest X tick in the data
+ * @returns updated(wrapped) legend names array based on screen size and no. of ticks
+ */
+const getWidthOfDiv = (legendNames: string[], uniqueX: string[], dimensions: dimensionsType, longestXTick: string) => {
+  console.log('Initially legend ',legendNames);
+  const truncationLimit = 20;
+  const charLimit = {
+    sm: 30,
+    md: 65,
+    lg: 80,
+  };
+  //Create a hidden div to check the width of the legend with the given font and size
+  const hiddenDiv = document.createElement('div');
+  hiddenDiv.id = 'hiddenDiv';
+  hiddenDiv.innerHTML = longestXTick;
+  hiddenDiv.style.visibility = 'hidden';
+  hiddenDiv.style.position = 'absolute';
+  hiddenDiv.style.fontSize = '12';
+  hiddenDiv.style.width = 'fit-content';
+  document.body.appendChild(hiddenDiv);
+  //calculate the width of this hidden div
+  const width = hiddenDiv.offsetWidth;
+  const plotWidth = plotAreaFraction * dimensions?.width;
+  //no. of unique violins to be shown on plot
+  const noOfViolins = uniqueX?.length;
+  /*If screen is less than 1000px and legend is 50% of plot area then wrap the text upto 30 characters 
+  which will make the legend of minimum possible width*/
+  if (plotWidth < screenWidthThreshold && width / plotWidth > 0.50) {
+    legendNames = legendNames?.map((name) => name.includes('<a')
+      ? extractValue(name, charLimit.sm, truncationLimit) : wrapText(name, charLimit.sm, truncationLimit))
+  }
+  /*NOTE: These numbers are taken of the basis of current data and different testing scenarios considering the longest x label and 
+  amount of width legend is taking as compared to the plot area*/
+  /*If the number of violins is less than or equal to 7 and the width-to-plot-width ratio is greater than 0.40, 
+  the legendNames array is modified similarly to the previous step, but using the charLimit.lg character limit (i.e 80).*/
+  else if (noOfViolins <= 7 && width / plotWidth > 0.40) {
+    legendNames = legendNames.map((name) => name.includes('<a')
+      ? extractValue(name, charLimit.lg, truncationLimit) : wrapText(name, charLimit.lg, truncationLimit))
+  }
+  /*If the number of violins is between 7 and 30 (inclusive) and the width-to-plot-width ratio is greater than 0.30, 
+  the legendNames array is modified similarly to the previous step, but using the charLimit.md character limit (i.e 65).*/
+  else if ((noOfViolins > 7 && noOfViolins <= 30) && width / plotWidth > 0.3) {
+    legendNames = legendNames.map((name) => name.includes('<a')
+      ? extractValue(name, charLimit.md, truncationLimit) : wrapText(name, charLimit.md, truncationLimit))
+  }
+  /*If the number of violins is greater than 30 and the width-to-plot-width ratio is greater than 0.3,
+   the legendNames array is modified similarly to the previous step, but using the charLimit.sm character limit (i.e 30).*/
+  else if (noOfViolins > 30 && width / plotWidth > 0.30) {
+    legendNames = legendNames.map((name) => name.includes('<a')
+      ? extractValue(name, charLimit.sm, truncationLimit) : wrapText(name, charLimit.sm, truncationLimit))
+  }
+  console.log(legendNames);
+  return legendNames;
+};
+
+/**
+ * Updates the plotly config based on the given plot configs
+ *
+ * @param plot configs for a specific plot
+ * @param result result to be updated
+ */
+const updatePlotlyConfig = (plot: Plot, result: any): void => {
+  result.config.displaylogo = Boolean(plot.config.displaylogo);
+  // result.config.responsive = Boolean(plot.config.responsive);
+  result.config.responsive = true;
+
+  // legend
+  if (plot.config.disable_default_legend_click) {
+    // disable default legend click if it exists
+    result.layout.disable_default_legend_click = plot.config.disable_default_legend_click;
+  }
+};
+
+/**
+ * Gets the axis title for groupby selector
+ *
+ * @param selectDataGrid
+ * @param axis
+ * @returns
+ */
+const getSelectGroupByAxisTitle = (selectDataGrid: any, axis: 'x' | 'y') => {
+  let title = '';
+  selectDataGrid.forEach((row: any) => {
+    row.forEach((cell: any) => {
+      if (cell.action === 'groupby' && cell.axis === axis) {
+        const { groupKeysMap, value } = cell;
+        const group = groupKeysMap[value.value];
+        if (group.title_display_pattern) {
+          title = createLink(group.title_display_pattern);
+        }
+      }
+    });
+  });
+  return title;
+};
+
+/**
+ * Gets the axis title for scale selector
+ *
+ * @param selectDataGrid
+ * @param title_display_markdown_pattern
+ * @param axis
+ * @returns
+ */
+const getSelectScaleAxisTitle = (
+  selectDataGrid: any,
+  title_display_markdown_pattern: string,
+  axis: 'x' | 'y'
+) => {
+  let title = '';
+  let type = '';
+  selectDataGrid.forEach((row: any) => {
+    row.forEach((cell: any) => {
+      if (cell.action === 'scale' && cell.axis === axis) {
+        if (cell.value.value === 'log') {
+          title = createLink(`log(${title_display_markdown_pattern} + 1)`);
+        } else {
+          title = createLink(`${title_display_markdown_pattern}`);
+        }
+        type = cell.value.value;
+      }
+    });
+  });
+  return { title, type };
+};
+
+/**
+ * Updates the plotly layout based on given plot configs
+ *
+ * @param plot configs for a specific plot
+ * @param result result to be updated
+ */
+const updatePlotlyLayout = (
+  plot: Plot,
+  result: any,
+  templateParams: any,
+  additionalLayout?: any,
+  selectDataGrid?: any
+): void => {
+  // title
+  let title = '';
+  console.log(additionalLayout);
+  if (plot.config.title_display_markdown_pattern) {
+    // use the title_display_markdown_pattern if it exists
+    title = createLink(plot.config.title_display_markdown_pattern, templateParams);
+  }
+  if (templateParams.noData) {
+    // TODO: remove this hack
+    title = 'No Data';
+  }
+  if (title) result.layout.title = title;
+  // x axis
+  if (!result.layout.xaxis) {
+    // initialize xaxis if it doesn't exist
+    result.layout.xaxis = {};
+  }
+  if (plot.config.xaxis?.title_display_markdown_pattern) {
+    // use the title_display_markdown_pattern if it exists
+    result.layout.xaxis.title = createLink(plot.config.xaxis.title_display_markdown_pattern);
+  }
+  if (additionalLayout?.xaxis?.tickvals) {
+    console.log('tickvals ',additionalLayout?.xaxis?.tickvals);
+    // use the tickvals if it exists
+    result.layout.xaxis.tickvals = additionalLayout.xaxis.tickvals;
+  }
+  if (additionalLayout?.xaxis?.ticktext) {
+    // use the ticktext if it exists
+    result.layout.xaxis.ticktext = additionalLayout.xaxis.ticktext;
+  }
+  if (selectDataGrid) {
+    // use the groupby axis title if it exists
+    const xaxisTitle = getSelectGroupByAxisTitle(selectDataGrid, 'x');
+    if (xaxisTitle) {
+      result.layout.xaxis.title = xaxisTitle;
+    }
+  }
+
+  result.layout.xaxis.automargin = true; // always set automargin to true
+  result.layout.xaxis.tickformat = plot.config.x_axis_thousands_separator ? ',d' : ''; // set tickformat based on the config
+  result.layout.xaxis.ticksuffix = '  '; // add a space to the end of the tick for spacing
+
+  // y axis
+  if (!result.layout.yaxis) {
+    result.layout.yaxis = {};
+  }
+  if (plot.config.yaxis?.title_display_markdown_pattern) {
+    result.layout.yaxis.title = createLink(plot.config.yaxis.title_display_markdown_pattern);
+
+    if (Array.isArray(selectDataGrid)) {
+      const yaxisTitle = getSelectScaleAxisTitle(
+        selectDataGrid,
+        plot.config.yaxis.title_display_markdown_pattern,
+        'y'
+      );
+      if (yaxisTitle.title) {
+        result.layout.yaxis.title = yaxisTitle.title;
+        result.layout.yaxis.type = yaxisTitle.type;
+      }
+    }
+  }
+
+  if (plot.plot_type === 'violin') {
+    result.layout.hovermode = 'closest';
+    result.layout.dragmode = 'pan';
+    if (result.layout.yaxis.zeroline === undefined) {
+      result.layout.yaxis.zeroline = false;
+    }
+    //To move the legend inside the plot the the width of screen is less than 1000px on load
+    if (innerWidth < screenWidthThreshold) {
+      result.layout.legend = {
+        xanchor: 'center',
+        x: 0.5,
+        y: -2,
+        orientation: 'h',
+      }
+    }
+  }
+
+  result.layout.yaxis.automargin = true;
+  result.layout.yaxis.ticksuffix = '  ';
+
+  // buttons
+  if (plot?.plotly?.config?.modeBarButtonsToRemove) {
+    result.layout.modebar = { remove: plot?.plotly?.config?.modeBarButtonsToRemove };
+  }
+  if (plot.plot_type === 'heatmap') {
+    result.layout.margin = additionalLayout.margin;
+    result.layout.height = additionalLayout.height;
+    result.layout.width = additionalLayout.width;
+    result.data[0]['colorbar'] = {
+      lenmode: 'pixels',
+      len: additionalLayout.height - 40 < 100 ? additionalLayout.height - 40 : 100
+    }
+  }
+  result.layout.autoresize = true;
+};
+
+/**
+ * Parses response data obtained for every trace within the plot
+ *
+ * @param trace current trace the plot config
+ * @param plot plot config
+ * @param responseData data received from request to be parsed
+ * @returns
+ */
+const parseViolinResponse = (
+  trace: Trace,
+  plot: Plot,
+  responseData: ResponseData,
+  selectDataGrid: any,
+  dimensions: dimensionsType,
+  noData?: boolean
+) => {
+  const { ...plotlyTrace } = trace;
+  const result: Partial<TraceConfig> &
+    Partial<PlotlyViolinData> &
+    Partial<PlotlyPlotData> &
+    Partial<ClickableLinks> = {
+    ...plotlyTrace,
+    type: 'violin',
+    x: [], // x data
+    y: [], // y data
+
+    // TODO: migrate all these params options to config
+    points: 'all', // show all points on violin plot
+    pointpos: 0, // position of points on violin plot
+    box: {
+      visible: true, // show box plot
+    },
+    meanline: {
+      visible: true, // show mean line
+    },
+    line: {
+      width: 1, // width of violin plot
+    },
+
+    legend_clickable_links: [], // array of links for clicking on legend
+    graphic_clickable_links: [], // array of links for clicking on graph points
+  };
+
+  const layout: any = {};
+
+  if (!noData) {
+    const selectDataArray = flatten2DArray(selectDataGrid);
+    let yScale: any = null;
+    let xGroupBy: any = null;
+    selectDataArray.forEach((selectObj) => {
+      if (selectObj.action === 'groupby' && selectObj.axis === 'x') {
+        xGroupBy = selectObj;
+      }
+      if (selectObj.action === 'scale' && selectObj.axis === 'y') {
+        yScale = selectObj;
+      }
+    });
+
+    const x: any[] = [];
+    const y: any[] = [];
+    const xTicks: any[] = [];
+    let legendNames: string[] = [];
+    const uniqueX: string[] = [];
+    let tempText: string[] & string[][] = [];
+    let longestXTick = '';
+    responseData.forEach((item: any, i: number) => {
+      if (xGroupBy) {
+        const groupByKey = xGroupBy.value.value;
+        const xGroupItem = xGroupBy.groupKeysMap[groupByKey];
+        updateWithTraceColData(result, trace, item, i, xGroupItem);
+        const xVal = xGroupItem?.legend_markdown_pattern
+          ? createLink(xGroupItem?.legend_markdown_pattern[0], { $row: item })
+          : item[groupByKey] || 'N/A';
+        //Adding all unique x values to array to calculate the no. of violins to be displayed on plot
+        if (uniqueX.indexOf(xVal) === -1) {
+          uniqueX.push(xVal);
+        }
+        //Extract text from xTick and wrap it upto 2 lines
+        const xTick = xGroupItem?.tick_display_markdown_pattern
+          ? extractValue(createLink(xGroupItem?.tick_display_markdown_pattern, { $row: item }), 25, 2)
+          : item[groupByKey] || 'N/A';
+        if (xVal.toString().length > longestXTick?.length) {
+          longestXTick = xVal.toString();
+        }
+        legendNames.push(xVal);
+        x.push(xVal);
+        xTicks.push(xTick);
+      }
+
+      if (yScale) {
+        const yItem = item[yScale.setting.group_key];
+        if (yScale.value.value === 'log') {
+          // increase 'TPM' by 1 for log scale
+          const yVal = yItem + 1;
+          if (yVal !== null && yVal !== undefined) {
+            y.push(yVal);
+          }
+        } else {
+          const yVal = yItem ? createLink(yItem.toString()) : yItem;
+          if (yVal !== null && yVal !== undefined) {
+            y.push(yVal);
+          }
+        }
+      }
+      tempText = updateHoverTemplateData(result, trace, item, tempText);
+    });
+
+    result.x = x;
+    result.y = y;
+    //sets the hovertext array and hoverinfo
+    setHoverText(result, tempText, trace);
+    //Calculate width of legend using hidden div
+    legendNames = getWidthOfDiv(legendNames, uniqueX, dimensions, longestXTick);
+
+    // group by x
+    result.transforms = [
+      {
+        type: 'groupby',
+        groups: legendNames,
+      },
+    ];
+
+    // add custom layout for x axis ticks
+    layout.xaxis = {
+      tickvals: result.x,
+      ticktext: xTicks,
+    };
+  }
+
+  return { result, layout };
+};
+
+/**
  * 
  * @param input : Input parameters of heatmap directive
  * @param longestXTick : Length of longest X axis label
@@ -560,7 +1027,7 @@ export const useChartData = (plot: Plot) => {
       result.data[0].z.forEach((zArr: string[], index: number) => {
         const textArr: string[]=[];
         zArr.forEach((val: any,i: number)=>{
-          textArr.push(`x: ${extractValue(result.data[0].x[i])}` + '<br>' + `y: ${extractValue(result.data[0].y[index])}` +
+          textArr.push(`x: ${extractValue(result.data[0].x[i],30,2)}` + '<br>' + `y: ${extractValue(result.data[0].y[index],30,2)}` +
           '<br>' + `z: ${val}`);
         })
         tempText.push(textArr);
@@ -569,11 +1036,11 @@ export const useChartData = (plot: Plot) => {
     } else if (result.data[0].type === 'scatter') {
       result.data[0].hoverinfo = 'text';
       result.data[0].x.forEach((xVal: string) => (
-        tempText.push(extractValue(xVal))
+        tempText.push(extractValue(xVal,30,10))
       ));
       result.data[0].y.forEach((yVal: string, ind: number) => {
         const xValue = tempText[ind];
-        tempText.splice(ind, 0, `(${xValue}, ${extractValue(yVal)})`);
+        tempText.splice(ind, 0, `(${xValue}, ${extractValue(yVal,30,2)})`);
       });
       result.data[0].text = tempText;
     }
@@ -592,280 +1059,6 @@ export const useChartData = (plot: Plot) => {
       result.hoverinfo = 'text';
     }
   }
-
-  /**
-   * Gets the axis title for groupby selector
-   *
-   * @param selectDataGrid
-   * @param axis
-   * @returns
-   */
-  const getSelectGroupByAxisTitle = (selectDataGrid: any, axis: 'x' | 'y') => {
-    let title = '';
-    selectDataGrid.forEach((row: any) => {
-      row.forEach((cell: any) => {
-        if (cell.action === 'groupby' && cell.axis === axis) {
-          const { groupKeysMap, value } = cell;
-          const group = groupKeysMap[value.value];
-          if (group.title_display_pattern) {
-            title = createLink(group.title_display_pattern);
-          }
-        }
-      });
-    });
-    return title;
-  };
-
-  /**
-   * Gets the axis title for scale selector
-   *
-   * @param selectDataGrid
-   * @param title_display_markdown_pattern
-   * @param axis
-   * @returns
-   */
-  const getSelectScaleAxisTitle = (
-    selectDataGrid: any,
-    title_display_markdown_pattern: string,
-    axis: 'x' | 'y'
-  ) => {
-    let title = '';
-    let type = '';
-    selectDataGrid.forEach((row: any) => {
-      row.forEach((cell: any) => {
-        if (cell.action === 'scale' && cell.axis === axis) {
-          if (cell.value.value === 'log') {
-            title = createLink(`log(${title_display_markdown_pattern} + 1)`);
-          } else {
-            title = createLink(`${title_display_markdown_pattern}`);
-          }
-          type = cell.value.value;
-        }
-      });
-    });
-    return { title, type };
-  };
-
-  /**
-   * Updates the plotly layout based on given plot configs
-   *
-   * @param plot configs for a specific plot
-   * @param result result to be updated
-   */
-  const updatePlotlyLayout = (
-    plot: Plot,
-    result: any,
-    additionalLayout?: any,
-    selectDataGrid?: any
-  ): void => {
-    // title
-    let title = '';
-
-    if (plot.config.title_display_markdown_pattern) {
-      // use the title_display_markdown_pattern if it exists
-      title = createLink(plot.config.title_display_markdown_pattern, templateParams);
-    }
-    if (templateParams.noData) {
-      // TODO: remove this hack
-      title = 'No Data';
-    }
-    if (title) result.layout.title = title;
-
-    // x axis
-    if (!result.layout.xaxis) {
-      // initialize xaxis if it doesn't exist
-      result.layout.xaxis = {};
-    }
-    if (plot.config.xaxis?.title_display_markdown_pattern) {
-      // use the title_display_markdown_pattern if it exists
-      result.layout.xaxis.title = createLink(plot.config.xaxis.title_display_markdown_pattern);
-    }
-    if (additionalLayout?.xaxis?.tickvals) {
-      // use the tickvals if it exists
-      result.layout.xaxis.tickvals = additionalLayout.xaxis.tickvals;
-    }
-    // if (additionalLayout?.xaxis?.ticktext) {
-    //   // use the ticktext if it exists
-    //   result.layout.xaxis.ticktext = additionalLayout.xaxis.ticktext;
-    // }
-    if (selectDataGrid) {
-      // use the groupby axis title if it exists
-      const xaxisTitle = getSelectGroupByAxisTitle(selectDataGrid, 'x');
-      if (xaxisTitle) {
-        result.layout.xaxis.title = xaxisTitle;
-      }
-    }
-
-    result.layout.xaxis.automargin = true; // always set automargin to true
-    result.layout.xaxis.tickformat = plot.config.x_axis_thousands_separator ? ',d' : ''; // set tickformat based on the config
-    result.layout.xaxis.ticksuffix = '  '; // add a space to the end of the tick for spacing
-
-    // y axis
-    if (!result.layout.yaxis) {
-      result.layout.yaxis = {};
-    }
-    if (plot.config.yaxis?.title_display_markdown_pattern) {
-      result.layout.yaxis.title = createLink(plot.config.yaxis.title_display_markdown_pattern);
-
-      if (Array.isArray(selectDataGrid)) {
-        const yaxisTitle = getSelectScaleAxisTitle(
-          selectDataGrid,
-          plot.config.yaxis.title_display_markdown_pattern,
-          'y'
-        );
-        if (yaxisTitle.title) {
-          result.layout.yaxis.title = yaxisTitle.title;
-          result.layout.yaxis.type = yaxisTitle.type;
-        }
-      }
-    }
-
-    if (plot.plot_type === 'violin') {
-      result.layout.hovermode = 'closest';
-      result.layout.dragmode = 'pan';
-      if (result.layout.yaxis.zeroline === undefined) {
-        result.layout.yaxis.zeroline = false;
-      }
-    }
-
-    result.layout.yaxis.automargin = true;
-    result.layout.yaxis.ticksuffix = '  ';
-
-    // buttons
-    if (plot?.plotly?.config?.modeBarButtonsToRemove) {
-      result.layout.modebar = { remove: plot?.plotly?.config?.modeBarButtonsToRemove };
-    }
-    if (plot.plot_type === 'heatmap') {
-      result.layout.margin = additionalLayout.margin;
-      result.layout.height = additionalLayout.height;
-      result.layout.width = additionalLayout.width;
-      result.data[0]['colorbar'] = {
-        lenmode: 'pixels',
-        len: additionalLayout.height - 40 < 100 ? additionalLayout.height - 40 : 100
-      }
-    }
-    result.layout.autoresize = true;
-  };
-
-  /**
-   * Parses response data obtained for every trace within the plot
-   *
-   * @param trace current trace the plot config
-   * @param plot plot config
-   * @param responseData data received from request to be parsed
-   * @returns
-   */
-  const parseViolinResponse = (
-    trace: Trace,
-    plot: Plot,
-    responseData: ResponseData,
-    selectDataGrid: any,
-    noData?: boolean
-  ) => {
-    const { ...plotlyTrace } = trace;
-    const result: Partial<TraceConfig> &
-      Partial<PlotlyViolinData> &
-      Partial<{ transforms: any[] }> &
-      Partial<ClickableLinks> = {
-      ...plotlyTrace,
-      type: 'violin',
-      x: [], // x data
-      y: [], // y data
-
-      // TODO: migrate all these params options to config
-      points: 'all', // show all points on violin plot
-      pointpos: 0, // position of points on violin plot
-      box: {
-        visible: true, // show box plot
-      },
-      meanline: {
-        visible: true, // show mean line
-      },
-      line: {
-        width: 1, // width of violin plot
-      },
-
-      legend_clickable_links: [], // array of links for clicking on legend
-      graphic_clickable_links: [], // array of links for clicking on graph points
-    };
-
-    const layout: any = {};
-
-    if (!noData) {
-      const selectDataArray = flatten2DArray(selectDataGrid);
-      let yScale: any = null;
-      let xGroupBy: any = null;
-      selectDataArray.forEach((selectObj) => {
-        if (selectObj.action === 'groupby' && selectObj.axis === 'x') {
-          xGroupBy = selectObj;
-        }
-        if (selectObj.action === 'scale' && selectObj.axis === 'y') {
-          yScale = selectObj;
-        }
-      });
-
-      const x: any[] = [];
-      const y: any[] = [];
-      const xTicks: any[] = [];
-      let tempText: string[] & string[][] = [];
-      responseData.forEach((item: any, i: number) => {
-        if (xGroupBy) {
-          const groupByKey = xGroupBy.value.value;
-          const xGroupItem = xGroupBy.groupKeysMap[groupByKey];
-          updateWithTraceColData(result, trace, item, i, xGroupItem);
-
-          const xVal = xGroupItem?.legend_markdown_pattern
-            ? createLink(xGroupItem?.legend_markdown_pattern[0], { $row: item })
-            : (item[groupByKey] || 'N/A');
-
-          const xTick = xGroupItem?.tick_display_markdown_pattern
-            ? createLink(xGroupItem?.tick_display_markdown_pattern, { $row: item })
-            : 'N/A';
-
-          x.push(xVal);
-          xTicks.push(xTick);
-        }
-
-        if (yScale) {
-          const yItem = item[yScale.setting.group_key];
-          if (yScale.value.value === 'log') {
-            // increase 'TPM' by 1 for log scale
-            const yVal = yItem + 1;
-            if (yVal !== null && yVal !== undefined) {
-              y.push(yVal);
-            }
-          } else {
-            const yVal = yItem ? createLink(yItem.toString()) : yItem;
-            if (yVal !== null && yVal !== undefined) {
-              y.push(yVal);
-            }
-          }
-        }
-        tempText = updateHoverTemplateData(result, trace, item, tempText);
-      });
-
-      result.x = x;
-      result.y = y;
-      //sets the hovertext array and hoverinfo
-      setHoverText(result, tempText, trace);
-
-      // group by x
-      result.transforms = [
-        {
-          type: 'groupby',
-          groups: result.x,
-        },
-      ];
-
-      // add custom layout for x axis ticks
-      layout.xaxis = {
-        tickvals: result.x,
-        ticktext: xTicks,
-      };
-    }
-
-    return { result, layout };
-  };
 
   /**
    * Parses response data obtained for every trace within the plot
@@ -1134,7 +1327,7 @@ export const useChartData = (plot: Plot) => {
     return { layoutParams, result };
   };
 
-  /**
+/**
 * Parses data for the unpackedResponses for every plot based on its type
 *
 * @param plot configs for a specific plot
@@ -1175,6 +1368,7 @@ export const useChartData = (plot: Plot) => {
           plot,
           responseData,
           selectDataGrid,
+          {width, height},
           templateParams.noData
         );
         additionalLayout = layout;
@@ -1191,26 +1385,9 @@ export const useChartData = (plot: Plot) => {
     if (!hovertemplate_display_pattern) {
       defaultHoverTemplateDisplay(result); // default hover template
     }
+    console.log('here ', result);
     // width and heigh are set in the css
     return result;
-  };
-
-  /**
-   * Updates the plotly config based on the given plot configs
-   *
-   * @param plot configs for a specific plot
-   * @param result result to be updated
-   */
-  const updatePlotlyConfig = (plot: Plot, result: any): void => {
-    result.config.displaylogo = Boolean(plot.config.displaylogo);
-    // result.config.responsive = Boolean(plot.config.responsive);
-    result.config.responsive = true;
-
-    // legend
-    if (plot.config.disable_default_legend_click) {
-      // disable default legend click if it exists
-      result.layout.disable_default_legend_click = plot.config.disable_default_legend_click;
-    }
   };
 
   // Parse data on state changes to data or selectData
@@ -1223,6 +1400,7 @@ export const useChartData = (plot: Plot) => {
 
 
   }, [plot, data, isDataLoading, isFetchSelected, isInitLoading, selectData, templateParams]);
+
 
   return {
     isInitLoading,
@@ -1239,3 +1417,5 @@ export const useChartData = (plot: Plot) => {
     handleSubmitModal,
   };
 };
+
+

@@ -49,3 +49,16 @@ With selections made, individual studies can also be removed by clicking the "x"
 
 ##### Group By
 The Group By selector allows for the user to change how the data is grouped in the graph for the current gene and selected studies. Clicking on the input will open a dropdown menu with a list of options. This selector is setup by defining `config.xaxis.group_keys` that the dropdown is populated with. See [README.md](/plot/README.md) for more information.
+
+##### Plot Responsiveness
+When the screen size is below 1000px( i.e the screen width threshold) the plots that have the legend array being passed into layout object will be displayed horizontally and at the bottom of the plot.  
+- The legend text will be wrapped based on the screen size, ensuring that the width of the legends is limited to a certain value relative to the plot area. This prevents the legends from occupying excessive space and affecting the visibility of the plot along with resizing window handling. 
+- The following is the step function responsible for determining the width of the legend and the wrapping limit: 
+  - If screen is less than 1000px and legend is 50% of plot area then wrap the text upto 30 characters 
+  which will make the legend of minimum possible width
+  - If the number of violins is less than or equal to 7 and the width-to-plot-width ratio is greater than 0.40, 
+  the legendNames array is modified similarly to the previous step, but using the character limit (i.e 80)
+  - If the number of violins is between 7 and 30 (inclusive) and the width-to-plot-width ratio is greater than 0.30, 
+  the legendNames array is modified similarly to the previous step, but using the character limit (i.e 65)
+  - If the number of violins is greater than 30 and the width-to-plot-width ratio is greater than 0.3,
+   the legendNames array is modified similarly to the previous step, but using the character limit (i.e 30)

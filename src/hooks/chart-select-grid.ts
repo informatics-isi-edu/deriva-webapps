@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Plot } from '@isrd-isi-edu/deriva-webapps/src/models/plot-config';
+import { Plot } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
 import { createLink, extractLink, getPatternUri } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 

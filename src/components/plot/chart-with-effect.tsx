@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 
 
-import { Plot } from '@isrd-isi-edu/deriva-webapps/src/models/plot-config';
+import { Plot, plotAreaFraction } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 
 import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
 import { useChartData } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
@@ -23,6 +23,7 @@ export type ChartWithEffectProps = {
 // NOTE: Currently only used for violin plots
 const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
   const plotlyRef = useRef<any>(null);
+
   /**
    * Window size of component
    */
@@ -34,7 +35,7 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
   // Add upper bounds to layout width and height for responsive
   const minWidth = 320; // absolute min width
   const minHeight = 600; // absolute min height
-  const maxWidth = 0.8 * width; // 80% of viewport, used as max width
+  const maxWidth = plotAreaFraction * width; // 95% of viewport, used as max width
   const maxHeight = 0.7 * height; // 70% of viewport, used as min height
   const dynamicStyles: { width: string | number; height: string | number } = {
     width: '100%',
@@ -61,6 +62,8 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
   if (!parsedData || isInitLoading) {
     return <ChaiseSpinner />;
   }
+
+
 
   /**
    * Handles the behavior when a graphic is clicked
@@ -98,6 +101,7 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
       window.open(url, '_blank');
     }
   };
+
 
   /**
    * Handles the behavior when a graphic is clicked
