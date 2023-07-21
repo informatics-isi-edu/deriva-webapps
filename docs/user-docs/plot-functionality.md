@@ -30,6 +30,13 @@ We have also extended the functionality of the legend, `legend_markdown_pattern`
 #### Graph Click
 By default, clicking on a part of the graph will not do anything. We extended the functionality of the plot to allow for clickable links on the graph itself. For instance, clicking a pie slice or a bar can be used to navigate to the defined url in `graphic_clickable_links`. See [README.md](/plot/README.md) for more information.
 
+#### Graph Hover Events
+By default, hovering on a part of the graph will show the x/y axis values. For instance, when no hover template is defined for a heatmap plot, plotly will show `x: E15.5_UreticTip_7092, y: 1442082_at, z: 4.18616` by default. We extended the functionality of the plot to allow customizable hover text on the graph. For instance, hovering on a block of heatmap can show the hover text as defined by the template `hovertemplate_display_pattern`. See [README.md](/plot/README.md) for more information.
+  - NOTE: 
+    - For the `violin` plot, the hover_template_displaypattern will only get applied to the scatter plot inside the violin plot(i.e. on hovering the datapoints) and not on the violin plot and the box plot. 
+    - If one value or all values mentioned in the  `hovertemplate_display_pattern` is missing then also it will show the custom hover text the values that are available. For instance, if the `hovertemplate_display_pattern` is `Gene ID: {{{$url_parameters.Gene.data.NCBI_Ge}}}` where `NCBI_Ge` is not a valid key then it will just display `Gene ID` on hover.
+`
+
 ### Violin plot
 The following behaviors are currently only available when using plot_type "violin".
 

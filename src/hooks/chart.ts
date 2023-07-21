@@ -266,12 +266,11 @@ export const useChartData = (plot: Plot) => {
    */
   useEffect(() => {
     if (parsedData?.data && parsedData?.data[0].transforms?.length >= 1) {
-      console.log('here inside ',parsedData);
-      const uniqueX = parsedData?.data[0]?.x?.filter(function (item: any, pos: number) {
-        return  parsedData?.data[0]?.x?.indexOf(item) === pos;
+      const uniqueX = parsedData?.layout?.xaxis?.tickvals?.filter(function (item: any, pos: number) {
+        return  parsedData?.layout?.xaxis?.tickvals?.indexOf(item) === pos;
       });
       const longestString = uniqueX?.reduce((a: any, b: any) => a.length > b.length ? a : b, '');
-      const newPlot = getWidthOfDiv( parsedData?.data[0]?.x, uniqueX, { width, height }, longestString);
+      const newPlot = getWidthOfDiv( parsedData?.layout?.xaxis?.tickvals, uniqueX, { width, height }, longestString);
       if (width && width <= screenWidthThreshold) {
         //Setting the wrapped legend text for plot and show the legend horizontally below the plot when the screen size is less than or equal to 1000px
         //It overrides the settings made in plot config
@@ -440,7 +439,6 @@ export const useChartData = (plot: Plot) => {
  * @returns updated(wrapped) legend names array based on screen size and no. of ticks
  */
 const getWidthOfDiv = (legendNames: string[], uniqueX: string[], dimensions: dimensionsType, longestXTick: string) => {
-  console.log('Initially legend ',legendNames);
   const truncationLimit = 20;
   const charLimit = {
     sm: 30,
@@ -487,7 +485,6 @@ const getWidthOfDiv = (legendNames: string[], uniqueX: string[], dimensions: dim
     legendNames = legendNames.map((name) => name.includes('<a')
       ? extractValue(name, charLimit.sm, truncationLimit) : wrapText(name, charLimit.sm, truncationLimit))
   }
-  console.log(legendNames);
   return legendNames;
 };
 
@@ -571,13 +568,11 @@ const getSelectScaleAxisTitle = (
 const updatePlotlyLayout = (
   plot: Plot,
   result: any,
-  templateParams: any,
   additionalLayout?: any,
   selectDataGrid?: any
 ): void => {
   // title
   let title = '';
-  console.log(additionalLayout);
   if (plot.config.title_display_markdown_pattern) {
     // use the title_display_markdown_pattern if it exists
     title = createLink(plot.config.title_display_markdown_pattern, templateParams);
@@ -597,7 +592,6 @@ const updatePlotlyLayout = (
     result.layout.xaxis.title = createLink(plot.config.xaxis.title_display_markdown_pattern);
   }
   if (additionalLayout?.xaxis?.tickvals) {
-    console.log('tickvals ',additionalLayout?.xaxis?.tickvals);
     // use the tickvals if it exists
     result.layout.xaxis.tickvals = additionalLayout.xaxis.tickvals;
   }
@@ -679,6 +673,7 @@ const updatePlotlyLayout = (
  * @param trace current trace the plot config
  * @param plot plot config
  * @param responseData data received from request to be parsed
+ * @param dimensions width & height of the screen
  * @returns
  */
 const parseViolinResponse = (
@@ -800,6 +795,7 @@ const parseViolinResponse = (
       tickvals: result.x,
       ticktext: xTicks,
     };
+
   }
 
   return { result, layout };
@@ -920,7 +916,6 @@ const parseViolinResponse = (
       name = createLink(trace.legend_markdown_pattern[index] || '');
     }
     result.name = name;
-
     const legend_markdown_pattern =
       trace.legend_markdown_pattern || extraInfo?.legend_markdown_pattern; // use either the trace or extraInfo
     if (legend_markdown_pattern) {
@@ -930,7 +925,7 @@ const parseViolinResponse = (
         : legend_markdown_pattern;
       const extractedLinkPattern = createLinkWithContextParams(linkPattern);
       if (extractedLinkPattern) {
-        const link = createLink(extractedLinkPattern, { $self: { data: item } });
+        const link = createLink(extractedLinkPattern, { $self: { data: item }, $row: item });
         if (link) {
           result.legend_clickable_links.push(link);
         }
@@ -1385,7 +1380,6 @@ const parseViolinResponse = (
     if (!hovertemplate_display_pattern) {
       defaultHoverTemplateDisplay(result); // default hover template
     }
-    console.log('here ', result);
     // width and heigh are set in the css
     return result;
   };
