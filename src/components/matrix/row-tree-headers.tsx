@@ -437,14 +437,6 @@ const RowTreeHeaders = (
   useEffect(() => {
     const newSet = new Set<string>();
     // Add all top nodes by default
-    // const node = treeNodesMap["None"];
-    // if (node) {
-    //   if (node.children.length > 0) {
-    //     for (const child of node.children) {
-    //       newSet.add(child.key);
-    //     }
-    //   }
-    // }
     for (const node of treeNodes) {
       newSet.add(node.key);
     }

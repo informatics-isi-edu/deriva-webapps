@@ -441,6 +441,7 @@ const VirtualizedTreeGrid = (
 
   return (
     <div className='grid-container' style={gridContainerStyles}>
+      {/* Switch components between flat one and treeview one based on yTree data exists */}
       {yTree ? (
         <RowTreeHeaders
           ref={rowLabelRef}
@@ -469,20 +470,7 @@ const VirtualizedTreeGrid = (
           onScroll={handleRowLabelScroll}
         />
       )}
-      {/* <RowTreeHeaders
-        ref={rowLabelRef}
-        cellHeight={cellHeight}
-        cellWidth={cellWidth}
-        width={rowHeaderWidth}
-        top={columnHeaderHeight}
-        height={gridHeight}
-        itemCount={numRows}
-        itemData={rowHeaderData}
-        treeData={yTree}
-        treeNodes={yTreeNodes}
-        treeNodesMap={yTreeNodesMap}
-        onScroll={handleRowLabelScroll}
-      /> */}
+      {/* Switch components between flat one and treeview one based on xTree data exists. */}
       {xTree ? (
         <ColumnTreeHeaders
           ref={columnLabelRef}
@@ -509,19 +497,6 @@ const VirtualizedTreeGrid = (
           onScroll={handleColumnLabelScroll}
         />
       )}
-      {/* <ColumnTreeHeaders
-        ref={columnLabelRef}
-        height={columnHeaderHeight}
-        cellWidth={cellWidth}
-        left={rowHeaderWidth}
-        width={gridWidth}
-        itemCount={numColumns}
-        itemData={columnHeaderData}
-        treeData={xTree}
-        treeNodes={xTreeNodes}
-        treeNodesMap={xTreeNodesMap}
-        onScroll={handleColumnLabelScroll}
-      /> */}
       <Grid
         className='grid'
         style={gridStyles}

@@ -1,5 +1,4 @@
 import { memo, forwardRef, ForwardedRef, CSSProperties, useState, useEffect } from 'react';
-import { VariableSizeList as List, ListOnScrollProps } from 'react-window';
 
 import { ParsedGridCell } from '@isrd-isi-edu/deriva-webapps/src/hooks/matrix';
 import { MatrixTreeDatum } from '@isrd-isi-edu/deriva-webapps/src/hooks/matrix';
@@ -11,6 +10,7 @@ import TreeItem, { TreeItemProps, treeItemClasses, useTreeItem, TreeItemContentP
 import SvgIcon, { SvgIconProps } from "@mui/material/SvgIcon";
 import clsx from "clsx";
 import Typography from "@mui/material/Typography";
+
 
 type ColumnHeadersProps = {
   /**
@@ -89,7 +89,7 @@ const ColumnHeaders = (
     left: left,
     height: height,
     width: width,
-    overflow: 'auto',
+    overflow: 'hidden',
     willChange: 'transform',
     maxHeight: height,
   };
@@ -440,14 +440,6 @@ const ColumnHeaders = (
   useEffect(() => {
     const newSet = new Set<string>();
     // Add all top nodes by default
-    // const node = treeNodesMap["None"];
-    // if (node) {
-    //   if (node.children.length > 0) {
-    //     for (const child of node.children) {
-    //       newSet.add(child.key);
-    //     }
-    //   }
-    // }
     for (const node of treeNodes) {
       newSet.add(node.key);
     }
@@ -525,7 +517,6 @@ const ColumnHeaders = (
             onNodeToggle={handleToggle}
             style={{
               height: "fit-content",
-              // width: "fit_content",
               width: "fit-content",
               position: "absolute",
               left: -scrollTreeYIniPos, // Adjust the left value based on the desired position

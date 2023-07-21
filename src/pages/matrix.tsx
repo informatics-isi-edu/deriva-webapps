@@ -103,32 +103,7 @@ const MatrixApp = (): JSX.Element => {
   /**
    * Scrolls the grid to the given input string if found in the matrix,
    * otherwise shows a no results message
-   * Original version
-   *
-   * @param currInput
-   * @returns
-   */
-  // const scrollToInput = (currInput: string | undefined) => {
-  //   if (!currInput) {
-  //     return;
-  //   }
-  //   if (!gridDataMap[currInput.toLowerCase()]) {
-  //     showNoResults();
-  //     return;
-  //   }
-
-  //   const selected = gridDataMap[currInput.toLowerCase()];
-  //   if (selected.type === 'row') {
-  //     gridRef.current.searchRow(selected.index);
-  //   } else if (selected.type === 'col') {
-  //     gridRef.current.searchCol(selected.index);
-  //   }
-  // };
-
-  /**
-   * Scrolls the grid to the given input string if found in the matrix,
-   * otherwise shows a no results message
-   * For Treeview components
+   * Edited for Treeview components
    * 
    * @param currInput
    * @returns
@@ -161,7 +136,6 @@ const MatrixApp = (): JSX.Element => {
       }
 
     }else{
-
       if (!gridDataMap[currInput.toLowerCase()]) {
         showNoResults();
         return;
@@ -173,8 +147,6 @@ const MatrixApp = (): JSX.Element => {
       } else if (selected.type === 'col') {
         gridRef.current.searchCol(selected.index);
       }
-      // showNoResults();
-      // return;
     }
     
   };
