@@ -58,7 +58,7 @@ const ButtonSelect = ({
 
   const AllStudiesComponent = (): JSX.Element => (
     <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-      <span style={{ marginRight: 8 }}>All Studies Selected</span>
+      <i style={{ marginRight: 8 }}>All Studies Selected</i>
       <ClearAllButton />
     </div>
   );

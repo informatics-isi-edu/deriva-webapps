@@ -205,13 +205,12 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
    *
    * @param uri
    * @param headers
-   * @param compact
    * @returns
    */
-  const fetchSelectGridCellData = async (uri: string, headers: any, compact: boolean) => {
+  const fetchSelectGridCellData = async (uri: string, headers: any) => {
     // console.log('fetchselectgridcell occurred', uri);
     const resolvedRef = await ConfigService.ERMrest.resolve(uri, { headers });
-    const ref = compact ? resolvedRef.contextualize.compactSelect : resolvedRef;
+    const ref = resolvedRef.contextualize.compactSelect;
     const initialReference = resolvedRef.contextualize.compactSelect;
     const page = await ref.read(1);
     const tupleData = page.tuples;
@@ -228,7 +227,7 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
    */
   const parseSelectGridCell = useCallback(
     async (cell: any, templateParams: PlotTemplateParams) => {
-      const { type, isMulti, compact, urlParamKey, requestInfo } = cell;
+      const { type, isMulti, urlParamKey, requestInfo } = cell;
       const selectResult: any = { ...cell };
 
       if (requestInfo) {
@@ -252,8 +251,7 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
         if (uri) {
           const { initialReference, tupleData } = await fetchSelectGridCellData(
             uri,
-            headers,
-            compact
+            headers
           ); // perform the data fetch
           recordsetProps.initialReference = initialReference; // set initial ref
           selectResult.selectedRows = tupleData; // set initial selected rows
@@ -346,7 +344,6 @@ export const createStudyViolinSelectGrid = (plot: Plot) => {
   // TODO: define typing for these
   // TODO: should recordsetProps be part of requestInfo object?
   //    or moved to top level `GeneSelectData.recordsetProps`?
-  // TODO: why is gene contextualized to compactSelect and not study?
   const GeneSelectData = {
     id: 'gene',
     urlParamKey: 'Gene',
@@ -354,7 +351,6 @@ export const createStudyViolinSelectGrid = (plot: Plot) => {
     type: 'dropdown-select',
     action: 'modal',
     isButton: true,
-    compact: true,
     requestInfo: {
       valueKey: 'NCBI_GeneID',
       labelKey: 'NCBI_Symbol',
