@@ -962,6 +962,8 @@ const parseViolinResponse = (
     result: any,
     trace: Trace,
     item: any,
+    //NOTE: The textArray can be ['a','b','c'](other plots) as well as [['a','b'],['c','d']](heatmap)
+    //At a given time it can be either of those types mentioned but to avoid lint error `string[] & string[][]` is used instead of `string[] | string[][]`
     textArray: string[] & string[][],
     index: number = 0,
     templateParams?: PlotTemplateParams,
@@ -1021,7 +1023,7 @@ const parseViolinResponse = (
       result.data[0].hoverinfo = 'text';
       result.data[0].z.forEach((zArr: string[], index: number) => {
         const textArr: string[]=[];
-        zArr.forEach((val: any,i: number)=>{
+        zArr.forEach((val: string,i: number)=>{
           textArr.push(`x: ${extractValue(result.data[0].x[i],30,2)}` + '<br>' + `y: ${extractValue(result.data[0].y[index],30,2)}` +
           '<br>' + `z: ${val}`);
         })
@@ -1047,7 +1049,7 @@ const parseViolinResponse = (
    * @param textArray array of hover text
    * @param trace from plot configs
    */
-  const setHoverText = (result: any, textArray: any, trace: Trace) => {
+  const setHoverText = (result: any, textArray: string[], trace: Trace) => {
     const hovertemplate_display_pattern = trace.hovertemplate_display_pattern; // use trace info
     if (hovertemplate_display_pattern) {
       result.hovertext = textArray;

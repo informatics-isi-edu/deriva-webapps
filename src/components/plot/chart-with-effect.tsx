@@ -13,9 +13,6 @@ import RecordsetModal from '@isrd-isi-edu/chaise/src/components/modals/recordset
 import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
 import { SelectedRow } from '@isrd-isi-edu/chaise/src/models/recordset';
 
-// providers
-import AlertsProvider from '@isrd-isi-edu/chaise/src/providers/alerts';
-
 export type ChartWithEffectProps = {
   config: Plot;
 };
@@ -150,35 +147,33 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
   }
 
   return (
-    <AlertsProvider>
-      <div className='chart-container'>
-        <div className='chart'>
-          {selectData && selectData.length > 0 ? (
-            <SelectGrid selectors={selectData} width={dynamicStyles.width} />
-          ) : null}
-          {isParseLoading || isFetchSelected ? (
-            <ChaiseSpinner />
-          ) : (
-            <PlotlyChart
-              className='plotly-chart'
-              style={dynamicStyles}
-              ref={plotlyRef}
-              {...parsedData}
-              useResizeHandler
-            />
-          )}
-        </div>
-        {isModalOpen && modalProps ? (
-          <RecordsetModal
-            recordsetProps={modalProps.recordsetProps}
-            onSubmit={(selectedRows: SelectedRow[]) => {
-              handleSubmitModal(selectedRows, modalIndices, modalCell);
-            }}
-            onClose={handleCloseModal}
-          />
+    <div className='chart-container'>
+      <div className='chart'>
+        {selectData && selectData.length > 0 ? (
+          <SelectGrid selectors={selectData} width={dynamicStyles.width} />
         ) : null}
+        {isParseLoading || isFetchSelected ? (
+          <ChaiseSpinner />
+        ) : (
+          <PlotlyChart
+            className='plotly-chart'
+            style={dynamicStyles}
+            ref={plotlyRef}
+            {...parsedData}
+            useResizeHandler
+          />
+        )}
       </div>
-    </AlertsProvider>
+      {isModalOpen && modalProps ? (
+        <RecordsetModal
+          recordsetProps={modalProps.recordsetProps}
+          onSubmit={(selectedRows: SelectedRow[]) => {
+            handleSubmitModal(selectedRows, modalIndices, modalCell);
+          }}
+          onClose={handleCloseModal}
+        />
+      ) : null}
+    </div>
   );
 };
 
