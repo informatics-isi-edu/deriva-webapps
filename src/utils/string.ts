@@ -1,4 +1,8 @@
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
+import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
+import { dataFormats } from '@isrd-isi-edu/chaise/src/utils/constants';
+
+
 
 /**
  * Appends and returns the pcid and ppid for the given link
@@ -175,7 +179,26 @@ export const getPatternUri = (queryPattern: string, templateParams: any) => {
 };
 
 /**
- * 
+ * Extracts the text from the given markdown string pattern, otherwise returns false if no text was found
+ * @param pattern markdown pattern 
+ * @returns 
+ */
+export const extractAndFormatDate = (message: string): string => {
+  let match = null;
+  let extractedDate: string;
+  let modifiedString = message;
+  const timestampRegex = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+-\d{2}:\d{2}/;
+  const dateRegex = /\d{4}-\d{2}-\d{2}/;
+  match = dateRegex.exec(message);
+  extractedDate = match ? match[0] : '';
+  if(extractedDate){
+    extractedDate=  windowRef.moment(extractedDate).format('MMM D,YYYY');
+    modifiedString = message.replace(timestampRegex, extractedDate);
+  }
+  return modifiedString;
+};
+
+ /* 
  * @param pattern uri link pattern
  * @param width no. of characters to be shown in one line used by wrapText method
  * @param wrapLimit maximum no. of lines to be shown after wrapping text used by wrapText method
@@ -245,6 +268,3 @@ export const wrapText = (text: string, width: number, wrapLimit: number) => {
   }
   return wrappedText;
 }
-
-
-

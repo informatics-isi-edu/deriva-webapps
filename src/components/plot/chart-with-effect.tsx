@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 
+
 import { Plot, plotAreaFraction } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 
 import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';

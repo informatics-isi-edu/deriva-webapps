@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+import useAlert from '@isrd-isi-edu/chaise/src/hooks/alerts';
 import {
   PlotData as PlotlyPlotData,
   ViolinData as PlotlyViolinData,
@@ -12,6 +13,7 @@ import {
   getPatternUri,
   createLinkWithContextParams,
   extractValue,
+  extractAndFormatDate,
   wrapText,
 } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 import { flatten2DArray } from '@isrd-isi-edu/deriva-webapps/src/utils/data';
@@ -36,6 +38,7 @@ import {
 import useIsFirstRender from '@isrd-isi-edu/chaise/src/hooks/is-first-render';
 import { getQueryParam } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
+import { ChaiseAlertType } from '@isrd-isi-edu/chaise/src/providers/alerts';
 import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
 
 /**
@@ -82,6 +85,8 @@ export type HeatmapZData = {
   z: any[];
 }
 
+export type StringArray = string[];
+
 export type ClickableLinks = {
   /**
    * Links for the plot graphic
@@ -108,6 +113,12 @@ export type PieResultData = {
 };
 
 export type PlotTemplateParams = {
+  $row?: {
+    [paramKey: string]: any;
+  };
+  $self?: {
+    [paramKey: string]: any;
+  };
   /**
    * Parameters for URL
    */
@@ -170,7 +181,6 @@ export type dimensionsType = {
   height: number
 }
 
-
 /**
  * Sets the plot configs
  *
@@ -212,6 +222,7 @@ export const useChartData = (plot: Plot) => {
   const [isDataLoading, setIsDataLoading] = useState<boolean>(false);
   const [isParseLoading, setIsParseLoading] = useState<boolean>(false);
   const { dispatchError, errors } = useError();
+  const alertFunctions = useAlert();
   const { width = 0, height = 0 } = useWindowSize();
 
   /**
@@ -250,17 +261,16 @@ export const useChartData = (plot: Plot) => {
     setIsModalOpen,
   });
 
-
   /**
    * Updates the legend text and orientation for all plots for which legend is available as per the change in screen width
    */
   useEffect(() => {
     if (parsedData?.data && parsedData?.data[0].transforms?.length >= 1) {
       const uniqueX = parsedData?.layout?.xaxis?.tickvals?.filter(function (item: any, pos: number) {
-        return parsedData?.layout?.xaxis?.tickvals?.indexOf(item) === pos;
+        return  parsedData?.layout?.xaxis?.tickvals?.indexOf(item) === pos;
       });
       const longestString = uniqueX?.reduce((a: any, b: any) => a.length > b.length ? a : b, '');
-      const newPlot = getWidthOfDiv(parsedData?.layout?.xaxis?.tickvals, uniqueX, { width, height }, longestString);
+      const newPlot = getWidthOfDiv( parsedData?.layout?.xaxis?.tickvals, uniqueX, { width, height }, longestString);
       if (width && width <= screenWidthThreshold) {
         //Setting the wrapped legend text for plot and show the legend horizontally below the plot when the screen size is less than or equal to 1000px
         //It overrides the settings made in plot config
@@ -419,90 +429,63 @@ export const useChartData = (plot: Plot) => {
     dispatchError,
   ]);
 
-  // Parse data on state changes to data or selectData
-  useEffect(() => {
-    if (data && !isDataLoading && !isInitLoading && !isFetchSelected) {
-      const parsedPlotData = parsePlotData(plot, data, selectData, templateParams, { width, height });
-      setParsedData(parsedPlotData);
-      setIsParseLoading(false); // set loading to false after parsing
-    }
-  }, [plot, data, isDataLoading, isFetchSelected, isInitLoading, selectData, templateParams]);
-
-  return {
-    isInitLoading,
-    isDataLoading,
-    isParseLoading,
-    isFetchSelected,
-    modalProps,
-    isModalOpen,
-    selectData,
-    parsedData,
-    data,
-    errors,
-    handleCloseModal,
-    handleSubmitModal,
-  };
-};
-
+  
 /**
- * Parses data for the unpackedResponses for every plot based on its type
- *
- * @param plot configs for a specific plot
- * @param unpackedResponses response data
- * @param dimensions width and height of the screen
- * @returns plotly data to be inserted into props
+ * 
+ * @param legendNames array of legend names
+ * @param uniqueX array of unique X ticks
+ * @param dimensions object of height and width of screen
+ * @param longestXTick longest X tick in the data
+ * @returns updated(wrapped) legend names array based on screen size and no. of ticks
  */
-const parsePlotData = (
-  plot: Plot,
-  unpackedResponses: ResponseData[],
-  selectDataGrid: any,
-  templateParams: any,
-  dimensions: dimensionsType,
-) => {
-  const result: any = { data: [] };
-  result.config = { ...plot?.plotly?.config };
-  result.layout = {
-    ...plot.plotly?.layout,
-    width: undefined, // undefined to allow for responsive layout
-    height: undefined, // undefined to allow for responsive layout
+const getWidthOfDiv = (legendNames: string[], uniqueX: string[], dimensions: dimensionsType, longestXTick: string) => {
+  const truncationLimit = 20;
+  const charLimit = {
+    sm: 30,
+    md: 65,
+    lg: 80,
   };
-  // NOTE: width and height max are set in dynamic styles of chart-with-effect.tsx
-
-  // Add all plot "traces" to data array based on plot type
-  let additionalLayout = {};
-  result.data = unpackedResponses.map((responseData: ResponseData, index: number) => {
-    const currTrace = plot.traces[index];
-    if (plot.plot_type === 'bar') {
-      return parseBarResponse(currTrace, plot, responseData);
-    } else if (plot.plot_type === 'pie') {
-      return parsePieResponse(currTrace, plot, responseData);
-    } else if (plot.plot_type === 'scatter') {
-      return parseScatterResponse(currTrace, plot, responseData);
-    } else if (plot.plot_type === 'histogram') {
-      return parseHistogramResponse(currTrace, plot, responseData);
-    } else if (plot.plot_type === 'violin') {
-      const { result: parseResult, layout } = parseViolinResponse(
-        currTrace,
-        plot,
-        responseData,
-        selectDataGrid,
-        dimensions,
-        templateParams.noData,
-      );
-      additionalLayout = layout;
-      return parseResult;
-    } else if (plot.plot_type === 'heatmap') {
-      const heatmapData = parseHeatmapResponse(currTrace, plot, responseData);
-      additionalLayout = { ...heatmapData.layoutParams };
-      return heatmapData.result;
-    }
-  });
-
-  updatePlotlyConfig(plot, result); // update the config
-  updatePlotlyLayout(plot, result, templateParams, additionalLayout, selectDataGrid); // update the layout
-
-  // width and heigh are set in the css
-  return result;
+  //Create a hidden div to check the width of the legend with the given font and size
+  const hiddenDiv = document.createElement('div');
+  hiddenDiv.id = 'hiddenDiv';
+  hiddenDiv.innerHTML = longestXTick;
+  hiddenDiv.style.visibility = 'hidden';
+  hiddenDiv.style.position = 'absolute';
+  hiddenDiv.style.fontSize = '12';
+  hiddenDiv.style.width = 'fit-content';
+  document.body.appendChild(hiddenDiv);
+  //calculate the width of this hidden div
+  const width = hiddenDiv.offsetWidth;
+  const plotWidth = plotAreaFraction * dimensions?.width;
+  //no. of unique violins to be shown on plot
+  const noOfViolins = uniqueX?.length;
+  /*If screen is less than 1000px and legend is 50% of plot area then wrap the text upto 30 characters 
+  which will make the legend of minimum possible width*/
+  if (plotWidth < screenWidthThreshold && width / plotWidth > 0.50) {
+    legendNames = legendNames?.map((name) => name.includes('<a')
+      ? extractValue(name, charLimit.sm, truncationLimit) : wrapText(name, charLimit.sm, truncationLimit))
+  }
+  /*NOTE: These numbers are taken of the basis of current data and different testing scenarios considering the longest x label and 
+  amount of width legend is taking as compared to the plot area*/
+  /*If the number of violins is less than or equal to 7 and the width-to-plot-width ratio is greater than 0.40, 
+  the legendNames array is modified similarly to the previous step, but using the charLimit.lg character limit (i.e 80).*/
+  else if (noOfViolins <= 7 && width / plotWidth > 0.40) {
+    legendNames = legendNames.map((name) => name.includes('<a')
+      ? extractValue(name, charLimit.lg, truncationLimit) : wrapText(name, charLimit.lg, truncationLimit))
+  }
+  /*If the number of violins is between 7 and 30 (inclusive) and the width-to-plot-width ratio is greater than 0.30, 
+  the legendNames array is modified similarly to the previous step, but using the charLimit.md character limit (i.e 65).*/
+  else if ((noOfViolins > 7 && noOfViolins <= 30) && width / plotWidth > 0.3) {
+    legendNames = legendNames.map((name) => name.includes('<a')
+      ? extractValue(name, charLimit.md, truncationLimit) : wrapText(name, charLimit.md, truncationLimit))
+  }
+  /*If the number of violins is greater than 30 and the width-to-plot-width ratio is greater than 0.3,
+   the legendNames array is modified similarly to the previous step, but using the charLimit.sm character limit (i.e 30).*/
+  else if (noOfViolins > 30 && width / plotWidth > 0.30) {
+    legendNames = legendNames.map((name) => name.includes('<a')
+      ? extractValue(name, charLimit.sm, truncationLimit) : wrapText(name, charLimit.sm, truncationLimit))
+  }
+  return legendNames;
 };
 
 /**
@@ -585,13 +568,11 @@ const getSelectScaleAxisTitle = (
 const updatePlotlyLayout = (
   plot: Plot,
   result: any,
-  templateParams: any,
   additionalLayout?: any,
   selectDataGrid?: any
 ): void => {
   // title
   let title = '';
-
   if (plot.config.title_display_markdown_pattern) {
     // use the title_display_markdown_pattern if it exists
     title = createLink(plot.config.title_display_markdown_pattern, templateParams);
@@ -692,6 +673,7 @@ const updatePlotlyLayout = (
  * @param trace current trace the plot config
  * @param plot plot config
  * @param responseData data received from request to be parsed
+ * @param dimensions width & height of the screen
  * @returns
  */
 const parseViolinResponse = (
@@ -749,6 +731,7 @@ const parseViolinResponse = (
     const xTicks: any[] = [];
     let legendNames: string[] = [];
     const uniqueX: string[] = [];
+    let tempText: string[] & string[][] = [];
     let longestXTick = '';
     responseData.forEach((item: any, i: number) => {
       if (xGroupBy) {
@@ -789,10 +772,13 @@ const parseViolinResponse = (
           }
         }
       }
+      tempText = updateHoverTemplateData(result, trace, item, tempText);
     });
 
     result.x = x;
     result.y = y;
+    //sets the hovertext array and hoverinfo
+    setHoverText(result, tempText, trace);
     //Calculate width of legend using hidden div
     legendNames = getWidthOfDiv(legendNames, uniqueX, dimensions, longestXTick);
 
@@ -809,257 +795,10 @@ const parseViolinResponse = (
       tickvals: result.x,
       ticktext: xTicks,
     };
+
   }
 
   return { result, layout };
-};
-
-/**
- * Parses response data obtained for every trace within the plot
- *
- * @param trace current trace the plot config
- * @param plot plot config
- * @param responseData data received from request to be parsed
- * @returns
- */
-const parseHistogramResponse = (trace: Trace, plot: Plot, responseData: ResponseData) => {
-  const result: Partial<TraceConfig> & Partial<PlotlyPlotData> = {
-    ...trace,
-    type: 'histogram',
-  };
-
-  const { config } = plot;
-  const { format_data = false } = config;
-
-  const dataPoints: Array<any> = [];
-  responseData.forEach((item: any) => {
-    if (trace.data_col) {
-      const value = getValue(item, trace.data_col, undefined, format_data, plot);
-      dataPoints.push(value);
-    }
-  });
-
-  // Add data to correct axis depending on orientation
-  if (trace.orientation === 'h') {
-    result.y = dataPoints;
-  } else if (trace.orientation === 'v') {
-    result.x = dataPoints;
-  }
-
-  return result;
-};
-
-/**
- * Parses response data obtained for every trace within the plot
- *
- * @param trace current trace the plot config
- * @param plot plot config
- * @param responseData data received from request to be parsed
- * @returns
- */
-const parseScatterResponse = (trace: Trace, plot: Plot, responseData: ResponseData) => {
-  const result: Partial<TraceConfig> & Partial<PlotlyPlotData> = {
-    ...trace,
-    mode: 'markers',
-    name: trace.legend ? trace.legend[0] : '',
-    type: plot.plot_type,
-    x: [], // x data
-    y: [], // y data
-  };
-
-  const { config } = plot;
-  const { xaxis, yaxis, format_data_x = false, format_data_y = false } = config; // TODO: move format_data_x to xaxis in config
-
-  const x: string[] = [];
-  const y: string[] = [];
-  responseData.forEach((item: any, i: number) => {
-    updateWithTraceColData(result, trace, item, i);
-
-    // Add X data
-    trace?.x_col?.forEach((colName: string) => {
-      const value = getValue(item, colName, xaxis, format_data_x, plot);
-      x.push(value?.toString());
-    });
-
-    // Add Y data
-    trace?.y_col?.forEach((colName: string) => {
-      const value = getValue(item, colName, yaxis, format_data_y, plot);
-      y.push(value?.toString());
-    });
-  });
-
-  result.x = x;
-  result.y = y;
-
-  return result;
-};
-
-/**
- * Parses response data obtained for every trace within the plot
- *
- * @param trace current trace the plot config
- * @param plot plot config
- * @param responseData data received from request to be parsed
- * @returns
- */
-const parsePieResponse = (trace: Trace, plot: Plot, responseData: ResponseData) => {
-  const result: Partial<TraceConfig> & Partial<PlotlyPieData> & PieResultData & ClickableLinks = {
-    ...trace,
-    type: plot.plot_type,
-    hoverinfo: 'text+value+percent', // value to show on hover of a pie slice
-    textinfo: plot.config.slice_label || 'value', // data shown on a pie slice
-    labels: [], // array of labels for the legend
-    text: [], // text to show on hover of a pie slice
-    values: [], // the values for the legend
-    legend_clickable_links: [], // array of links for when clicking legend
-    graphic_clickable_links: [], // array of links for when clicking graph
-  };
-
-  const { config } = plot;
-  const { format_data = false } = config;
-  responseData.forEach((item: any, i: number) => {
-    updateWithTraceColData(result, trace, item, i);
-    // Add data
-    if (trace.data_col) {
-      const value = getValue(item, trace.data_col, undefined, format_data, plot);
-      if (Array.isArray(result.values)) {
-        result.values.push(value);
-      }
-    }
-
-    // Add legend data if exists
-    if (trace.legend_col) {
-      const textValue = createLink(item[trace.legend_col], { $self: { data: item } });
-      let labelValue = textValue;
-      if (typeof trace.legend_markdown_pattern === 'string') {
-        labelValue = createLink(trace.legend_markdown_pattern, { $self: { data: item } });
-      }
-      result.text.push(textValue);
-      result.labels.push(labelValue);
-    }
-  });
-
-  return result;
-};
-
-/**
- * Parses response data obtained for every trace within the plot
- *
- * @param trace current trace the plot config
- * @param plot plot config
- * @param responseData data received from request to be parsed
- * @returns
- */
-const parseBarResponse = (trace: Trace, plot: Plot, responseData: ResponseData) => {
-  const result: Partial<TraceConfig> & Partial<PlotlyPlotData> & PlotResultData & ClickableLinks = {
-    ...trace,
-    type: plot.plot_type,
-    textposition: 'outside', // position of bar values
-    hoverinfo: 'text', // value to show on hover of a bar
-    x: [], // x data
-    y: [], // y data
-    text: [], // text data
-    legend_clickable_links: [], // array of links for when clicking legend
-    graphic_clickable_links: [], // array of links for when clicking graph
-  };
-
-  const { config } = plot;
-  const { xaxis, yaxis, format_data_x = false, format_data_y = false } = config; // why is format_data_x not in xaxis?
-
-  responseData.forEach((item: any) => {
-    // Add the x values for the bar plot
-    trace?.x_col?.forEach((colName: string, i: number) => {
-      if (trace.orientation === 'h') {
-        // update the trace data if orientation is horizontal
-        updateWithTraceColData(result, trace, item, i);
-        const textValue = getValue(item, colName, undefined, true, plot);
-        result.text?.push(textValue.toString());
-      }
-      const value = getValue(item, colName, xaxis, format_data_x, plot);
-      result.x.push(value.toString());
-    });
-
-    // Add the y values for the bar plot
-    trace?.y_col?.forEach((colName: string, i: number) => {
-      if (trace.orientation === 'v') {
-        // update the trace data if orientation is vertical
-        updateWithTraceColData(result, trace, item, i);
-        const textValue = getValue(item, colName, undefined, true, plot);
-        result.text?.push(textValue.toString());
-      }
-      const value = getValue(item, colName, yaxis, format_data_y, plot);
-      result.y.push(value.toString());
-    });
-  });
-  return result;
-};
-
-
-/**
- * Parses response data obtained for every trace within the plot
- *
- * @param trace current trace the plot config
- * @param plot plot config
- * @param responseData data received from request to be parsed
- * @returns
- */
-const parseHeatmapResponse = (trace: Trace, plot: Plot, responseData: ResponseData) => {
-  const result: Partial<TraceConfig> & Partial<PlotlyPlotData> & PlotResultData & ClickableLinks & HeatmapZData = {
-    ...trace,
-    type: plot.plot_type,
-    x: [], // x data
-    y: [], // y data
-    z: [], // z data
-    text: [], // text data
-    legend_clickable_links: [], // array of links for when clicking legend
-    graphic_clickable_links: [], // array of links for when clicking graph
-  };
-  let yIndex = 0;
-  let layoutParams = {};
-  let longestXTick = '';
-  let longestYTick = '';
-  const { config, plotly } = plot;
-  const { xaxis, yaxis, format_data_x = false, format_data_y = false } = config;
-  responseData.forEach((item: any, i: number) => {
-    updateWithTraceColData(result, trace, item, i);
-    // Add the y values for the heatmap plot
-    trace?.y_col?.forEach((colName: string, i: number) => {
-      const value = getValue(item, colName, yaxis, format_data_y, plot);
-      // Adds the y value for the heatmap plot if it is not added yet in y array
-      if (result.y.indexOf(value.toString()) < 0) {
-        result.y.push(value.toString());
-        if (item[colName].toString().length > longestYTick?.length) {
-          longestYTick = item[colName].toString();
-        }
-        result.z.push([]);
-      }
-      // Fetching the index of added y value to add corresponding z value
-      yIndex = result.y.indexOf(value.toString())
-    });
-    // Add the z values for the heatmap plot based on y val's index
-    trace?.z_col?.forEach((colName: string) => {
-      const zValue = item[colName];
-      result?.z[yIndex]?.push(zValue);
-
-    });
-    // Add the x values for the heatmap plot if its not added yet
-    trace?.x_col?.forEach((colName: string) => {
-      const value = getValue(item, colName, xaxis, format_data_x, plot);
-      if (result.x.indexOf(value.toString()) < 0) {
-        if (item[colName].toString().length > longestXTick?.length) {
-          longestXTick = item[colName].toString();
-        }
-        result.x.push(value.toString());
-      }
-    });
-  });
-  // Getting the longest x tick in the given data to determine margin and height values in getHeatmapLayoutParams function
-  const inputParams = {
-    width: typeof plotly?.layout.width !== 'undefined' ? plotly?.layout.width : 1200,
-    xTickAngle: typeof plotly?.layout.xaxis?.tickangle !== 'undefined' ? plotly?.layout.xaxis?.tickangle : 50,
-  }
-  layoutParams = getHeatmapLayoutParams(inputParams, longestXTick?.length, longestYTick?.length, result.y?.length);
-  return { layoutParams, result };
 };
 
 /**
@@ -1087,185 +826,600 @@ const parseHeatmapResponse = (trace: Trace, plot: Plot, responseData: ResponseDa
  * 	tickFont: font to be used in labels
  * }
  */
-const getHeatmapLayoutParams = (input: inputParamsType, longestXTick: number, longestYTick: number, lengthY: number) => {
-  let height;
-  let yTickAngle;
-  const tMargin = 25;
-  let rMargin, bMargin, lMargin;
-  if (longestXTick <= 18) {
-    height = longestXTick * 9 + lengthY * 10 + 50;
-    bMargin = 8.4 * longestXTick;
-  } else if (longestXTick <= 22) {
-    height = longestXTick * 9 + lengthY * 10 + 55;
-    bMargin = 8.4 * longestXTick;
-  } else if (longestXTick <= 30) {
-    height = longestXTick * 8.8 + lengthY * 10 + 55;
-    bMargin = 8.2 * longestXTick;
-  } else {
-    height = longestXTick * 8.8 + lengthY * 10 + 45;
-    bMargin = 8 * longestXTick;
+  const getHeatmapLayoutParams = (input: inputParamsType, longestXTick: number, longestYTick: number, lengthY: number) => {
+    let height;
+    let yTickAngle;
+    const tMargin = 25;
+    let rMargin, bMargin, lMargin;
+    if (longestXTick <= 18) {
+      height = longestXTick * 9 + lengthY * 10 + 50;
+      bMargin = 8.4 * longestXTick;
+    } else if (longestXTick <= 22) {
+      height = longestXTick * 9 + lengthY * 10 + 55;
+      bMargin = 8.4 * longestXTick;
+    } else if (longestXTick <= 30) {
+      height = longestXTick * 8.8 + lengthY * 10 + 55;
+      bMargin = 8.2 * longestXTick;
+    } else {
+      height = longestXTick * 8.8 + lengthY * 10 + 45;
+      bMargin = 8 * longestXTick;
+    }
+
+    if (lengthY === 1) {
+      yTickAngle = -90;
+      lMargin = 30;
+      rMargin = 20;
+    } else {
+      yTickAngle = 0;
+      lMargin = 20 + longestYTick * 7;
+      rMargin = 5;
+    }
+
+    const layoutParams: layoutParamsType = {
+      height: height,
+      width: input.width,
+      margin: {
+        t: tMargin,
+        r: rMargin,
+        b: bMargin,
+        l: lMargin,
+      },
+      xTickAngle: input.xTickAngle,
+      yTickAngle: yTickAngle,
+    };
+    return layoutParams;
   }
 
-  if (lengthY === 1) {
-    yTickAngle = -90;
-    lMargin = 30;
-    rMargin = 20;
-  } else {
-    yTickAngle = 0;
-    lMargin = 20 + longestYTick * 7;
-    rMargin = 5;
-  }
-
-  const layoutParams: layoutParamsType = {
-    height: height,
-    width: input.width,
-    margin: {
-      t: tMargin,
-      r: rMargin,
-      b: bMargin,
-      l: lMargin,
-    },
-    xTickAngle: input.xTickAngle,
-    yTickAngle: yTickAngle,
+  /**
+   * Gets the value in the form of a link from the given markdown pattern.
+   * Optionally formats the value.
+   *
+   * @param item each item of data
+   * @param colName column name for the item of data
+   * @param axis axis object from plot config
+   * @param formatData whether to format the data or not
+   * @param plot plot config
+   * @returns
+   */
+  const getValue = (
+    item: any,
+    colName: string,
+    axis: PlotConfigAxis | undefined,
+    formatData: boolean,
+    plot: Plot
+  ): string | number => {
+    let value = item[colName];
+    if (axis && axis?.tick_display_markdown_pattern) {
+      value = createLink(axis.tick_display_markdown_pattern, { $self: { data: item } });
+    }
+    return formatPlotData(value, formatData, plot.plot_type);
   };
-  return layoutParams;
-}
 
-/**
- * Gets the value in the form of a link from the given markdown pattern.
- * Optionally formats the value.
- *
- * @param item each item of data
- * @param colName column name for the item of data
- * @param axis axis object from plot config
- * @param formatData whether to format the data or not
- * @param plot plot config
- * @returns
- */
-const getValue = (
-  item: any,
-  colName: string,
-  axis: PlotConfigAxis | undefined,
-  formatData: boolean,
-  plot: Plot
-): string | number => {
-  let value = item[colName];
-  if (axis && axis?.tick_display_markdown_pattern) {
-    value = createLink(axis.tick_display_markdown_pattern, { $self: { data: item } });
-  }
-  return formatPlotData(value, formatData, plot.plot_type);
-};
-
-/**
- * Updates the trace with given the given trace passed in from plot-cnofig and the item data
- *
- * @param result trace object to be updated
- * @param trace from plot configs
- * @param item from the response object
- * @param index index of the response
- */
-const updateWithTraceColData = (
-  result: any,
-  trace: Trace,
-  item: any,
-  index: number,
-  extraInfo?: any
-): void => {
-  // legend name
-  let name = trace.legend ? trace.legend[index] : '';
-  if (trace.legend_markdown_pattern) {
-    name = createLink(trace.legend_markdown_pattern[index] || '');
-  }
-  result.name = name;
-
-  const legend_markdown_pattern =
-    trace.legend_markdown_pattern || extraInfo?.legend_markdown_pattern; // use either the trace or extraInfo
-  if (legend_markdown_pattern) {
-    // if there is a legend_markdown_pattern then create the link and add it to the array
-    const linkPattern = Array.isArray(legend_markdown_pattern)
-      ? legend_markdown_pattern[index]
-      : legend_markdown_pattern;
-    const extractedLinkPattern = createLinkWithContextParams(linkPattern);
-    if (extractedLinkPattern) {
-      const link = createLink(extractedLinkPattern, { $self: { data: item } });
-      if (link) {
-        result.legend_clickable_links.push(link);
+  /**
+   * Updates the trace with given the given trace passed in from plot-cnofig and the item data
+   *
+   * @param result trace object to be updated
+   * @param trace current trace from the plot config
+   * @param item each item/row of data
+   * @param index index of the response
+   */
+  const updateWithTraceColData = (
+    result: any,
+    trace: Trace,
+    item: any,
+    index: number,
+    extraInfo?: any
+  ): void => {
+    // legend name
+    let name = trace.legend ? trace.legend[index] : '';
+    if (trace.legend_markdown_pattern) {
+      name = createLink(trace.legend_markdown_pattern[index] || '');
+    }
+    result.name = name;
+    const legend_markdown_pattern =
+      trace.legend_markdown_pattern || extraInfo?.legend_markdown_pattern; // use either the trace or extraInfo
+    if (legend_markdown_pattern) {
+      // if there is a legend_markdown_pattern then create the link and add it to the array
+      const linkPattern = Array.isArray(legend_markdown_pattern)
+        ? legend_markdown_pattern[index]
+        : legend_markdown_pattern;
+      const extractedLinkPattern = createLinkWithContextParams(linkPattern);
+      if (extractedLinkPattern) {
+        const link = createLink(extractedLinkPattern, { $self: { data: item }, $row: item });
+        if (link) {
+          result.legend_clickable_links.push(link);
+        }
       }
+    }
+
+    const graphic_link_pattern = trace.graphic_link_pattern || extraInfo?.graphic_link_pattern; // use either the trace or extraInfo
+    if (graphic_link_pattern) {
+      // if there is a graphic_link_pattern then create the link and it to the array
+      const linkPattern = Array.isArray(graphic_link_pattern)
+        ? graphic_link_pattern[0]
+        : graphic_link_pattern;
+      if (linkPattern) {
+        const link = createLink(linkPattern, { $self: { data: item }, $row: item });
+        if (link) {
+          result.graphic_clickable_links.push(link);
+        }
+      }
+    }
+
+  };
+
+  /**
+   * 
+   * @param result data object to be updated
+   * @param trace current trace from the plot config
+   * @param item each item/row of data
+   * @param textArray array for hover text
+   * @param index provided for heatmap case for corresponding y axis values
+   * @param templateParams provided for heatmap to access url_parameters
+   * @returns 
+   */
+  const updateHoverTemplateData = (
+    result: any,
+    trace: Trace,
+    item: any,
+    /** 
+     * NOTE: The textArray can be ['a','b','c'](other plots) as well as [['a','b'],['c','d']](heatmap)
+     * At a given time it can be either of those types mentioned but to avoid lint error `string[] & string[][]` is used instead of `string[] | string[][]`
+     * 
+     * This most likely should be a Union type but I think the way the functions are nested and 
+     * the use of a switch instead of if/else caused the linter to have an issue
+     * 
+     * More info about using '&' vs '|' (Mixin types vs Union types)
+     * https://stackoverflow.com/questions/44688919/how-to-declare-a-variable-with-two-types-via-typescript/44689251#44689251
+     **/
+    textArray: string[] & string[][],
+    index: number = 0,
+    templateParams?: PlotTemplateParams,
+  ) => {
+    const hovertemplate_display_pattern = trace.hovertemplate_display_pattern; // use trace info
+    if (hovertemplate_display_pattern) {
+      const validLink = ConfigService.ERMrest.renderHandlebarsTemplate(hovertemplate_display_pattern, {
+        $self: { data: item },
+        $row: item,
+        $url_parameters: templateParams?.$url_parameters
+      });
+      /**If there are any invalid params in the hover template display pattern, the link generated will be null.
+      Therefore the following piece of code will add an alert for stating that just once*/
+      if (!validLink && (Array.isArray(textArray[0]) ? textArray[0]?.length === 1 : textArray?.length === 1)) {
+        if (alertFunctions.alerts.length === 0) {
+          alertFunctions.addAlert('Invalid key provided for hover template display pattern!', ChaiseAlertType.WARNING);
+        }
+      }
+      const link = ConfigService.ERMrest.renderHandlebarsTemplate(hovertemplate_display_pattern, {
+        $self: { data: item },
+        $row: item,
+        $url_parameters: templateParams?.$url_parameters
+      }, null, { avoidValidation: true });
+      if (link) {
+        switch (result.type) {
+          case 'bar':
+          case 'scatter':
+          case 'violin':
+          case 'pie':
+            textArray.push(link);
+            break;
+          case 'histogram':
+            textArray.push(extractAndFormatDate(link));
+            break;
+          case 'heatmap':
+            textArray[index].push(link);
+            break;
+          default:
+            break;
+        }
+      }
+    }
+    return textArray;
+  }
+
+  /**
+   * Adds default hover text to the result object when hovertemplate_display_pattern is not configured 
+   * Note: This fixes the issue of displaying link in hover text when tick_display is configured for x or y axis 
+   * which was making the text hard to read in some plot types
+   * @param result trace object to be updated
+   */
+  const defaultHoverTemplateDisplay = (
+    result: any,
+  ): void => {
+    const tempText: string[][] & string[] = [];
+    if (result.data[0].type === 'heatmap') {
+      result.data[0].hoverinfo = 'text';
+      result.data[0].z.forEach((zArr: string[], index: number) => {
+        const textArr: string[]=[];
+        zArr.forEach((val: string,i: number)=>{
+          textArr.push(`x: ${extractValue(result.data[0].x[i],30,2)}` + '<br>' + `y: ${extractValue(result.data[0].y[index],30,2)}` +
+          '<br>' + `z: ${val}`);
+        })
+        tempText.push(textArr);
+      });
+      result.data[0].text = tempText;
+    } else if (result.data[0].type === 'scatter') {
+      result.data[0].hoverinfo = 'text';
+      result.data[0].x.forEach((xVal: string) => (
+        tempText.push(extractValue(xVal,30,10))
+      ));
+      result.data[0].y.forEach((yVal: string, ind: number) => {
+        const xValue = tempText[ind];
+        tempText.splice(ind, 0, `(${xValue}, ${extractValue(yVal,30,2)})`);
+      });
+      result.data[0].text = tempText;
     }
   }
 
-  const graphic_link_pattern = trace.graphic_link_pattern || extraInfo?.graphic_link_pattern; // use either the trace or extraInfo
-  if (graphic_link_pattern) {
-    // if there is a graphic_link_pattern then create the link and it to the array
-    const linkPattern = Array.isArray(graphic_link_pattern)
-      ? graphic_link_pattern[0]
-      : graphic_link_pattern;
-    if (linkPattern) {
-      const link = createLink(linkPattern, { $self: { data: item }, $row: item });
-      if (link) {
-        result.graphic_clickable_links.push(link);
-      }
+  /**
+   * Sets the hovertext array and hoverinfo for all plots when hovertemplate_display_pattern is configured
+   * @param result data object to be updated
+   * @param textArray array of hover text
+   * @param trace from plot configs
+   */
+  const setHoverText = (result: any, textArray: string[], trace: Trace) => {
+    const hovertemplate_display_pattern = trace.hovertemplate_display_pattern; // use trace info
+    if (hovertemplate_display_pattern) {
+      result.hovertext = textArray;
+      result.hoverinfo = 'text';
     }
   }
-};
+
+  /**
+   * Parses response data obtained for every trace within the plot
+   *
+   * @param trace current trace the plot config
+   * @param plot plot config
+   * @param responseData data received from request to be parsed
+   * @returns
+   */
+  const parseHistogramResponse = (trace: Trace, plot: Plot, responseData: ResponseData) => {
+    const result: Partial<TraceConfig> & Partial<PlotlyPlotData> = {
+      ...trace,
+      type: 'histogram',
+    };
+
+    const { config } = plot;
+    const { format_data = false } = config;
+    let tempText: string[] & string[][] = [];
+    const dataPoints: Array<any> = [];
+    responseData.forEach((item: any) => {
+      if (trace.data_col) {
+        const value = getValue(item, trace.data_col, undefined, format_data, plot);
+        dataPoints.push(value);
+      }
+      tempText = updateHoverTemplateData(result, trace, item, tempText);
+    });
+
+    // Add data to correct axis depending on orientation
+    if (trace.orientation === 'h') {
+      result.y = dataPoints;
+    } else if (trace.orientation === 'v') {
+      result.x = dataPoints;
+    }
+
+    //sets the hovertext array and hoverinfo
+    setHoverText(result, tempText, trace);
+    return result;
+  };
+
+  /**
+   * Parses response data obtained for every trace within the plot
+   *
+   * @param trace current trace the plot config
+   * @param plot plot config
+   * @param responseData data received from request to be parsed
+   * @returns
+   */
+  const parseScatterResponse = (trace: Trace, plot: Plot, responseData: ResponseData) => {
+    const result: Partial<TraceConfig> & Partial<PlotlyPlotData> = {
+      ...trace,
+      mode: 'markers',
+      name: trace.legend ? trace.legend[0] : '',
+      type: plot.plot_type,
+      x: [], // x data
+      y: [], // y data
+    };
+
+    const { config } = plot;
+    const { xaxis, yaxis, format_data_x = false, format_data_y = false } = config; // TODO: move format_data_x to xaxis in config
+
+    const x: string[] = [];
+    const y: string[] = [];
+    let tempText: string[] & string[][] = [];
+    responseData.forEach((item: any, i: number) => {
+      updateWithTraceColData(result, trace, item, i);
+
+      // Add X data
+      trace?.x_col?.forEach((colName: string) => {
+        const value = getValue(item, colName, xaxis, format_data_x, plot);
+        x.push(value?.toString());
+      });
+
+      // Add Y data
+      trace?.y_col?.forEach((colName: string) => {
+        const value = getValue(item, colName, yaxis, format_data_y, plot);
+        y.push(value?.toString());
+      });
+      tempText = updateHoverTemplateData(result, trace, item, tempText);
+    });
+    //sets the hovertext array and hoverinfo
+    setHoverText(result, tempText, trace);
+    result.x = x;
+    result.y = y;
+    return result;
+  };
+
+  /**
+   * Parses response data obtained for every trace within the plot
+   *
+   * @param trace current trace the plot config
+   * @param plot plot config
+   * @param responseData data received from request to be parsed
+   * @returns
+   */
+  const parsePieResponse = (trace: Trace, plot: Plot, responseData: ResponseData) => {
+    const result: Partial<TraceConfig> & Partial<PlotlyPieData> & PieResultData & ClickableLinks = {
+      ...trace,
+      type: plot.plot_type,
+      hoverinfo: 'text+value+percent', // value to show on hover of a pie slice
+      textinfo: plot.config.slice_label || 'value', // data shown on a pie slice
+      labels: [], // array of labels for the legend
+      text: [], // text to show on hover of a pie slice
+      values: [], // the values for the legend
+      legend_clickable_links: [], // array of links for when clicking legend
+      graphic_clickable_links: [], // array of links for when clicking graph
+    };
+
+    const { config } = plot;
+    const { format_data = false } = config;
+    let tempText: string[] & string[][] = []; //use trace info
+    responseData.forEach((item: any, i: number) => {
+      updateWithTraceColData(result, trace, item, i);
+      // Add data
+      if (trace.data_col) {
+        const value = getValue(item, trace.data_col, undefined, format_data, plot);
+        if (Array.isArray(result.values)) {
+          result.values.push(value);
+        }
+      }
+
+      // Add legend data if exists
+      if (trace.legend_col) {
+        const textValue = createLink(item[trace.legend_col], { $self: { data: item } });
+        let labelValue = textValue;
+        if (typeof trace.legend_markdown_pattern === 'string') {
+          labelValue = createLink(trace.legend_markdown_pattern, { $self: { data: item } });
+        }
+        result.text.push(textValue);
+        result.labels.push(labelValue);
+      }
+      tempText = updateHoverTemplateData(result, trace, item, tempText);
+    });
+    setHoverText(result, tempText, trace);
+    return result;
+  };
+
+  /**
+   * Parses response data obtained for every trace within the plot
+   *
+   * @param trace current trace the plot config
+   * @param plot plot config
+   * @param responseData data received from request to be parsed
+   * @returns
+   */
+  const parseBarResponse = (trace: Trace, plot: Plot, responseData: ResponseData) => {
+    const result: Partial<TraceConfig> & Partial<PlotlyPlotData> & PlotResultData & ClickableLinks = {
+      ...trace,
+      type: plot.plot_type,
+      textposition: 'outside', // position of bar values
+      hoverinfo: 'text', // value to show on hover of a bar
+      x: [], // x data
+      y: [], // y data
+      text: [], // text data
+      legend_clickable_links: [], // array of links for when clicking legend
+      graphic_clickable_links: [], // array of links for when clicking graph
+    };
+
+    const { config } = plot;
+    const { xaxis, yaxis, format_data_x = false, format_data_y = false } = config; // why is format_data_x not in xaxis?
+    let tempText: string[] & string[][] = [];
+    responseData.forEach((item: any) => {
+      // Add the x values for the bar plot
+      trace?.x_col?.forEach((colName: string, i: number) => {
+        if (trace.orientation === 'h') {
+          // update the trace data if orientation is horizontal
+          updateWithTraceColData(result, trace, item, i);
+          const textValue = getValue(item, colName, undefined, true, plot);
+          result.text?.push(textValue.toString());
+        }
+        const value = getValue(item, colName, xaxis, format_data_x, plot);
+        result.x.push(value.toString());
+      });
+
+      // Add the y values for the bar plot
+      trace?.y_col?.forEach((colName: string, i: number) => {
+        if (trace.orientation === 'v') {
+          // update the trace data if orientation is vertical
+          updateWithTraceColData(result, trace, item, i);
+          const textValue = getValue(item, colName, undefined, true, plot);
+          result.text?.push(textValue.toString());
+        }
+        const value = getValue(item, colName, yaxis, format_data_y, plot);
+        result.y.push(value.toString());
+      });
+      tempText = updateHoverTemplateData(result, trace, item, tempText);
+    });
+    //sets the hovertext array and hoverinfo
+    setHoverText(result, tempText, trace);
+    return result;
+  };
+
+
+  /**
+   * Parses response data obtained for every trace within the plot
+   *
+   * @param trace current trace the plot config
+   * @param plot plot config
+   * @param responseData data received from request to be parsed
+   * @returns
+   */
+  const parseHeatmapResponse = (trace: Trace, plot: Plot, responseData: ResponseData) => {
+    const result: Partial<TraceConfig> & Partial<PlotlyPlotData> & PlotResultData & ClickableLinks & HeatmapZData = {
+      ...trace,
+      type: plot.plot_type,
+      x: [], // x data
+      y: [], // y data
+      z: [], // z data
+      text: [], // text data
+      legend_clickable_links: [], // array of links for when clicking legend
+      graphic_clickable_links: [], // array of links for when clicking graph
+    };
+    let yIndex = 0;
+    let layoutParams = {};
+    let longestXTick = '';
+    let longestYTick = '';
+    let tempText: string[] & string[][] = [];
+
+    const { config, plotly } = plot;
+    const { xaxis, yaxis, format_data_x = false, format_data_y = false } = config;
+    responseData.forEach((item: any, i: number) => {
+      updateWithTraceColData(result, trace, item, i);
+      // Add the y values for the heatmap plot
+      trace?.y_col?.forEach((colName: string) => {
+        const value = getValue(item, colName, yaxis, format_data_y, plot);
+        // Adds the y value for the heatmap plot if it is not added yet in y array
+        if (result.y.indexOf(value.toString()) < 0) {
+          result.y.push(value.toString());
+          if (item[colName].toString().length > longestYTick?.length) {
+            longestYTick = item[colName].toString();
+          }
+          tempText.push([]);
+          result.z.push([]);
+        }
+        // Fetching the index of added y value to add corresponding z value
+        yIndex = result.y.indexOf(value.toString());
+      });
+
+      // Add the z values for the heatmap plot based on y val's index
+      trace?.z_col?.forEach((colName: string) => {
+        const zValue = item[colName];
+        result?.z[yIndex]?.push(zValue);
+        tempText = updateHoverTemplateData(result, trace, item, tempText, yIndex, templateParams);
+      });
+      // Add the x values for the heatmap plot if its not added yet
+      trace?.x_col?.forEach((colName: string) => {
+        const value = getValue(item, colName, xaxis, format_data_x, plot);
+        if (result.x.indexOf(value.toString()) < 0) {
+          if (item[colName].toString().length > longestXTick?.length) {
+            longestXTick = item[colName].toString();
+          }
+          result.x.push(value.toString());
+        }
+      });
+
+
+    });
+    // Getting the longest x tick in the given data to determine margin and height values in getHeatmapLayoutParams function
+    const inputParams = {
+      width: typeof plotly?.layout.width !== 'undefined' ? plotly?.layout.width : 1200,
+      xTickAngle: typeof plotly?.layout.xaxis?.tickangle !== 'undefined' ? plotly?.layout.xaxis?.tickangle : 50,
+    }
+    //sets the hovertext array and hoverinfo
+    setHoverText(result, tempText, trace);
+
+    layoutParams = getHeatmapLayoutParams(inputParams, longestXTick?.length, longestYTick?.length, result.y?.length);
+    return { layoutParams, result };
+  };
 
 /**
- * 
- * @param legendNames array of legend names
- * @param uniqueX array of unique X ticks
- * @param dimensions object of height and width of screen
- * @param longestXTick longest X tick in the data
- * @returns updated(wrapped) legend names array based on screen size and no. of ticks
- */
-const getWidthOfDiv = (legendNames: string[], uniqueX: string[], dimensions: dimensionsType, longestXTick: string) => {
-  const truncationLimit = 20;
-  const charLimit = {
-    sm: 30,
-    md: 65,
-    lg: 80,
+* Parses data for the unpackedResponses for every plot based on its type
+*
+* @param plot configs for a specific plot
+* @param unpackedResponses response data
+* @returns plotly data to be inserted into props
+*/
+  const parsePlotData = (
+    plot: Plot,
+    unpackedResponses: ResponseData[],
+    selectDataGrid: any,
+  ) => {
+    const result: any = { data: [] };
+    result.config = { ...plot?.plotly?.config };
+    let hovertemplate_display_pattern;
+    result.layout = {
+      ...plot.plotly?.layout,
+      width: undefined, // undefined to allow for responsive layout
+      height: undefined, // undefined to allow for responsive layout
+    };
+    // NOTE: width and height max are set in dynamic styles of chart-with-effect.tsx
+
+    // Add all plot "traces" to data array based on plot type
+    let additionalLayout = {};
+    result.data = unpackedResponses.map((responseData: ResponseData, index: number) => {
+      const currTrace = plot.traces[index];
+      hovertemplate_display_pattern = currTrace.hovertemplate_display_pattern; //use trace info
+      if (plot.plot_type === 'bar') {
+        return parseBarResponse(currTrace, plot, responseData);
+      } else if (plot.plot_type === 'pie') {
+        return parsePieResponse(currTrace, plot, responseData);
+      } else if (plot.plot_type === 'scatter') {
+        return parseScatterResponse(currTrace, plot, responseData);
+      } else if (plot.plot_type === 'histogram') {
+        return parseHistogramResponse(currTrace, plot, responseData);
+      } else if (plot.plot_type === 'violin') {
+        const { result: parseResult, layout } = parseViolinResponse(
+          currTrace,
+          plot,
+          responseData,
+          selectDataGrid,
+          {width, height},
+          templateParams.noData
+        );
+        additionalLayout = layout;
+        return parseResult;
+      } else if (plot.plot_type === 'heatmap') {
+        const heatmapData = parseHeatmapResponse(currTrace, plot, responseData);
+        additionalLayout = { ...heatmapData.layoutParams };
+        return heatmapData.result;
+      }
+    });
+    updatePlotlyConfig(plot, result); // update the config
+    updatePlotlyLayout(plot, result, additionalLayout, selectDataGrid); // update the layout
+    //If hovertemplate_display_pattern is not configured, set default hover text for plot
+    if (!hovertemplate_display_pattern) {
+      defaultHoverTemplateDisplay(result); // default hover template
+    }
+    // width and heigh are set in the css
+    return result;
   };
-  //Create a hidden div to check the width of the legend with the given font and size
-  const hiddenDiv = document.createElement('div');
-  hiddenDiv.id = 'hiddenDiv';
-  hiddenDiv.innerHTML = longestXTick;
-  hiddenDiv.style.visibility = 'hidden';
-  hiddenDiv.style.position = 'absolute';
-  hiddenDiv.style.fontSize = '12';
-  hiddenDiv.style.width = 'fit-content';
-  document.body.appendChild(hiddenDiv);
-  //calculate the width of this hidden div
-  const width = hiddenDiv.offsetWidth;
-  const plotWidth = plotAreaFraction * dimensions?.width;
-  //no. of unique violins to be shown on plot
-  const noOfViolins = uniqueX?.length;
-  /*If screen is less than 1000px and legend is 50% of plot area then wrap the text upto 30 characters 
-  which will make the legend of minimum possible width*/
-  if (plotWidth < screenWidthThreshold && width / plotWidth > 0.50) {
-    legendNames = legendNames?.map((name) => name.includes('<a')
-      ? extractValue(name, charLimit.sm, truncationLimit) : wrapText(name, charLimit.sm, truncationLimit))
-  }
-  /*NOTE: These numbers are taken of the basis of current data and different testing scenarios considering the longest x label and 
-  amount of width legend is taking as compared to the plot area*/
-  /*If the number of violins is less than or equal to 7 and the width-to-plot-width ratio is greater than 0.40, 
-  the legendNames array is modified similarly to the previous step, but using the charLimit.lg character limit (i.e 80).*/
-  else if (noOfViolins <= 7 && width / plotWidth > 0.40) {
-    legendNames = legendNames.map((name) => name.includes('<a')
-      ? extractValue(name, charLimit.lg, truncationLimit) : wrapText(name, charLimit.lg, truncationLimit))
-  }
-  /*If the number of violins is between 7 and 30 (inclusive) and the width-to-plot-width ratio is greater than 0.30, 
-  the legendNames array is modified similarly to the previous step, but using the charLimit.md character limit (i.e 65).*/
-  else if ((noOfViolins > 7 && noOfViolins <= 30) && width / plotWidth > 0.3) {
-    legendNames = legendNames.map((name) => name.includes('<a')
-      ? extractValue(name, charLimit.md, truncationLimit) : wrapText(name, charLimit.md, truncationLimit))
-  }
-  /*If the number of violins is greater than 30 and the width-to-plot-width ratio is greater than 0.3,
-   the legendNames array is modified similarly to the previous step, but using the charLimit.sm character limit (i.e 30).*/
-  else if (noOfViolins > 30 && width / plotWidth > 0.30) {
-    legendNames = legendNames.map((name) => name.includes('<a')
-      ? extractValue(name, charLimit.sm, truncationLimit) : wrapText(name, charLimit.sm, truncationLimit))
-  }
-  return legendNames;
+
+  // Parse data on state changes to data or selectData
+  useEffect(() => {
+    if (data && !isDataLoading && !isInitLoading && !isFetchSelected) {
+        const parsedPlotData = parsePlotData(plot, data, selectData);
+        setParsedData(parsedPlotData);
+        setIsParseLoading(false); // set loading to false after parsing
+    }
+
+
+  }, [plot, data, isDataLoading, isFetchSelected, isInitLoading, selectData, templateParams]);
+
+
+  return {
+    isInitLoading,
+    isDataLoading,
+    isParseLoading,
+    isFetchSelected,
+    modalProps,
+    isModalOpen,
+    selectData,
+    parsedData,
+    data,
+    errors,
+    handleCloseModal,
+    handleSubmitModal,
+  };
 };
 
-export default getWidthOfDiv;
 

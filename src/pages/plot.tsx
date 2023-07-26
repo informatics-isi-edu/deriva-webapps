@@ -47,7 +47,7 @@ const PlotApp = (): JSX.Element => {
 
 const root = createRoot(document.getElementById(ID_NAMES.APP_ROOT) as HTMLElement);
 root.render(
-  <AppWrapper appSettings={plotSettings} includeNavbar displaySpinner ignoreHashChange>
+  <AppWrapper appSettings={plotSettings} includeNavbar displaySpinner ignoreHashChange includeAlerts>
     <PlotApp />
   </AppWrapper>
 );
