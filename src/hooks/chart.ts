@@ -962,8 +962,16 @@ const parseViolinResponse = (
     result: any,
     trace: Trace,
     item: any,
-    //NOTE: The textArray can be ['a','b','c'](other plots) as well as [['a','b'],['c','d']](heatmap)
-    //At a given time it can be either of those types mentioned but to avoid lint error `string[] & string[][]` is used instead of `string[] | string[][]`
+    /** 
+     * NOTE: The textArray can be ['a','b','c'](other plots) as well as [['a','b'],['c','d']](heatmap)
+     * At a given time it can be either of those types mentioned but to avoid lint error `string[] & string[][]` is used instead of `string[] | string[][]`
+     * 
+     * This most likely should be a Union type but I think the way the functions are nested and 
+     * the use of a switch instead of if/else caused the linter to have an issue
+     * 
+     * More info about using '&' vs '|' (Mixin types vs Union types)
+     * https://stackoverflow.com/questions/44688919/how-to-declare-a-variable-with-two-types-via-typescript/44689251#44689251
+     **/
     textArray: string[] & string[][],
     index: number = 0,
     templateParams?: PlotTemplateParams,
