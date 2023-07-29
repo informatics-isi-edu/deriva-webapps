@@ -70,13 +70,13 @@ Each object in the `plots` array can have the following parameters:
         1. `queryPattern`: The url from which the data has to be fetched after applying handlebars templating
         2. `uri`: The url from which the data has to be fetched. DEPRECATED, use `traces.queryPattern` instead
         3. `legend`: The value of legend to be shown for this trace.
-        4. `x_col`: The column name for the x values
-        5. `y_col`: An array of column name for the y values
+        4. `x_col`: An array of column names for the x values
+        5. `y_col`: An array of column names for the y values
         6. `orientation`: Optional parameter for displaying the bar chart horizontally // default: 'h'
         7. `textfont`: It will work till the bar size can accommodate the font size
         8. `hovertemplate_display_pattern`: To show customized hover text on plots using given template pattern
     2. Extra properties for pie and histogram charts:
-        1. `data_col`: The column name for the data aggregation. used instead of x_col or y_xol
+        1. `data_col`: A column name as a string or array of column names for the data aggregation. used instead of x_col or y_xol
         2. `legend_col`: The column name to use for display in the legend column
     3. Extra properties for pie and bar charts:
         1. `legend_markdown_pattern`: Display value to be used instead of legend_col.name.
