@@ -95,7 +95,7 @@ export type PlotConfigAxisGroupKey = {
  */
 export type TraceConfig = {
   uri?: string;
-  data_col?: string;
+  data_col?: string | string[];
   legend_col?: string;
   legend_markdown_pattern?: string | string[];
   graphic_link_pattern?: string[] | string;
