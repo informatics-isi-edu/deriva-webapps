@@ -70,7 +70,7 @@ export type MatrixTreeDatum = {
 export type TreeNode = {
   title: string;
   key: string;
-  link: string;
+  link?: string;
   children: TreeNode[];
 };
 
@@ -398,14 +398,8 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
   const [{ data: xData }, { data: yData }, { data: zData }, { data: xyzData }, { data: yTreeData }, { data: xTreeData}, ] = response;
 
   /**
-   * TODO Junmeng
-   *
-   * this function is responsible for turning the data that we get from server (the json files under local-test in your case)
-   * into the data structure that we expect for the grid.
-   *
-   * `yTreeData` is the returned tree data. be mindful that this value is optional.
-   * so if it won't make your code more difficult, you should switch to the existing behavior
-   * when `yTreeData` is not available.
+   * 'yTreeData' and 'xTreeData' are the returned tree data. these values are optional.
+   * Corresponding component will switch to the existing behavior when 'xTreeData' or 'yTreeData' is not available.
    */
 
   // Create XYZ Map
@@ -525,15 +519,15 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
   // Y tree data
   const yTreeNodes: TreeNode[] = [];
   const yTreeNodesMap: { [key: string]: TreeNode } = {};
-  const yReferenceNodesMap: {[key: string]: {title: string, link: string}} = {};
+  const yReferenceNodesMap: {[key: string]: {title: string, link?: string}} = {};
 
-  gridData.forEach((element: any) => {
-    if(element[0]["row"]["id"]){
+  gridData.forEach((element: ParsedGridCell[]) => {
+    if(element[0]['row']['id']){
       const referenceNode = {
-        title: element[0]["row"]["title"],
-        link: element[0]["row"]["link"],
+        title: element[0]['row']['title'],
+        link: element[0]['row']['link'],
       }
-      yReferenceNodesMap[element[0]["row"]["id"]] = referenceNode;
+      yReferenceNodesMap[element[0]['row']['id']] = referenceNode;
     }
   });
 
@@ -541,8 +535,8 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
     yTreeData.forEach((item) => {
       const { child_id, parent_id } = item;
     
-      const childTitle = child_id in yReferenceNodesMap ? yReferenceNodesMap[child_id].title : "None";
-      const childLink = child_id in yReferenceNodesMap ? yReferenceNodesMap[child_id].link : "";
+      const childTitle = child_id in yReferenceNodesMap ? yReferenceNodesMap[child_id].title : 'None';
+      const childLink = child_id in yReferenceNodesMap ? yReferenceNodesMap[child_id].link : '';
       const childNode = child_id in yTreeNodesMap
         ? yTreeNodesMap[child_id]
         : {
@@ -555,8 +549,8 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
       yTreeNodesMap[child_id] = childNode;
     
       if(parent_id !== null){
-        const parentTitle = parent_id in yReferenceNodesMap ? yReferenceNodesMap[parent_id].title: "None";
-        const parentLink = parent_id in yReferenceNodesMap ? yReferenceNodesMap[parent_id].link : "";
+        const parentTitle = parent_id in yReferenceNodesMap ? yReferenceNodesMap[parent_id].title: 'None';
+        const parentLink = parent_id in yReferenceNodesMap ? yReferenceNodesMap[parent_id].link : '';
         const parentNode = parent_id in yTreeNodesMap
           ? yTreeNodesMap[parent_id]
           : {
@@ -574,17 +568,6 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
         yTreeNodes.push(childNode);
       }
     });
-  
-    // Assume all top nodes' parent_id is "None"
-    // const node = yTreeNodesMap["None"];
-    // if (node) {
-    //   if (node.children.length > 0) {
-    //     for (const child of node.children) {
-    //       yTreeNodes.push(child);
-    //     }
-    //   }
-    // }
-    // console.log(yTreeNodes);
       
     // Sort the gridData in y axis for the synchronization of expand and collapse of tree
     const flatKeys = flattenTree(yTreeNodes);
@@ -611,8 +594,8 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
     xTreeData.forEach((item) => {
       const { child_id, parent_id } = item;
     
-      const childTitle = child_id in xReferenceNodesMap ? xReferenceNodesMap[child_id].title : "None";
-      const childLink = child_id in xReferenceNodesMap ? xReferenceNodesMap[child_id].link : "";
+      const childTitle = child_id in xReferenceNodesMap ? xReferenceNodesMap[child_id].title : 'None';
+      const childLink = child_id in xReferenceNodesMap ? xReferenceNodesMap[child_id].link : '';
       const childNode = child_id in xTreeNodesMap
         ? xTreeNodesMap[child_id]
         : {
@@ -625,8 +608,8 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
       xTreeNodesMap[child_id] = childNode;
     
       if(parent_id !== null){
-        const parentTitle = parent_id in xReferenceNodesMap ? xReferenceNodesMap[parent_id].title: "None";
-        const parentLink = parent_id in xReferenceNodesMap ? xReferenceNodesMap[parent_id].link : "";
+        const parentTitle = parent_id in xReferenceNodesMap ? xReferenceNodesMap[parent_id].title: 'None';
+        const parentLink = parent_id in xReferenceNodesMap ? xReferenceNodesMap[parent_id].link : '';
         const parentNode = parent_id in xTreeNodesMap
           ? xTreeNodesMap[parent_id]
           : {
@@ -644,23 +627,10 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
         xTreeNodes.push(childNode);
       }
     });
-  
-    // Assume all top nodes' parent_id is "None"
-    // const node = xTreeNodesMap["None"];
-    // if (node) {
-    //   if (node.children.length > 0) {
-    //     for (const child of node.children) {
-    //       xTreeNodes.push(child);
-    //     }
-    //   }
-    // }
       
     // Sort the gridData in y axis for the synchronization of expand and collapse of tree
     const flatKeys = flattenTree(xTreeNodes);
-    // console.log(xTreeNodes);
-    // gridData.sort((a, b) => {
-    //   return flatKeys.indexOf(a[0].row.id) - flatKeys.indexOf(b[0].row.id);
-    // });
+    
     // Sort each row in gridData based on the order of cell ids
     gridData.forEach((gridRow) => {
       gridRow.sort((a, b) => {
@@ -727,8 +697,8 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
       gridDataTreeMap,
       options,
     };
-  
     return parsedData;
+
   }else{
     const parsedData: ParsedMatrixData = {
       gridData,
@@ -743,21 +713,8 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
       gridDataTreeMap,
       options,
     };
-  
     return parsedData;
   }
-  // const parsedData: ParsedMatrixData = {
-  //   gridData,
-  //   yTreeData,
-  //   yTreeNodes,
-  //   yTreeNodesMap,
-  //   legendData,
-  //   gridDataMap,
-  //   gridDataTreeMap,
-  //   options,
-  // };
-
-  // return parsedData;
 };
 
 /**

@@ -120,22 +120,22 @@ const VirtualizedTreeGrid = (
   const [searchedColIndex, setSearchedColIndex] = useState<number | null>(null); // searched col state
   
   // tree component
-  const [hoveredRowID, setHoveredRowID] = useState<string | null>(null); // hovered row tree state
-  const [hoveredColID, setHoveredColID] = useState<string | null>(null); // hovered col tree state
-  const [searchedRowID, setSearchedRowID] = useState<string | null>(null); // searched row tree state
-  const [searchedColID, setSearchedColID] = useState<string | null>(null); // searched col tree state
+  const [hoveredRowID, setHoveredRowID] = useState<string | null>(null); // hovered row state for treeview
+  const [hoveredColID, setHoveredColID] = useState<string | null>(null); // hovered col state for treeview
+  const [searchedRowID, setSearchedRowID] = useState<string | null>(null); // searched row state for treeview
+  const [searchedColID, setSearchedColID] = useState<string | null>(null); // searched col state for treeview
   const [visiableRowNodes, setVisiableRowNodes] = useState<Set<string> | null>(new Set<string>()); // visiable rows in yTree and grid
-  const [visiableColNodes, setVisiableColNodes] = useState<Set<string> | null>(new Set<string>()); // visiable rows in yTree and grid
-  const [filteredGridYData, setFilteredGridYData] = useState<Array<Array<ParsedGridCell>> | null>(new Array<Array<ParsedGridCell>>); // used for locating the searched entry
-  const [filteredGridXData, setFilteredGridXData] = useState<Array<ParsedGridCell> | null>(new Array<ParsedGridCell>); // used for locating the searched entry
-  const [scrollTreeYIniPos, setScrollTreeYIniPos] = useState<number>(0); // scroll horizontal treeview y position
+  const [visiableColNodes, setVisiableColNodes] = useState<Set<string> | null>(new Set<string>()); // visiable rows in xTree and grid
+  const [filteredGridYData, setFilteredGridYData] = useState<Array<Array<ParsedGridCell>> | null>(new Array<Array<ParsedGridCell>>()); // used for locating the Y searched entry
+  const [filteredGridXData, setFilteredGridXData] = useState<Array<ParsedGridCell> | null>(new Array<ParsedGridCell>()); // used for locating the X searched entry
+  const [scrollTreeYIniPos, setScrollTreeYIniPos] = useState<number>(0); // y position for scrolling horizontal treeview
 
   const rowLabelRef = useRef<any>(null);
   const columnLabelRef = useRef<any>(null);
   const gridRef = useRef<any>(null);
 
-  var numRows = data.length;
-  var numColumns = data[0].length;
+  let numRows = data.length;
+  let numColumns = data[0].length;
   const lastRow: ParsedGridCell[] = data[numRows-1]; // Store a copy of the last row
 
   /**
@@ -164,7 +164,7 @@ const VirtualizedTreeGrid = (
     return { maxLayers, maxTitleLength };
   }
 
-  // Initialize the vertical position of the horizontal tree
+  // Initialize the inner vertical position of the horizontal tree
   useEffect(() => {
     if (xTreeNodes) {
       const { maxLayers, maxTitleLength } = getMaxLayersAndTitleLength(xTreeNodes);
@@ -175,10 +175,8 @@ const VirtualizedTreeGrid = (
     }
   }, [xTreeNodes]);
 
-
-  // Used for update and sync the tree and grid when search happens
-  var filteredGridData : ParsedGridCell[][] = data;
-  
+  // Used for update and sync the data of tree and grid when search happens
+  let filteredGridData : ParsedGridCell[][] = data;
   if(xTree || yTree){
     if(xTree && yTree){
       filteredGridData = data
@@ -204,44 +202,46 @@ const VirtualizedTreeGrid = (
       );
     }
   }
-  // filteredGridData.push(lastRow);
   if(filteredGridData){
     numRows = filteredGridData.length;
     numColumns = filteredGridData[0].length;
   }
 
-  // Update vertical tree and grid position
+  // Update vertical tree and grid position to a specific entry
   // by listening the filteredGridYData changes, which means a new search happens
+  // This is because a new search will change the expanded nodes which will effect
+  // the data shown in both header component and grid
   useEffect(() => {
-    if(filteredGridYData){
+    if(filteredGridYData && searchedRowID){
       const rowIndex = filteredGridYData.findIndex((gridRow) => {
         return gridRow.some((cell) => cell.row.id === searchedRowID);
       });
       const offset = rowIndex * cellHeight - gridHeight / 2 - cellHeight / 2;
-      rowLabelRef?.current?.scrollTo(0, offset);
-      gridRef?.current?.scrollTo({ scrollTop: offset });
+      setScrollY(offset);
+      setScrollTreeX(0);
     }
-  }, [filteredGridYData]);
+  }, [filteredGridYData, cellHeight, gridHeight, searchedRowID]);
 
-  // Update horizontal tree and grid position
+  // Update horizontal tree and grid position to a specific entry
   // by listening the filteredGridXData changes, which means a new search happens
   useEffect(() => {
-    if(filteredGridXData){
+    if(filteredGridXData && searchedColID){
       const colIndex = filteredGridXData.findIndex((cell) => cell.column.id === searchedColID);
       const offset = colIndex * cellWidth - gridWidth / 2 - cellWidth / 2;
-      columnLabelRef?.current?.scrollTo(offset, scrollTreeYIniPos);
-      gridRef?.current?.scrollTo({ scrollTop: offset });
+      setScrollX(offset);
+      setScrollTreeY(scrollTreeYIniPos);
     }
-  }, [filteredGridXData]);
+  }, [cellWidth, filteredGridXData, gridWidth, scrollTreeYIniPos, searchedColID]);
 
   // Create a ref handle for this component
   useImperativeHandle(ref, () => ({
-    // Scrolls to and sets the searched index to the given one
+    // Scrolls to and sets the searched index to the given one for row items
     searchRow: (index: string) => {
       setSearchedRowID(index);
       setSearchedColID(null);
       setSearchedColIndex(null);
     },
+    // Scrolls to and sets the searched index to the given one for row items
     searchRowIndex: (index: number) => {
       const offset = index * cellHeight - gridHeight / 2 - cellHeight / 2;
       rowLabelRef?.current?.scrollTo(offset);
@@ -251,12 +251,13 @@ const VirtualizedTreeGrid = (
       setSearchedColIndex(null);
       setSearchedColID(null);
     },
-    // Scrolls to and sets the searched index to the given one
+    // Scrolls to and sets the searched id to the given one for column items
     searchCol: (index: string) => {
       setSearchedRowID(null);
       setSearchedRowIndex(null);
       setSearchedColID(index);
     },
+    // Scrolls to and sets the searched index to the given one for column items
     searchColIndex: (index: number) => {
       const offset = index * cellWidth - gridWidth / 2 - cellWidth / 2;
       columnLabelRef.current.scrollTo(offset);
@@ -280,31 +281,33 @@ const VirtualizedTreeGrid = (
     setScrollX(e.scrollLeft);
     setScrollY(e.scrollTop);
   }, []);
-  // Updates scroll position when row is scrolled
+  // Updates scroll position for Y tree when row is scrolled
+  const handleTreeRowLabelScroll = useCallback((e: any) => {
+    if (e.scrollUpdateWasRequested) return;
+    // The tree component does not have the event contains scrollOffset
+    // So use ref to get the scrollTop to get the similar data
+    setScrollTreeX(rowLabelRef.current.scrollLeft);
+    // Set Tree horizontal position
+    setScrollY(rowLabelRef.current.scrollTop);
+  }, []);
+  // Updates scroll position for X tree when column is scrolled
+  const handleTreeColumnLabelScroll = useCallback((e: any) => {
+    if (e.scrollUpdateWasRequested) return;
+    // The tree component does not have the event contains scrollOffset
+    // So use ref to get the scrollTop to get the similar data
+    setScrollX(columnLabelRef.current.scrollLeft);
+    // Set Tree vertical position
+    setScrollTreeY(columnLabelRef.current.scrollTop);
+  }, []);
+  // Updates scroll position for flat Y component when row is scrolled
   const handleRowLabelScroll = useCallback((e: any) => {
     if (e.scrollUpdateWasRequested) return;
-    // The tree component does not have the event contains scrollOffset
-    // So use ref to get the scrollTop to get the similar data
-    if(yTree){
-      setScrollTreeX(rowLabelRef.current.scrollLeft);
-      // Set Tree horizontal position
-      setScrollY(rowLabelRef.current.scrollTop);
-    }else{
-      setScrollY(e.scrollOffset);
-    }
+    setScrollY(e.scrollOffset);
   }, []);
-  // Updates scroll position when column is scrolled
+  // Updates scroll position for flat X component when column is scrolled
   const handleColumnLabelScroll = useCallback((e: any) => {
     if (e.scrollUpdateWasRequested) return;
-    // The tree component does not have the event contains scrollOffset
-    // So use ref to get the scrollTop to get the similar data
-    if(xTree){
-      setScrollX(columnLabelRef.current.scrollLeft);
-      // Set Tree vertical position
-      setScrollTreeY(columnLabelRef.current.scrollTop);
-    }else{
-      setScrollX(e.scrollOffset);
-    }
+    setScrollX(e.scrollOffset);
   }, []);
 
   // Updates scroll by half page when scroll button is clicked
@@ -322,31 +325,35 @@ const VirtualizedTreeGrid = (
   };
 
   // Effect for updating scroll position of row, column and grid when it detects scroll changes
+  // The tree components need one additional position parameters for another dimension
   useEffect(() => {
     if(yTree){
       rowLabelRef.current.scrollTo(scrollTreeX, scrollY);
     }else{
       rowLabelRef.current.scrollTo(scrollY);
     }
+
+    if(xTree){
+      columnLabelRef.current.scrollTo(scrollX, scrollTreeY);
+    }else{
+      columnLabelRef.current.scrollTo(scrollX);
+    }
     
-    columnLabelRef.current.scrollTo(scrollX, scrollTreeY);
     gridRef.current.scrollTo({
       scrollLeft: scrollX,
       scrollTop: scrollY,
     });
-  }, [scrollY, scrollX, scrollTreeY]);
+  }, [scrollY, scrollX, scrollTreeY, yTree, scrollTreeX, xTree]);
 
   // Data to be passed to Row, Column, and Grid Props
   const rowHeaderTreeData = useMemo(
     () => ({
-      xTree,
       searchedRowID,
       hoveredRowID,
       setHoveredRowID,
       setHoveredColID,
-      visiableRowNodes,
+      setHoveredColIndex,
       setVisiableRowNodes,
-      filteredGridYData,
       setFilteredGridYData,
       listData: data,
     }),
@@ -359,9 +366,7 @@ const VirtualizedTreeGrid = (
       setHoveredColID,
       setHoveredRowID,
       setHoveredRowIndex,
-      visiableColNodes,
       setVisiableColNodes,
-      filteredGridXData,
       setFilteredGridXData,
       scrollTreeYIniPos,
       listData: data,
@@ -389,7 +394,8 @@ const VirtualizedTreeGrid = (
       gridData: filteredGridData,
       colorScale,
     }),
-    [searchedColID, searchedRowID, hoveredRowID, hoveredColID, hoveredRowIndex, hoveredColIndex, searchedRowIndex, searchedColIndex, filteredGridData, colorScale]
+    [yTree, xTree, searchedColID, searchedRowID, hoveredRowID, hoveredColID, searchedRowIndex, searchedColIndex, 
+      hoveredRowIndex, hoveredColIndex, visiableRowNodes, filteredGridData, colorScale]
   );
   
   const rowHeaderData = useMemo(
@@ -441,7 +447,7 @@ const VirtualizedTreeGrid = (
 
   return (
     <div className='grid-container' style={gridContainerStyles}>
-      {/* Switch components between flat one and treeview one based on yTree data exists */}
+      {/* Switch components to treeview one instead of flat one if yTree data exists */}
       {yTree ? (
         <RowTreeHeaders
           ref={rowLabelRef}
@@ -453,9 +459,9 @@ const VirtualizedTreeGrid = (
           itemCount={numRows}
           itemData={rowHeaderTreeData}
           treeData={yTree}
-          treeNodes={yTreeNodes}
-          treeNodesMap={yTreeNodesMap}
-          onScroll={handleRowLabelScroll}
+          treeNodes={yTreeNodes ?? []}
+          treeNodesMap={yTreeNodesMap ?? {}}
+          onScroll={handleTreeRowLabelScroll}
         />
       ):(
         <RowHeaders
@@ -470,7 +476,7 @@ const VirtualizedTreeGrid = (
           onScroll={handleRowLabelScroll}
         />
       )}
-      {/* Switch components between flat one and treeview one based on xTree data exists. */}
+      {/* Switch components to treeview one instead of flat one if xTree data exists */}
       {xTree ? (
         <ColumnTreeHeaders
           ref={columnLabelRef}
@@ -481,9 +487,9 @@ const VirtualizedTreeGrid = (
           itemCount={numColumns}
           itemData={columnHeaderTreeData}
           treeData={xTree}
-          treeNodes={xTreeNodes}
-          treeNodesMap={xTreeNodesMap}
-          onScroll={handleColumnLabelScroll}
+          treeNodes={xTreeNodes ?? []}
+          treeNodesMap={xTreeNodesMap ?? {}}
+          onScroll={handleTreeColumnLabelScroll}
         />
       ) : (
         <ColumnHeaders

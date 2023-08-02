@@ -12,7 +12,7 @@ import VirtualizedGrid from '@isrd-isi-edu/deriva-webapps/src/components/matrix/
 import SearchBar from '@isrd-isi-edu/deriva-webapps/src/components/search-input';
 import VirtualizedSelect from '@isrd-isi-edu/deriva-webapps/src/components/virtualized-select';
 import DisplayValue from '@isrd-isi-edu/chaise/src/components/display-value';
-import VirtualizedTreeGrid from '../components/matrix/virtualized-tree-grid';
+import VirtualizedTreeGrid from '@isrd-isi-edu/deriva-webapps/src/components/matrix/virtualized-tree-grid';
 
 // hooks
 import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
@@ -63,7 +63,8 @@ const MatrixApp = (): JSX.Element => {
     return <ChaiseSpinner />;
   }
 
-  const { gridDataMap, gridDataTreeMap, gridData, yTreeData, yTreeNodes, yTreeNodesMap, xTreeData, xTreeNodes, xTreeNodesMap, legendData, options } = matrixData;
+  const { gridDataMap, gridDataTreeMap, gridData, legendData, options, 
+    yTreeData, yTreeNodes, yTreeNodesMap, xTreeData, xTreeNodes, xTreeNodesMap } = matrixData;
 
   /**
    * Handles changes to the search bar
@@ -112,7 +113,7 @@ const MatrixApp = (): JSX.Element => {
     if (!currInput) {
       return;
     }
-
+    // If the tree data is given to matrix, then search item by id
     if(gridDataTreeMap){
       if(!gridDataTreeMap[currInput.toLowerCase()]){
         showNoResults();
@@ -135,6 +136,7 @@ const MatrixApp = (): JSX.Element => {
         }
       }
 
+    // If there is no tree data, then search item by index
     }else{
       if (!gridDataMap[currInput.toLowerCase()]) {
         showNoResults();
@@ -284,6 +286,7 @@ const MatrixApp = (): JSX.Element => {
           </div>
         </div>
         <div className='matrix-container'>
+          {/* If any of tree data is given, show the Tree Grid instead of flat one */}
           {yTreeData || xTreeData ? (
             <VirtualizedTreeGrid
               ref={gridRef}

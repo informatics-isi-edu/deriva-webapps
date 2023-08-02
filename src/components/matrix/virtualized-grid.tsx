@@ -84,8 +84,8 @@ const VirtualizedGrid = (
   const [searchedColIndex, setSearchedColIndex] = useState<number | null>(null); // searched col state
 
   // tree
-  const [hoveredRowID, setHoveredRowID] = useState<string | null>(null); // hovered row tree state
-  const [hoveredColID, setHoveredColID] = useState<string | null>(null); // hovered col tree state
+  const [, setHoveredRowID] = useState<string | null>(null); // hovered row tree state
+  const [, setHoveredColID] = useState<string | null>(null); // hovered col tree state
 
   const rowLabelRef = useRef<any>(null);
   const columnLabelRef = useRef<any>(null);

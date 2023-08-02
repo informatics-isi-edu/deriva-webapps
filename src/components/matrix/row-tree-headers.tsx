@@ -1,15 +1,18 @@
 import { forwardRef, memo, ForwardedRef, CSSProperties, useState, useEffect } from 'react';
 
+// Data type used for treeview
 import { ParsedGridCell } from '@isrd-isi-edu/deriva-webapps/src/hooks/matrix';
 import { MatrixTreeDatum } from '@isrd-isi-edu/deriva-webapps/src/hooks/matrix';
+import { TreeNode } from '@isrd-isi-edu/deriva-webapps/src/hooks/matrix';
+import { TreeNodeMap } from '@isrd-isi-edu/deriva-webapps/src/hooks/matrix';
 
 // MUI tree components
-import TreeView from "@mui/lab/TreeView";
-import { alpha, styled } from "@mui/material/styles";
-import TreeItem, { TreeItemProps, treeItemClasses, useTreeItem, TreeItemContentProps } from "@mui/lab/TreeItem";
-import SvgIcon, { SvgIconProps } from "@mui/material/SvgIcon";
-import clsx from "clsx";
-import Typography from "@mui/material/Typography";
+import TreeView from '@mui/lab/TreeView';
+import { alpha, styled } from '@mui/material/styles';
+import TreeItem, { TreeItemProps, treeItemClasses, useTreeItem, TreeItemContentProps } from '@mui/lab/TreeItem';
+import SvgIcon, { SvgIconProps } from '@mui/material/SvgIcon';
+import clsx from 'clsx';
+import Typography from '@mui/material/Typography';
 
 
 type RowTreeHeadersProps = {
@@ -44,15 +47,15 @@ type RowTreeHeadersProps = {
   /**
   *  y hierarchical data passed to each row
   */
-  treeData?: any;
+  treeData: MatrixTreeDatum[];
   /**
    *  y hierarchical data nodes passed to each row
    */
-  treeNodes?: any;
+  treeNodes: TreeNode[];
   /**
    *  y hierarchical data nodes map passed to each row
    */
-  treeNodesMap?: any;
+  treeNodesMap: TreeNodeMap;
   /**
    * on scroll event
    */
@@ -73,7 +76,8 @@ const RowTreeHeaders = (
     setVisiableRowNodes, 
     hoveredRowID, 
     setHoveredRowID, 
-    setHoveredColID } = itemData;
+    setHoveredColID,
+    setHoveredColIndex } = itemData;
 
   const [prevSearched, setPrevSearched] = useState<string | null>(null); // previous searched enrty
   const [expanded, setExpanded] = useState<string[]>([]); // all expanded nodes
@@ -81,11 +85,13 @@ const RowTreeHeaders = (
   /**
    * styles for tree view and tree items
    */
+  // the font size is 14 for this page
   const iconSize = 14;
 
+  // style for the whole tree
   const rowTreeHeadersStyles: CSSProperties = {
     position: 'absolute',
-    direction: "rtl",
+    direction: 'rtl',
     top: top,
     height: height,
     width: width,
@@ -93,12 +99,14 @@ const RowTreeHeaders = (
     willChange: 'transform',
   };
 
+  // style for the background of each entry
   const rowTreeItemOuterBgStyles: CSSProperties = {
     position: 'relative',
     top: 0,
     left: -50,
   };
 
+  // style for each entry
   const rowTreeItemBgStyles: CSSProperties = {
     position: 'absolute',
     top: 0,
@@ -108,6 +116,7 @@ const RowTreeHeaders = (
     zIndex: 0,
   };
 
+  // style for the background of each entry when hover
   const rowTreeItemBgStylesHover: CSSProperties = {
     position: 'absolute',
     top: 0,
@@ -118,6 +127,7 @@ const RowTreeHeaders = (
     backgroundColor: 'rgba(0, 0, 0, 0.1)', // Grey color with 50% opacity
   };
 
+  // style for the background of each entry when searched
   const rowTreeItemBgStylesSearch: CSSProperties = {
     position: 'absolute',
     top: 0,
@@ -137,20 +147,20 @@ const RowTreeHeaders = (
           paddingRight: 2,
           height: (cellHeight-iconSize)/2,
           marginBottom: -5,
-          borderRight: `1px dotted grey`
+          borderRight: '1px dotted grey'
         }}
       />
-      <SvgIcon fontSize="inherit" style={{ width: iconSize, height: iconSize, zIndex: 1 }} {...props}>
-        {/* tslint:disable-next-line: max-line-length */}
-        <path d="M22.047 22.074v0 0-20.147 0h-20.12v0 20.147 0h20.12zM22.047 24h-20.12q-.803 0-1.365-.562t-.562-1.365v-20.147q0-.776.562-1.351t1.365-.575h20.147q.776 0 1.351.575t.575 1.351v20.147q0 .803-.575 1.365t-1.378.562v0zM17.873 11.023h-11.826q-.375 0-.669.281t-.294.682v0q0 .401.294 .682t.669.281h11.826q.375 0 .669-.281t.294-.682v0q0-.401-.294-.682t-.669-.281z" />
+      <SvgIcon fontSize='inherit' style={{ width: iconSize, height: iconSize, zIndex: 1 }} {...props}>
+        {/* eslint-disable-next-line max-len */}
+        <path d='M22.047 22.074v0 0-20.147 0h-20.12v0 20.147 0h20.12zM22.047 24h-20.12q-.803 0-1.365-.562t-.562-1.365v-20.147q0-.776.562-1.351t1.365-.575h20.147q.776 0 1.351.575t.575 1.351v20.147q0 .803-.575 1.365t-1.378.562v0zM17.873 11.023h-11.826q-.375 0-.669.281t-.294.682v0q0 .401.294 .682t.669.281h11.826q.375 0 .669-.281t.294-.682v0q0-.401-.294-.682t-.669-.281z' />
       </SvgIcon>
       <div
         style={{
-          position: "absolute",
+          position: 'absolute',
           marginTop: -9,
           marginRight: 17,
           width: 8,
-          borderTop: `1px dotted grey`
+          borderTop: '1px dotted grey'
         }}
       />
       <div
@@ -159,7 +169,7 @@ const RowTreeHeaders = (
           paddingRight: 2,
           height: (cellHeight-iconSize)/2,
           marginTop: -2,
-          borderRight: `1px dotted grey`
+          borderRight: '1px dotted grey'
         }}
       />
     </div>
@@ -174,20 +184,20 @@ const RowTreeHeaders = (
           paddingRight: 2,
           height: (cellHeight-iconSize)/2,
           marginBottom: -5,
-          borderRight: `1px dotted grey`
+          borderRight: '1px dotted grey'
         }}
       />
-      <SvgIcon fontSize="inherit" style={{ width: iconSize, height: iconSize }} {...props}>
-        {/* tslint:disable-next-line: max-line-length */}
-        <path d="M22.047 22.074v0 0-20.147 0h-20.12v0 20.147 0h20.12zM22.047 24h-20.12q-.803 0-1.365-.562t-.562-1.365v-20.147q0-.776.562-1.351t1.365-.575h20.147q.776 0 1.351.575t.575 1.351v20.147q0 .803-.575 1.365t-1.378.562v0zM17.873 12.977h-4.923v4.896q0 .401-.281.682t-.682.281v0q-.375 0-.669-.281t-.294-.682v-4.896h-4.923q-.401 0-.682-.294t-.281-.669v0q0-.401.281-.682t.682-.281h4.923v-4.896q0-.401.294-.682t.669-.281v0q.401 0 .682.281t.281.682v4.896h4.923q.401 0 .682.281t.281.682v0q0 .375-.281.669t-.682.294z" />
+      <SvgIcon fontSize='inherit' style={{ width: iconSize, height: iconSize }} {...props}>
+        {/* eslint-disable-next-line max-len */}
+        <path d='M22.047 22.074v0 0-20.147 0h-20.12v0 20.147 0h20.12zM22.047 24h-20.12q-.803 0-1.365-.562t-.562-1.365v-20.147q0-.776.562-1.351t1.365-.575h20.147q.776 0 1.351.575t.575 1.351v20.147q0 .803-.575 1.365t-1.378.562v0zM17.873 12.977h-4.923v4.896q0 .401-.281.682t-.682.281v0q-.375 0-.669-.281t-.294-.682v-4.896h-4.923q-.401 0-.682-.294t-.281-.669v0q0-.401.281-.682t.682-.281h4.923v-4.896q0-.401.294-.682t.669-.281v0q.401 0 .682.281t.281.682v4.896h4.923q.401 0 .682.281t.281.682v0q0 .375-.281.669t-.682.294z' />
       </SvgIcon>
       <div
         style={{
-          position: "absolute",
+          position: 'absolute',
           marginTop: -9,
           marginRight: 14,
           width: 10,
-          borderTop: `1px dotted grey`
+          borderTop: '1px dotted grey'
         }}
       />
       <div
@@ -196,14 +206,14 @@ const RowTreeHeaders = (
           paddingRight: 2,
           height: (cellHeight-iconSize)/2,
           marginTop: -2,
-          borderRight: `1px dotted grey`
+          borderRight: '1px dotted grey'
         }}
       />
     </div>
   );
   
   // Customize the close square icon for tree view
-  const CloseSquare = (props: SvgIconProps) => (
+  const CloseSquare = () => (
     <div style={{ zIndex: 1 }}>
       <div
         style={{
@@ -211,7 +221,7 @@ const RowTreeHeaders = (
           paddingRight: 2,
           height: cellHeight,
           marginTop: -(cellHeight/2),
-          borderRight: `1px dotted grey`
+          borderRight: '1px dotted grey'
         }}
       />
       <div
@@ -219,27 +229,21 @@ const RowTreeHeaders = (
           marginTop: -(cellHeight/2),
           marginRight: 18,
           width: 16,
-          borderTop: `1px dotted grey`
+          borderTop: '1px dotted grey'
         }}
       />
     </div>
   );
 
-  // Tree node type for render tree view
-  interface RenderTree {
-    key: string;
-    title: string;
-    link: string;
-    children?: readonly RenderTree[];
-  }
-
   // Extends MUI TreeItemProps to implement custom props
   interface CustomTreeItemProps extends TreeItemProps {
-    node: RenderTree;
+    node: TreeNode;
   }
 
-  const updateRowId = (nodeId: String) => {
+  // Update id or index for when hover an item
+  const updateRowId = (nodeId: string) => {
     setHoveredColID(null);
+    setHoveredColIndex(null);
     setHoveredRowID(nodeId);
   };
 
@@ -290,11 +294,11 @@ const RowTreeHeaders = (
 
     const link = treeNodesMap[nodeId].link;
 
-    let linkClassName = nodeId === hoveredRowID ? 'hovered-header' : 'unhovered-header';
+    const linkClassName = nodeId === hoveredRowID ? 'hovered-header' : 'unhovered-header';
 
     return (
-      // eslint-disable-next-line jsx-a11y/no-static-element-interactions
       <div
+        role='button'
         className={clsx(className, classes.root, {
           [classes.expanded]: expanded,
           [classes.selected]: selected,
@@ -305,13 +309,12 @@ const RowTreeHeaders = (
         onMouseOver={() => updateRowId(nodeId)}
         ref={ref as React.Ref<HTMLDivElement>}
       >
-        {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions */}
-        <div onClick={handleExpansionClick} className={classes.iconContainer}>
+        <div role='button' onClick={handleExpansionClick} className={classes.iconContainer}>
           {icon}
         </div>
         <Typography
           onClick={handleSelectionClick}
-          component="div"
+          component='div'
           className={classes.label}
         >
           <a href={link}
@@ -323,7 +326,7 @@ const RowTreeHeaders = (
     );
   });
 
-  // Define tree item including interaction and style
+  // Define interaction and style for tree item
   const StyledTreeItem = styled(({ node, ...props }: CustomTreeItemProps) => {
     // Check if the node key matches the hovered row id
     const isNodeKeyMatched = node.key === hoveredRowID;
@@ -332,8 +335,8 @@ const RowTreeHeaders = (
 
     return (
       <div>
-        {/* Element before TreeItem */}
-        <div className="hoverBackground" style={rowTreeItemOuterBgStyles} onMouseOver={() => updateRowId(node.key)}>
+        {/* Element before TreeItem to show the interaction background */}
+        <div className='hoverBackground' style={rowTreeItemOuterBgStyles} onMouseOver={() => updateRowId(node.key)}>
           <div
             style={
               isNodeKeyMatchedSearch
@@ -351,7 +354,7 @@ const RowTreeHeaders = (
     );
   })(({ theme }) => ({
     [`& .${treeItemClasses.iconContainer}`]: {
-      "& .close": {
+      '& .close': {
         opacity: 0.3
       }
     },
@@ -372,6 +375,7 @@ const RowTreeHeaders = (
         backgroundColor: 'rgba(0, 0, 0, 0)',
       },
 
+      // eslint-disable-next-line max-len
       '&.Mui-focused, &.Mui-selected, &.Mui-selected.Mui-focused, &.Mui-expanded.Mui-selected.Mui-focused, &.Mui-expanded.Mui-selected, &.Mui-expanded.Mui-focused': {
         backgroundColor: 'rgba(0, 0, 0, 0)',
       },
@@ -380,9 +384,9 @@ const RowTreeHeaders = (
 
 
   /**
-   * Render the tree view layer by layer with nodes input
+   * Render the tree view nodes layer by layer
    */
-  const renderTree = (nodes: RenderTree[]): JSX.Element[] => {
+  const renderTree = (nodes: TreeNode[]): JSX.Element[] => {
     return nodes.map((node) => (
         <StyledTreeItem 
           key={node.link} 
@@ -428,12 +432,13 @@ const RowTreeHeaders = (
   };
 
   // Dictionary to store relationship of parent and child for tree data
-  const treeDataDict: Record<string, MatrixTreeDatum> = treeData.reduce((dict: any, node: any) => {
+  const treeDataDict: Record<string, MatrixTreeDatum> = treeData.reduce((dict: Record<string, MatrixTreeDatum>, node: MatrixTreeDatum) => {
     dict[node.child_id] = node;
     return dict;
   }, {});
 
   // Refresh visiableRowNodes and filteredGridYData whenever expanded nodes change, update previous Searched entry as well
+  // This means the header and grid data should sync whenever expanded nodes change
   useEffect(() => {
     const newSet = new Set<string>();
     // Add all top nodes by default
@@ -458,8 +463,8 @@ const RowTreeHeaders = (
     setVisiableRowNodes(newSet);
     // If there is an update to the searched row entry, then update filteredGridData for locating function
     if( searchedRowID && prevSearched !== searchedRowID){
-      var filteredGridData : ParsedGridCell[][] = listData;
-      var numRows = listData.length;
+      let filteredGridData : ParsedGridCell[][] = listData;
+      const numRows = listData.length;
       const lastRow: ParsedGridCell[] = listData[numRows-1]; // Store a copy of the last row
       if(newSet){
         filteredGridData = listData.filter((gridRow : ParsedGridCell[]) => {
@@ -495,8 +500,8 @@ const RowTreeHeaders = (
       onScroll={onScroll}>
       
           <TreeView
-            aria-label="rich object"
-            defaultExpanded={["root"]}
+            aria-label='rich object'
+            defaultExpanded={['root']}
             defaultCollapseIcon={<MinusSquare />}
             defaultExpandIcon={<PlusSquare />}
             defaultEndIcon={<CloseSquare />}

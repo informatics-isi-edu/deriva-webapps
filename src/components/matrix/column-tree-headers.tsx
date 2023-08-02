@@ -1,15 +1,18 @@
 import { memo, forwardRef, ForwardedRef, CSSProperties, useState, useEffect } from 'react';
 
+// Data type used for treeview
 import { ParsedGridCell } from '@isrd-isi-edu/deriva-webapps/src/hooks/matrix';
 import { MatrixTreeDatum } from '@isrd-isi-edu/deriva-webapps/src/hooks/matrix';
+import { TreeNode } from '@isrd-isi-edu/deriva-webapps/src/hooks/matrix';
+import { TreeNodeMap } from '@isrd-isi-edu/deriva-webapps/src/hooks/matrix';
 
 // MUI tree components
-import TreeView from "@mui/lab/TreeView";
-import { alpha, styled } from "@mui/material/styles";
-import TreeItem, { TreeItemProps, treeItemClasses, useTreeItem, TreeItemContentProps } from "@mui/lab/TreeItem";
-import SvgIcon, { SvgIconProps } from "@mui/material/SvgIcon";
-import clsx from "clsx";
-import Typography from "@mui/material/Typography";
+import TreeView from '@mui/lab/TreeView';
+import { alpha, styled } from '@mui/material/styles';
+import TreeItem, { TreeItemProps, treeItemClasses, useTreeItem, TreeItemContentProps } from '@mui/lab/TreeItem';
+import SvgIcon, { SvgIconProps } from '@mui/material/SvgIcon';
+import clsx from 'clsx';
+import Typography from '@mui/material/Typography';
 
 
 type ColumnHeadersProps = {
@@ -38,21 +41,24 @@ type ColumnHeadersProps = {
    */
   itemData?: any;
   /**
-  *  y hierarchical data passed to each row
+  *  x hierarchical data passed to each column
   */
-  treeData?: any;
+  treeData: MatrixTreeDatum[];
   /**
-   *  y hierarchical data nodes passed to each row
+   *  x hierarchical data nodes passed to each column
    */
-  treeNodes?: any;
+  treeNodes: TreeNode[];
   /**
-   *  y hierarchical data nodes map passed to each row
+   *  x hierarchical data nodes map passed to each column
    */
-  treeNodesMap?: any;
+  treeNodesMap: TreeNodeMap;
   /**
    * left position of column
    */
   left: number;
+  /**
+   * on scroll event
+   */
   onScroll?: any;
 };
 
@@ -82,8 +88,10 @@ const ColumnHeaders = (
   /**
    * styles for tree view and tree items
    */
+  // the font size is 14 for this page
   const iconSize = 14;
 
+  // style for the whole tree
   const columnTreeHeadersStyles: CSSProperties = {
     position: 'absolute',
     left: left,
@@ -94,12 +102,14 @@ const ColumnHeaders = (
     maxHeight: height,
   };
 
+  // style for the background of each entry
   const rowTreeItemOuterBgStyles: CSSProperties = {
     position: 'relative',
     top: 0,
     left: -50,
   };
 
+  // style for each entry
   const rowTreeItemBgStyles: CSSProperties = {
     position: 'absolute',
     top: 0,
@@ -109,6 +119,7 @@ const ColumnHeaders = (
     zIndex: 0,
   };
 
+  // style for the background of each entry when hover
   const rowTreeItemBgStylesHover: CSSProperties = {
     position: 'absolute',
     top: 0,
@@ -119,6 +130,7 @@ const ColumnHeaders = (
     backgroundColor: 'rgba(0, 0, 0, 0.1)', // Grey color with 50% opacity
   };
 
+  // style for the background of each entry when searched
   const rowTreeItemBgStylesSearch: CSSProperties = {
     position: 'absolute',
     top: 0,
@@ -138,20 +150,20 @@ const ColumnHeaders = (
           paddingLeft: 2,
           height: (cellWidth-iconSize)/2,
           marginBottom: -5,
-          borderLeft: `1px dotted grey`
+          borderLeft: '1px dotted grey'
         }}
       />
-      <SvgIcon fontSize="inherit" style={{ width: 14, height: 14 }} {...props}>
-        {/* tslint:disable-next-line: max-line-length */}
-        <path d="M22.047 22.074v0 0-20.147 0h-20.12v0 20.147 0h20.12zM22.047 24h-20.12q-.803 0-1.365-.562t-.562-1.365v-20.147q0-.776.562-1.351t1.365-.575h20.147q.776 0 1.351.575t.575 1.351v20.147q0 .803-.575 1.365t-1.378.562v0zM17.873 11.023h-11.826q-.375 0-.669.281t-.294.682v0q0 .401.294 .682t.669.281h11.826q.375 0 .669-.281t.294-.682v0q0-.401-.294-.682t-.669-.281z" />
+      <SvgIcon fontSize='inherit' style={{ width: 14, height: 14 }} {...props}>
+        {/* eslint-disable-next-line max-len */}
+        <path d='M22.047 22.074v0 0-20.147 0h-20.12v0 20.147 0h20.12zM22.047 24h-20.12q-.803 0-1.365-.562t-.562-1.365v-20.147q0-.776.562-1.351t1.365-.575h20.147q.776 0 1.351.575t.575 1.351v20.147q0 .803-.575 1.365t-1.378.562v0zM17.873 11.023h-11.826q-.375 0-.669.281t-.294.682v0q0 .401.294 .682t.669.281h11.826q.375 0 .669-.281t.294-.682v0q0-.401-.294-.682t-.669-.281z' />
       </SvgIcon>
       <div
         style={{
-          position: "absolute",
+          position: 'absolute',
           marginTop: -9,
           marginLeft: 14,
           width: 8,
-          borderTop: `1px dotted grey`
+          borderTop: '1px dotted grey'
         }}
       />
       <div
@@ -160,7 +172,7 @@ const ColumnHeaders = (
           paddingRight: 2,
           height: (cellWidth-iconSize)/2,
           marginTop: -2,
-          borderRight: `1px dotted grey`
+          borderRight: '1px dotted grey'
         }}
       />
     </div>
@@ -175,20 +187,20 @@ const ColumnHeaders = (
           paddingLeft: 2,
           height: (cellWidth-iconSize)/2,
           marginBottom: -5,
-          borderLeft: `1px dotted grey`
+          borderLeft: '1px dotted grey'
         }}
       />
-      <SvgIcon fontSize="inherit" style={{ width: 14, height: 14 }} {...props}>
-        {/* tslint:disable-next-line: max-line-length */}
-        <path d="M22.047 22.074v0 0-20.147 0h-20.12v0 20.147 0h20.12zM22.047 24h-20.12q-.803 0-1.365-.562t-.562-1.365v-20.147q0-.776.562-1.351t1.365-.575h20.147q.776 0 1.351.575t.575 1.351v20.147q0 .803-.575 1.365t-1.378.562v0zM17.873 12.977h-4.923v4.896q0 .401-.281.682t-.682.281v0q-.375 0-.669-.281t-.294-.682v-4.896h-4.923q-.401 0-.682-.294t-.281-.669v0q0-.401.281-.682t.682-.281h4.923v-4.896q0-.401.294-.682t.669-.281v0q.401 0 .682.281t.281.682v4.896h4.923q.401 0 .682.281t.281.682v0q0 .375-.281.669t-.682.294z" />
+      <SvgIcon fontSize='inherit' style={{ width: 14, height: 14 }} {...props}>
+        {/* eslint-disable-next-line max-len */}
+        <path d='M22.047 22.074v0 0-20.147 0h-20.12v0 20.147 0h20.12zM22.047 24h-20.12q-.803 0-1.365-.562t-.562-1.365v-20.147q0-.776.562-1.351t1.365-.575h20.147q.776 0 1.351.575t.575 1.351v20.147q0 .803-.575 1.365t-1.378.562v0zM17.873 12.977h-4.923v4.896q0 .401-.281.682t-.682.281v0q-.375 0-.669-.281t-.294-.682v-4.896h-4.923q-.401 0-.682-.294t-.281-.669v0q0-.401.281-.682t.682-.281h4.923v-4.896q0-.401.294-.682t.669-.281v0q.401 0 .682.281t.281.682v4.896h4.923q.401 0 .682.281t.281.682v0q0 .375-.281.669t-.682.294z' />
       </SvgIcon>
       <div
         style={{
-          position: "absolute",
+          position: 'absolute',
           marginTop: -9,
           marginLeft: 14,
           width: 10,
-          borderTop: `1px dotted grey`
+          borderTop: '1px dotted grey'
         }}
       />
       <div
@@ -197,14 +209,14 @@ const ColumnHeaders = (
           paddingRight: 2,
           height: (cellWidth-iconSize)/2,
           marginTop: -2,
-          borderRight: `1px dotted grey`
+          borderRight: '1px dotted grey'
         }}
       />
     </div>
   );
   
   // Customize the close square icon for tree view
-  const CloseSquare = (props: SvgIconProps) => (
+  const CloseSquare = () => (
     <div style={{ zIndex: 1 }}>
       <div
         style={{
@@ -212,7 +224,7 @@ const ColumnHeaders = (
           paddingLeft: 2,
           height: cellWidth,
           marginTop: -(cellWidth/2),
-          borderLeft: `1px dotted grey`
+          borderLeft: '1px dotted grey'
         }}
       />
       <div
@@ -220,27 +232,19 @@ const ColumnHeaders = (
           marginTop: -(cellWidth/2),
           marginLeft: 18,
           width: 16,
-          borderTop: `1px dotted grey`
+          borderTop: '1px dotted grey'
         }}
       />
     </div>
   );
 
-  // Tree node type for render tree view
-  interface RenderTree {
-    key: string;
-    title: string;
-    link: string;
-    children?: readonly RenderTree[];
-  }
-
   // Extends MUI TreeItemProps to implement custom props
   interface CustomTreeItemProps extends TreeItemProps {
-    node: RenderTree;
+    node: TreeNode;
   }
 
-  const updateColId = (nodeId: String) => {
-    // setHoveredColIndex(null);
+  // Update id or index for when hover an item
+  const updateColId = (nodeId: string) => {
     setHoveredColID(nodeId);
     setHoveredRowID(null);
     setHoveredRowIndex(null);
@@ -293,11 +297,11 @@ const ColumnHeaders = (
 
     const link = treeNodesMap[nodeId].link;
 
-    let linkClassName = nodeId === hoveredColID ? 'hovered-header' : 'unhovered-header';
+    const linkClassName = nodeId === hoveredColID ? 'hovered-header' : 'unhovered-header';
 
     return (
-      // eslint-disable-next-line jsx-a11y/no-static-element-interactions
       <div
+        role='button'
         className={clsx(className, classes.root, {
           [classes.expanded]: expanded,
           [classes.selected]: selected,
@@ -308,13 +312,12 @@ const ColumnHeaders = (
         onMouseOver={() => updateColId(nodeId)}
         ref={ref as React.Ref<HTMLDivElement>}
       >
-        {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions */}
-        <div onClick={handleExpansionClick} className={classes.iconContainer}>
+        <div role='button' onClick={handleExpansionClick} className={classes.iconContainer}>
           {icon}
         </div>
         <Typography
           onClick={handleSelectionClick}
-          component="div"
+          component='div'
           className={classes.label}
         >
           <a 
@@ -327,7 +330,7 @@ const ColumnHeaders = (
     );
   });
 
-  // Define tree item including interaction and style
+  // Define interaction and style for tree item
   const StyledTreeItem = styled(({ node, ...props }: CustomTreeItemProps) => {
     // Check if the node key matches the hovered row id
     const isNodeKeyMatched = node.key === hoveredColID;
@@ -336,8 +339,8 @@ const ColumnHeaders = (
 
     return (
       <div>
-        {/* Element before TreeItem */}
-        <div className="hoverBackground" style={rowTreeItemOuterBgStyles} onMouseOver={() => updateColId(node.key)}>
+        {/* Element before TreeItem to show the interaction background */}
+        <div className='hoverBackground' style={rowTreeItemOuterBgStyles} onMouseOver={() => updateColId(node.key)}>
           <div
             style={
               isNodeKeyMatchedSearch
@@ -355,7 +358,7 @@ const ColumnHeaders = (
     );
   })(({ theme }) => ({
     [`& .${treeItemClasses.iconContainer}`]: {
-      "& .close": {
+      '& .close': {
         opacity: 0.3
       }
     },
@@ -376,6 +379,7 @@ const ColumnHeaders = (
         backgroundColor: 'rgba(0, 0, 0, 0)',
       },
 
+      // eslint-disable-next-line max-len
       '&.Mui-focused, &.Mui-selected, &.Mui-selected.Mui-focused, &.Mui-expanded.Mui-selected.Mui-focused, &.Mui-expanded.Mui-selected, &.Mui-expanded.Mui-focused': {
         backgroundColor: 'rgba(0, 0, 0, 0)',
       },
@@ -384,9 +388,9 @@ const ColumnHeaders = (
 
 
   /**
-   * Render the tree view layer by layer with nodes input
+   * Render the tree view nodes layer by layer
    */
-  const renderTree = (nodes: RenderTree[]): JSX.Element[] => {
+  const renderTree = (nodes: TreeNode[]): JSX.Element[] => {
     return nodes.map((node) => (
         <StyledTreeItem 
           key={node.link} 
@@ -400,11 +404,11 @@ const ColumnHeaders = (
     ));
   };
 
-  // /**
-  //  * Interaction functions
-  //  */
+  /**
+   * Interaction functions
+   */
 
-  // // Check whether all ancestors of a node exist in visitedNode list
+  // Check whether all ancestors of a node exist in visitedNode list
   const checkParentChainExist = (treeDataDict: Record<string, MatrixTreeDatum>, nodeId: string, visitedNodes: Set<string>): boolean => {
     const node = treeDataDict[nodeId];
     if (node.parent_id === null) {
@@ -416,7 +420,7 @@ const ColumnHeaders = (
     return checkParentChainExist(treeDataDict, node.parent_id, visitedNodes);
   };  
 
-  // // Find all ancestor nodes of the searched node
+  // Find all ancestor nodes of the searched node
   const getParentChain = (treeDataDict: Record<string, MatrixTreeDatum>, nodeId: string, visitedNodes: Set<string>): Set<string> => {
     let node = treeDataDict[nodeId];
     if (node.parent_id === null) {
@@ -430,13 +434,14 @@ const ColumnHeaders = (
     return visitedNodes;
   };
 
-  // // Dictionary to store relationship of parent and child for tree data
-  const treeDataDict: Record<string, MatrixTreeDatum> = treeData.reduce((dict: any, node: any) => {
+  // Dictionary to store relationship of parent and child for tree data
+  const treeDataDict: Record<string, MatrixTreeDatum> = treeData.reduce((dict: Record<string, MatrixTreeDatum>, node: MatrixTreeDatum) => {
     dict[node.child_id] = node;
     return dict;
   }, {});
 
-  // // Refresh visiableRowNodes and filteredGridYData whenever expanded nodes change, update previous Searched entry as well
+  // Refresh visiableRowNodes and filteredGridYData whenever expanded nodes change, update previous Searched entry as well
+  // This means the header and grid data should sync whenever expanded nodes change
   useEffect(() => {
     const newSet = new Set<string>();
     // Add all top nodes by default
@@ -461,7 +466,7 @@ const ColumnHeaders = (
     setVisiableColNodes(newSet);
     // If there is an update to the searched row entry, then update filteredGridData for locating function
     if( searchedColID && prevSearched !== searchedColID){
-      var filteredGridData : ParsedGridCell[] = listData[0];
+      let filteredGridData : ParsedGridCell[] = listData[0];
       
       if(newSet){
         filteredGridData = listData[0].filter((cell: ParsedGridCell) => newSet.has(cell.column.id));
@@ -501,27 +506,27 @@ const ColumnHeaders = (
         <div
         style={{
           transformOrigin: 'top left',
-          transform: "rotate(-90deg)",
+          transform: 'rotate(-90deg)',
           width: height,
           marginLeft: 0,
           marginTop: height,
         }}>
           
           <TreeView
-            aria-label="rich object"
-            defaultExpanded={["root"]}
+            aria-label='rich object'
+            defaultExpanded={['root']}
             defaultCollapseIcon={<MinusSquare />}
             defaultExpandIcon={<PlusSquare />}
             defaultEndIcon={<CloseSquare />}
             expanded={expanded}
             onNodeToggle={handleToggle}
             style={{
-              height: "fit-content",
-              width: "fit-content",
-              position: "absolute",
+              height: 'fit-content',
+              width: 'fit-content',
+              position: 'absolute',
               left: -scrollTreeYIniPos, // Adjust the left value based on the desired position
             }}
-            sx={{ overflow: "clip" }}
+            sx={{ overflow: 'clip' }}
           >
             {renderTree(treeNodes)}
           </TreeView>

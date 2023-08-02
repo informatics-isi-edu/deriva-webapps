@@ -56,7 +56,7 @@ const GridCell = ({ columnIndex, rowIndex, data, style }: GridCellProps): JSX.El
 
   // className changes based on hovered state
   let gridCellClassName =
-    hoveredRowID === rowId || hoveredColID == columnId || hoveredRowIndex === rowIndex || hoveredColIndex === columnIndex
+    hoveredRowID === rowId || hoveredColID === columnId || hoveredRowIndex === rowIndex || hoveredColIndex === columnIndex
       ? 'grid-cell hovered-cell'
       : 'grid-cell unhovered-cell';
 
