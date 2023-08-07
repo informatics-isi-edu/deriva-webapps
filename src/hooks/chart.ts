@@ -232,7 +232,6 @@ export const useChartData = (plot: Plot) => {
   const [isInitLoading, setIsInitLoading] = useState<boolean>(false);
   const [isDataLoading, setIsDataLoading] = useState<boolean>(false);
   const [isParseLoading, setIsParseLoading] = useState<boolean>(false);
-  const [noValidData, setNoValidData] =useState<boolean[]>([]);
 
 
   const { dispatchError, errors } = useError();
@@ -1454,6 +1453,12 @@ const getWidthOfDiv = (legendNames: string[], uniqueX: string[], dimensions: dim
 
     // Add all plot "traces" to data array based on plot type
     let additionalLayout = {};
+    // multiple unpackedResponses means multiple trace objects in plot.traces
+    // TODO: this data should be combined together in some way and not be treated as separate traces in plotly
+    //     - how do we configure this for responseA[] union responseB[]
+    //     - configure for separate traces in same plot
+    // array of plotly.data objects
+    const plotlyData: any[] = [];
     //CHECK: Flag to set if we want to show specific invalid configuration alerts. If it's false general alert will be shown.
     let showAlert = false;
     //If the plot has multiple traces, multiTrace will be set to true
@@ -1496,13 +1501,19 @@ const getWidthOfDiv = (legendNames: string[], uniqueX: string[], dimensions: dim
       //If the responseData is succesfully parsed as json/csv then classify and parse as per plot_type
       if (responseData?.length >= 1) {
         if (plot.plot_type === 'bar') {
-          return parseBarResponse(currTrace, plot, responseData);
+          // returns an array of objects similar to PlotlyPlotData
+          const barPlotData = parseBarResponse(currTrace, plot, responseData);
+          barPlotData.forEach((data: any) => plotlyData.push(data));
         } else if (plot.plot_type === 'pie') {
-          return parsePieResponse(currTrace, plot, responseData);
+          // returns a single object similar to PlotlyPieData
+          plotlyData.push(parsePieResponse(currTrace, plot, responseData));
         } else if (plot.plot_type === 'scatter') {
-          return parseScatterResponse(currTrace, plot, responseData);
+          // returns a single object similar to PlotlyPlotData
+          plotlyData.push(parseScatterResponse(currTrace, plot, responseData));
         } else if (plot.plot_type === 'histogram') {
-          return parseHistogramResponse(currTrace, plot, responseData);
+          // returns an array of objects similar to PlotlyPlotData
+          const histogramPlotData = parseHistogramResponse(currTrace, plot, responseData);
+          histogramPlotData.forEach((data: any) => plotlyData.push(data))
         } else if (plot.plot_type === 'violin') {
           const { result: parseResult, layout } = parseViolinResponse(
             currTrace,
@@ -1513,13 +1524,13 @@ const getWidthOfDiv = (legendNames: string[], uniqueX: string[], dimensions: dim
             templateParams.noData
           );
           additionalLayout = layout;
-          return parseResult;
+          plotlyData.push(parseResult);
         } else if (plot.plot_type === 'heatmap') {
           const heatmapData = parseHeatmapResponse(currTrace, plot, responseData);
           additionalLayout = { ...heatmapData.layoutParams };
-          return heatmapData.result;
-        }
+          plotlyData.push(heatmapData.result);
       }
+    }
       //Otherwise if the type of file is other than csv/json, show an alert warning
        else {
         //If no other alerts are shown then show this alert
@@ -1530,6 +1541,7 @@ const getWidthOfDiv = (legendNames: string[], uniqueX: string[], dimensions: dim
         return {};
       }
     });
+    result.data = plotlyData;
     updatePlotlyConfig(plot, result); // update the config
     updatePlotlyLayout(plot, result, additionalLayout, selectDataGrid); // update the layout
     //If hovertemplate_display_pattern is not configured, set default hover text for plot
