@@ -1,6 +1,7 @@
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
-import { dataFormats } from '@isrd-isi-edu/chaise/src/utils/constants';
+import axios from 'axios';
+import { defaultDomain } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 
 
 
@@ -267,4 +268,47 @@ export const wrapText = (text: string, width: number, wrapLimit: number) => {
     wrappedText += '...';
   }
   return wrappedText;
+};
+
+/**
+ * 
+ * @param data It can be either csv or json data
+ * @returns true if data is of json type and false for other types
+ */
+export const isDataJSON = (data: any) => {
+  try {
+    const parsedData=JSON.parse(JSON.stringify(data));
+    console.log('data ',parsedData,typeof parsedData);
+    return !(typeof parsedData==='string');
+  } catch (error) {
+    console.log('error ',error);
+    return false;
+  }
 }
+
+/**
+ * 
+ * @param text url pattern from config
+ * @returns valid url
+ */
+export const createUrlFromPattern = (text: string) => {
+  //If it's valid url return it
+    try {
+      new URL(text);
+      return text;
+    } catch (err) {
+      const extractedTexts = text?.split('/').filter(part => part !== '');
+      const domainRegex = /(?:[\w-]+\.)+[\w-]+/;
+      //Check if the string has a domain 
+      const match = extractedTexts[0].match(domainRegex);
+      //If yes then append http to form a valid url to fetch the data
+      if(match){
+        return 'https:/'+text;
+      }
+      //Otherwise create url with default domain
+      else{
+        console.log('https:/'+defaultDomain+text);
+        return 'https:/'+defaultDomain+text;
+      }
+    }
+  }

@@ -67,8 +67,8 @@ Each object in the `plots` array can have the following parameters:
 9. `study_uri_pattern`: For violin plot only. The url from which the study data is fetched after applying handlebars templating. This parameter is required to fetch the data for the study selector and display and to initialize the plot.
 10. `traces`: Contains the information about each each trace.
     1. Properties available to most plot types:
-        1. `queryPattern`: The url from which the data has to be fetched after applying handlebars templating
-        2. `uri`: The url from which the data has to be fetched. DEPRECATED, use `traces.queryPattern` instead
+        1. `url_pattern`: The url from which the data has to be fetched after applying handlebars templating
+        2. `uri`: The url from which the data has to be fetched. DEPRECATED, use `traces.url_pattern` instead
         3. `legend`: The value of legend to be shown for this trace.
         4. `x_col`: The column name for the x values
         5. `y_col`: An array of column name for the y values
@@ -82,7 +82,7 @@ Each object in the `plots` array can have the following parameters:
         1. `legend_markdown_pattern`: Display value to be used instead of legend_col.name.
         2. `graphic_link_pattern`: Link to use to navigate user when clicking on pie slice
     4. For violin plot:
-        1. `queryPattern`: The url from which the data has to be fetched after applying handlebars templating
+        1. `url_pattern`: The url from which the data has to be fetched after applying handlebars templating
     5. 1d plot has very similar properties. Keeping separate to preserve old documentation:
         1. `uri`: The url from which the data has to be fetched.
         2. `legend`: The value of legend to be shown for this trace.
