@@ -1482,14 +1482,14 @@ const getWidthOfDiv = (legendNames: string[], uniqueX: string[], dimensions: dim
         //If the given format is json but the type of file is csv then parse the data using csv parser and show an alert warning for wrong configuration
         else if (currTrace.response_format === 'json' && !isDataJSON(responseData)) {
           responseData = parseCsvData(responseData?.toString());
-          if (!alertFunctions.alerts.some((alert) => alert.message.includes(invalidJsonAlert))) {
+          if (!alertFunctions.alerts.some((alert) => alert.message.includes(alertMsg + invalidJsonAlert))) {
             showAlert = true;
             alertFunctions.addAlert(alertMsg + invalidJsonAlert, ChaiseAlertType.WARNING);
           }
         } 
         //If the given format is csv but the type of file is json then use the data as is and show an alert warning for wrong configuration
         else if ((currTrace.response_format === 'csv' && isDataJSON(responseData))) {
-          if (!alertFunctions.alerts.some((alert) => alert.message.includes(invalidCsvAlert))) {
+          if (!alertFunctions.alerts.some((alert) => alert.message.includes(alertMsg + invalidCsvAlert))) {
             showAlert = true;
             alertFunctions.addAlert(alertMsg + invalidCsvAlert, ChaiseAlertType.WARNING);
           }
@@ -1534,14 +1534,18 @@ const getWidthOfDiv = (legendNames: string[], uniqueX: string[], dimensions: dim
       //Otherwise if the type of file is other than csv/json, show an alert warning
        else {
         //If no other alerts are shown then show this alert
-        if (!showAlert) {
+        if (!showAlert && !alertFunctions.alerts.some((alert) => alert.message.includes(alertMsg + invalidDataAlert))) {
           alertFunctions.addAlert(alertMsg + invalidDataAlert, ChaiseAlertType.WARNING);
         }
         //return empty data
         return {};
       }
     });
+
     result.data = plotlyData;
+    if(result.data.every((obj: any)=>Object.keys(obj)?.length===0)){
+      templateParams.noData=true;
+    }
     updatePlotlyConfig(plot, result); // update the config
     updatePlotlyLayout(plot, result, additionalLayout, selectDataGrid); // update the layout
     //If hovertemplate_display_pattern is not configured, set default hover text for plot

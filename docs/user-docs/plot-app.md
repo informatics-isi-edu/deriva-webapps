@@ -75,6 +75,7 @@ Each object in the `plots` array can have the following parameters:
         6. `orientation`: Optional parameter for displaying the bar chart horizontally // default: 'h'
         7. `textfont`: It will work till the bar size can accommodate the font size
         8. `hovertemplate_display_pattern`: To show customized hover text on plots using given template pattern
+        9. `response_format`: The type of file that is passed into url_pattern. It expects `csv` or `json`.
     2. Extra properties for pie and histogram charts:
         1. `data_col`: A column name as a string or array of column names for the data aggregation. used instead of x_col or y_xol
         2. `legend_col`: The column name to use for display in the legend column

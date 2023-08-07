@@ -281,7 +281,6 @@ export const isDataJSON = (data: any) => {
     console.log('data ',parsedData,typeof parsedData);
     return !(typeof parsedData==='string');
   } catch (error) {
-    console.log('error ',error);
     return false;
   }
 }
@@ -307,7 +306,6 @@ export const createUrlFromPattern = (text: string) => {
       }
       //Otherwise create url with default domain
       else{
-        console.log('https:/'+defaultDomain+text);
         return 'https:/'+defaultDomain+text;
       }
     }
