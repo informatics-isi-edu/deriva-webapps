@@ -447,63 +447,64 @@ export const useChartData = (plot: Plot) => {
     dispatchError,
   ]);
 
-  /**
-   * 
-   * @param legendNames array of legend names
-   * @param uniqueX array of unique X ticks
-   * @param dimensions object of height and width of screen
-   * @param longestXTick longest X tick in the data
-   * @returns updated(wrapped) legend names array based on screen size and no. of ticks
-   */
-  const getWidthOfDiv = (legendNames: string[], uniqueX: string[], dimensions: dimensionsType, longestXTick: string) => {
-    const truncationLimit = 20;
-    const charLimit = {
-      sm: 30,
-      md: 65,
-      lg: 80,
-    };
-    //Create a hidden div to check the width of the legend with the given font and size
-    const hiddenDiv = document.createElement('div');
-    hiddenDiv.id = 'hiddenDiv';
-    hiddenDiv.innerHTML = longestXTick;
-    hiddenDiv.style.visibility = 'hidden';
-    hiddenDiv.style.position = 'absolute';
-    hiddenDiv.style.fontSize = '12';
-    hiddenDiv.style.width = 'fit-content';
-    document.body.appendChild(hiddenDiv);
-    //calculate the width of this hidden div
-    const width = hiddenDiv.offsetWidth;
-    const plotWidth = plotAreaFraction * dimensions?.width;
-    //no. of unique violins to be shown on plot
-    const noOfViolins = uniqueX?.length;
-    /*If screen is less than 1000px and legend is 50% of plot area then wrap the text upto 30 characters 
-    which will make the legend of minimum possible width*/
-    if (plotWidth < screenWidthThreshold && width / plotWidth > 0.50) {
-      legendNames = legendNames?.map((name) => name.includes('<a')
-        ? extractValue(name, charLimit.sm, truncationLimit) : wrapText(name, charLimit.sm, truncationLimit))
-    }
-    /*NOTE: These numbers are taken of the basis of current data and different testing scenarios considering the longest x label and 
-    amount of width legend is taking as compared to the plot area*/
-    /*If the number of violins is less than or equal to 7 and the width-to-plot-width ratio is greater than 0.40, 
-    the legendNames array is modified similarly to the previous step, but using the charLimit.lg character limit (i.e 80).*/
-    else if (noOfViolins <= 7 && width / plotWidth > 0.40) {
-      legendNames = legendNames.map((name) => name.includes('<a')
-        ? extractValue(name, charLimit.lg, truncationLimit) : wrapText(name, charLimit.lg, truncationLimit))
-    }
-    /*If the number of violins is between 7 and 30 (inclusive) and the width-to-plot-width ratio is greater than 0.30, 
-    the legendNames array is modified similarly to the previous step, but using the charLimit.md character limit (i.e 65).*/
-    else if ((noOfViolins > 7 && noOfViolins <= 30) && width / plotWidth > 0.3) {
-      legendNames = legendNames.map((name) => name.includes('<a')
-        ? extractValue(name, charLimit.md, truncationLimit) : wrapText(name, charLimit.md, truncationLimit))
-    }
-    /*If the number of violins is greater than 30 and the width-to-plot-width ratio is greater than 0.3,
-     the legendNames array is modified similarly to the previous step, but using the charLimit.sm character limit (i.e 30).*/
-    else if (noOfViolins > 30 && width / plotWidth > 0.30) {
-      legendNames = legendNames.map((name) => name.includes('<a')
-        ? extractValue(name, charLimit.sm, truncationLimit) : wrapText(name, charLimit.sm, truncationLimit))
-    }
-    return legendNames;
+  
+/**
+ * 
+ * @param legendNames array of legend names
+ * @param uniqueX array of unique X ticks
+ * @param dimensions object of height and width of screen
+ * @param longestXTick longest X tick in the data
+ * @returns updated(wrapped) legend names array based on screen size and no. of ticks
+ */
+const getWidthOfDiv = (legendNames: string[], uniqueX: string[], dimensions: dimensionsType, longestXTick: string) => {
+  const truncationLimit = 20;
+  const charLimit = {
+    sm: 30,
+    md: 65,
+    lg: 80,
   };
+  //Create a hidden div to check the width of the legend with the given font and size
+  const hiddenDiv = document.createElement('div');
+  hiddenDiv.id = 'hiddenDiv';
+  hiddenDiv.innerHTML = longestXTick;
+  hiddenDiv.style.visibility = 'hidden';
+  hiddenDiv.style.position = 'absolute';
+  hiddenDiv.style.fontSize = '12';
+  hiddenDiv.style.width = 'fit-content';
+  document.body.appendChild(hiddenDiv);
+  //calculate the width of this hidden div
+  const width = hiddenDiv.offsetWidth;
+  const plotWidth = plotAreaFraction * dimensions?.width;
+  //no. of unique violins to be shown on plot
+  const noOfViolins = uniqueX?.length;
+  /*If screen is less than 1000px and legend is 50% of plot area then wrap the text upto 30 characters 
+  which will make the legend of minimum possible width*/
+  if (plotWidth < screenWidthThreshold && width / plotWidth > 0.50) {
+    legendNames = legendNames?.map((name) => name.includes('<a')
+      ? extractValue(name, charLimit.sm, truncationLimit) : wrapText(name, charLimit.sm, truncationLimit))
+  }
+  /*NOTE: These numbers are taken of the basis of current data and different testing scenarios considering the longest x label and 
+  amount of width legend is taking as compared to the plot area*/
+  /*If the number of violins is less than or equal to 7 and the width-to-plot-width ratio is greater than 0.40, 
+  the legendNames array is modified similarly to the previous step, but using the charLimit.lg character limit (i.e 80).*/
+  else if (noOfViolins <= 7 && width / plotWidth > 0.40) {
+    legendNames = legendNames.map((name) => name.includes('<a')
+      ? extractValue(name, charLimit.lg, truncationLimit) : wrapText(name, charLimit.lg, truncationLimit))
+  }
+  /*If the number of violins is between 7 and 30 (inclusive) and the width-to-plot-width ratio is greater than 0.30, 
+  the legendNames array is modified similarly to the previous step, but using the charLimit.md character limit (i.e 65).*/
+  else if ((noOfViolins > 7 && noOfViolins <= 30) && width / plotWidth > 0.3) {
+    legendNames = legendNames.map((name) => name.includes('<a')
+      ? extractValue(name, charLimit.md, truncationLimit) : wrapText(name, charLimit.md, truncationLimit))
+  }
+  /*If the number of violins is greater than 30 and the width-to-plot-width ratio is greater than 0.3,
+   the legendNames array is modified similarly to the previous step, but using the charLimit.sm character limit (i.e 30).*/
+  else if (noOfViolins > 30 && width / plotWidth > 0.30) {
+    legendNames = legendNames.map((name) => name.includes('<a')
+      ? extractValue(name, charLimit.sm, truncationLimit) : wrapText(name, charLimit.sm, truncationLimit))
+  }
+  return legendNames;
+};
 
   /**
    * Updates the plotly config based on the given plot configs
@@ -1091,33 +1092,46 @@ export const useChartData = (plot: Plot) => {
    * @returns
    */
   const parseHistogramResponse = (trace: Trace, plot: Plot, responseData: ResponseData) => {
-    const result: Partial<TraceConfig> & Partial<PlotlyPlotData> = {
-      ...trace,
-      type: 'histogram',
-    };
-
     const { config } = plot;
     const { format_data = false } = config;
     let tempText: string[] & string[][] = [];
     const dataPoints: Array<any> = [];
-    responseData.forEach((item: any) => {
-      if (trace.data_col) {
-        const value = getValue(item, trace.data_col, undefined, format_data, plot);
-        dataPoints.push(value);
-      }
-      tempText = updateHoverTemplateData(result, trace, item, tempText);
-    });
 
-    // Add data to correct axis depending on orientation
-    if (trace.orientation === 'h') {
-      result.y = dataPoints;
-    } else if (trace.orientation === 'v') {
-      result.x = dataPoints;
+    const createPlotlyDataObject = (colName: string) => {
+      const plotlyDataObject: Partial<TraceConfig> & Partial<PlotlyPlotData> = {
+        ...trace,
+        type: 'histogram',
+      };
+
+      responseData.forEach((item: any) => {
+        const value = getValue(item, colName, undefined, format_data, plot);
+        dataPoints.push(value);
+
+        tempText = updateHoverTemplateData(plotlyDataObject, trace, item, tempText);
+      });
+
+      // Add data to correct axis depending on orientation
+      if (trace.orientation === 'h') {
+        plotlyDataObject.y = dataPoints;
+      } else if (trace.orientation === 'v') {
+        plotlyDataObject.x = dataPoints;
+      }
+
+      setHoverText(plotlyDataObject, tempText, trace);
+
+      return plotlyDataObject;
     }
 
-    //sets the hovertext array and hoverinfo
-    setHoverText(result, tempText, trace);
-    return result;
+    const plotlyData: Partial<TraceConfig> & Partial<PlotlyPlotData>[] = [];
+    if (trace.data_col) {
+      if (Array.isArray(trace.data_col)) {
+        trace?.data_col?.forEach((colName: string) => plotlyData.push(createPlotlyDataObject(colName)));
+      } else if (trace.data_col) {
+        plotlyData.push(createPlotlyDataObject(trace.data_col));
+      }
+    }
+
+    return plotlyData;
   };
 
   /**
@@ -1191,13 +1205,24 @@ export const useChartData = (plot: Plot) => {
     const { config } = plot;
     const { format_data = false } = config;
     let tempText: string[] & string[][] = []; //use trace info
+
+    const pushPieData = (row: any, colName: string) => {
+      const value = getValue(row, colName, undefined, format_data, plot);
+      if (Array.isArray(result.values)) {
+        result.values.push(value);
+      }
+    }
+
     responseData.forEach((item: any, i: number) => {
       updateWithTraceColData(result, trace, item, i);
       // Add data
       if (trace.data_col) {
-        const value = getValue(item, trace.data_col, undefined, format_data, plot);
-        if (Array.isArray(result.values)) {
-          result.values.push(value);
+        if (Array.isArray(trace.data_col)) {
+          // multiple data_cols implies unioning the data
+          // NOTE: no use case currently for this but should be supported in case one comes up
+          trace.data_col.forEach((colName: string) => pushPieData(item, colName));
+        } else {
+          pushPieData(item, trace.data_col);
         }
       }
 
@@ -1226,50 +1251,96 @@ export const useChartData = (plot: Plot) => {
    * @returns
    */
   const parseBarResponse = (trace: Trace, plot: Plot, responseData: ResponseData) => {
-    const result: Partial<TraceConfig> & Partial<PlotlyPlotData> & PlotResultData & ClickableLinks = {
-      ...trace,
-      type: plot.plot_type,
-      textposition: 'outside', // position of bar values
-      hoverinfo: 'text', // value to show on hover of a bar
-      x: [], // x data
-      y: [], // y data
-      text: [], // text data
-      legend_clickable_links: [], // array of links for when clicking legend
-      graphic_clickable_links: [], // array of links for when clicking graph
-    };
-
     const { config } = plot;
     const { xaxis, yaxis, format_data_x = false, format_data_y = false } = config; // why is format_data_x not in xaxis?
     let tempText: string[] & string[][] = [];
-    responseData.forEach((item: any) => {
-      // Add the x values for the bar plot
-      trace?.x_col?.forEach((colName: string, i: number) => {
-        if (trace.orientation === 'h') {
-          // update the trace data if orientation is horizontal
-          updateWithTraceColData(result, trace, item, i);
-          const textValue = getValue(item, colName, undefined, true, plot);
-          result.text?.push(textValue.toString());
-        }
-        const value = getValue(item, colName, xaxis, format_data_x, plot);
-        result.x.push(value.toString());
-      });
 
-      // Add the y values for the bar plot
-      trace?.y_col?.forEach((colName: string, i: number) => {
-        if (trace.orientation === 'v') {
-          // update the trace data if orientation is vertical
-          updateWithTraceColData(result, trace, item, i);
+    // objects that are used 
+    const plotlyData: any[] = []
+    if (trace.orientation === 'h') {
+      // iterate over x_col array since this implies multiple traces when in this orientation
+      // TODO: how to configure this to mean something different
+      trace?.x_col?.forEach((colName: string, i: number) => {
+        const plotlyDataObject: Partial<TraceConfig> & Partial<PlotlyPlotData> & PlotResultData & ClickableLinks = {
+          ...trace,
+          type: plot.plot_type,
+          textposition: 'outside', // position of bar values
+          hoverinfo: 'text', // value to show on hover of a bar
+          x: [], // x data
+          y: [], // y data
+          text: [], // text data
+          legend_clickable_links: [], // array of links for when clicking legend
+          graphic_clickable_links: [], // array of links for when clicking graph
+        };
+
+        // item is each row returned from trace.uri
+        responseData.forEach((item: any) => {
+          // Add the x values for the bar plot
+          // update the trace data if orientation is horizontal
+          updateWithTraceColData(plotlyDataObject, trace, item, i);
           const textValue = getValue(item, colName, undefined, true, plot);
-          result.text?.push(textValue.toString());
-        }
-        const value = getValue(item, colName, yaxis, format_data_y, plot);
-        result.y.push(value.toString());
+          plotlyDataObject.text?.push(textValue.toString());
+
+          const xValue = getValue(item, colName, xaxis, format_data_x, plot);
+          plotlyDataObject.x.push(xValue.toString());
+
+          // Add the y values for the bar plot
+          trace?.y_col?.forEach((colName: string) => {
+            const yValue = getValue(item, colName, yaxis, format_data_y, plot);
+            plotlyDataObject.y.push(yValue.toString());
+          });
+
+          tempText = updateHoverTemplateData(plotlyDataObject, trace, item, tempText);
+        });
+
+        // sets the hovertext array and hoverinfo
+        setHoverText(plotlyDataObject, tempText, trace);
+
+        plotlyData.push(plotlyDataObject);
       });
-      tempText = updateHoverTemplateData(result, trace, item, tempText);
-    });
-    //sets the hovertext array and hoverinfo
-    setHoverText(result, tempText, trace);
-    return result;
+      // iterate over y_col array since this implies multiple traces when in vertical orientation
+      // TODO: how to configure this to mean something different
+    } else {
+      // default is vertical
+      trace?.y_col?.forEach((colName: string, i: number) => {
+        const plotlyDataObject: Partial<TraceConfig> & Partial<PlotlyPlotData> & PlotResultData & ClickableLinks = {
+          ...trace,
+          type: plot.plot_type,
+          textposition: 'outside', // position of bar values
+          hoverinfo: 'text', // value to show on hover of a bar
+          x: [], // x data
+          y: [], // y data
+          text: [], // text data
+          legend_clickable_links: [], // array of links for when clicking legend
+          graphic_clickable_links: [], // array of links for when clicking graph
+        };
+
+        responseData.forEach((item: any) => {
+          // Add the y values for the bar plot
+          // update the trace data if orientation is vertical
+          updateWithTraceColData(plotlyDataObject, trace, item, i);
+          const textValue = getValue(item, colName, undefined, true, plot);
+          plotlyDataObject.text?.push(textValue.toString());
+
+          const yValue = getValue(item, colName, yaxis, format_data_y, plot);
+          plotlyDataObject.y.push(yValue.toString());
+
+          trace?.x_col?.forEach((colName: string) => {
+            const xValue = getValue(item, colName, xaxis, format_data_x, plot);
+            plotlyDataObject.x.push(xValue.toString());
+          });
+
+          tempText = updateHoverTemplateData(plotlyDataObject, trace, item, tempText);
+        });
+
+        // sets the hovertext array and hoverinfo
+        setHoverText(plotlyDataObject, tempText, trace);
+
+        plotlyData.push(plotlyDataObject);
+      });
+    }
+
+    return plotlyData;
   };
 
 
@@ -1459,10 +1530,6 @@ export const useChartData = (plot: Plot) => {
         return {};
       }
     });
-    //Show noData if all traces data is empty
-    if(result.data.every((arr: any)=>Object.keys(arr)?.length===0)){
-      templateParams.noData = true;
-    }
     updatePlotlyConfig(plot, result); // update the config
     updatePlotlyLayout(plot, result, additionalLayout, selectDataGrid); // update the layout
     //If hovertemplate_display_pattern is not configured, set default hover text for plot
