@@ -6,17 +6,17 @@
 
 ##### Only a Study url parameter
 
-Go to [this page](https://staging.gudmap.org/deriva-webapps/plot/?config=study-violin&Study=16-2CNW) on gudmap-staging and do the following:
+Go to [this page](https://dev.gudmap.org/deriva-webapps/plot/?config=study-violin&Study=16-2CNW) on gudmap-dev and do the following:
  1. Plot title should have the Study RID in it.
  2. Change "Group By" to "Anatomical Source" and make sure the data in the plot changes.
  3. Click the "Gene" selector and select the "Ccna1" gene and make sure the plot updates.
- 4. Click the link in the top right corner, this should bring you to a page with url "https://staging.gudmap.org/deriva-webapps/plot/?config=study-violin".
+ 4. Click the link in the top right corner, this should bring you to a page with url "https://dev.gudmap.org/deriva-webapps/plot/?config=study-violin".
 
-For the case of iframes, go to [this page](https://staging.gudmap.org/chaise/record/#2/RNASeq:Study/RID=16-2CNW) on gudmap-staging and redo steps 1-4 above.
+For the case of iframes, go to [this page](https://dev.gudmap.org/chaise/record/#2/RNASeq:Study/RID=16-2CNW) on gudmap-dev and redo steps 1-4 above.
 
 ##### Only a NCBI_GeneID url parameter
 
-Go to [this page](https://staging.gudmap.org/deriva-webapps/plot/?config=study-violin&NCBI_GeneID=20472) on gudmap-staging and do the following:
+Go to [this page](https://dev.gudmap.org/deriva-webapps/plot/?config=study-violin&NCBI_GeneID=20472) on gudmap-dev and do the following:
  1. Plot title should have a Study RID in it.
  2. Change "Group By" to "Anatomical Source" and make sure the data in the plot changes.
  3. Click the "x" and remove the selected study. Plot should have no data shown and title "No Data".
@@ -27,13 +27,13 @@ Go to [this page](https://staging.gudmap.org/deriva-webapps/plot/?config=study-v
  8. Click "Clear All Studies". Plot should have no data shown and title "No Data".
  9. Click "Select All". Plot should show data with "All Studies" in the title.
  10. Click "Clear All Studies". Plot should have no data shown and title "No Data".
- 11. Click the link in the top right corner, this should bring you to a page with url "https://staging.gudmap.org/deriva-webapps/plot/?config=study-violin".
+ 11. Click the link in the top right corner, this should bring you to a page with url "https://dev.gudmap.org/deriva-webapps/plot/?config=study-violin".
 
-For the case of iframes, go to [this page](https://staging.gudmap.org/chaise/record/#2/Common:Gene/RID=Q-4FTJ) on gudmap-staging and redo steps 1-11 above.
+For the case of iframes, go to [this page](https://dev.gudmap.org/chaise/record/#2/Common:Gene/RID=Q-4FTJ) on gudmap-dev and redo steps 1-11 above.
 
 ##### Both parameters
 
-Go to [this page](https://staging.gudmap.org/deriva-webapps/plot/?config=study-violin&NCBI_GeneID=20472&Study=16-2CNW) on gudmap-staging and do the following:
+Go to [this page](https://dev.gudmap.org/deriva-webapps/plot/?config=study-violin&NCBI_GeneID=20472&Study=16-2CNW) on gudmap-dev and do the following:
  1. Plot title should have the Study RID in it.
  2. Change "Group By" to "Anatomical Source" and make sure the data in the plot changes.
  3. Click the "Gene" selector and select the "Ccna1" gene and make sure the plot updates.
@@ -45,11 +45,11 @@ Go to [this page](https://staging.gudmap.org/deriva-webapps/plot/?config=study-v
  9. Click "Clear All Studies". Plot should have no data shown and title "No Data".
  10. Click "Select All". Plot should show data with "All Studies" in the title.
  11. Click "Clear All Studies". Plot should have no data shown and title "No Data".
- 12. Click the link in the top right corner, this should bring you to a page with url "https://staging.gudmap.org/deriva-webapps/plot/?config=study-violin".
+ 12. Click the link in the top right corner, this should bring you to a page with url "https://dev.gudmap.org/deriva-webapps/plot/?config=study-violin".
 
 ##### no parameters
 
-Go to [this page](https://staging.gudmap.org/deriva-webapps/plot/?config=study-violin) on gudmap-staging and do the following:
+Go to [this page](https://dev.gudmap.org/deriva-webapps/plot/?config=study-violin) on gudmap-dev and do the following:
  1. Plot title should have a Study RID in it.
  2. Change "Group By" to "Anatomical Source" and make sure the data in the plot changes.
  3. Click the "x" and remove the selected study. Plot should have no data shown and title "No Data".
@@ -62,3 +62,36 @@ Go to [this page](https://staging.gudmap.org/deriva-webapps/plot/?config=study-v
  10. Click "Select All". Plot should show data with "All Studies" in the title.
  11. Click "Clear All Studies". Plot should have no data shown and title "No Data".
  12. Verify there is no link in the top right corner.
+
+
+#### Bar Plot
+### gudmap-todate-bar
+A Horizontal bar plot - Go to [this page](https://dev.gudmap.org/deriva-webapps/plot/?config=gudmap-todate-bar) 
+
+#### gudmap-todate-bar-swapped
+A vertical bar plot - Go to [this page](https://dev.gudmap.org/deriva-webapps/plot/?config=gudmap-todate-bar-swapped)
+
+#### gudmap-data-summary-responsive
+Go to [this page](https://dev.gudmap.org/deriva-webapps/plot/?config=gudmap-data-summary-responsive)
+
+#### Pie Plot
+Go to [this page](https://dev.gudmap.org/deriva-webapps/plot/?config=gudmap-todate-pie)
+
+#### Scatter Plot
+Go to [this page](https://dev.gudmap.org/deriva-webapps/plot/?config=specimen-scatterplot)
+
+#### Histogram
+#### specimen-histogram-vertical
+Vertical histogram plot - Go to [this page](https://dev.gudmap.org/deriva-webapps/plot/?config=specimen-histogram-vertical)
+
+#### specimen-histogram-horizontal
+Horizontal histogram plot - Go to [this page](https://dev.gudmap.org/deriva-webapps/plot/?config=specimen-histogram-horizontal)
+
+#### Heatmap Plot
+##### NCBI_GeneID url parameter
+Heatmap plot - Go to [this page](https://dev.gudmap.org/deriva-webapps/plot/?config=heatmap&NCBI_GeneID=12267) to see the heatmap for specified gene id.
+
+##### no parameters
+
+Go to [this page](https://dev.gudmap.org/deriva-webapps/plot/?config=heatmap) on gudmap-dev:
+- Plot should have no data shown and title "No Data".

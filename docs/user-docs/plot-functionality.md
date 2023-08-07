@@ -69,3 +69,19 @@ When the screen size is below 1000px( i.e the screen width threshold) the plots 
   the legendNames array is modified similarly to the previous step, but using the character limit (i.e 65)
   - If the number of violins is greater than 30 and the width-to-plot-width ratio is greater than 0.3,
    the legendNames array is modified similarly to the previous step, but using the character limit (i.e 30)
+
+##### Plot data from a file
+- This functionality enables to fetch data for the plot app from a specified file, which can be either in 'csv' or 'json' format. The data will be parsed and presented as a plot based on the content type of the file. To utilize this feature, two parameters can be configured in the config file:
+ - `url_pattern`: The URL from which the data will be fetched.
+ - `response_format`(optional): It specifies the file type to be used with the url_pattern parameter.
+
+- If the `response_format` doesn't match with the type of file provided by `url_pattern` then following alert warnings can be shown on top of the plot:
+ - `Format of response data from “url_pattern” does not match configuration property “response_format” while trying to parse data as “csv”`
+ - `Format of response data from “url_pattern” does not match configuration property “response_format” while trying to parse data as “json”`
+
+- If no `response_format` is provided and the file type in `url_pattern` is other than `json` or `csv` then following alert warning will be shown:
+ - `Invalid format of response data from “url_pattern” while trying to parse data as “json”`
+
+- If any values other than `csv` or `json` is configured for `response_format` then following will be shown:
+ - Alert warning saying that `Invalid value for “response_format”, expected “csv” or “json”`
+ - Plot should have no data shown and title "No Data".

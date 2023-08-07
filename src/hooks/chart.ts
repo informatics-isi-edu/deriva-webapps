@@ -446,64 +446,64 @@ export const useChartData = (plot: Plot) => {
     dispatchError,
   ]);
 
-  
-/**
- * 
- * @param legendNames array of legend names
- * @param uniqueX array of unique X ticks
- * @param dimensions object of height and width of screen
- * @param longestXTick longest X tick in the data
- * @returns updated(wrapped) legend names array based on screen size and no. of ticks
- */
-const getWidthOfDiv = (legendNames: string[], uniqueX: string[], dimensions: dimensionsType, longestXTick: string) => {
-  const truncationLimit = 20;
-  const charLimit = {
-    sm: 30,
-    md: 65,
-    lg: 80,
+
+  /**
+   * 
+   * @param legendNames array of legend names
+   * @param uniqueX array of unique X ticks
+   * @param dimensions object of height and width of screen
+   * @param longestXTick longest X tick in the data
+   * @returns updated(wrapped) legend names array based on screen size and no. of ticks
+   */
+  const getWidthOfDiv = (legendNames: string[], uniqueX: string[], dimensions: dimensionsType, longestXTick: string) => {
+    const truncationLimit = 20;
+    const charLimit = {
+      sm: 30,
+      md: 65,
+      lg: 80,
+    };
+    //Create a hidden div to check the width of the legend with the given font and size
+    const hiddenDiv = document.createElement('div');
+    hiddenDiv.id = 'hiddenDiv';
+    hiddenDiv.innerHTML = longestXTick;
+    hiddenDiv.style.visibility = 'hidden';
+    hiddenDiv.style.position = 'absolute';
+    hiddenDiv.style.fontSize = '12';
+    hiddenDiv.style.width = 'fit-content';
+    document.body.appendChild(hiddenDiv);
+    //calculate the width of this hidden div
+    const width = hiddenDiv.offsetWidth;
+    const plotWidth = plotAreaFraction * dimensions?.width;
+    //no. of unique violins to be shown on plot
+    const noOfViolins = uniqueX?.length;
+    /*If screen is less than 1000px and legend is 50% of plot area then wrap the text upto 30 characters 
+    which will make the legend of minimum possible width*/
+    if (plotWidth < screenWidthThreshold && width / plotWidth > 0.50) {
+      legendNames = legendNames?.map((name) => name.includes('<a')
+        ? extractValue(name, charLimit.sm, truncationLimit) : wrapText(name, charLimit.sm, truncationLimit))
+    }
+    /*NOTE: These numbers are taken of the basis of current data and different testing scenarios considering the longest x label and 
+    amount of width legend is taking as compared to the plot area*/
+    /*If the number of violins is less than or equal to 7 and the width-to-plot-width ratio is greater than 0.40, 
+    the legendNames array is modified similarly to the previous step, but using the charLimit.lg character limit (i.e 80).*/
+    else if (noOfViolins <= 7 && width / plotWidth > 0.40) {
+      legendNames = legendNames.map((name) => name.includes('<a')
+        ? extractValue(name, charLimit.lg, truncationLimit) : wrapText(name, charLimit.lg, truncationLimit))
+    }
+    /*If the number of violins is between 7 and 30 (inclusive) and the width-to-plot-width ratio is greater than 0.30, 
+    the legendNames array is modified similarly to the previous step, but using the charLimit.md character limit (i.e 65).*/
+    else if ((noOfViolins > 7 && noOfViolins <= 30) && width / plotWidth > 0.3) {
+      legendNames = legendNames.map((name) => name.includes('<a')
+        ? extractValue(name, charLimit.md, truncationLimit) : wrapText(name, charLimit.md, truncationLimit))
+    }
+    /*If the number of violins is greater than 30 and the width-to-plot-width ratio is greater than 0.3,
+     the legendNames array is modified similarly to the previous step, but using the charLimit.sm character limit (i.e 30).*/
+    else if (noOfViolins > 30 && width / plotWidth > 0.30) {
+      legendNames = legendNames.map((name) => name.includes('<a')
+        ? extractValue(name, charLimit.sm, truncationLimit) : wrapText(name, charLimit.sm, truncationLimit))
+    }
+    return legendNames;
   };
-  //Create a hidden div to check the width of the legend with the given font and size
-  const hiddenDiv = document.createElement('div');
-  hiddenDiv.id = 'hiddenDiv';
-  hiddenDiv.innerHTML = longestXTick;
-  hiddenDiv.style.visibility = 'hidden';
-  hiddenDiv.style.position = 'absolute';
-  hiddenDiv.style.fontSize = '12';
-  hiddenDiv.style.width = 'fit-content';
-  document.body.appendChild(hiddenDiv);
-  //calculate the width of this hidden div
-  const width = hiddenDiv.offsetWidth;
-  const plotWidth = plotAreaFraction * dimensions?.width;
-  //no. of unique violins to be shown on plot
-  const noOfViolins = uniqueX?.length;
-  /*If screen is less than 1000px and legend is 50% of plot area then wrap the text upto 30 characters 
-  which will make the legend of minimum possible width*/
-  if (plotWidth < screenWidthThreshold && width / plotWidth > 0.50) {
-    legendNames = legendNames?.map((name) => name.includes('<a')
-      ? extractValue(name, charLimit.sm, truncationLimit) : wrapText(name, charLimit.sm, truncationLimit))
-  }
-  /*NOTE: These numbers are taken of the basis of current data and different testing scenarios considering the longest x label and 
-  amount of width legend is taking as compared to the plot area*/
-  /*If the number of violins is less than or equal to 7 and the width-to-plot-width ratio is greater than 0.40, 
-  the legendNames array is modified similarly to the previous step, but using the charLimit.lg character limit (i.e 80).*/
-  else if (noOfViolins <= 7 && width / plotWidth > 0.40) {
-    legendNames = legendNames.map((name) => name.includes('<a')
-      ? extractValue(name, charLimit.lg, truncationLimit) : wrapText(name, charLimit.lg, truncationLimit))
-  }
-  /*If the number of violins is between 7 and 30 (inclusive) and the width-to-plot-width ratio is greater than 0.30, 
-  the legendNames array is modified similarly to the previous step, but using the charLimit.md character limit (i.e 65).*/
-  else if ((noOfViolins > 7 && noOfViolins <= 30) && width / plotWidth > 0.3) {
-    legendNames = legendNames.map((name) => name.includes('<a')
-      ? extractValue(name, charLimit.md, truncationLimit) : wrapText(name, charLimit.md, truncationLimit))
-  }
-  /*If the number of violins is greater than 30 and the width-to-plot-width ratio is greater than 0.3,
-   the legendNames array is modified similarly to the previous step, but using the charLimit.sm character limit (i.e 30).*/
-  else if (noOfViolins > 30 && width / plotWidth > 0.30) {
-    legendNames = legendNames.map((name) => name.includes('<a')
-      ? extractValue(name, charLimit.sm, truncationLimit) : wrapText(name, charLimit.sm, truncationLimit))
-  }
-  return legendNames;
-};
 
   /**
    * Updates the plotly config based on the given plot configs
@@ -676,9 +676,11 @@ const getWidthOfDiv = (legendNames: string[], uniqueX: string[], dimensions: dim
       result.layout.margin = additionalLayout.margin;
       result.layout.height = additionalLayout.height;
       result.layout.width = additionalLayout.width;
-      result.data[0]['colorbar'] = {
-        lenmode: 'pixels',
-        len: additionalLayout.height - 40 < 100 ? additionalLayout.height - 40 : 100
+      if (result.data[0]) {
+        result.data[0]['colorbar'] = {
+          lenmode: 'pixels',
+          len: additionalLayout.height - 40 < 100 ? additionalLayout.height - 40 : 100
+        }
       }
     }
     result.layout.autoresize = true;
@@ -1466,7 +1468,7 @@ const getWidthOfDiv = (legendNames: string[], uniqueX: string[], dimensions: dim
     result.data = unpackedResponses.map((responseData: ResponseData, index: number) => {
       const currTrace = plot.traces[index];
       //To add trace number against the alert message if multiple traces are given for a plot
-      const alertMsg = multiTrace ? `Trace ${index+1}: ` : '';
+      const alertMsg = multiTrace ? `Trace ${index + 1}: ` : '';
       hovertemplate_display_pattern = currTrace.hovertemplate_display_pattern; //use trace info
       //If the response_format is configured then check the format against type of file and parse the data accordingly
       if (responseData && currTrace.response_format) {
@@ -1486,7 +1488,7 @@ const getWidthOfDiv = (legendNames: string[], uniqueX: string[], dimensions: dim
             showAlert = true;
             alertFunctions.addAlert(alertMsg + invalidJsonAlert, ChaiseAlertType.WARNING);
           }
-        } 
+        }
         //If the given format is csv but the type of file is json then use the data as is and show an alert warning for wrong configuration
         else if ((currTrace.response_format === 'csv' && isDataJSON(responseData))) {
           if (!alertFunctions.alerts.some((alert) => alert.message.includes(alertMsg + invalidCsvAlert))) {
@@ -1529,10 +1531,10 @@ const getWidthOfDiv = (legendNames: string[], uniqueX: string[], dimensions: dim
           const heatmapData = parseHeatmapResponse(currTrace, plot, responseData);
           additionalLayout = { ...heatmapData.layoutParams };
           plotlyData.push(heatmapData.result);
+        }
       }
-    }
       //Otherwise if the type of file is other than csv/json, show an alert warning
-       else {
+      else {
         //If no other alerts are shown then show this alert
         if (!showAlert && !alertFunctions.alerts.some((alert) => alert.message.includes(alertMsg + invalidDataAlert))) {
           alertFunctions.addAlert(alertMsg + invalidDataAlert, ChaiseAlertType.WARNING);
@@ -1543,8 +1545,8 @@ const getWidthOfDiv = (legendNames: string[], uniqueX: string[], dimensions: dim
     });
 
     result.data = plotlyData;
-    if(result.data.every((obj: any)=>Object.keys(obj)?.length===0)){
-      templateParams.noData=true;
+    if (result.data?.every((obj: any) => Object.keys(obj)?.length === 0)) {
+      templateParams.noData = true;
     }
     updatePlotlyConfig(plot, result); // update the config
     updatePlotlyLayout(plot, result, additionalLayout, selectDataGrid); // update the layout
