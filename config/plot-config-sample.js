@@ -187,27 +187,27 @@ var plotConfigs = {
           },
         },
         config: {
-          title_display_markdown_pattern:
-            '[ Number of GUDMAP resources released to-date ](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
+          // title_display_markdown_pattern:
+          //   '[ Number of GUDMAP resources released to-date ](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
           slice_label: 'value', // what to show on the slice of pie chart - value or "percent
           format_data: true, // - to use hack or not for formatting
-          disable_default_legend_click: false,
+          // disable_default_legend_click: false,
         },
         traces: [
           {
-            hovertemplate_display_pattern: "Released: {{#if true}}{{{$row.[#_Released]}}}{{/if}}<br>Data Type: {{{$row.Data_Type}}}",
+            // hovertemplate_display_pattern: "Released: {{#if true}}{{{$row.[#_Released]}}}{{/if}}<br>Data Type: {{{$row.Data_Type}}}",
             // The request url that has to be used to fetch the data.
-            queryPattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23_Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
+            queryPattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
             // url_pattern: '/~kenyshah/gudmap-json.json',
             // response_format: 'json',
             // legend: ["Browser All Events 1","Browser All Events 2"],   // name of traces in legend
-            data_col: '#_Released', // name of the attribute of the data column
+            data_col: 'Released', // name of the attribute of the data column
             legend_col: 'Data_Type', // name of the attribute of the legend column
-            legend_markdown_pattern:
-              '[{{$self.data.Data_Type}}](/chaise/recordset/#2/{{{$self.data.Schema_Table}}}/*::facets::{{#encodeFacet}}{{{$self.data.Data_Type_Filter}}}{{/encodeFacet}}){target=_blank}',
-            graphic_link_pattern: [
-              '/chaise/recordset/#2/{{{$self.data.Schema_Table}}}/*::facets::{{#encodeFacet}}{{{$self.data.Data_Type_Filter}}}{{/encodeFacet}}',
-            ],
+            // legend_markdown_pattern:
+            //   '[{{$self.data.Data_Type}}](/chaise/recordset/#2/{{{$self.data.Schema_Table}}}/*::facets::{{#encodeFacet}}{{{$self.data.Data_Type_Filter}}}{{/encodeFacet}}){target=_blank}',
+            // graphic_link_pattern: [
+            //   '/chaise/recordset/#2/{{{$self.data.Schema_Table}}}/*::facets::{{#encodeFacet}}{{{$self.data.Data_Type_Filter}}}{{/encodeFacet}}',
+            // ],
           },
         ],
       },
@@ -254,34 +254,33 @@ var plotConfigs = {
           },
         },
         config: {
-          title_display_markdown_pattern:
-            '[Number of GUDMAP resources released to date (log scale)](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+          // title_display_markdown_pattern:
+          //   '[Number of GUDMAP resources released to date (log scale)](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
           format_data_x: true, // defualt : false - to use hack or not
-          xaxis: {
-            title_display_markdown_pattern:
-              '[Number of Records](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
-          },
-          yaxis: {
-            tick_display_markdown_pattern:
-              '[{{$self.data.Data_Type}}](/chaise/recordset/#2/{{{$self.data.Schema_Table}}}){target=_blank}',
-          },
-          disable_default_legend_click: true,
+          // xaxis: {
+          //   title_display_markdown_pattern:
+          //     '[Number of Records](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+          // },
+          // yaxis: {
+          //   tick_display_markdown_pattern:
+          //     '[{{$self.data.Data_Type}}](/chaise/recordset/#2/{{{$self.data.Schema_Table}}}){target=_blank}',
+          // },
+          // disable_default_legend_click: true,
         },
         traces: [
           {
-            hovertemplate_display_pattern: "Released Horizontal: {{#if true}}{{{$row.[#_Released]}}}{{/if}}",
+            // hovertemplate_display_pattern: "Released Horizontal: {{#if true}}{{{$row.Released}}}{{/if}}",
             // The request url that has to be used to fetch the data.
-            queryPattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23_Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
+            queryPattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
             // url_pattern: '/~kenyshah/gudmap-json.json',
             // response_format: 'json',
-            legend: ['#_Released'], // name of traces in legend
-            legend_markdown_pattern: [
-              '[#Released](/chaise/recordset/#2/Antibody:Antibody_Tests/){target=_blank}',
-            ],
-            graphic_link_pattern:
-              '/chaise/recordset/#2/{{{ $self.data.Schema_Table }}}/*::facets::{{#encodeFacet}}{{{ $self.data.Data_Type_Filter }}}{{/encodeFacet}}',
-
-            x_col: ['#_Released'], // column name to use for x values
+            legend: ['Released'], // name of traces in legend
+            // legend_markdown_pattern: [
+            //   '[#Released](/chaise/recordset/#2/Antibody:Antibody_Tests/){target=_blank}',
+            // ],
+            // graphic_link_pattern:
+            //   '/chaise/recordset/#2/{{{ $self.data.Schema_Table }}}/*::facets::{{#encodeFacet}}{{{ $self.data.Data_Type_Filter }}}{{/encodeFacet}}',
+            x_col: ['Released'], // column name to use for x values
             y_col: ['Data_Type'], // array of column names to use for y values
             orientation: 'h', // Optional parameter for displaying the bar chart horizontally
             textfont: {
@@ -341,14 +340,14 @@ var plotConfigs = {
         },
         traces: [
           {
-            hovertemplate_display_pattern: "Released Vertical: {{#if true}}{{{$row.[#_Released]}}}{{/if}}",
+            hovertemplate_display_pattern: "Released Vertical: {{#if true}}{{{$row.Released}}}{{/if}}",
             // The request url that has to be used to fetch the data.
-            queryPattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23_Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
+            queryPattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
             // url_pattern: '/~kenyshah/gudmap-csv.csv',
             // response_format: 'csv',
-            legend: ['#_Released'], // name of traces in legend
+            legend: ['Released'], // name of traces in legend
             x_col: ['Data_Type'], // column name to use for x values
-            y_col: ['#_Released'], // array of column names to use for y values
+            y_col: ['Released'], // array of column names to use for y values
             orientation: 'v', // Optional parameter for displaying the bar chart horizontally
             textfont: {
               size: 10, // It will work till the bar size can accomodate the font size
@@ -392,13 +391,13 @@ var plotConfigs = {
           },
           traces: [
             {
-              hovertemplate_display_pattern: "Released Horizontal Summary: {{#if true}}{{{$row.[#_Released]}}}{{/if}}",
+              // hovertemplate_display_pattern: "Released Horizontal Summary: {{#if true}}{{{$row.Released}}}{{/if}}",
               // The request url that has to be used to fetch the data.
-              queryPattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23_Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
+              queryPattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
               // url_pattern: '/~kenyshah/gudmap-json.json',
               // response_format: 'json',
-              legend: ['#_Released'], // name of traces in legend
-              x_col: ['#_Released'], // column name to use for x values
+              legend: ['Released'], // name of traces in legend
+              x_col: ['Released'], // column name to use for x values
               y_col: ['Data_Type'], // array of column names to use for y values
               orientation: 'h', // Optional parameter for displaying the bar chart horizontally
               textfont: {
