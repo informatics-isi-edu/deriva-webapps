@@ -936,7 +936,7 @@ export const useChartData = (plot: Plot) => {
     if (graphic_link_pattern) {
       // if there is a graphic_link_pattern then create the link and it to the array
       const linkPattern = Array.isArray(graphic_link_pattern)
-        ? graphic_link_pattern[0]
+        ? graphic_link_pattern[index]
         : graphic_link_pattern;
       if (linkPattern) {
         const link = createLink(linkPattern, { $self: { data: item }, $row: item });
