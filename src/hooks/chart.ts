@@ -1558,7 +1558,6 @@ export const useChartData = (plot: Plot) => {
       defaultHoverTemplateDisplay(result); // default hover template
     }
     // width and heigh are set in the css
-    console.log(result);
     return result;
   };
 
