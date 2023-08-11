@@ -140,13 +140,13 @@ var plotConfigs = {
             // The request url that has to be used to fetch the data.
             // assumes $url_parameters.Study is a set of Tuples
             // -- join Experiment to get the Experiment_Internal_ID
-            //queryPattern: "/ermrest/catalog/2/attributegroup/M:=RNASeq:Replicate_Expression/{{#if (gt $url_parameters.Study.length 0)}}({{#each $url_parameters.Study}}Study={{{this.data.RID}}}{{#unless @last}};{{/unless}}{{/each}})&{{/if}}NCBI_GeneID={{{$url_parameters.Gene.data.NCBI_GeneID}}}/exp:=(Experiment)=(RNASeq:Experiment:RID)/$M/Anatomical_Source,Experiment,Experiment_Internal_ID:=exp:Internal_ID,NCBI_GeneID,Replicate,Sex,Species,Specimen,Specimen_Type,Stage,Age,Starts_At,Ends_At,TPM"
+            //url_pattern: "/ermrest/catalog/2/attributegroup/M:=RNASeq:Replicate_Expression/{{#if (gt $url_parameters.Study.length 0)}}({{#each $url_parameters.Study}}Study={{{this.data.RID}}}{{#unless @last}};{{/unless}}{{/each}})&{{/if}}NCBI_GeneID={{{$url_parameters.Gene.data.NCBI_GeneID}}}/exp:=(Experiment)=(RNASeq:Experiment:RID)/$M/Anatomical_Source,Experiment,Experiment_Internal_ID:=exp:Internal_ID,NCBI_GeneID,Replicate,Sex,Species,Specimen,Specimen_Type,Stage,Age,Starts_At,Ends_At,TPM"
             // -- use Experiment_Internal_ID from Replicate_Expression table. Should be faster
 
             // url_pattern:
             // '/dev.gudmap.org/~kenyshah/violin-json.json',
             // response_format: 'json',
-            queryPattern:
+            url_pattern:
               '/ermrest/catalog/2/attributegroup/M:=RNASeq:Replicate_Expression/{{#if (gt $url_parameters.Study.length 0)}}({{#each $url_parameters.Study}}Study={{{this.data.RID}}}{{#unless @last}};{{/unless}}{{/each}})&{{/if}}NCBI_GeneID={{{$url_parameters.Gene.data.NCBI_GeneID}}}/$M/Anatomical_Source,Experiment,Experiment_Internal_ID,NCBI_GeneID,Replicate,Sex,Species,Specimen,Specimen_Type,Stage,Age,Starts_At,Ends_At,TPM',
           },
         ],
@@ -197,7 +197,7 @@ var plotConfigs = {
           {
             // hovertemplate_display_pattern: "Released: {{#if true}}{{{$row.[#_Released]}}}{{/if}}<br>Data Type: {{{$row.Data_Type}}}",
             // The request url that has to be used to fetch the data.
-            queryPattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
+            url_pattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
             // url_pattern: '/~kenyshah/gudmap-json.json',
             // response_format: 'json',
             // legend: ["Browser All Events 1","Browser All Events 2"],   // name of traces in legend
@@ -271,7 +271,7 @@ var plotConfigs = {
           {
             // hovertemplate_display_pattern: "Released Horizontal: {{#if true}}{{{$row.Released}}}{{/if}}",
             // The request url that has to be used to fetch the data.
-            queryPattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
+            url_pattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
             // url_pattern: '/~kenyshah/gudmap-json.json',
             // response_format: 'json',
             legend: ['Released'], // name of traces in legend
@@ -342,7 +342,7 @@ var plotConfigs = {
           {
             hovertemplate_display_pattern: "Released Vertical: {{#if true}}{{{$row.Released}}}{{/if}}",
             // The request url that has to be used to fetch the data.
-            queryPattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
+            url_pattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
             // url_pattern: '/~kenyshah/gudmap-csv.csv',
             // response_format: 'csv',
             legend: ['Released'], // name of traces in legend
@@ -389,11 +389,12 @@ var plotConfigs = {
               title: 'Data_Types', // plot y_axis label
             },
           },
+        },
           traces: [
             {
               // hovertemplate_display_pattern: "Released Horizontal Summary: {{#if true}}{{{$row.Released}}}{{/if}}",
               // The request url that has to be used to fetch the data.
-              queryPattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
+              url_pattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
               // url_pattern: '/~kenyshah/gudmap-json.json',
               // response_format: 'json',
               legend: ['Released'], // name of traces in legend
@@ -418,7 +419,6 @@ var plotConfigs = {
             'toggleSpikelines',
           ],
         },
-      },
     ],
   },
   'specimen-scatterplot': {
@@ -478,7 +478,7 @@ var plotConfigs = {
         traces: [
           {
             hovertemplate_display_pattern: "Released Horizontal Summary: {{#if true}}{{{$row.[#_Released]}}}{{/if}}",
-            queryPattern: '/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/stage:=left(Stage_ID)=(Vocabulary:Developmental_Stage:ID)/$M/Assay_Type,stage:Name',
+            url_pattern: '/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/stage:=left(Stage_ID)=(Vocabulary:Developmental_Stage:ID)/$M/Assay_Type,stage:Name',
             // url_pattern: '/~kenyshah/scatter-json.json',
             // response_format: 'csv',
             x_col: ['Assay_Type'],
@@ -533,7 +533,7 @@ var plotConfigs = {
         traces: [
           {
             hovertemplate_display_pattern: "Creation Date: {{{$row.RCT}}}<br>Trace1",
-            queryPattern: '/ermrest/catalog/2/entity/Gene_Expression:Specimen@sort(RCT::desc::)?limit=10000',
+            url_pattern: '/ermrest/catalog/2/entity/Gene_Expression:Specimen@sort(RCT::desc::)?limit=10000',
             // url_pattern: 'https://dev.gudmap.org/~kenyshah/histogram-json.json',
             // response_format: 'json',
             data_col: 'RCT',
@@ -542,7 +542,7 @@ var plotConfigs = {
           },
           {
             hovertemplate_display_pattern: "Creation Date: {{{$row.RCT}}}<br>Trace2",
-            queryPattern: '/ermrest/catalog/2/entity/Gene_Expression:Specimen@sort(RCT::desc::)?limit=10000',
+            url_pattern: '/ermrest/catalog/2/entity/Gene_Expression:Specimen@sort(RCT::desc::)?limit=10000',
             // url_pattern: 'https://dev.gudmap.org/~kenyshah/histogram-csv.csv',
             // response_format: 'csv',
             data_col: 'RCT',
@@ -597,7 +597,7 @@ var plotConfigs = {
         traces: [
           {
             hovertemplate_display_pattern: "Creation Date: {{{$row.RCT}}}<br>Horizontal",
-            querPattern: '/ermrest/catalog/2/entity/Gene_Expression:Specimen@sort(RCT::desc::)?limit=10000',
+            url_pattern: '/ermrest/catalog/2/entity/Gene_Expression:Specimen@sort(RCT::desc::)?limit=10000',
             // url_pattern: '/~kenyshah/histogram-csv.csv',
             // response_format: 'csv',
             data_col: 'RCT',
@@ -664,7 +664,7 @@ var plotConfigs = {
           graphic_link_pattern:
             ['/chaise/recordset/#2/RNASeq:Replicate_Expression'],
           hovertemplate_display_pattern: "Label: {{{$row.Label}}}<br>Probe Name: {{{$row.Probe_Set_Name}}}<br>Value: {{{$row.Value}}}<br>Gene ID: {{{$url_parameters.Gene.data.NCBI_GeneID}}}",
-          queryPattern: '/ermrest/catalog/2/entity/Gene_Expression:Array_Data_view/NCBI_GeneID={{{$url_parameters.Gene.data.NCBI_GeneID}}}&Section_Ordinal=3',
+          url_pattern: '/ermrest/catalog/2/entity/Gene_Expression:Array_Data_view/NCBI_GeneID={{{$url_parameters.Gene.data.NCBI_GeneID}}}&Section_Ordinal=3',
           // url_pattern: '/~kenyshah/heatmap-csv.csv',
           // response_format: 'csv',
           x_col: ["Label"],

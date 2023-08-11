@@ -1,5 +1,4 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
-import axios from 'axios';
 import useAlert from '@isrd-isi-edu/chaise/src/hooks/alerts';
 import {
   PlotData as PlotlyPlotData,
@@ -17,7 +16,6 @@ import {
   extractAndFormatDate,
   wrapText,
   isDataJSON,
-  createUrlFromPattern,
 } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 import { flatten2DArray } from '@isrd-isi-edu/deriva-webapps/src/utils/data';
 
@@ -37,14 +35,16 @@ import {
   TraceConfig,
   screenWidthThreshold,
   plotAreaFraction,
-  defaultDomain,
+  validFileTypes,
+
+} from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import {
+  invalidResponseFormatAlert,
+  invalidDataAlert, 
   invalidKeyAlert,
   invalidCsvAlert,
-  invalidJsonAlert,
-  validFileTypes,
-  invalidResponseFormatAlert,
-  invalidDataAlert,
-} from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+  invalidJsonAlert
+} from '@isrd-isi-edu/deriva-webapps/src/utils/message-map';
 import useIsFirstRender from '@isrd-isi-edu/chaise/src/hooks/is-first-render';
 import { getQueryParam } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
@@ -361,13 +361,13 @@ export const useChartData = (plot: Plot) => {
     const plotResponses: Array<Response> = await Promise.all(
       // request for each trace
       plot.traces.map((trace) => {
+        /*TODO: Both this case (queryPattern) and the next one (uri) are deprecated and should be removed eventually. 
+        These are currently kept here for backwards compatibility.*/
         // Check for queryPattern(dynamic link) parameter in traces, if not defined then check for uri(static link)
-        if (trace.url_pattern) {
-          const url = createUrlFromPattern(trace.url_pattern);
-          return axios.get(url);
-        }
-        else if (trace.queryPattern) {
-          const { uri, headers } = getPatternUri(trace.queryPattern, templateParams);
+        if (trace.url_pattern || trace.queryPattern) {
+          //To avoid the lint error, passing empty string if both are not present'
+          const pattern = trace.url_pattern || trace.queryPattern || '';
+          const { uri, headers } = getPatternUri(pattern, templateParams);
           return ConfigService.http.get(uri, { headers });
         }
         else if (trace.uri) {
@@ -1144,10 +1144,12 @@ export const useChartData = (plot: Plot) => {
    * @returns
    */
   const parseScatterResponse = (trace: Trace, plot: Plot, responseData: ResponseData) => {
-    const result: Partial<TraceConfig> & Partial<PlotlyPlotData> = {
+    const result: Partial<TraceConfig> & Partial<PlotlyPlotData> & Partial<ClickableLinks>= {
       ...trace,
       mode: 'markers',
       name: trace.legend ? trace.legend[0] : '',
+      legend_clickable_links: [], // array of links for when clicking legend
+      graphic_clickable_links: [], // array of links for when clicking graph
       type: plot.plot_type,
       x: [], // x data
       y: [], // y data
@@ -1470,6 +1472,7 @@ export const useChartData = (plot: Plot) => {
       //To add trace number against the alert message if multiple traces are given for a plot
       const alertMsg = multiTrace ? `Trace ${index + 1}: ` : '';
       hovertemplate_display_pattern = currTrace.hovertemplate_display_pattern; //use trace info
+      const isResponseJson=isDataJSON(responseData);
       //If the response_format is configured then check the format against type of file and parse the data accordingly
       if (responseData && currTrace.response_format) {
         //If the given format is not from the allowed types then show an alert warning
@@ -1478,11 +1481,11 @@ export const useChartData = (plot: Plot) => {
           alertFunctions.addAlert(alertMsg + invalidResponseFormatAlert, ChaiseAlertType.WARNING);
         }
         //If the given format is csv and the content of file is also of type csv then parse the data using csv parser
-        else if (currTrace.response_format === 'csv' && !isDataJSON(responseData)) {
+        else if (currTrace.response_format === 'csv' && !isResponseJson) {
           responseData = parseCsvData(responseData?.toString());
         }
         //If the given format is json but the type of file is csv then parse the data using csv parser and show an alert warning for wrong configuration
-        else if (currTrace.response_format === 'json' && !isDataJSON(responseData)) {
+        else if (currTrace.response_format === 'json' && !isResponseJson) {
           responseData = parseCsvData(responseData?.toString());
           if (!alertFunctions.alerts.some((alert) => alert.message.includes(alertMsg + invalidJsonAlert))) {
             showAlert = true;
@@ -1490,14 +1493,14 @@ export const useChartData = (plot: Plot) => {
           }
         }
         //If the given format is csv but the type of file is json then use the data as is and show an alert warning for wrong configuration
-        else if ((currTrace.response_format === 'csv' && isDataJSON(responseData))) {
+        else if ((currTrace.response_format === 'csv' && isResponseJson)) {
           if (!alertFunctions.alerts.some((alert) => alert.message.includes(alertMsg + invalidCsvAlert))) {
             showAlert = true;
             alertFunctions.addAlert(alertMsg + invalidCsvAlert, ChaiseAlertType.WARNING);
           }
         }
       }
-      if (responseData && currTrace?.response_format === undefined && !isDataJSON(responseData)) {
+      if (responseData && currTrace?.response_format === undefined && !isResponseJson) {
         responseData = parseCsvData(responseData?.toString());
       }
       //If the responseData is succesfully parsed as json/csv then classify and parse as per plot_type
@@ -1555,6 +1558,7 @@ export const useChartData = (plot: Plot) => {
       defaultHoverTemplateDisplay(result); // default hover template
     }
     // width and heigh are set in the css
+    console.log(result);
     return result;
   };
 

@@ -1,9 +1,5 @@
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
-import axios from 'axios';
-import { defaultDomain } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
-
-
 
 /**
  * Appends and returns the pcid and ppid for the given link
@@ -278,35 +274,8 @@ export const wrapText = (text: string, width: number, wrapLimit: number) => {
 export const isDataJSON = (data: any) => {
   try {
     const parsedData=JSON.parse(JSON.stringify(data));
-    console.log('data ',parsedData,typeof parsedData);
     return !(typeof parsedData==='string');
   } catch (error) {
     return false;
   }
 }
-
-/**
- * 
- * @param text url pattern from config
- * @returns valid url
- */
-export const createUrlFromPattern = (text: string) => {
-  //If it's valid url return it
-    try {
-      new URL(text);
-      return text;
-    } catch (err) {
-      const extractedTexts = text?.split('/').filter(part => part !== '');
-      const domainRegex = /(?:[\w-]+\.)+[\w-]+/;
-      //Check if the string has a domain 
-      const match = extractedTexts[0].match(domainRegex);
-      //If yes then append http to form a valid url to fetch the data
-      if(match){
-        return 'https:/'+text;
-      }
-      //Otherwise create url with default domain
-      else{
-        return 'https:/'+defaultDomain+text;
-      }
-    }
-  }
