@@ -534,7 +534,7 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
   if(Object.keys(yTreeData).length !== 0){
     yTreeData.forEach((item) => {
       const { child_id, parent_id } = item;
-    
+
       const childTitle = child_id in yReferenceNodesMap ? yReferenceNodesMap[child_id].title : 'None';
       const childLink = child_id in yReferenceNodesMap ? yReferenceNodesMap[child_id].link : '';
       const childNode = child_id in yTreeNodesMap
@@ -545,9 +545,9 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
             link: childLink,
             children: [],
           };
-    
+
       yTreeNodesMap[child_id] = childNode;
-    
+
       if(parent_id !== null){
         const parentTitle = parent_id in yReferenceNodesMap ? yReferenceNodesMap[parent_id].title: 'None';
         const parentLink = parent_id in yReferenceNodesMap ? yReferenceNodesMap[parent_id].link : '';
@@ -563,12 +563,12 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
         parentNode.children.push(childNode);
         yTreeNodesMap[parent_id] = parentNode;
       }
-      
+
       if(parent_id === null){
         yTreeNodes.push(childNode);
       }
     });
-      
+
     // Sort the gridData in y axis for the synchronization of expand and collapse of tree
     const flatKeys = flattenTree(yTreeNodes);
     gridData.sort((a, b) => {
@@ -593,7 +593,7 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
   if(Object.keys(xTreeData).length !== 0){
     xTreeData.forEach((item) => {
       const { child_id, parent_id } = item;
-    
+
       const childTitle = child_id in xReferenceNodesMap ? xReferenceNodesMap[child_id].title : 'None';
       const childLink = child_id in xReferenceNodesMap ? xReferenceNodesMap[child_id].link : '';
       const childNode = child_id in xTreeNodesMap
@@ -604,9 +604,9 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
             link: childLink,
             children: [],
           };
-    
+
       xTreeNodesMap[child_id] = childNode;
-    
+
       if(parent_id !== null){
         const parentTitle = parent_id in xReferenceNodesMap ? xReferenceNodesMap[parent_id].title: 'None';
         const parentLink = parent_id in xReferenceNodesMap ? xReferenceNodesMap[parent_id].link : '';
@@ -618,19 +618,19 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
               link: parentLink,
               children: [],
             };
-      
+
         parentNode.children.push(childNode);
         xTreeNodesMap[parent_id] = parentNode;
       }
-      
+
       if(parent_id === null){
         xTreeNodes.push(childNode);
       }
     });
-      
+
     // Sort the gridData in y axis for the synchronization of expand and collapse of tree
     const flatKeys = flattenTree(xTreeNodes);
-    
+
     // Sort each row in gridData based on the order of cell ids
     gridData.forEach((gridRow) => {
       gridRow.sort((a, b) => {
@@ -660,61 +660,28 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
   xData.forEach((x: MatrixDatum) => {
     gridDataTreeMap[x.title.toLowerCase()] = { type: 'col', id: x.id };
   });
-  
-  if(Object.keys(yTreeData).length === 0 && Object.keys(xTreeData).length === 0){
-    // If there is no tree data, then show the basic components
-    const parsedData: ParsedMatrixData = {
-      gridData,
-      legendData,
-      gridDataMap,
-      options,
-    };
-  
-    return parsedData;
-  }else if(Object.keys(yTreeData).length === 0 && Object.keys(xTreeData).length !== 0){
-    // If x tree data exists, show the hierarchical component
-    const parsedData: ParsedMatrixData = {
-      gridData,
-      xTreeData,
-      xTreeNodes,
-      xTreeNodesMap,
-      legendData,
-      gridDataMap,
-      gridDataTreeMap,
-      options,
-    };
-  
-    return parsedData;
-  }else if(Object.keys(yTreeData).length !== 0 && Object.keys(xTreeData).length === 0){
-    // If y tree data exists, show the hierarchical component
-    const parsedData: ParsedMatrixData = {
-      gridData,
-      yTreeData,
-      yTreeNodes,
-      yTreeNodesMap,
-      legendData,
-      gridDataMap,
-      gridDataTreeMap,
-      options,
-    };
-    return parsedData;
 
-  }else{
-    const parsedData: ParsedMatrixData = {
-      gridData,
+  // Return the required data based on whether xTreeData or yTreeData exists
+  const parsedData: ParsedMatrixData = {
+    gridData,
+    ... yTreeData.length > 0 && {
       yTreeData,
       yTreeNodes,
-      yTreeNodesMap,
+      yTreeNodesMap
+    },
+    ... xTreeData.length > 0 && {
       xTreeData,
       xTreeNodes,
       xTreeNodesMap,
-      legendData,
-      gridDataMap,
+    },
+    ... (yTreeData.length > 0 || xTreeData.length > 0) && {
       gridDataTreeMap,
-      options,
-    };
-    return parsedData;
-  }
+    },
+    legendData,
+    gridDataMap,
+    options,
+  };
+  return parsedData;
 };
 
 /**

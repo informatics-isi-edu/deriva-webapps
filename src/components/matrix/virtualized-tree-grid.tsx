@@ -397,7 +397,7 @@ const VirtualizedTreeGrid = (
     [yTree, xTree, searchedColID, searchedRowID, hoveredRowID, hoveredColID, searchedRowIndex, searchedColIndex, 
       hoveredRowIndex, hoveredColIndex, visiableRowNodes, filteredGridData, colorScale]
   );
-  
+
   const rowHeaderData = useMemo(
     () => ({
       hoveredRowIndex,

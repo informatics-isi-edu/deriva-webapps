@@ -73,11 +73,7 @@ const RowTreeHeaders = (
     searchedRowID, 
     listData, 
     setFilteredGridYData, 
-    setVisiableRowNodes, 
-    hoveredRowID, 
-    setHoveredRowID, 
-    setHoveredColID,
-    setHoveredColIndex } = itemData;
+    setVisiableRowNodes } = itemData;
 
   const [prevSearched, setPrevSearched] = useState<string | null>(null); // previous searched enrty
   const [expanded, setExpanded] = useState<string[]>([]); // all expanded nodes
@@ -99,46 +95,11 @@ const RowTreeHeaders = (
     willChange: 'transform',
   };
 
-  // style for the background of each entry
-  const rowTreeItemOuterBgStyles: CSSProperties = {
-    position: 'relative',
-    top: 0,
-    left: -50,
-  };
-
-  // style for each entry
-  const rowTreeItemBgStyles: CSSProperties = {
-    position: 'absolute',
-    top: 0,
-    left: -400,
-    width: 1000,
-    height: cellHeight,
-    zIndex: 0,
-  };
-
-  // style for the background of each entry when hover
-  const rowTreeItemBgStylesHover: CSSProperties = {
-    position: 'absolute',
-    top: 0,
-    left: -400,
-    width: 1000,
-    height: cellHeight,
-    zIndex: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.1)', // Grey color with 50% opacity
-  };
-
-  // style for the background of each entry when searched
-  const rowTreeItemBgStylesSearch: CSSProperties = {
-    position: 'absolute',
-    top: 0,
-    left: -400,
-    width: 1000,
-    height: cellHeight,
-    zIndex: 0,
-    backgroundColor: 'rgba(247, 240, 207, 0.7)', // light yellow color
-  };
-
   // Customize the minus square icon for tree view
+  const minusSquareIconPath = 'M22.047 22.074v0 0-20.147 0h-20.12v0 20.147 0h20.12zM22.047 24h-20.12q-.803 0-1.365'+
+  '-.562t-.562-1.365v-20.147q0-.776.562-1.351t1.365-.575h20.147q.776 0 1.351.575t.575 1.351v20.147q0 .803-'+
+  '.575 1.365t-1.378.562v0zM17.873 11.023h-11.826q-.375 0-.669.281t-.294.682v0q0 .401.294 .682t.669.281h11.'+
+  '826q.375 0 .669-.281t.294-.682v0q0-.401-.294-.682t-.669-.281z';
   const MinusSquare = (props: SvgIconProps) => (
     <div style={{ zIndex: 1 }}>
       <div
@@ -151,8 +112,7 @@ const RowTreeHeaders = (
         }}
       />
       <SvgIcon fontSize='inherit' style={{ width: iconSize, height: iconSize, zIndex: 1 }} {...props}>
-        {/* eslint-disable-next-line max-len */}
-        <path d='M22.047 22.074v0 0-20.147 0h-20.12v0 20.147 0h20.12zM22.047 24h-20.12q-.803 0-1.365-.562t-.562-1.365v-20.147q0-.776.562-1.351t1.365-.575h20.147q.776 0 1.351.575t.575 1.351v20.147q0 .803-.575 1.365t-1.378.562v0zM17.873 11.023h-11.826q-.375 0-.669.281t-.294.682v0q0 .401.294 .682t.669.281h11.826q.375 0 .669-.281t.294-.682v0q0-.401-.294-.682t-.669-.281z' />
+        <path d={minusSquareIconPath} />
       </SvgIcon>
       <div
         style={{
@@ -174,8 +134,13 @@ const RowTreeHeaders = (
       />
     </div>
   );
-  
+
   // Customize the plus square icon for tree view
+  const plusSquareIconPath = 'M22.047 22.074v0 0-20.147 0h-20.12v0 20.147 0h20.12zM22.047 24h-20.12q-.803'+
+  ' 0-1.365-.562t-.562-1.365v-20.147q0-.776.562-1.351t1.365-.575h20.147q.776 0 1.351.575t.575 1.351v20.147'+
+  'q0 .803-.575 1.365t-1.378.562v0zM17.873 12.977h-4.923v4.896q0 .401-.281.682t-.682.281v0q-.375 0-.669-.2'+
+  '81t-.294-.682v-4.896h-4.923q-.401 0-.682-.294t-.281-.669v0q0-.401.281-.682t.682-.281h4.923v-4.896q0-.401'+
+  '.294-.682t.669-.281v0q.401 0 .682.281t.281.682v4.896h4.923q.401 0 .682.281t.281.682v0q0 .375-.281.669t-.682.294z';
   const PlusSquare = (props: SvgIconProps) => (
     <div style={{ zIndex: 1 }}>
       <div
@@ -188,8 +153,7 @@ const RowTreeHeaders = (
         }}
       />
       <SvgIcon fontSize='inherit' style={{ width: iconSize, height: iconSize }} {...props}>
-        {/* eslint-disable-next-line max-len */}
-        <path d='M22.047 22.074v0 0-20.147 0h-20.12v0 20.147 0h20.12zM22.047 24h-20.12q-.803 0-1.365-.562t-.562-1.365v-20.147q0-.776.562-1.351t1.365-.575h20.147q.776 0 1.351.575t.575 1.351v20.147q0 .803-.575 1.365t-1.378.562v0zM17.873 12.977h-4.923v4.896q0 .401-.281.682t-.682.281v0q-.375 0-.669-.281t-.294-.682v-4.896h-4.923q-.401 0-.682-.294t-.281-.669v0q0-.401.281-.682t.682-.281h4.923v-4.896q0-.401.294-.682t.669-.281v0q.401 0 .682.281t.281.682v4.896h4.923q.401 0 .682.281t.281.682v0q0 .375-.281.669t-.682.294z' />
+        <path d={plusSquareIconPath} />
       </SvgIcon>
       <div
         style={{
@@ -211,7 +175,7 @@ const RowTreeHeaders = (
       />
     </div>
   );
-  
+
   // Customize the close square icon for tree view
   const CloseSquare = () => (
     <div style={{ zIndex: 1 }}>
@@ -234,172 +198,6 @@ const RowTreeHeaders = (
       />
     </div>
   );
-
-  // Extends MUI TreeItemProps to implement custom props
-  interface CustomTreeItemProps extends TreeItemProps {
-    node: TreeNode;
-  }
-
-  // Update id or index for when hover an item
-  const updateRowId = (nodeId: string) => {
-    setHoveredColID(null);
-    setHoveredColIndex(null);
-    setHoveredRowID(nodeId);
-  };
-
-  // Customize tree item so that the link function and expand/collapse function are separate
-  const CustomContent = forwardRef(function CustomContent(
-    props: TreeItemContentProps,
-    ref
-  ) {
-    const {
-      classes,
-      className,
-      label,
-      nodeId,
-      icon: iconProp,
-      expansionIcon,
-      displayIcon
-    } = props;
-
-    const {
-      disabled,
-      expanded,
-      selected,
-      focused,
-      handleExpansion,
-      handleSelection,
-      preventSelection
-    } = useTreeItem(nodeId);
-
-    const icon = iconProp || expansionIcon || displayIcon;
-
-    const handleMouseDown = (
-      event: React.MouseEvent<HTMLDivElement, MouseEvent>
-    ) => {
-      preventSelection(event);
-    };
-
-    const handleExpansionClick = (
-      event: React.MouseEvent<HTMLDivElement, MouseEvent>
-    ) => {
-      handleExpansion(event);
-    };
-
-    const handleSelectionClick = (
-      event: React.MouseEvent<HTMLDivElement, MouseEvent>
-    ) => {
-      handleSelection(event);
-    };
-
-    const link = treeNodesMap[nodeId].link;
-
-    const linkClassName = nodeId === hoveredRowID ? 'hovered-header' : 'unhovered-header';
-
-    return (
-      <div
-        role='button'
-        className={clsx(className, classes.root, {
-          [classes.expanded]: expanded,
-          [classes.selected]: selected,
-          [classes.focused]: focused,
-          [classes.disabled]: disabled
-        })}
-        onMouseDown={handleMouseDown}
-        onMouseOver={() => updateRowId(nodeId)}
-        ref={ref as React.Ref<HTMLDivElement>}
-      >
-        <div role='button' onClick={handleExpansionClick} className={classes.iconContainer}>
-          {icon}
-        </div>
-        <Typography
-          onClick={handleSelectionClick}
-          component='div'
-          className={classes.label}
-        >
-          <a href={link}
-            className={linkClassName}>
-            {label}
-          </a>
-        </Typography>
-      </div>
-    );
-  });
-
-  // Define interaction and style for tree item
-  const StyledTreeItem = styled(({ node, ...props }: CustomTreeItemProps) => {
-    // Check if the node key matches the hovered row id
-    const isNodeKeyMatched = node.key === hoveredRowID;
-    // Check if the node key matches the searched row id
-    const isNodeKeyMatchedSearch = node.key === searchedRowID;
-
-    return (
-      <div>
-        {/* Element before TreeItem to show the interaction background */}
-        <div className='hoverBackground' style={rowTreeItemOuterBgStyles} onMouseOver={() => updateRowId(node.key)}>
-          <div
-            style={
-              isNodeKeyMatchedSearch
-                ? rowTreeItemBgStylesSearch
-                : isNodeKeyMatched
-                ? rowTreeItemBgStylesHover
-                : rowTreeItemBgStyles
-            }
-          ></div>
-        </div>
-
-        {/* TreeItem component */}
-        <TreeItem ContentComponent={CustomContent} {...props} />
-      </div>
-    );
-  })(({ theme }) => ({
-    [`& .${treeItemClasses.iconContainer}`]: {
-      '& .close': {
-        opacity: 0.3
-      }
-    },
-    [`& .${treeItemClasses.group}`]: {
-      marginRight: 19,
-      paddingRight: 4,
-      borderRight: `1px dotted ${alpha(theme.palette.text.primary, 0.4)}`,
-    },
-    [`& .${treeItemClasses.label}`]: {
-      marginRight: 12,
-      width: '100%',
-      whiteSpace: 'nowrap', // Ensures the text appears in a single line
-    },
-    [`& .${treeItemClasses.content}`]: {
-      height: cellHeight,
-
-      '&:hover': {
-        backgroundColor: 'rgba(0, 0, 0, 0)',
-      },
-
-      // eslint-disable-next-line max-len
-      '&.Mui-focused, &.Mui-selected, &.Mui-selected.Mui-focused, &.Mui-expanded.Mui-selected.Mui-focused, &.Mui-expanded.Mui-selected, &.Mui-expanded.Mui-focused': {
-        backgroundColor: 'rgba(0, 0, 0, 0)',
-      },
-    },
-  }));
-
-
-  /**
-   * Render the tree view nodes layer by layer
-   */
-  const renderTree = (nodes: TreeNode[]): JSX.Element[] => {
-    return nodes.map((node) => (
-        <StyledTreeItem 
-          key={node.link} 
-          nodeId={node.key} 
-          label={node.title} 
-          className='MUI-tree'
-          node = {node}
-        >
-          {Array.isArray(node.children) ? renderTree(node.children) : null}
-        </StyledTreeItem>
-    ));
-  };
-
 
   /**
    * Interaction functions
@@ -498,7 +296,7 @@ const RowTreeHeaders = (
       style={rowTreeHeadersStyles}
       ref={ref}
       onScroll={onScroll}>
-      
+
           <TreeView
             aria-label='rich object'
             defaultExpanded={['root']}
@@ -508,11 +306,242 @@ const RowTreeHeaders = (
             expanded={expanded}
             onNodeToggle={handleToggle}
           >
-            {renderTree(treeNodes)}
+            <MemoizedRenderTree
+              nodes={treeNodes}
+              data={itemData}
+              cellHeight={cellHeight}
+              treeNodesMap={treeNodesMap}
+            />
           </TreeView>
-          
+
     </div>
   );
 };
+
+
+/**
+ * Create a component that renders the tree (the renderTree function) and then memorize it 
+ */
+type MemoizedRenderTreeProps = {
+  nodes: TreeNode[];
+  data: any;
+  cellHeight: number;
+  treeNodesMap: TreeNodeMap;
+};
+
+const MemoizedRenderTree = memo(({ nodes, data, cellHeight, treeNodesMap }: MemoizedRenderTreeProps) => {
+  const { 
+    searchedRowID,
+    hoveredRowID,
+    setHoveredRowID,
+    setHoveredColID,
+    setHoveredColIndex } = data;
+
+  // style for the background of each entry
+  const rowTreeItemOuterBgStyles: CSSProperties = {
+    position: 'relative',
+    top: 0,
+    left: -50,
+  };
+
+  // style for each entry
+  const rowTreeItemBgStyles: CSSProperties = {
+    position: 'absolute',
+    top: 0,
+    left: -400,
+    width: 1000,
+    height: cellHeight,
+    zIndex: 0,
+  };
+
+  // style for the background of each entry when hover
+  const rowTreeItemBgStylesHover: CSSProperties = {
+    position: 'absolute',
+    top: 0,
+    left: -400,
+    width: 1000,
+    height: cellHeight,
+    zIndex: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.1)', // Grey color with 50% opacity
+  };
+
+  // style for the background of each entry when searched
+  const rowTreeItemBgStylesSearch: CSSProperties = {
+    position: 'absolute',
+    top: 0,
+    left: -400,
+    width: 1000,
+    height: cellHeight,
+    zIndex: 0,
+    backgroundColor: 'rgba(247, 240, 207, 0.7)', // light yellow color
+  };
+
+  // Extends MUI TreeItemProps to implement custom props
+  interface CustomTreeItemProps extends TreeItemProps {
+    node: TreeNode;
+  }
+
+  // Update id or index for when hover an item
+  const updateRowId = (nodeId: string) => {
+    setHoveredColID(null);
+    setHoveredColIndex(null);
+    setHoveredRowID(nodeId);
+  };
+
+  // Customize tree item so that the link function and expand/collapse function are separate
+  const CustomContent = forwardRef(function CustomContent(
+    props: TreeItemContentProps,
+    ref
+  ) {
+    const {
+      classes,
+      className,
+      label,
+      nodeId,
+      icon: iconProp,
+      expansionIcon,
+      displayIcon
+    } = props;
+
+    const {
+      disabled,
+      expanded,
+      selected,
+      focused,
+      handleExpansion,
+      handleSelection,
+      preventSelection
+    } = useTreeItem(nodeId);
+
+    const icon = iconProp || expansionIcon || displayIcon;
+
+    const handleMouseDown = (
+      event: React.MouseEvent<HTMLDivElement, MouseEvent>
+    ) => {
+      preventSelection(event);
+    };
+
+    const handleExpansionClick = (
+      event: React.MouseEvent<HTMLDivElement, MouseEvent>
+    ) => {
+      handleExpansion(event);
+    };
+
+    const handleSelectionClick = (
+      event: React.MouseEvent<HTMLDivElement, MouseEvent>
+    ) => {
+      handleSelection(event);
+    };
+
+    const link = treeNodesMap[nodeId].link;
+
+    const linkClassName = nodeId === hoveredRowID ? 'hovered-header' : 'unhovered-header';
+
+    return (
+      <div
+        role='button'
+        className={clsx(className, classes.root, {
+          [classes.expanded]: expanded,
+          [classes.selected]: selected,
+          [classes.focused]: focused,
+          [classes.disabled]: disabled
+        })}
+        onMouseDown={handleMouseDown}
+        onMouseEnter={() => updateRowId(nodeId)}
+        ref={ref as React.Ref<HTMLDivElement>}
+      >
+        <div role='button' onClick={handleExpansionClick} className={classes.iconContainer}>
+          {icon}
+        </div>
+        <Typography
+          onClick={handleSelectionClick}
+          component='div'
+          className={classes.label}
+        >
+          <a href={link}
+            className={linkClassName}>
+            {label}
+          </a>
+        </Typography>
+      </div>
+    );
+  });
+
+  // Define interaction and style for tree item
+  const StyledTreeItem = styled(({ node, ...props }: CustomTreeItemProps) => {
+    // Check if the node key matches the hovered row id
+    const isNodeKeyMatched = node.key === hoveredRowID;
+    // Check if the node key matches the searched row id
+    const isNodeKeyMatchedSearch = node.key === searchedRowID;
+
+    return (
+      <div>
+        {/* Element before TreeItem to show the interaction background */}
+        <div className='hoverBackground' style={rowTreeItemOuterBgStyles} onMouseEnter={() => updateRowId(node.key)}>
+          <div
+            style={
+              isNodeKeyMatchedSearch
+                ? rowTreeItemBgStylesSearch
+                : isNodeKeyMatched
+                ? rowTreeItemBgStylesHover
+                : rowTreeItemBgStyles
+            }
+          ></div>
+        </div>
+
+        {/* TreeItem component */}
+        <TreeItem ContentComponent={CustomContent} {...props} />
+      </div>
+    );
+  })(({ theme }) => ({
+    [`& .${treeItemClasses.iconContainer}`]: {
+      '& .close': {
+        opacity: 0.3
+      }
+    },
+    [`& .${treeItemClasses.group}`]: {
+      marginRight: 19,
+      paddingRight: 4,
+      borderRight: `1px dotted ${alpha(theme.palette.text.primary, 0.4)}`,
+    },
+    [`& .${treeItemClasses.label}`]: {
+      marginRight: 12,
+      width: '100%',
+      whiteSpace: 'nowrap', // Ensures the text appears in a single line
+    },
+    [`& .${treeItemClasses.content}`]: {
+      height: cellHeight,
+
+      '&:hover': {
+        backgroundColor: 'rgba(0, 0, 0, 0)',
+      },
+
+      // eslint-disable-next-line max-len
+      '&.Mui-focused, &.Mui-selected, &.Mui-selected.Mui-focused, &.Mui-expanded.Mui-selected.Mui-focused, &.Mui-expanded.Mui-selected, &.Mui-expanded.Mui-focused': {
+        backgroundColor: 'rgba(0, 0, 0, 0)',
+      },
+    },
+  }));
+
+  //Render the tree view nodes layer by layer
+  const renderTree = (nodes: TreeNode[]) => {
+    return nodes.map((node) => (
+      <StyledTreeItem
+        key={node.link}
+        nodeId={node.key}
+        label={node.title}
+        className='MUI-tree'
+        node={node}
+      >
+        {Array.isArray(node.children) ? renderTree(node.children) : null}
+      </StyledTreeItem>
+    ));
+  };
+
+  return <>{renderTree(nodes)}</>;
+});
+
+// Add displayName to the functional component
+MemoizedRenderTree.displayName = 'MemoizedRenderTree';
 
 export default memo(forwardRef(RowTreeHeaders));
