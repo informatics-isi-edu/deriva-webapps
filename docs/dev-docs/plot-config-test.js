@@ -119,7 +119,7 @@ var plot_configurations = {
                     {
                         // The request url that has to be used to fetch the data.
                         //Fetch the file from testing user's directory
-                        url_pattern: '/<user directory>/gudmap-json.json',
+                        url_pattern: '/<user directory>/gudmap.json',
                         //Determine the type of file in url_pattern if applicable            
                         response_format: 'json',
                         hovertemplate_display_pattern: "Released Horizontal: {{#if true}}{{{$row.Released}}}{{/if}}",
@@ -267,7 +267,7 @@ var plot_configurations = {
                         hovertemplate_display_pattern: "Released Vertical: {{#if true}}{{{$row.[Released]}}}{{/if}}",
                         // The request url that has to be used to fetch the data.
                         //Fetch the file from testing user's directory
-                        url_pattern: '/<user directory>/heatmap-csv.csv',
+                        url_pattern: '/<user directory>/heatmap.csv',
                         //Determine the type of file in url_pattern if applicable
                         response_format: 'csv',
                         legend: ['Released'], // name of traces in legend
@@ -403,7 +403,7 @@ var plot_configurations = {
                         hovertemplate_display_pattern: "Released Horizontal Summary: {{#if true}}{{{$row.[Released]}}}{{/if}}",
                         // The request url that has to be used to fetch the data.
                         //Fetch the file from testing user's directory
-                        url_pattern: '/<user_directory>/heatmap-json.json',
+                        url_pattern: '/<user_directory>/heatmap.json',
                         //Determine the type of file in url_pattern if applicable
                         response_format: 'json',
                         legend: ['Released'], // name of traces in legend
@@ -530,7 +530,7 @@ var plot_configurations = {
                         hovertemplate_display_pattern: "Released: {{#if true}}{{{$row.[Released]}}}{{/if}}<br>Data Type: {{{$row.Data_Type}}}",
                         // The request url that has to be used to fetch the data.
                         //Fetch the file from testing user's directory
-                        url_pattern: '/<user directory>/gudmap-json.json',
+                        url_pattern: '/<user directory>/gudmap.json',
                         //Determine the type of file in url_pattern if applicable
                         response_format: 'json',
                         legend: ["Browser All Events 1", "Browser All Events 2"],   // name of traces in legend
@@ -655,9 +655,9 @@ var plot_configurations = {
                 traces: [
                     {
                         hovertemplate_display_pattern: "Assay Type : {{{$row.Assay_Type}}}, Name: {{{$row.Name}}}",
-                        // url_pattern: '/~kenyshah/scatter-json.json',
+                        // url_pattern: '/~kenyshah/scatter.json',
                         //Fetch the file from testing user's directory
-                        url_pattern: '/<user directory>/scatter-csv.csv',
+                        url_pattern: '/<user directory>/scatter.csv',
                         //Determine the type of file in url_pattern if applicable 
                         response_format: 'csv',
                         x_col: ['Assay_Type'],
@@ -766,7 +766,7 @@ var plot_configurations = {
                 traces: [
                     {
                         hovertemplate_display_pattern: "Creation Date: {{{$row.RCT}}}<br>Horizontal",
-                        url_pattern: '/<user directory>/histogram-csv.csv',
+                        url_pattern: '/<user directory>/histogram.csv',
                         response_format: 'csv',
                         data_col: 'RCT',
                         orientation: 'h',
@@ -885,7 +885,7 @@ var plot_configurations = {
                 traces: [
                     {
                         hovertemplate_display_pattern: "Creation Date: {{{$row.RCT}}}<br>Trace1",
-                        url_pattern: '/<user directory>/histogram-json.json',
+                        url_pattern: '/<user directory>/histogram.json',
                         response_format: 'json',
                         data_col: 'RCT',
                         orientation: 'v',
@@ -893,7 +893,7 @@ var plot_configurations = {
                     },
                     {
                         hovertemplate_display_pattern: "Creation Date: {{{$row.RCT}}}<br>Trace2",
-                        url_pattern: '/<user directory>/histogram-json.json',
+                        url_pattern: '/<user directory>/histogram.json',
                         response_format: 'csv',
                         data_col: 'RCT',
                         orientation: 'v',
@@ -1007,7 +1007,7 @@ var plot_configurations = {
                     graphic_link_pattern:
                         ['/chaise/recordset/#2/RNASeq:Replicate_Expression'],
                     hovertemplate_display_pattern: "Label: {{{$row.Label}}}<br>Probe Name: {{{$row.Probe_Set_Name}}}<br>Value: {{{$row.Value}}}<br>Gene ID: {{{$url_parameters.Gene.data.NCBI_GeneID}}}",
-                    url_pattern: '/<user directory>/heatmap-csv.csv',
+                    url_pattern: '/<user directory>/heatmap.csv',
                     response_format: 'csv',
                     x_col: ["Label"],
                     y_col: ["Probe_Set_Name"],
@@ -1238,7 +1238,7 @@ var plot_configurations = {
                     {
                         //defining hovertemplate_display_pattern will override the tooltip display for each individual data point and remove the default tooltips that show statistical data	
                         hovertemplate_display_pattern: "Custom hover text: {{{$row.Experiment}}}",
-                        url_pattern: '/<user directory>/violin-json.json',
+                        url_pattern: '/<user directory>/violin.json',
                         response_format: 'json',
                     },
                 ],
