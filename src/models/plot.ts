@@ -1,3 +1,4 @@
+import { ChaiseAlertType } from '@isrd-isi-edu/chaise/src/providers/alerts';
 import {
   Layout as PlotlyLayout,
   Config as PlotlyConfig,
@@ -105,7 +106,10 @@ export type TraceConfig = {
   y_col?: string[];
   z_col?: string[];
   legendwidth?: number;
-  queryPattern?: string;
+  url_pattern?: string;
+  //queryPattern will be deprecated 
+  queryPattern?:string,
+  response_format?: 'csv' & 'json';
 };
 
 /**
@@ -126,3 +130,5 @@ export const plotAreaFraction = 0.95;
 //NOTE: Consider moving this threshold to the useWindowSize hook if it will be utilized by other webapps.
 export const screenWidthThreshold = 1000;
 
+//Valid file types for url_pattern
+export const validFileTypes = ['csv','json'];

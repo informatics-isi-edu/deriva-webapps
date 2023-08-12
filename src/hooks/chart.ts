@@ -15,6 +15,7 @@ import {
   extractValue,
   extractAndFormatDate,
   wrapText,
+  isDataJSON,
 } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 import { flatten2DArray } from '@isrd-isi-edu/deriva-webapps/src/utils/data';
 
@@ -34,12 +35,22 @@ import {
   TraceConfig,
   screenWidthThreshold,
   plotAreaFraction,
+  validFileTypes,
+
 } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import {
+  invalidResponseFormatAlert,
+  invalidDataAlert, 
+  invalidKeyAlert,
+  invalidCsvAlert,
+  invalidJsonAlert
+} from '@isrd-isi-edu/deriva-webapps/src/utils/message-map';
 import useIsFirstRender from '@isrd-isi-edu/chaise/src/hooks/is-first-render';
 import { getQueryParam } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
 import { ChaiseAlertType } from '@isrd-isi-edu/chaise/src/providers/alerts';
 import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
+import Papa from 'papaparse';
 
 /**
  * Data received from API request
@@ -221,6 +232,8 @@ export const useChartData = (plot: Plot) => {
   const [isInitLoading, setIsInitLoading] = useState<boolean>(false);
   const [isDataLoading, setIsDataLoading] = useState<boolean>(false);
   const [isParseLoading, setIsParseLoading] = useState<boolean>(false);
+
+
   const { dispatchError, errors } = useError();
   const alertFunctions = useAlert();
   const { width = 0, height = 0 } = useWindowSize();
@@ -348,9 +361,13 @@ export const useChartData = (plot: Plot) => {
     const plotResponses: Array<Response> = await Promise.all(
       // request for each trace
       plot.traces.map((trace) => {
+        /*TODO: Both this case (queryPattern) and the next one (uri) are deprecated and should be removed eventually. 
+        These are currently kept here for backwards compatibility.*/
         // Check for queryPattern(dynamic link) parameter in traces, if not defined then check for uri(static link)
-        if (trace.queryPattern) {
-          const { uri, headers } = getPatternUri(trace.queryPattern, templateParams);
+        if (trace.url_pattern || trace.queryPattern) {
+          //To avoid the lint error, passing empty string if both are not present'
+          const pattern = trace.url_pattern || trace.queryPattern || '';
+          const { uri, headers } = getPatternUri(pattern, templateParams);
           return ConfigService.http.get(uri, { headers });
         }
         else if (trace.uri) {
@@ -372,7 +389,7 @@ export const useChartData = (plot: Plot) => {
       if (getQueryParam(window.location.href, 'config') === 'study-violin') {
         const selectGrid = createStudyViolinSelectGrid(plot); // TODO: change plot.plot_type to study-violin
         const initialSelectData = await fetchSelectData(selectGrid); // fetch the data needed for the select grid
-        setSelectData(initialSelectData); // set the data for the select grid
+        setSelectData(initialSelectData) // set the data for the select grid
       }
       const plotData = await fetchData(); // fetch the data for the plot
       setData(plotData); // set the data for the plot
@@ -659,9 +676,11 @@ export const useChartData = (plot: Plot) => {
       result.layout.margin = additionalLayout.margin;
       result.layout.height = additionalLayout.height;
       result.layout.width = additionalLayout.width;
-      result.data[0]['colorbar'] = {
-        lenmode: 'pixels',
-        len: additionalLayout.height - 40 < 100 ? additionalLayout.height - 40 : 100
+      if (result.data[0]) {
+        result.data[0]['colorbar'] = {
+          lenmode: 'pixels',
+          len: additionalLayout.height - 40 < 100 ? additionalLayout.height - 40 : 100
+        }
       }
     }
     result.layout.autoresize = true;
@@ -986,8 +1005,8 @@ export const useChartData = (plot: Plot) => {
       /**If there are any invalid params in the hover template display pattern, the link generated will be null.
       Therefore the following piece of code will add an alert for stating that just once*/
       if (!validLink && (Array.isArray(textArray[0]) ? textArray[0]?.length === 1 : textArray?.length === 1)) {
-        if (alertFunctions.alerts.length === 0) {
-          alertFunctions.addAlert('Invalid key provided for hover template display pattern!', ChaiseAlertType.WARNING);
+        if (!alertFunctions.alerts.some((alert) => alert.message.includes(invalidKeyAlert))) {
+          alertFunctions.addAlert(invalidKeyAlert, ChaiseAlertType.WARNING);
         }
       }
       const link = ConfigService.ERMrest.renderHandlebarsTemplate(hovertemplate_display_pattern, {
@@ -1027,7 +1046,7 @@ export const useChartData = (plot: Plot) => {
     result: any,
   ): void => {
     const tempText: string[][] & string[] = [];
-    if (result.data[0].type === 'heatmap') {
+    if (result.data[0]?.type === 'heatmap') {
       result.data[0].hoverinfo = 'text';
       result.data[0].z.forEach((zArr: string[], index: number) => {
         const textArr: string[] = [];
@@ -1038,7 +1057,7 @@ export const useChartData = (plot: Plot) => {
         tempText.push(textArr);
       });
       result.data[0].text = tempText;
-    } else if (result.data[0].type === 'scatter') {
+    } else if (result.data[0]?.type === 'scatter') {
       result.data[0].hoverinfo = 'text';
       result.data[0].x.forEach((xVal: string) => (
         tempText.push(extractValue(xVal, 30, 10))
@@ -1125,10 +1144,12 @@ export const useChartData = (plot: Plot) => {
    * @returns
    */
   const parseScatterResponse = (trace: Trace, plot: Plot, responseData: ResponseData) => {
-    const result: Partial<TraceConfig> & Partial<PlotlyPlotData> = {
+    const result: Partial<TraceConfig> & Partial<PlotlyPlotData> & Partial<ClickableLinks>= {
       ...trace,
       mode: 'markers',
       name: trace.legend ? trace.legend[0] : '',
+      legend_clickable_links: [], // array of links for when clicking legend
+      graphic_clickable_links: [], // array of links for when clicking graph
       type: plot.plot_type,
       x: [], // x data
       y: [], // y data
@@ -1403,6 +1424,16 @@ export const useChartData = (plot: Plot) => {
   };
 
   /**
+   * @param data The csv data that needs to be parsed
+   * @returns parsed csv data
+   */
+  const parseCsvData = (data: string) => {
+    const csv = Papa.parse(data, { header: true, skipEmptyLines: true });
+    const parsedData = csv?.data;
+    return parsedData;
+  }
+
+  /**
   * Parses data for the unpackedResponses for every plot based on its type
   *
   * @param plot configs for a specific plot
@@ -1432,42 +1463,94 @@ export const useChartData = (plot: Plot) => {
     //     - configure for separate traces in same plot
     // array of plotly.data objects
     const plotlyData: any[] = [];
-    unpackedResponses.forEach((responseData: ResponseData, index: number) => {
+    //CHECK: Flag to set if we want to show specific invalid configuration alerts. If it's false general alert will be shown.
+    let showAlert = false;
+    //If the plot has multiple traces, multiTrace will be set to true
+    const multiTrace = unpackedResponses.length > 1;
+    result.data = unpackedResponses.map((responseData: ResponseData, index: number) => {
       const currTrace = plot.traces[index];
+      //To add trace number against the alert message if multiple traces are given for a plot
+      const alertMsg = multiTrace ? `Trace ${index + 1}: ` : '';
       hovertemplate_display_pattern = currTrace.hovertemplate_display_pattern; //use trace info
-      if (plot.plot_type === 'bar') {
-        // returns an array of objects similar to PlotlyPlotData
-        const barPlotData = parseBarResponse(currTrace, plot, responseData);
-        barPlotData.forEach((data: any) => plotlyData.push(data));
-      } else if (plot.plot_type === 'pie') {
-        // returns a single object similar to PlotlyPieData
-        plotlyData.push(parsePieResponse(currTrace, plot, responseData));
-      } else if (plot.plot_type === 'scatter') {
-        // returns a single object similar to PlotlyPlotData
-        plotlyData.push(parseScatterResponse(currTrace, plot, responseData));
-      } else if (plot.plot_type === 'histogram') {
-        // returns an array of objects similar to PlotlyPlotData
-        const histogramPlotData = parseHistogramResponse(currTrace, plot, responseData);
-        histogramPlotData.forEach((data: any) => plotlyData.push(data))
-      } else if (plot.plot_type === 'violin') {
-        const { result: parseResult, layout } = parseViolinResponse(
-          currTrace,
-          plot,
-          responseData,
-          selectDataGrid,
-          { width, height },
-          templateParams.noData
-        );
-        additionalLayout = layout;
-        plotlyData.push(parseResult);
-      } else if (plot.plot_type === 'heatmap') {
-        const heatmapData = parseHeatmapResponse(currTrace, plot, responseData);
-        additionalLayout = { ...heatmapData.layoutParams };
-        plotlyData.push(heatmapData.result);
+      const isResponseJson=isDataJSON(responseData);
+      //If the response_format is configured then check the format against type of file and parse the data accordingly
+      if (responseData && currTrace.response_format) {
+        //If the given format is not from the allowed types then show an alert warning
+        if (!(validFileTypes.includes(currTrace.response_format)) && !alertFunctions.alerts.some(
+          (alert) => alert.message.includes(invalidResponseFormatAlert))) {
+          alertFunctions.addAlert(alertMsg + invalidResponseFormatAlert, ChaiseAlertType.WARNING);
+        }
+        //If the given format is csv and the content of file is also of type csv then parse the data using csv parser
+        else if (currTrace.response_format === 'csv' && !isResponseJson) {
+          responseData = parseCsvData(responseData?.toString());
+        }
+        //If the given format is json but the type of file is csv then parse the data using csv parser and show an alert warning for wrong configuration
+        else if (currTrace.response_format === 'json' && !isResponseJson) {
+          responseData = parseCsvData(responseData?.toString());
+          if (!alertFunctions.alerts.some((alert) => alert.message.includes(alertMsg + invalidJsonAlert))) {
+            showAlert = true;
+            alertFunctions.addAlert(alertMsg + invalidJsonAlert, ChaiseAlertType.WARNING);
+          }
+        }
+        //If the given format is csv but the type of file is json then use the data as is and show an alert warning for wrong configuration
+        else if ((currTrace.response_format === 'csv' && isResponseJson)) {
+          if (!alertFunctions.alerts.some((alert) => alert.message.includes(alertMsg + invalidCsvAlert))) {
+            showAlert = true;
+            alertFunctions.addAlert(alertMsg + invalidCsvAlert, ChaiseAlertType.WARNING);
+          }
+        }
+      }
+      if (responseData && currTrace?.response_format === undefined && !isResponseJson) {
+        responseData = parseCsvData(responseData?.toString());
+      }
+      //If the responseData is succesfully parsed as json/csv then classify and parse as per plot_type
+      if (responseData?.length >= 1) {
+        if (plot.plot_type === 'bar') {
+          // returns an array of objects similar to PlotlyPlotData
+          const barPlotData = parseBarResponse(currTrace, plot, responseData);
+          barPlotData.forEach((data: any) => plotlyData.push(data));
+        } else if (plot.plot_type === 'pie') {
+          // returns a single object similar to PlotlyPieData
+          plotlyData.push(parsePieResponse(currTrace, plot, responseData));
+        } else if (plot.plot_type === 'scatter') {
+          // returns a single object similar to PlotlyPlotData
+          plotlyData.push(parseScatterResponse(currTrace, plot, responseData));
+        } else if (plot.plot_type === 'histogram') {
+          // returns an array of objects similar to PlotlyPlotData
+          const histogramPlotData = parseHistogramResponse(currTrace, plot, responseData);
+          histogramPlotData.forEach((data: any) => plotlyData.push(data))
+        } else if (plot.plot_type === 'violin') {
+          const { result: parseResult, layout } = parseViolinResponse(
+            currTrace,
+            plot,
+            responseData,
+            selectDataGrid,
+            { width, height },
+            templateParams.noData
+          );
+          additionalLayout = layout;
+          plotlyData.push(parseResult);
+        } else if (plot.plot_type === 'heatmap') {
+          const heatmapData = parseHeatmapResponse(currTrace, plot, responseData);
+          additionalLayout = { ...heatmapData.layoutParams };
+          plotlyData.push(heatmapData.result);
+        }
+      }
+      //Otherwise if the type of file is other than csv/json, show an alert warning
+      else {
+        //If no other alerts are shown then show this alert
+        if (!showAlert && !alertFunctions.alerts.some((alert) => alert.message.includes(alertMsg + invalidDataAlert))) {
+          alertFunctions.addAlert(alertMsg + invalidDataAlert, ChaiseAlertType.WARNING);
+        }
+        //return empty data
+        return {};
       }
     });
 
     result.data = plotlyData;
+    if (result.data?.every((obj: any) => Object.keys(obj)?.length === 0)) {
+      templateParams.noData = true;
+    }
     updatePlotlyConfig(plot, result); // update the config
     updatePlotlyLayout(plot, result, additionalLayout, selectDataGrid); // update the layout
     //If hovertemplate_display_pattern is not configured, set default hover text for plot
