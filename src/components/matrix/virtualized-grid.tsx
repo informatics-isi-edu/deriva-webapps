@@ -97,7 +97,7 @@ const VirtualizedGrid = (
       const offset = index * cellHeight - gridHeight / 2 - cellHeight / 2;
       rowLabelRef?.current?.scrollTo(offset);
       gridRef?.current?.scrollTo({ scrollTop: offset });
-
+      setScrollY(offset);
       setSearchedRowIndex(index);
       setSearchedColIndex(null);
     },
@@ -106,7 +106,7 @@ const VirtualizedGrid = (
       const offset = index * cellWidth - gridWidth / 2 - cellWidth / 2;
       columnLabelRef.current.scrollTo(offset);
       gridRef.current.scrollTo({ scrollLeft: offset });
-
+      setScrollX(offset);
       setSearchedRowIndex(null);
       setSearchedColIndex(index);
     },
