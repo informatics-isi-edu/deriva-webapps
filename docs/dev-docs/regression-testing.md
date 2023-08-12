@@ -6,8 +6,8 @@
 Go to [this page](https://dev.gudmap.org/deriva-webapps/plot/?config=study-violin) on gudmap-dev and do the following:
 1. Use `violin-plot` configuration from `plot-test-config` file to test normal bar plot wihout any templating.
 2. Use `violin-plot-w-links` configuration from `plot-test-config` file to test the templates and markdown patterns. Below given are the parameters that can be passed to use these markdown and templates. 
-- To test the url_pattern replace the `<user directory>` with testing user's directory. For instance, `/~jchudy/violin-csv.csv`.  
-- Test data files for `violin-plot` are `violin-csv` and `violin-json` under `Plot` folder of `deriva-ui-test-data` repository (https://github.com/informatics-isi-edu/deriva-ui-test-data).
+- To test the url_pattern replace the `<user directory>` with testing user's directory. For instance, `/~jchudy/plot-test-data/violin.csv`.  
+- Test data files for `violin-plot` are `violin.csv` and `violin.json` under `Plot` folder of `deriva-ui-test-data` repository (https://github.com/informatics-isi-edu/deriva-ui-test-data).
 - In violin plot configuration, `legend_markdown_pattern` & `graphic_markdown_pattern` are defined individually inside `groups_keys` array for the `Experiment` case.
 - The below given parameters outline the options for utilizing these markdown and templates, along with the corresponding redirection links (This is for the default page load of violin plot):
     `title_markdown_pattern` (Action on click of plot title):   https://dev.gudmap.org/chaise/recordset/#2/RNASeq:Replicate_Expression@sort(ID)
@@ -88,8 +88,8 @@ Go to [this page](https://dev.gudmap.org/deriva-webapps/plot/?config=study-violi
 A Horizontal bar plot - Go to [this page](https://dev.gudmap.org/deriva-webapps/plot/?config=gudmap-todate-bar) 
 1. Use `bar-plot` configuration from `plot-test-config` file to test normal bar plot wihout any templating.
 2. Use `bar-plot-w-links` configuration from `plot-test-config` file to test the templates and markdown patterns. 
-- To test the url_pattern replace the `<user directory>` with testing user's directory. For instance, `/~jchudy/gudmap-csv.csv`.  
-- Test data files for `gudmap-todate-bar-swapped` are `gudmap-csv` and `gudmap-json` under `Plot` folder of `deriva-ui-test-data` repository (https://github.com/informatics-isi-edu/deriva-ui-test-data).
+- To test the url_pattern replace the `<user directory>` with testing user's directory. For instance, `/~jchudy/plot-test-data/gudmap.csv`.  
+- Test data files for `gudmap-todate-bar-swapped` are `gudmap.csv` and `gudmap.json` under `Plot` folder of `deriva-ui-test-data` repository (https://github.com/informatics-isi-edu/deriva-ui-test-data).
 - The below given parameters outline the options for utilizing these markdown and templates, along with the corresponding redirection links:
     `title_markdown_pattern` (Action on click of plot title):   https://dev.isrd.isi.edu/chaise/search?pcid=app/plot&ppid=2j3z23oc1vqv1rab1jax1mx1
     `xaxis`: {
@@ -108,8 +108,8 @@ A Horizontal bar plot - Go to [this page](https://dev.gudmap.org/deriva-webapps/
 A vertical bar plot - Go to [this page](https://dev.gudmap.org/deriva-webapps/plot/?config=gudmap-todate-bar-swapped)
 1. Use `bar-swapped-plot` configuration from `plot-test-config` file to test normal bar plot wihout any templating.
 2. Use `bar-swapped-plot-w-links` configuration from `plot-test-config` file to test the templates and markdown patterns. Below given are the parameters that can be passed to use these markdown templates. 
-- To test the url_pattern replace the `<user directory>` with testing user's directory. For instance, `/~jchudy/gudmap-csv.csv`.  
-- Test data files for `gudmap-todate-bar-swapped` are `gudmap-csv` and `gudmap-json` under `Plot` folder of `deriva-ui-test-data` repository (https://github.com/informatics-isi-edu/deriva-ui-test-data).
+- To test the url_pattern replace the `<user directory>` with testing user's directory. For instance, `/~jchudy/plot-test-data/gudmap.csv`.  
+- Test data files for `gudmap-todate-bar-swapped` are `gudmap.csv` and `gudmap.json` under `Plot` folder of `deriva-ui-test-data` repository (https://github.com/informatics-isi-edu/deriva-ui-test-data).
 - The below given parameters outline the options for utilizing these markdown and templates, along with the corresponding redirection links:
     `title_markdown_pattern` (Action on click of plot title):   https://dev.isrd.isi.edu/chaise/search?pcid=app/plot&ppid=2j3z23oc1vqv1rab1jax1mx1
     `xaxis`: {
@@ -128,8 +128,8 @@ A vertical bar plot - Go to [this page](https://dev.gudmap.org/deriva-webapps/pl
 Go to [this page](https://dev.gudmap.org/deriva-webapps/plot/?config=gudmap-data-summary-responsive)
 1. Use `bar-gudmap-data-summary-responsive` configuration from `plot-test-config` file to test normal bar plot wihout any templating.
 2. Use `bar-gudmap-data-summary-responsive-w-links` configuration from `plot-test-config` file to test the templates and markdown patterns. Below given are the parameters that can be passed to use these markdown and templates. 
-- To test the url_pattern replace the `<user directory>` with testing user's directory. For instance, `/~jchudy/gudmap-csv.csv`.  
-- Test data files for `gudmap-data-summary-responsive` are `gudmap-csv` and `gudmap-json` under `Plot` folder of `deriva-ui-test-data` repository (https://github.com/informatics-isi-edu/deriva-ui-test-data).
+- To test the url_pattern replace the `<user directory>` with testing user's directory. For instance, `/~jchudy/plot-test-data/gudmap.csv`.  
+- Test data files for `gudmap-data-summary-responsive` are `gudmap.csv` and `gudmap.json` under `Plot` folder of `deriva-ui-test-data` repository (https://github.com/informatics-isi-edu/deriva-ui-test-data).
 - The below given parameters outline the options for utilizing these markdown and templates, along with the corresponding redirection links:
     `title_markdown_pattern` (Action on click of plot title):   https://dev.isrd.isi.edu/chaise/search?pcid=app/plot&ppid=2j3z23oc1vqv1rab1jax1mx1
     `xaxis`: {
@@ -147,8 +147,8 @@ Go to [this page](https://dev.gudmap.org/deriva-webapps/plot/?config=gudmap-data
 Go to [this page](https://dev.gudmap.org/deriva-webapps/plot/?config=gudmap-todate-pie)
 1. Use `pie-plot` configuration from `plot-test-config` file to test normal bar plot wihout any templating.
 2. Use `pie-plot-w-links` configuration from `plot-test-config` file to test the templates and markdown patterns. Below given are the parameters that can be passed to use these markdown and templates. 
-- To test the url_pattern replace the `<user directory>` with testing user's directory. For instance, `/~jchudy/gudmap-csv.csv`.  
-- Test data files for `pie-plot` are `gudmap-csv` and `gudmap-json` under `Plot` folder of `deriva-ui-test-data` repository (https://github.com/informatics-isi-edu/deriva-ui-test-data).
+- To test the url_pattern replace the `<user directory>` with testing user's directory. For instance, `/~jchudy/plot-test-data/gudmap.csv`.  
+- Test data files for `pie-plot` are `gudmap.csv` and `gudmap.json` under `Plot` folder of `deriva-ui-test-data` repository (https://github.com/informatics-isi-edu/deriva-ui-test-data).
 - The below given parameters outline the options for utilizing these markdown and templates, along with the corresponding redirection links:
     `title_markdown_pattern` (Action on click of plot title):   https://dev.gudmap.org/chaise/recordset/#2/RNASeq:Replicate_Expression@sort(ID)
     `legend_markdown_pattern` (Action on click of legend name):  https://dev.gudmap.org/chaise/recordset/#2/Antibody:Antibody_Tests@sort(RID)
@@ -159,8 +159,8 @@ Go to [this page](https://dev.gudmap.org/deriva-webapps/plot/?config=gudmap-toda
 Go to [this page](https://dev.gudmap.org/deriva-webapps/plot/?config=specimen-scatterplot)
 1. Use `scatter-plot` configuration from `plot-test-config` file to test normal bar plot wihout any templating.
 2. Use `scatter-plot-w-links` configuration from `plot-test-config` file to test the templates and markdown patterns. Below given are the parameters that can be passed to use these markdown and templates. 
-- To test the url_pattern replace the `<user directory>` with testing user's directory. For instance, `/~jchudy/scatter-csv.csv`.  
-- Test data files for `scatter-plot` are `scatter-csv` and `scatter-json` under `Plot` folder of `deriva-ui-test-data` repository (https://github.com/informatics-isi-edu/deriva-ui-test-data).
+- To test the url_pattern replace the `<user directory>` with testing user's directory. For instance, `/~jchudy/plot-test-data/scatter.csv`.  
+- Test data files for `scatter-plot` are `scatter.csv` and `scatter.json` under `Plot` folder of `deriva-ui-test-data` repository (https://github.com/informatics-isi-edu/deriva-ui-test-data).
 - The below given parameters outline the options for utilizing these markdown and templates, along with the corresponding redirection links:
     `title_markdown_pattern` (Action on click of plot title):   https://dev.gudmap.org/chaise/recordset/#2/RNASeq:Replicate_Expression@sort(ID)
     `xaxis`: {
@@ -179,8 +179,8 @@ Go to [this page](https://dev.gudmap.org/deriva-webapps/plot/?config=specimen-sc
 Vertical histogram plot - Go to [this page](https://dev.gudmap.org/deriva-webapps/plot/?config=specimen-histogram-vertical)
 1. Use `vertical-histogram-plot` configuration from `plot-test-config` file to test normal bar plot wihout any templating.
 2. Use `vertical-histogram-w-links` configuration from `plot-test-config` file to test the templates and markdown patterns. Below given are the parameters that can be passed to use these markdown and templates. 
-- To test the url_pattern replace the `<user directory>` with testing user's directory. For instance, `/~jchudy/histogram-csv.csv`.  
-- Test data files for `vertical-histogram-plot` are `histogram-csv` and `histogram-json` under `Plot` folder of `deriva-ui-test-data` repository (https://github.com/informatics-isi-edu/deriva-ui-test-data).
+- To test the url_pattern replace the `<user directory>` with testing user's directory. For instance, `/~jchudy/plot-test-data/histogram.csv`.  
+- Test data files for `vertical-histogram-plot` are `histogram.csv` and `histogram.json` under `Plot` folder of `deriva-ui-test-data` repository (https://github.com/informatics-isi-edu/deriva-ui-test-data).
 - The below given parameters outline the options for utilizing these markdown and templates, along with the corresponding redirection links:
     `title_markdown_pattern` (Action on click of plot title):   https://dev.gudmap.org/chaise/recordset/#2/RNASeq:Replicate_Expression@sort(ID)
     `xaxis`: {
@@ -195,8 +195,8 @@ Vertical histogram plot - Go to [this page](https://dev.gudmap.org/deriva-webapp
 Horizontal histogram plot - Go to [this page](https://dev.gudmap.org/deriva-webapps/plot/?config=specimen-histogram-horizontal)
 1. Use `horizontal-histogram-plot` configuration from `plot-test-config` file to test normal bar plot wihout any templating.
 2. Use `horizontal-histogram-plot` configuration from `plot-test-config` file to test the templates and markdown patterns. Below given are the parameters that can be passed to use these markdown and templates. 
-- To test the url_pattern replace the `<user directory>` with testing user's directory. For instance, `/~jchudy/histogram-csv.csv`.  
-- Test data files for `horizontal-histogram-plot` are `histogram-csv` and `histogram-json` under `Plot` folder of `deriva-ui-test-data` repository (https://github.com/informatics-isi-edu/deriva-ui-test-data).
+- To test the url_pattern replace the `<user directory>` with testing user's directory. For instance, `/~jchudy/plot-test-data/histogram.csv`.  
+- Test data files for `horizontal-histogram-plot` are `histogram.csv` and `histogram.json` under `Plot` folder of `deriva-ui-test-data` repository (https://github.com/informatics-isi-edu/deriva-ui-test-data).
 - The below given parameters outline the options for utilizing these markdown and templates, along with the corresponding redirection links:
     `title_markdown_pattern` (Action on click of plot title):   https://dev.gudmap.org/chaise/recordset/#2/RNASeq:Replicate_Expression@sort(ID)
     `xaxis`: {
@@ -212,8 +212,8 @@ Horizontal histogram plot - Go to [this page](https://dev.gudmap.org/deriva-weba
 Heatmap plot - Go to [this page](https://dev.gudmap.org/deriva-webapps/plot/?config=heatmap&NCBI_GeneID=12267) to see the heatmap for specified gene id.
 1. Use `heatmap-plot` configuration from `plot-test-config` file to test normal bar plot wihout any templating.
 2. Use `heatmap-plot-w-links` configuration from `plot-test-config` file to test the templates and markdown patterns. Below given are the parameters that can be passed to use these markdown and templates. 
-- To test the url_pattern replace the `<user directory>` with testing user's directory. For instance, `/~jchudy/heatmap-csv.csv`.  
-- Test data files for `heatmap-plot` are `heatmap-csv` and `heatmap-json` under `Plot` folder of `deriva-ui-test-data` repository (https://github.com/informatics-isi-edu/deriva-ui-test-data).
+- To test the url_pattern replace the `<user directory>` with testing user's directory. For instance, `/~jchudy/plot-test-data/heatmap.csv`.  
+- Test data files for `heatmap-plot` are `heatmap.csv` and `heatmap.json` under `Plot` folder of `deriva-ui-test-data` repository (https://github.com/informatics-isi-edu/deriva-ui-test-data).
 - The below given parameters outline the options for utilizing these markdown and templates, along with the corresponding redirection links:
     `title_markdown_pattern` (Action on click of plot title):   https://dev.gudmap.org/chaise/recordset/#2/RNASeq:Replicate_Expression@sort(ID)
     `xaxis`: {
