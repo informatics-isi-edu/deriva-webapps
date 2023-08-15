@@ -40,7 +40,7 @@ import {
 } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 import {
   invalidResponseFormatAlert,
-  invalidDataAlert, 
+  invalidDataAlert,
   invalidKeyAlert,
   invalidCsvAlert,
   invalidJsonAlert
@@ -249,9 +249,9 @@ export const useChartData = (plot: Plot) => {
     () => ({
       $url_parameters: {
         Gene: {
-          data: {
-            NCBI_GeneID: getQueryParam(windowRef.location.href, 'NCBI_GeneID') || 1, // TODO: deal with default value
-          },
+          // data: {
+          //   NCBI_GeneID: getQueryParam(windowRef.location.href, 'NCBI_GeneID') || 1, // TODO: deal with default value
+          // },
         },
         Study: [],
       },
@@ -388,6 +388,58 @@ export const useChartData = (plot: Plot) => {
       setIsInitLoading(true);
       if (getQueryParam(window.location.href, 'config') === 'study-violin') {
         const selectGrid = createStudyViolinSelectGrid(plot); // TODO: change plot.plot_type to study-violin
+
+        // selectGrid is a 2D array of selector objects
+        // TODO: add proper typing once *SelectData objects are typed properly
+        selectGrid.forEach((row: any[]) => {
+          row.forEach((selectorConfig: any) => {
+            // check each selector object for a urlParamKey and update the templateParams accordingly
+            const paramKey = selectorConfig.urlParamKey;
+            if (paramKey) {
+              const paramValue = getQueryParam(windowRef.location.href, paramKey);
+              const valueKey = selectorConfig.requestInfo.valueKey;
+              const defaultValue = selectorConfig.requestInfo.defaultValue;
+
+              // check if the param key is defined yet
+              if (selectorConfig.isMulti) {
+                if (!Array.isArray(templateParams.$url_parameters[selectorConfig.urlParamKey])) {
+                  // probably not needed since this case SHOULD be initializing the data
+                  // NOTE: the useMemo of templateParams above initalizes "Study" to an array so this case would be skipped there
+                  templateParams.$url_parameters[selectorConfig.urlParamKey] = []
+                }
+              } else {
+                templateParams.$url_parameters[selectorConfig.urlParamKey] = {}
+              }
+
+              if (paramValue) {
+                if (!selectorConfig.isMulti) {
+                  templateParams.$url_parameters[paramKey].data = {
+                    [valueKey]: paramValue
+                  }
+                } else {
+                  // NOTE: do we want to support multiple queyr params for one param key?
+                  //    how would that look in the url?
+                  //       - ?paramKey=RID1,RID2
+                  //       - ?paramKey=RID1&paramKey=RID2
+                  templateParams.$url_parameters[selectorConfig.urlParamKey].push({
+                    data: { [valueKey]: paramValue }
+                  });
+                }
+              } else if (defaultValue) {
+                if (!selectorConfig.isMulti) {
+                  templateParams.$url_parameters[paramKey].data = {
+                    [valueKey]: defaultValue
+                  }
+                } else {
+                  templateParams.$url_parameters[selectorConfig.urlParamKey].push({
+                    data: { [valueKey]: defaultValue }
+                  });
+                }
+              }
+            }
+          });
+        });
+
         const initialSelectData = await fetchSelectData(selectGrid); // fetch the data needed for the select grid
         setSelectData(initialSelectData) // set the data for the select grid
       }
@@ -1144,7 +1196,7 @@ export const useChartData = (plot: Plot) => {
    * @returns
    */
   const parseScatterResponse = (trace: Trace, plot: Plot, responseData: ResponseData) => {
-    const result: Partial<TraceConfig> & Partial<PlotlyPlotData> & Partial<ClickableLinks>= {
+    const result: Partial<TraceConfig> & Partial<PlotlyPlotData> & Partial<ClickableLinks> = {
       ...trace,
       mode: 'markers',
       name: trace.legend ? trace.legend[0] : '',
@@ -1472,7 +1524,7 @@ export const useChartData = (plot: Plot) => {
       //To add trace number against the alert message if multiple traces are given for a plot
       const alertMsg = multiTrace ? `Trace ${index + 1}: ` : '';
       hovertemplate_display_pattern = currTrace.hovertemplate_display_pattern; //use trace info
-      const isResponseJson=isDataJSON(responseData);
+      const isResponseJson = isDataJSON(responseData);
       //If the response_format is configured then check the format against type of file and parse the data accordingly
       if (responseData && currTrace.response_format) {
         //If the given format is not from the allowed types then show an alert warning
