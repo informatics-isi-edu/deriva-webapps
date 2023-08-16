@@ -284,6 +284,7 @@ This method is recommended since internally will take care of retrying failed re
 
     ```js
     // the header that can be send with the request (used for log purposes)
+    // more info here: https://github.com/informatics-isi-edu/chaise/blob/master/docs/user-docs/logging.md
     var headers = {};
     headers[ERMrest.contextHeaderName] = {
       "cid": "<name of the app or page>",
@@ -304,6 +305,8 @@ This method is recommended since internally will take care of retrying failed re
     });
 
     ```
+
+   In the example above, we're sending a header that deriva applications understand and log alongside the request. The logged object is following the minimum recommended attributes that we summarized [here](https://github.com/informatics-isi-edu/chaise/blob/master/docs/user-docs/logging.md#attributes).
 
 ##### Option 2: Direct Ajax call
 
@@ -393,7 +396,7 @@ $(document).ready(function(){
    * Send a request and chagne the element's innerHTML with the response.
    * @param {string} selector the selector of HTML element where the data should go
    * @param {string} path the ERMrest request path
-   * @param {string} action the log action
+   * @param {string} action the log action (https://github.com/informatics-isi-edu/chaise/blob/master/docs/user-docs/logging.md#attributes)
    * @param {string} schemaTable the <schema>:<table> used for log purposes
    */
   function getERMrestStats (selector, path, action, schemaTable) {
@@ -461,4 +464,10 @@ $(document).ready(function(){
 });
 
 ```
+While you can use any arbitary string for action, we recommend following the same pattern that we described [here](https://github.com/informatics-isi-edu/chaise/blob/master/docs/user-docs/logging.md#action-definition). 
+  - In the example above we're not using any special `app-mode` or `stack-path`, that's why the action string starts with `:,`.
+  - These result of these requests are displayed in the statistics section, that's why we're using `stat/imaging` and `stat/dataset` as the `ui-context`.
+  - `load` is the common verb that we recommend using when you cannot think of a more specific one. `count` would be another good verb for this action string as both of them are just counting the number of rows in the database.
+
+
 

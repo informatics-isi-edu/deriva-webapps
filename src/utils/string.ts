@@ -1,8 +1,5 @@
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
-import { dataFormats } from '@isrd-isi-edu/chaise/src/utils/constants';
-
-
 
 /**
  * Appends and returns the pcid and ppid for the given link
@@ -267,4 +264,18 @@ export const wrapText = (text: string, width: number, wrapLimit: number) => {
     wrappedText += '...';
   }
   return wrappedText;
+};
+
+/**
+ * 
+ * @param data It can be either csv or json data
+ * @returns true if data is of json type and false for other types
+ */
+export const isDataJSON = (data: any) => {
+  try {
+    const parsedData=JSON.parse(JSON.stringify(data));
+    return !(typeof parsedData==='string');
+  } catch (error) {
+    return false;
+  }
 }

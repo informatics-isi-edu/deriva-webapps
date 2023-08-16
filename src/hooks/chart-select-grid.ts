@@ -305,17 +305,33 @@ export const useChartSelectGrid = ({ plot, templateParams, setModalProps, setIsM
    * Fetch the data for the select grid
    */
   const fetchSelectData = useCallback(
-    (selectGrid: any) =>
-      Promise.all(
-        selectGrid.map((row: any[]) =>
-          Promise.all(
-            row.map((cell: any) =>
-              // parse the select grid cell
-              parseSelectGridCell(cell, templateParams)
-            )
-          )
-        )
-      ),
+    async (selectGrid: any) => {
+      // harcoded to be 2 inner arrays for violin plot
+      const initialData: any[][] = [[], []];
+
+      for (let i = 0; i < selectGrid.length; i++) {
+        const row = selectGrid[i];
+        for (let j = 0; j < row.length; j++) {
+          const cell = row[j];
+
+          initialData[i][j] = await parseSelectGridCell(cell, templateParams);
+        }
+      }
+
+      return initialData; 
+
+      // Promise.all assumes all data can be fetched at the same time
+      // Promise.all(
+      //   selectGrid.map((row: any[]) =>
+      //     Promise.all(
+      //       row.map((cell: any) =>
+      //         // parse the select grid cell
+      //         parseSelectGridCell(cell, templateParams)
+      //       )
+      //     )
+      //   )
+      // )
+    },
     [parseSelectGridCell, templateParams]
   );
 
@@ -356,6 +372,7 @@ export const createStudyViolinSelectGrid = (plot: Plot) => {
     requestInfo: {
       valueKey: 'NCBI_GeneID',
       labelKey: 'NCBI_Symbol',
+      defaultValue: '1',
       uriPattern: plot.gene_uri_pattern,
       recordsetProps: {
         initialReference: null,
@@ -389,6 +406,8 @@ export const createStudyViolinSelectGrid = (plot: Plot) => {
       uriPattern: plot.study_uri_pattern,
       valueKey: 'RID',
       labelKey: 'RID',
+      // this selector's data can't be fetched until the selector with id='gene' data is available
+      waitFor: ['gene'],
       recordsetProps: {
         initialReference: null,
         config: {

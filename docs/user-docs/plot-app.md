@@ -67,14 +67,15 @@ Each object in the `plots` array can have the following parameters:
 9. `study_uri_pattern`: For violin plot only. The url from which the study data is fetched after applying handlebars templating. This parameter is required to fetch the data for the study selector and display and to initialize the plot.
 10. `traces`: Contains the information about each dataset and how to map that data to plotly.
     1. Properties available to most plot types:
-        1. `queryPattern`: The url from which the data has to be fetched after applying handlebars templating
-        2. `uri`: The url from which the data has to be fetched. DEPRECATED, use `traces.queryPattern` instead
+        1. `url_pattern`: The url from which the data has to be fetched
+        2. `uri`: The url from which the data has to be fetched. DEPRECATED, use `traces.url_pattern` instead
         3. `legend`: The value of legend to be shown for this trace.
         4. `x_col`: An array of column names for the x values
         5. `y_col`: An array of column names for the y values
         6. `orientation`: Optional parameter for displaying the bar chart horizontally // default: 'h'
         7. `textfont`: It will work till the bar size can accommodate the font size
         8. `hovertemplate_display_pattern`: To show customized hover text on plots using given template pattern
+        9. `response_format`: The type of file that is passed into url_pattern. It expects `csv` or `json`.
     2. Extra properties for pie and histogram charts:
         1. `data_col`: A column name as a string or array of column names for the data aggregation. used instead of x_col or y_xol
         2. `legend_col`: The column name to use for display in the legend column
