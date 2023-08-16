@@ -12,6 +12,7 @@ import PlotlyChart from '@isrd-isi-edu/deriva-webapps/src/components/plot/plotly
 import RecordsetModal from '@isrd-isi-edu/chaise/src/components/modals/recordset-modal';
 import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
 import { SelectedRow } from '@isrd-isi-edu/chaise/src/models/recordset';
+import SelectorsGrid from '@isrd-isi-edu/deriva-webapps/src/components/plot/selectors-grid';
 
 export type ChartWithEffectProps = {
   config: Plot;
@@ -47,6 +48,7 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
   const {
     parsedData,
     selectData,
+    selectorData,
     modalProps,
     isModalOpen,
     isFetchSelected,
@@ -145,12 +147,15 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
       modalProps.recordsetProps.initialSelectedRows = selectData[i][j].selectedRows;
     }
   }
-
+  console.log(selectorData);
   return (
     <div className='chart-container'>
       <div className='chart'>
         {selectData && selectData.length > 0 ? (
           <SelectGrid selectors={selectData} width={dynamicStyles.width} />
+        ) : null}
+        {selectorData ? (
+          <SelectorsGrid selectorConfig={selectorData} />
         ) : null}
         {isParseLoading || isFetchSelected ? (
           <ChaiseSpinner />

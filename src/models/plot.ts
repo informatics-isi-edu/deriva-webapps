@@ -22,6 +22,29 @@ export type DataConfig = {
   plots: Plot[];
 };
 
+export type SelectorDataConfig={
+  name: string;
+  display: string;
+}
+
+export type SelectorConfig = {
+  uid: string;
+  label: string;
+  url_param_key?: string;
+  request_info: SelectorRequestInfoConfig;
+}
+
+export type SelectorRequestInfoConfig = {
+  url_pattern?: string;
+  data?: SelectorDataConfig[];
+  default_value?: string;
+  value_key: string;
+  selected_value_pattern?: string;
+  tick_markdown_pattern: string;
+}
+
+
+
 /**
  * Specific plot
  */
@@ -32,6 +55,7 @@ export type Plot = {
   gene_uri_pattern?: string;
   study_uri_pattern?: string;
   plotly?: Plotly;
+  dropdown: SelectorConfig;
 };
 
 /**

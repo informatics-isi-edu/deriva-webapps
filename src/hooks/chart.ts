@@ -215,6 +215,7 @@ export const usePlotConfig = (plotConfigs: PlotConfig) => {
 export const useChartData = (plot: Plot) => {
   const isFirstRender = useIsFirstRender();
   const [data, setData] = useState<any | null>(null);
+  const [selectorData, setSelectorData] = useState<any | null>(null);
   const [parsedData, setParsedData] = useState<any>(null);
   const [modalProps, setModalProps] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -246,7 +247,7 @@ export const useChartData = (plot: Plot) => {
     }),
     []
   );
-
+  console.log(plot);
   const {
     selectData,
     handleCloseModal,
@@ -256,11 +257,12 @@ export const useChartData = (plot: Plot) => {
     isFetchSelected,
     setIsFetchSelected,
   } = useChartSelectGrid({
+    plot,
     templateParams,
     setModalProps,
     setIsModalOpen,
   });
-
+  console.log(selectData);
   /**
    * Updates the legend text and orientation for all plots for which legend is available as per the change in screen width
    */
@@ -396,6 +398,10 @@ export const useChartData = (plot: Plot) => {
     fetchData,
     dispatchError,
   ]);
+
+  useEffect(()=>{
+    setSelectorData(plot?.dropdown);
+  },[plot]);
 
   // Effect to fetch data on subsequent changes when different selections are made (when selectData changes)
   useEffect(() => {
@@ -1491,6 +1497,7 @@ export const useChartData = (plot: Plot) => {
 
 
   return {
+    selectorData,
     isInitLoading,
     isDataLoading,
     isParseLoading,
