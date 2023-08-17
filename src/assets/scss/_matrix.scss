@@ -258,10 +258,16 @@ body:not(.chaise-iframe) {
     margin-right: 8px;
   }
 
-  // Make scrollbar invisible in grid column header component
-  .grid-column-headers ::-webkit-scrollbar {
-    width: 0;  /* Remove scrollbar space */
-    height: 0;
-    background: transparent;  /* Optional: just make scrollbar invisible */
+  // Make scrollbar invisible in tree column header component
+  .grid-column-headers{
+    & ::-webkit-scrollbar {
+      width: 0;  /* Remove scrollbar space */
+      height: 0;
+      background: transparent;  /* Optional: just make scrollbar invisible */
+    }
+    & div{
+      -ms-overflow-style: none; /* Internet Explorer 10+ */
+      scrollbar-width: none; /* Firefox */
+    }
   }
 }

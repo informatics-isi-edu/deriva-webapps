@@ -118,7 +118,9 @@ const VirtualizedTreeGrid = (
   const [hoveredColIndex, setHoveredColIndex] = useState<number | null>(null); // hovered col state
   const [searchedRowIndex, setSearchedRowIndex] = useState<number | null>(null); // searched row state
   const [searchedColIndex, setSearchedColIndex] = useState<number | null>(null); // searched col state
-  
+  const [numRows, setNumRows] = useState<number>(data.length);
+  const [numColumns, setNumColumns] = useState<number>(data[0].length);
+
   // tree component
   const [hoveredRowID, setHoveredRowID] = useState<string | null>(null); // hovered row state for treeview
   const [hoveredColID, setHoveredColID] = useState<string | null>(null); // hovered col state for treeview
@@ -129,14 +131,24 @@ const VirtualizedTreeGrid = (
   const [filteredGridYData, setFilteredGridYData] = useState<Array<Array<ParsedGridCell>> | null>(new Array<Array<ParsedGridCell>>()); // used for locating the Y searched entry
   const [filteredGridXData, setFilteredGridXData] = useState<Array<ParsedGridCell> | null>(new Array<ParsedGridCell>()); // used for locating the X searched entry
   const [scrollTreeYIniPos, setScrollTreeYIniPos] = useState<number>(0); // y position for scrolling horizontal treeview
+  const [filteredGridData, setFilteredGridData] = useState<ParsedGridCell[][] | null>(data);
+
+  // track scrolling
+  const [isScrolling, setIsScrolling] = useState(false); // State to track whether scrolling is happening
+  const scrollTimeoutRef = useRef<number | null>(null); // Ref to track a timerId
+  /**
+   * When use Firefox, after refresh the page, the horizontal treeview y position, which is 'scrollTreeY'
+   * will change to 0, which results the horizontal tree goes to the very top and shows only blank.
+   * This does not happen in Safari, Chrome, and not happen when reload the page in Firefox.
+   * Only happens when refresh the page in Firefox.
+   * To fix it, use a state to track whether this is the first time to load the page, if it is,
+   * then force the horizontal treeview y position go to the very bottom.
+   */
+  const [isRefresh, setIsRefresh] = useState(false); // State to track whether this is the initial loading
 
   const rowLabelRef = useRef<any>(null);
   const columnLabelRef = useRef<any>(null);
   const gridRef = useRef<any>(null);
-
-  let numRows = data.length;
-  let numColumns = data[0].length;
-  const lastRow: ParsedGridCell[] = data[numRows-1]; // Store a copy of the last row
 
   /**
    * Calculate the y position of the horizontal tree view
@@ -145,7 +157,7 @@ const VirtualizedTreeGrid = (
   function getMaxLayersAndTitleLength(treeNodes: TreeNode[]) {
     let maxLayers = 0;
     let maxTitleLength = 0;
-  
+
     const traverseTree = (node: TreeNode, depth: number) => {
       maxLayers = Math.max(maxLayers, depth);
       maxTitleLength = Math.max(maxTitleLength, node.title.length);
@@ -156,11 +168,11 @@ const VirtualizedTreeGrid = (
         });
       }
     };
-  
+
     treeNodes.forEach((node) => {
       traverseTree(node, 1);
     });
-  
+
     return { maxLayers, maxTitleLength };
   }
 
@@ -172,45 +184,54 @@ const VirtualizedTreeGrid = (
       const yPositionXTree = maxLayers * maxTitleLength * 14;
       setScrollTreeYIniPos(yPositionXTree);
       setScrollTreeY(yPositionXTree);
+      // mark this is the initial page loading
+      setIsRefresh(true);
     }
   }, [xTreeNodes]);
 
-  // Used for update and sync the data of tree and grid when search happens
-  let filteredGridData : ParsedGridCell[][] = data;
-  if(xTree || yTree){
-    if(xTree && yTree){
-      filteredGridData = data
-      .filter((gridRow) =>
-        gridRow.some((cell) => visiableRowNodes?.has(cell.row.id))
-      )
-      .map((gridRow) =>
-        gridRow.filter((cell) => visiableColNodes?.has(cell.column.id))
-        .concat(gridRow[gridRow.length - 1])
-      );
-      filteredGridData.push(lastRow);
-    }else if(!xTree && yTree){
-      filteredGridData = data
-      .filter((gridRow) =>
-        gridRow.some((cell) => visiableRowNodes?.has(cell.row.id))
-      )
-      filteredGridData.push(lastRow);
-    }else if(xTree && !yTree){
-      filteredGridData = data
-      .map((gridRow) =>
-        gridRow.filter((cell) => visiableColNodes?.has(cell.column.id))
-        .concat(gridRow[gridRow.length - 1])
-      );
+  /**
+   * Filter the visiable rows and columns in GridData whenever visiableRowNodes or visiableColNodes changes
+   * which means there are tree nodes expand or collapse
+   */
+  useEffect(() => {
+    if(xTree || yTree){
+      let newData : ParsedGridCell[][] = data;
+      const lastRow: ParsedGridCell[] = data[data.length-1]; // Store a copy of the last row
+      if(xTree && yTree){
+        newData = data
+        .filter((gridRow) =>
+          gridRow.some((cell) => visiableRowNodes?.has(cell.row.id))
+        )
+        .map((gridRow) =>
+          gridRow.filter((cell) => visiableColNodes?.has(cell.column.id))
+          .concat(gridRow[gridRow.length - 1])
+        );
+        newData.push(lastRow);
+      }else if(!xTree && yTree){
+        newData = data
+        .filter((gridRow) =>
+          gridRow.some((cell) => visiableRowNodes?.has(cell.row.id))
+        )
+        newData.push(lastRow);
+      }else if(xTree && !yTree){
+        newData = data
+        .map((gridRow) =>
+          gridRow.filter((cell) => visiableColNodes?.has(cell.column.id))
+          .concat(gridRow[gridRow.length - 1])
+        );
+      }
+      setFilteredGridData(newData);
+      setNumRows(newData.length);
+      setNumColumns(newData[0].length);
     }
-  }
-  if(filteredGridData){
-    numRows = filteredGridData.length;
-    numColumns = filteredGridData[0].length;
-  }
+  }, [visiableRowNodes, visiableColNodes, data]);
 
-  // Update vertical tree and grid position to a specific entry
-  // by listening the filteredGridYData changes, which means a new search happens
-  // This is because a new search will change the expanded nodes which will effect
-  // the data shown in both header component and grid
+  /**
+   * Update vertical tree and grid position to a specific entry
+   * by listening the filteredGridYData changes, which means a new search happens
+   * This is because a new search will change the expanded nodes which will effect
+   * the data shown in both header component and grid
+   */
   useEffect(() => {
     if(filteredGridYData && searchedRowID){
       const rowIndex = filteredGridYData.findIndex((gridRow) => {
@@ -222,8 +243,10 @@ const VirtualizedTreeGrid = (
     }
   }, [filteredGridYData, cellHeight, gridHeight, searchedRowID]);
 
-  // Update horizontal tree and grid position to a specific entry
-  // by listening the filteredGridXData changes, which means a new search happens
+  /**
+   * Update horizontal tree and grid position to a specific entry
+   * by listening the filteredGridXData changes, which means a new search happens
+   */
   useEffect(() => {
     if(filteredGridXData && searchedColID){
       const colIndex = filteredGridXData.findIndex((cell) => cell.column.id === searchedColID);
@@ -262,6 +285,7 @@ const VirtualizedTreeGrid = (
       const offset = index * cellWidth - gridWidth / 2 - cellWidth / 2;
       columnLabelRef.current.scrollTo(offset);
       gridRef.current.scrollTo({ scrollLeft: offset });
+      setScrollX(offset);
       setSearchedRowID(null);
       setSearchedRowIndex(null);
       setSearchedColIndex(index);
@@ -289,6 +313,31 @@ const VirtualizedTreeGrid = (
     setScrollTreeX(rowLabelRef.current.scrollLeft);
     // Set Tree horizontal position
     setScrollY(rowLabelRef.current.scrollTop);
+
+    /**
+     * In order to improve performance, especially when scrolling the tree component, 
+     * the function to update row and column id is executed continuously, 
+     * which is experimentally proven to make the scroll behavior significantly delayed. 
+     * Referring to the flat component that will pause the execution of update operation when scrolling, 
+     * we set a debounce function to record whether there is a scroll operation currently, 
+     * if it is in progress, then stop the execution of update, otherwise, we can execute the update.
+     */
+    // Set isScrolling to true
+    setIsScrolling(true);
+    // Clear previous timeout if it exists
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+    // Set a timeout to reset isScrolling after 300ms
+    scrollTimeoutRef.current = window.setTimeout(() => {
+      setIsScrolling(false);
+    }, 300);
+    // Use requestAnimationFrame to ensure smoother updates during scrolling
+    window.requestAnimationFrame(() => {
+      if (scrollTimeoutRef.current === null) {
+        setIsScrolling(false);
+      }
+    });
   }, []);
   // Updates scroll position for X tree when column is scrolled
   const handleTreeColumnLabelScroll = useCallback((e: any) => {
@@ -298,6 +347,25 @@ const VirtualizedTreeGrid = (
     setScrollX(columnLabelRef.current.scrollLeft);
     // Set Tree vertical position
     setScrollTreeY(columnLabelRef.current.scrollTop);
+    /**
+     * Same reason as handleTreeRowLabelScroll
+     */
+    // Set isScrolling to true
+    setIsScrolling(true);
+    // Clear previous timeout if it exists
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+    // Set a timeout to reset isScrolling after 300ms
+    scrollTimeoutRef.current = window.setTimeout(() => {
+      setIsScrolling(false);
+    }, 300);
+    // Use requestAnimationFrame to ensure smoother updates during scrolling
+    window.requestAnimationFrame(() => {
+      if (scrollTimeoutRef.current === null) {
+        setIsScrolling(false);
+      }
+    });
   }, []);
   // Updates scroll position for flat Y component when row is scrolled
   const handleRowLabelScroll = useCallback((e: any) => {
@@ -324,8 +392,10 @@ const VirtualizedTreeGrid = (
     setScrollY((scrollY) => Math.max(scrollY - gridHeight / 2, 0));
   };
 
-  // Effect for updating scroll position of row, column and grid when it detects scroll changes
-  // The tree components need one additional position parameters for another dimension
+  /**
+   * Effect for updating scroll position of row, column and grid when it detects scroll changes
+   * The tree components need one additional position parameters for another dimension
+   */
   useEffect(() => {
     if(yTree){
       rowLabelRef.current.scrollTo(scrollTreeX, scrollY);
@@ -335,15 +405,20 @@ const VirtualizedTreeGrid = (
 
     if(xTree){
       columnLabelRef.current.scrollTo(scrollX, scrollTreeY);
+      // If there is a page refresh, then force the column tree header go to the very bottom
+      if(isRefresh){
+        columnLabelRef.current.scrollTo(scrollX, scrollTreeYIniPos);
+        setIsRefresh(false);
+      }
     }else{
       columnLabelRef.current.scrollTo(scrollX);
     }
-    
+
     gridRef.current.scrollTo({
       scrollLeft: scrollX,
       scrollTop: scrollY,
     });
-  }, [scrollY, scrollX, scrollTreeY, yTree, scrollTreeX, xTree]);
+  }, [scrollY, scrollX, scrollTreeY, scrollTreeX, xTree, yTree]);
 
   // Data to be passed to Row, Column, and Grid Props
   const rowHeaderTreeData = useMemo(
@@ -355,9 +430,10 @@ const VirtualizedTreeGrid = (
       setHoveredColIndex,
       setVisiableRowNodes,
       setFilteredGridYData,
+      isScrolling,
       listData: data,
     }),
-    [searchedRowID, hoveredRowID, data]
+    [searchedRowID, hoveredRowID, data, isScrolling]
   );
   const columnHeaderTreeData = useMemo(
     () => ({
@@ -369,9 +445,10 @@ const VirtualizedTreeGrid = (
       setVisiableColNodes,
       setFilteredGridXData,
       scrollTreeYIniPos,
+      isScrolling,
       listData: data,
     }),
-    [searchedColID, hoveredColID, scrollTreeYIniPos, data]
+    [searchedColID, hoveredColID, scrollTreeYIniPos, data, isScrolling]
   );
   const gridData = useMemo(
     () => ({
@@ -389,13 +466,11 @@ const VirtualizedTreeGrid = (
       hoveredColIndex,
       setHoveredRowIndex,
       setHoveredColIndex,
-      visiableRowNodes,
-      setVisiableRowNodes,
       gridData: filteredGridData,
       colorScale,
     }),
     [yTree, xTree, searchedColID, searchedRowID, hoveredRowID, hoveredColID, searchedRowIndex, searchedColIndex, 
-      hoveredRowIndex, hoveredColIndex, visiableRowNodes, filteredGridData, colorScale]
+      hoveredRowIndex, hoveredColIndex, filteredGridData, colorScale]
   );
 
   const rowHeaderData = useMemo(

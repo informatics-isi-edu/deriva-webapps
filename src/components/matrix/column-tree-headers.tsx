@@ -10,7 +10,6 @@ import { TreeNodeMap } from '@isrd-isi-edu/deriva-webapps/src/hooks/matrix';
 import TreeView from '@mui/lab/TreeView';
 import { alpha, styled } from '@mui/material/styles';
 import TreeItem, { TreeItemProps, treeItemClasses, useTreeItem, TreeItemContentProps } from '@mui/lab/TreeItem';
-import SvgIcon, { SvgIconProps } from '@mui/material/SvgIcon';
 import clsx from 'clsx';
 import Typography from '@mui/material/Typography';
 
@@ -75,11 +74,12 @@ const ColumnHeaders = (
     listData, 
     setFilteredGridXData, 
     setVisiableColNodes,
-    scrollTreeYIniPos } = itemData;
+    scrollTreeYIniPos,
+    isScrolling } = itemData;
 
   const [prevSearched, setPrevSearched] = useState<string | null>(null); // previous searched enrty
   const [expanded, setExpanded] = useState<string[]>([]); // all expanded nodes
-
+  const [treeDataDict, setTreeDataDict] = useState<Record<string, MatrixTreeDatum>>({}); // Dictionary to store relationship of parent and child for tree data
 
   /**
    * styles for tree view and tree items
@@ -98,112 +98,6 @@ const ColumnHeaders = (
     maxHeight: height,
   };
 
-  // Customize the minus square icon for tree view
-  const minusSquareIconPath = 'M22.047 22.074v0 0-20.147 0h-20.12v0 20.147 0h20.12zM22.047 24h-20.12q-.803 0-1.365'+
-  '-.562t-.562-1.365v-20.147q0-.776.562-1.351t1.365-.575h20.147q.776 0 1.351.575t.575 1.351v20.147q0 .803-'+
-  '.575 1.365t-1.378.562v0zM17.873 11.023h-11.826q-.375 0-.669.281t-.294.682v0q0 .401.294 .682t.669.281h11.'+
-  '826q.375 0 .669-.281t.294-.682v0q0-.401-.294-.682t-.669-.281z';
-  const MinusSquare = (props: SvgIconProps) => (
-    <div style={{ zIndex: 1 }}>
-      <div
-        style={{
-          marginLeft: 6.5,
-          paddingLeft: 2,
-          height: (cellWidth-iconSize)/2,
-          marginBottom: -5,
-          borderLeft: '1px dotted grey'
-        }}
-      />
-      <SvgIcon fontSize='inherit' style={{ width: 14, height: 14 }} {...props}>
-        {/* eslint-disable-next-line max-len */}
-        <path d={minusSquareIconPath} />
-      </SvgIcon>
-      <div
-        style={{
-          position: 'absolute',
-          marginTop: -9,
-          marginLeft: 14,
-          width: 8,
-          borderTop: '1px dotted grey'
-        }}
-      />
-      <div
-        style={{
-          marginRight: 6.5,
-          paddingRight: 2,
-          height: (cellWidth-iconSize)/2,
-          marginTop: -2,
-          borderRight: '1px dotted grey'
-        }}
-      />
-    </div>
-  );
-
-  // Customize the plus square icon for tree view
-  const plusSquareIconPath = 'M22.047 22.074v0 0-20.147 0h-20.12v0 20.147 0h20.12zM22.047 24h-20.12q-.803'+
-  ' 0-1.365-.562t-.562-1.365v-20.147q0-.776.562-1.351t1.365-.575h20.147q.776 0 1.351.575t.575 1.351v20.147'+
-  'q0 .803-.575 1.365t-1.378.562v0zM17.873 12.977h-4.923v4.896q0 .401-.281.682t-.682.281v0q-.375 0-.669-.2'+
-  '81t-.294-.682v-4.896h-4.923q-.401 0-.682-.294t-.281-.669v0q0-.401.281-.682t.682-.281h4.923v-4.896q0-.401'+
-  '.294-.682t.669-.281v0q.401 0 .682.281t.281.682v4.896h4.923q.401 0 .682.281t.281.682v0q0 .375-.281.669t-.682.294z';
-  const PlusSquare = (props: SvgIconProps) => (
-    <div style={{ zIndex: 1 }}>
-      <div
-        style={{
-          marginLeft: 6.5,
-          paddingLeft: 2,
-          height: (cellWidth-iconSize)/2,
-          marginBottom: -5,
-          borderLeft: '1px dotted grey'
-        }}
-      />
-      <SvgIcon fontSize='inherit' style={{ width: 14, height: 14 }} {...props}>
-        {/* eslint-disable-next-line max-len */}
-        <path d={plusSquareIconPath} />
-      </SvgIcon>
-      <div
-        style={{
-          position: 'absolute',
-          marginTop: -9,
-          marginLeft: 14,
-          width: 10,
-          borderTop: '1px dotted grey'
-        }}
-      />
-      <div
-        style={{
-          marginRight: 6.5,
-          paddingRight: 2,
-          height: (cellWidth-iconSize)/2,
-          marginTop: -2,
-          borderRight: '1px dotted grey'
-        }}
-      />
-    </div>
-  );
-
-  // Customize the close square icon for tree view
-  const CloseSquare = () => (
-    <div style={{ zIndex: 1 }}>
-      <div
-        style={{
-          marginLeft: 16.5,
-          paddingLeft: 2,
-          height: cellWidth,
-          marginTop: -(cellWidth/2),
-          borderLeft: '1px dotted grey'
-        }}
-      />
-      <div
-        style={{
-          marginTop: -(cellWidth/2),
-          marginLeft: 18,
-          width: 16,
-          borderTop: '1px dotted grey'
-        }}
-      />
-    </div>
-  );
-
   /**
    * Interaction functions
    */
@@ -218,7 +112,7 @@ const ColumnHeaders = (
       return false; // Detected the parent node does not exist in visitedNodes
     }
     return checkParentChainExist(treeDataDict, node.parent_id, visitedNodes);
-  };  
+  };
 
   // Find all ancestor nodes of the searched node
   const getParentChain = (treeDataDict: Record<string, MatrixTreeDatum>, nodeId: string, visitedNodes: Set<string>): Set<string> => {
@@ -234,14 +128,20 @@ const ColumnHeaders = (
     return visitedNodes;
   };
 
-  // Dictionary to store relationship of parent and child for tree data
-  const treeDataDict: Record<string, MatrixTreeDatum> = treeData.reduce((dict: Record<string, MatrixTreeDatum>, node: MatrixTreeDatum) => {
-    dict[node.child_id] = node;
-    return dict;
-  }, {});
+  // Initialize the dictionary to store relationship of parent and child for tree data
+  useEffect(() => {
+    const initialTreeDataDict = treeData.reduce((dict: Record<string, MatrixTreeDatum>, node: MatrixTreeDatum) => {
+      dict[node.child_id] = node;
+      return dict;
+    }, {});
+    setTreeDataDict(initialTreeDataDict);
+  }, [treeData]);
 
-  // Refresh visiableRowNodes and filteredGridYData whenever expanded nodes change, update previous Searched entry as well
-  // This means the header and grid data should sync whenever expanded nodes change
+  /**
+   * Refresh visiableRowNodes and filteredGridXData whenever expanded nodes change,
+   * update previous Searched entry as well.
+   * This means the header and grid data should sync whenever expanded nodes change
+   */
   useEffect(() => {
     const newSet = new Set<string>();
     // Add all top nodes by default
@@ -277,7 +177,7 @@ const ColumnHeaders = (
     }
   }, [expanded]);
 
-  // // Refresh the expanded nodes list when search a row
+  // Refresh the expanded nodes list when search a row
   useEffect(() => {
     if (searchedColID){
       const nodesSet: Set<string> = new Set(expanded);
@@ -287,7 +187,7 @@ const ColumnHeaders = (
     }
   }, [searchedColID]);
 
-  // // Handle toggle in tree view
+  // Handle toggle in tree view
   const handleToggle = (event: React.SyntheticEvent, nodeIds: string[]) => {
     setExpanded(nodeIds);
   };
@@ -303,45 +203,169 @@ const ColumnHeaders = (
         onScroll={onScroll} 
         ref={ref}>
 
-        <div
-        style={{
-          transformOrigin: 'top left',
-          transform: 'rotate(-90deg)',
-          width: height,
-          marginLeft: 0,
-          marginTop: height,
-        }}>
+          <div
+          style={{
+            transformOrigin: 'top left',
+            transform: 'rotate(-90deg)',
+            width: height,
+            marginLeft: 0,
+            marginTop: height,
+          }}>
 
-          <TreeView
-            aria-label='rich object'
-            defaultExpanded={['root']}
-            defaultCollapseIcon={<MinusSquare />}
-            defaultExpandIcon={<PlusSquare />}
-            defaultEndIcon={<CloseSquare />}
-            expanded={expanded}
-            onNodeToggle={handleToggle}
-            style={{
-              height: 'fit-content',
-              width: 'fit-content',
-              position: 'absolute',
-              left: -scrollTreeYIniPos, // Adjust the left value based on the desired position
-            }}
-            sx={{ overflow: 'clip' }}
-          >
-            <MemoizedRenderTree
-              nodes={treeNodes}
-              data={itemData}
-              cellWidth={cellWidth}
-              treeNodesMap={treeNodesMap}
-            />
-          </TreeView>
+            <TreeView
+              aria-label='rich object'
+              defaultExpanded={['root']}
+              defaultCollapseIcon={<MemoizedMinusSquare cellWidth={cellWidth} iconSize={iconSize}/>}
+              defaultExpandIcon={<MemoizedPlusSquare cellWidth={cellWidth} iconSize={iconSize}/>}
+              defaultEndIcon={<MemoizedCloseSquare cellWidth={cellWidth}/>}
+              expanded={expanded}
+              onNodeToggle={handleToggle}
+              style={{
+                height: 'fit-content',
+                width: 'fit-content',
+                position: 'absolute',
+                /**
+                 * For vertical scrolling function of the horizontal tree, we only want to scroll up. But after using
+                 * transform, there is a blank space at the bottom of the tree. To eliminate the space, we set 
+                 * transformOrigin to 'top left'. Then the initial y position of the tree does not focus on the tree 
+                 * entries but blanks. So we set 'left' attribute to it and use a variable to memorize the position
+                 * of the tree entries, then update it whenever scroll the tree vertically.
+                 */
+                left: -scrollTreeYIniPos, // Adjust the left value based on the desired position
+                /**
+                 * For the highlight alignment issue, we're adding empty cells and headers in the falt column headers.
+                 * But Mui is ignoring the empty tree elements, and we use 'transform' for the tree in column header.
+                 * So we add a paddingBottom attribute as the style of the tree manually. 
+                 */
+                paddingBottom: cellWidth + 15,
+              }}
+              sx={{ overflow: 'clip' }}
+            >
+              <MemoizedRenderTree
+                nodes={treeNodes}
+                data={itemData}
+                cellWidth={cellWidth}
+                treeNodesMap={treeNodesMap}
+                isScrolling={isScrolling}
+              />
+            </TreeView>
 
-        </div>
-        </div>
-        
+          </div>
+      </div>
     </div>
   );
 };
+
+
+/**
+ * Create a component that customizes the minus square icon for tree view and then memorize it 
+ */
+type MemoizedIconSquareProps = {
+  cellWidth: number;
+  iconSize: number;
+};
+const MemoizedMinusSquare = memo(({ cellWidth, iconSize }: MemoizedIconSquareProps) => (
+  <div style={{ zIndex: 1 }}>
+    <div
+      style={{
+        marginLeft: 5.5,
+        paddingLeft: 2,
+        height: (cellWidth-iconSize)/2,
+        marginBottom: -4,
+        borderLeft: '1px dotted grey'
+      }}
+    />
+    <i className='fa-regular fa-square-minus'></i>
+    <div
+      style={{
+        position: 'absolute',
+        marginTop: -11,
+        marginLeft: 13,
+        width: 10,
+        borderTop: '1px dotted grey'
+      }}
+    />
+    <div
+      style={{
+        marginRight: 5.5,
+        paddingRight: 2,
+        height: (cellWidth-iconSize)/2,
+        marginTop: -4,
+        borderRight: '1px dotted grey'
+      }}
+    />
+  </div>
+));
+// Add displayName to the functional component
+MemoizedMinusSquare.displayName = 'MemoizedMinusSquare';
+
+/**
+ * Create a component that customizes the plus square icon for tree view and then memorize it 
+ */
+const MemoizedPlusSquare = memo(({ cellWidth, iconSize }: MemoizedIconSquareProps) => (
+  <div style={{ zIndex: 1 }}>
+    <div
+      style={{
+        marginLeft: 5.5,
+        paddingLeft: 2,
+        height: (cellWidth-iconSize)/2,
+        marginBottom: -4,
+        borderLeft: '1px dotted grey'
+      }}
+    />
+    <i className='fa-regular fa-square-plus'></i>
+    <div
+      style={{
+        position: 'absolute',
+        marginTop: -11,
+        marginLeft: 13,
+        width: 10,
+        borderTop: '1px dotted grey'
+      }}
+    />
+    <div
+      style={{
+        marginRight: 5.5,
+        paddingRight: 2,
+        height: (cellWidth-iconSize)/2,
+        marginTop: -4,
+        borderRight: '1px dotted grey'
+      }}
+    />
+  </div>
+));
+// Add displayName to the functional component
+MemoizedPlusSquare.displayName = 'MemoizedPlusSquare';
+
+/**
+ * Create a component that customizes the close square icon for tree view and then memorize it 
+ */
+type MemoizedCloseSquareProps = {
+  cellWidth: number;
+};
+const MemoizedCloseSquare = memo(({ cellWidth }: MemoizedCloseSquareProps) => (
+  <div style={{ zIndex: 1 }}>
+    <div
+      style={{
+        marginLeft: 16.5,
+        paddingLeft: 2,
+        height: cellWidth,
+        marginTop: -(cellWidth/2),
+        borderLeft: '1px dotted grey'
+      }}
+    />
+    <div
+      style={{
+        marginTop: -(cellWidth/2),
+        marginLeft: 18,
+        width: 16,
+        borderTop: '1px dotted grey'
+      }}
+    />
+  </div>
+));
+// Add displayName to the functional component
+MemoizedCloseSquare.displayName = 'MemoizedCloseSquare';
 
 
 /**
@@ -352,9 +376,10 @@ type MemoizedRenderTreeProps = {
   data: any;
   cellWidth: number;
   treeNodesMap: TreeNodeMap;
+  isScrolling: boolean;
 };
 
-const MemoizedRenderTree = memo(({ nodes, data, cellWidth, treeNodesMap }: MemoizedRenderTreeProps) => {
+const MemoizedRenderTree = memo(({ nodes, data, cellWidth, treeNodesMap, isScrolling }: MemoizedRenderTreeProps) => {
   const { 
     searchedColID, 
     hoveredColID,
@@ -408,9 +433,11 @@ const MemoizedRenderTree = memo(({ nodes, data, cellWidth, treeNodesMap }: Memoi
 
   // Update id or index for when hover an item
   const updateColId = (nodeId: string) => {
-    setHoveredColID(nodeId);
-    setHoveredRowID(null);
-    setHoveredRowIndex(null);
+    if(!isScrolling){
+      setHoveredColID(nodeId);
+      setHoveredRowID(null);
+      setHoveredRowIndex(null);
+    }
   };
 
   // Customize tree item so that the link function and expand/collapse function are separate
@@ -494,7 +521,7 @@ const MemoizedRenderTree = memo(({ nodes, data, cellWidth, treeNodesMap }: Memoi
   });
 
   // Define interaction and style for tree item
-  const StyledTreeItem = styled(({ node, ...props }: CustomTreeItemProps) => {
+  const StyledTreeItem = memo(styled(({ node, ...props }: CustomTreeItemProps) => {
     // Check if the node key matches the hovered row id
     const isNodeKeyMatched = node.key === hoveredColID;
     // Check if the node key matches the searched row id
@@ -547,7 +574,7 @@ const MemoizedRenderTree = memo(({ nodes, data, cellWidth, treeNodesMap }: Memoi
         backgroundColor: 'rgba(0, 0, 0, 0)',
       },
     },
-  }));
+  })));
 
 
   /**

@@ -36,7 +36,6 @@ const GridCell = ({ columnIndex, rowIndex, data, style }: GridCellProps): JSX.El
     setHoveredRowID,
     hoveredColID,
     setHoveredColID,
-    visiableRowNodes,
     gridData,
     colorScale,
   } = data;
@@ -47,12 +46,6 @@ const GridCell = ({ columnIndex, rowIndex, data, style }: GridCellProps): JSX.El
   const { id: rowId } = row;
   // get id for current column, use it to check hover and search states
   const { id: columnId } = column;
-
-  // check whether the grid should show the current row
-  let showRow = true;
-  if(yTree){
-    showRow = visiableRowNodes.has(rowId);
-  }
 
   // className changes based on hovered state
   let gridCellClassName =
@@ -72,37 +65,33 @@ const GridCell = ({ columnIndex, rowIndex, data, style }: GridCellProps): JSX.El
 
   return (
     <div>
-      {showRow ? 
-        <div
-          className={gridCellClassName}
-          style={style}
-          onMouseEnter={() => {
-            if(!xTree && !yTree){
-              setHoveredColIndex(columnIndex);
-              setHoveredRowIndex(rowIndex);
-            }else if(xTree && !yTree){
-              setHoveredColID(columnId);
-              setHoveredRowIndex(rowIndex);
-            }else if(!xTree && yTree){
-              setHoveredRowID(rowId);
-              setHoveredColIndex(columnIndex);
-            }else{
-              setHoveredRowID(rowId);
-              setHoveredColID(columnId);
-            }
-          }}
-        >
-          {link ? (
-            <a role='button' className='cell-link' href={link} title={title ? title : 'unknown'}>
-              <MemoizedColorParts colorScale={colorScale} colors={colors} />
-            </a>
-          ) : (
+      <div
+        className={gridCellClassName}
+        style={style}
+        onMouseEnter={() => {
+          if(!xTree && !yTree){
+            setHoveredColIndex(columnIndex);
+            setHoveredRowIndex(rowIndex);
+          }else if(xTree && !yTree){
+            setHoveredColID(columnId);
+            setHoveredRowIndex(rowIndex);
+          }else if(!xTree && yTree){
+            setHoveredRowID(rowId);
+            setHoveredColIndex(columnIndex);
+          }else{
+            setHoveredRowID(rowId);
+            setHoveredColID(columnId);
+          }
+        }}
+      >
+        {link ? (
+          <a role='button' className='cell-link' href={link} title={title ? title : 'unknown'}>
             <MemoizedColorParts colorScale={colorScale} colors={colors} />
-          )}
-        </div>
-      :
-        <div/>
-      }
+          </a>
+        ) : (
+          <MemoizedColorParts colorScale={colorScale} colors={colors} />
+        )}
+      </div>
     </div>
   );
 };
