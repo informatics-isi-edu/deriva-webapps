@@ -23,6 +23,12 @@ import {
   GridRightButton,
   GridUpButton,
 } from '@isrd-isi-edu/deriva-webapps/src/components/matrix/grid-button';
+import { 
+  addBottomHorizontalScroll,
+  addRightVerticalScroll,
+  RowScrollBar,
+  ColumnScrollBar,
+} from '@isrd-isi-edu/deriva-webapps/src/components/matrix/grid-scrollbar';
 
 export type VirtualizedGridProps = {
   /**
@@ -150,6 +156,9 @@ const VirtualizedTreeGrid = (
   const columnLabelRef = useRef<any>(null);
   const gridRef = useRef<any>(null);
 
+  const rowScrollBarRef = useRef<any>(null);
+  const columnScrollBarRef = useRef<any>(null);
+
   /**
    * Calculate the y position of the horizontal tree view
    */
@@ -175,6 +184,20 @@ const VirtualizedTreeGrid = (
 
     return { maxLayers, maxTitleLength };
   }
+
+  // Initialize the dummy scrollbar at the bottom of the row headers
+  useEffect(() => {
+    if (yTree && rowLabelRef.current && rowScrollBarRef.current) {
+      addBottomHorizontalScroll(rowLabelRef.current, rowScrollBarRef.current);
+    }
+  }, []);
+
+  // Initialize the dummy scrollbar at the right of the column headers
+  useEffect(() => {
+    if (scrollTreeYIniPos!==0 && xTree && columnLabelRef.current && columnScrollBarRef.current) {
+      addRightVerticalScroll(columnLabelRef.current, columnScrollBarRef.current, scrollTreeYIniPos);
+    }
+  }, [scrollTreeYIniPos]);
 
   // Initialize the inner vertical position of the horizontal tree
   useEffect(() => {
@@ -596,6 +619,16 @@ const VirtualizedTreeGrid = (
       >
         {GridTreeCell}
       </Grid>
+      {/* Dummy scrollbar for the row headers */}
+      <RowScrollBar
+        ref={rowScrollBarRef}
+        headerWidthOrHeight={rowHeaderWidth}
+      />
+      {/* Dummy scrollbar for the column headers */}
+      <ColumnScrollBar
+        ref={columnScrollBarRef}
+        headerWidthOrHeight={columnHeaderHeight}
+      />
       {showRight && <GridRightButton onClick={pressScrollRight} rowHeaderWidth={rowHeaderWidth} />}
       {showUp && <GridUpButton onClick={pressScrollUp} rowHeaderWidth={rowHeaderWidth} />}
       {showLeft && <GridLeftButton onClick={pressScrollLeft} rowHeaderWidth={rowHeaderWidth} />}

@@ -199,7 +199,7 @@ const RowTreeHeaders = (
       style={rowTreeHeadersStyles}
       ref={ref}
       onScroll={onScroll}>
-          
+
             <TreeView
               aria-label='rich object'
               defaultExpanded={['root']}

@@ -104,7 +104,7 @@ export const GridRightButton = ({ onClick }: GridMoveButton): JSX.Element => {
         height: 45,
         position: 'absolute',
         top: 2,
-        right: 0,
+        right: -20,
       }}
     >
       <button
@@ -146,7 +146,7 @@ export const GridDownButton = ({ onClick, rowHeaderWidth }: GridMoveButton): JSX
         justifyContent: 'flex-end',
         backgroundColor: 'white',
         position: 'absolute',
-        bottom: 0,
+        bottom: -20,
         left: 0,
         width: rowHeaderWidth,
         paddingRight: 40,
