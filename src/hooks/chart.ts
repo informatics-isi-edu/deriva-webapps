@@ -249,9 +249,9 @@ export const useChartData = (plot: Plot) => {
     () => ({
       $url_parameters: {
         Gene: {
-          // data: {
-          //   NCBI_GeneID: getQueryParam(windowRef.location.href, 'NCBI_GeneID') || 1, // TODO: deal with default value
-          // },
+          data: {
+            NCBI_GeneID: getQueryParam(windowRef.location.href, 'NCBI_GeneID') || 1, // TODO: deal with default value
+          },
         },
         Study: [],
       },
