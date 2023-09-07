@@ -154,6 +154,7 @@ export const createLinkWithContextParams = (
 export const getPatternUri = (queryPattern: string, templateParams: any) => {
   const { contextHeaderName } = ConfigService.ERMrest;
   const defaultHeaders = ConfigService.contextHeaderParams;
+  console.log('inside ',queryPattern,templateParams);
   const uri = ConfigService.ERMrest.renderHandlebarsTemplate(queryPattern, templateParams);
   const headers = { [contextHeaderName]: defaultHeaders };
 
@@ -277,5 +278,29 @@ export const isDataJSON = (data: any) => {
     return !(typeof parsedData==='string');
   } catch (error) {
     return false;
+  }
+}
+export const toCamel = (str: string) =>{
+  return str.replace(
+    /(?!^)_(.)/g,
+    (_, char) => char.toUpperCase()
+  );
+}
+
+/**
+ * 
+ * @param configObject an object with snake case keys
+ * @returns object with the camel case keys
+ */
+export const gridLayoutConfigMap = (configObject: any) => {
+  if(typeof configObject === 'object'){
+    const newObj: { [key: string]: any } = {};
+    for (const oldKey in configObject) {
+      if (configObject.hasOwnProperty(oldKey)) {
+        const newKey = toCamel(oldKey);
+        newObj[newKey] = configObject[oldKey];
+      }
+    }
+    return newObj;
   }
 }

@@ -51,6 +51,7 @@ import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
 import { ChaiseAlertType } from '@isrd-isi-edu/chaise/src/providers/alerts';
 import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
 import Papa from 'papaparse';
+import { useSelector } from '@isrd-isi-edu/deriva-webapps/src/hooks/selector';
 
 /**
  * Data received from API request
@@ -131,9 +132,15 @@ export type PlotTemplateParams = {
     [paramKey: string]: any;
   };
   /**
-   * Parameters for URL
+   * Parameters for URL //Deprecated. Use control_values instead
    */
   $url_parameters: {
+    [paramKey: string]: any;
+  };
+  /**
+   * Parameters for URL
+   */
+  $control_values: {
     [paramKey: string]: any;
   };
   /**
@@ -226,13 +233,15 @@ export const usePlotConfig = (plotConfigs: PlotConfig) => {
 export const useChartData = (plot: Plot) => {
   const isFirstRender = useIsFirstRender();
   const [data, setData] = useState<any | null>(null);
-  const [selectorData, setSelectorData] = useState<any | null>(null);
+  const [dataOptions, setDataOptions] = useState<any>(null);
+  const [selectorData, setSelectorData] = useState<any>(null);
   const [parsedData, setParsedData] = useState<any>(null);
   const [modalProps, setModalProps] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isInitLoading, setIsInitLoading] = useState<boolean>(false);
   const [isDataLoading, setIsDataLoading] = useState<boolean>(false);
   const [isParseLoading, setIsParseLoading] = useState<boolean>(false);
+  const [selectorOptionChanged, setSelectorOptionChanged] = useState<boolean>(false);
 
 
   const { dispatchError, errors } = useError();
@@ -256,11 +265,11 @@ export const useChartData = (plot: Plot) => {
         },
         Study: [],
       },
+      $control_values: {},
       noData: false, // TODO: remove hack when empty selectedRows are fixed
     }),
     []
   );
-  console.log(plot);
   const {
     selectData,
     handleCloseModal,
@@ -275,7 +284,21 @@ export const useChartData = (plot: Plot) => {
     setModalProps,
     setIsModalOpen,
   });
-  console.log(selectData);
+
+  useEffect(() => {
+    setSelectorData({
+      selectorConfig: plot?.dropdown,
+      gridConfig: plot?.grid_layout_config,
+      layout: plot?.layout,
+      templateParams,
+    });
+  }, [plot, templateParams]);
+  useSelector({
+    selectorConfig: plot?.dropdown,
+    templateParams,
+    setDataOptions,
+  });
+
   /**
    * Updates the legend text and orientation for all plots for which legend is available as per the change in screen width
    */
@@ -352,12 +375,11 @@ export const useChartData = (plot: Plot) => {
       }
     }
   }, [width]);
-
   /**
    * Fetches data from the plot traces in the plot config and returns the data
    */
   const fetchData = useCallback(async () => {
-    // console.log('fetchData occurred');
+    console.log('fetchData occurred');
     // Fulfill promise for plot
     // NOTE: If 1 trace request fails, all requests fail. Should this be addressed?
     const plotResponses: Array<Response> = await Promise.all(
@@ -381,7 +403,7 @@ export const useChartData = (plot: Plot) => {
     );
 
     return plotResponses.map((response: Response) => response.data); // unpack data
-  }, [plot, templateParams]);
+  }, [plot, templateParams, selectorOptionChanged]);
 
   // Effect to fetch initial data
   useEffect(() => {
@@ -464,13 +486,13 @@ export const useChartData = (plot: Plot) => {
     fetchSelectData,
     setSelectData,
     templateParams,
+    selectorOptionChanged,
     fetchData,
     dispatchError,
   ]);
 
-  useEffect(()=>{
-    setSelectorData(plot?.dropdown);
-  },[plot]);
+  //   setSelectorOptions(options);
+  // },[plot,templateParams]);
 
   // Effect to fetch data on subsequent changes when different selections are made (when selectData changes)
   useEffect(() => {
@@ -482,9 +504,10 @@ export const useChartData = (plot: Plot) => {
       setData(plotData);
       setIsDataLoading(false);
       setIsFetchSelected(false);
+      setSelectorOptionChanged(false);
     };
 
-    if (!isFirstRender && isFetchSelected) {
+    if (!isFirstRender && (isFetchSelected || selectorOptionChanged)) {
       // only run on subsequent renders and when selectData changes with isFetchSelected being true
       // we only want to fetch data when the selection made requires it
       // cause some selection changes can simply be handled by reparsing the existing data
@@ -502,6 +525,7 @@ export const useChartData = (plot: Plot) => {
     templateParams,
     fetchData,
     dispatchError,
+    selectorOptionChanged
   ]);
 
 
@@ -1632,7 +1656,7 @@ export const useChartData = (plot: Plot) => {
 
 
   return {
-    selectorData,
+    dataOptions,
     isInitLoading,
     isDataLoading,
     isParseLoading,
@@ -1640,11 +1664,13 @@ export const useChartData = (plot: Plot) => {
     modalProps,
     isModalOpen,
     selectData,
+    selectorData,
     parsedData,
     data,
     errors,
     handleCloseModal,
     handleSubmitModal,
+    setSelectorOptionChanged,
   };
 };
 

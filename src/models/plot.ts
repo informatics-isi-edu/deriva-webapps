@@ -24,8 +24,8 @@ export type DataConfig = {
 };
 
 export type SelectorDataConfig={
-  name: string;
-  display: string;
+  Name: string;
+  Display: string;
 }
 
 export type SelectorConfig = {
@@ -52,6 +52,8 @@ export type SelectorRequestInfoConfig = {
 export type Plot = {
   plot_type: 'bar' & 'violin' & 'pie' & 'scatter' & 'histogram' & 'heatmap';
   config: PlotConfigConfig;
+  layout: LayoutConfig;
+  grid_layout_config?: GridLayoutConfig;
   traces: Trace[];
   gene_uri_pattern?: string;
   study_uri_pattern?: string;
@@ -132,9 +134,65 @@ export type TraceConfig = {
   legendwidth?: number;
   url_pattern?: string;
   //queryPattern will be deprecated 
-  queryPattern?:string,
+  queryPattern?:string;
   response_format?: 'csv' & 'json';
 };
+
+/**
+ * Breakpoint config
+ */
+export type BreakpointConfig =
+{
+  lg: number; 
+  md: number; 
+  sm: number; 
+  xs: number;
+}
+
+/**
+ * Margin/Padding config
+ */
+export type MarginPaddingConfig =
+{
+  lg: [number, number]; 
+  md: [number, number]; 
+  sm: [number, number]; 
+  xs: [number, number];
+}
+
+/**
+ * Grid Layout config
+ */
+export type GridLayoutConfig = {
+  width: number;
+  auto_size: boolean;
+  position: 'top' & 'bottom';
+  breakpoints: BreakpointConfig;
+  cols:  string | BreakpointConfig;            
+  margin: [number, number] | MarginPaddingConfig;
+  container_padding: [number, number] | MarginPaddingConfig;
+  row_height: number,
+  is_draggable: boolean;
+  is_resizable: boolean;
+};
+
+/**
+ * Layout config for selector
+ */
+export type LayoutConfig = {
+  i: string;
+  x: number;
+  y: number;
+  w: number; 
+  h: number;
+  min_w: number;
+  max_w: number;
+  min_h: number;
+  max_h: number;
+  static: boolean;
+  is_draggable: boolean;
+  is_resizable: boolean;
+}
 
 /**
  * Trace data

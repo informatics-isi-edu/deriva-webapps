@@ -65,7 +65,7 @@ const SelectGrid = ({ selectors, width }: SelectGridProps): JSX.Element => {
                 isHrefOn,
                 ...props
               } = cell;
-
+              console.log({...props});
               if (type === 'dropdown-select') {
                 return (
                   <DropdownSelect

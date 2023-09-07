@@ -46,6 +46,7 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
    * Data that goes into building the chart
    */
   const {
+    dataOptions,
     parsedData,
     selectData,
     selectorData,
@@ -56,6 +57,7 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
     isInitLoading,
     handleCloseModal,
     handleSubmitModal,
+    setSelectorOptionChanged,
   } = useChartData(config);
 
   if (!parsedData || isInitLoading) {
@@ -147,15 +149,18 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
       modalProps.recordsetProps.initialSelectedRows = selectData[i][j].selectedRows;
     }
   }
-  console.log(selectorData);
+  const selectorPlacement=selectorData && Object.keys(selectorData)?.length>0 && 
+  selectorData.gridConfig?.position==='bottom' ? 'column-reverse' : 'column';
+
   return (
     <div className='chart-container'>
       <div className='chart'>
         {selectData && selectData.length > 0 ? (
           <SelectGrid selectors={selectData} width={dynamicStyles.width} />
         ) : null}
-        {selectorData ? (
-          <SelectorsGrid selectorConfig={selectorData} />
+        <div className='selector-plot' style={{display: 'flex', flexDirection: selectorPlacement }}>
+        {selectorData && Object.keys(selectorData)?.length>0 && dataOptions && dataOptions.length>0 ? (
+          <SelectorsGrid selectorData={selectorData} selectorOptions={dataOptions} setSelectorOptionChanged={setSelectorOptionChanged}/>
         ) : null}
         {isParseLoading || isFetchSelected ? (
           <ChaiseSpinner />
@@ -168,6 +173,7 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
             useResizeHandler
           />
         )}
+        </div>
       </div>
       {isModalOpen && modalProps ? (
         <RecordsetModal

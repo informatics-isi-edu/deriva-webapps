@@ -19,11 +19,9 @@ import {
  *
  * @returns
  */
-export const useChartSelectGrid = ({ plot, templateParams, setModalProps, setIsModalOpen }: any) => {
+export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOpen }: any) => {
   const [selectData, setSelectData] = useState<any>(null);
-  const [selectorData, setSelectorData] = useState<any>(null);
   const [isFetchSelected, setIsFetchSelected] = useState<boolean>(false);
-  console.log('inside grid ', plot);
   /**
    * Handles closing the modal.
    */
@@ -236,6 +234,7 @@ export const useChartSelectGrid = ({ plot, templateParams, setModalProps, setIsM
 
         const { uriPattern, valueKey, labelKey, recordsetProps } = requestInfo;
         const patternUri = getPatternUri(uriPattern, templateParams);
+        console.log('different patterns: ',patternUri);
         const headers = patternUri.headers;
         let uri = patternUri.uri;
 
@@ -256,7 +255,6 @@ export const useChartSelectGrid = ({ plot, templateParams, setModalProps, setIsM
           ); // perform the data fetch
           recordsetProps.initialReference = initialReference; // set initial ref
           selectResult.selectedRows = tupleData; // set initial selected rows
-
           if (hrefQueryParam) {
             if (!isMulti) {
               templateParams.$url_parameters[urlParamKey].data = hrefQueryParam;
@@ -336,7 +334,6 @@ export const useChartSelectGrid = ({ plot, templateParams, setModalProps, setIsM
   );
 
   return {
-    selectorData,
     selectData,
     setSelectData,
     fetchSelectData,
