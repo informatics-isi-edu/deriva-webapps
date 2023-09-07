@@ -259,9 +259,9 @@ export const useChartData = (plot: Plot) => {
     () => ({
       $url_parameters: {
         Gene: {
-          // data: {
-          //   NCBI_GeneID: getQueryParam(windowRef.location.href, 'NCBI_GeneID') || 1, // TODO: deal with default value
-          // },
+          data: {
+            NCBI_GeneID: getQueryParam(windowRef.location.href, 'NCBI_GeneID') || 1, // TODO: deal with default value
+          },
         },
         Study: [],
       },
@@ -379,7 +379,7 @@ export const useChartData = (plot: Plot) => {
    * Fetches data from the plot traces in the plot config and returns the data
    */
   const fetchData = useCallback(async () => {
-    console.log('fetchData occurred');
+    // console.log('fetchData occurred');
     // Fulfill promise for plot
     // NOTE: If 1 trace request fails, all requests fail. Should this be addressed?
     const plotResponses: Array<Response> = await Promise.all(
@@ -490,9 +490,6 @@ export const useChartData = (plot: Plot) => {
     fetchData,
     dispatchError,
   ]);
-
-  //   setSelectorOptions(options);
-  // },[plot,templateParams]);
 
   // Effect to fetch data on subsequent changes when different selections are made (when selectData changes)
   useEffect(() => {

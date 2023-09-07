@@ -35,7 +35,6 @@ const SelectorsGrid = ({ selectorData, selectorOptions, setSelectorOptionChanged
     const gridConfig = selectorData.gridConfig;
     const selectorValue = selectorOptions.filter((option: Option) => 
     option.value === selectorData.templateParams?.$control_values[uid].values[valueKey]);
-    console.log(selectorData.templateParams?.$control_values[uid].values[valueKey]);
     const gridProps=gridLayoutConfigMap(gridConfig);
     const layoutObj=selectorData.layout?.map((item: { component: any; })=>({
         i: item?.component,

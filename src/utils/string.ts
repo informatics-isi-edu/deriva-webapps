@@ -154,7 +154,6 @@ export const createLinkWithContextParams = (
 export const getPatternUri = (queryPattern: string, templateParams: any) => {
   const { contextHeaderName } = ConfigService.ERMrest;
   const defaultHeaders = ConfigService.contextHeaderParams;
-  console.log('inside ',queryPattern,templateParams);
   const uri = ConfigService.ERMrest.renderHandlebarsTemplate(queryPattern, templateParams);
   const headers = { [contextHeaderName]: defaultHeaders };
 
