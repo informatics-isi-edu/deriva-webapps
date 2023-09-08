@@ -29,7 +29,7 @@
     "webpack-bundle-analyzer": "^4.5.0"
   },
   "dependencies": {
-    "@isrd-isi-edu/chaise": "0.0.13",
+    "@isrd-isi-edu/chaise": "latest",
     "papaparse": "^5.4.1",
     "plotly.js-cartesian-dist-min": "^2.18.2",
     "react-select": "^5.7.0",
