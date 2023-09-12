@@ -149,8 +149,6 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
       modalProps.recordsetProps.initialSelectedRows = selectData[i][j].selectedRows;
     }
   }
-  const selectorPlacement=selectorData && Object.keys(selectorData)?.length>0 && 
-  selectorData.gridConfig?.position==='bottom' ? 'column-reverse' : 'column';
 
   return (
     <div className='chart-container'>
@@ -158,9 +156,9 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
         {selectData && selectData.length > 0 ? (
           <SelectGrid selectors={selectData} width={dynamicStyles.width} />
         ) : null}
-        <div className='selector-plot' style={{display: 'flex', flexDirection: selectorPlacement }}>
         {selectorData && Object.keys(selectorData)?.length>0 && dataOptions && dataOptions.length>0 ? (
-          <SelectorsGrid selectorData={selectorData} selectorOptions={dataOptions} setSelectorOptionChanged={setSelectorOptionChanged}/>
+          <SelectorsGrid selectorData={selectorData} selectorOptions={dataOptions} 
+          setSelectorOptionChanged={setSelectorOptionChanged} width={dynamicStyles.width}/>
         ) : null}
         {isParseLoading || isFetchSelected ? (
           <ChaiseSpinner />
@@ -174,7 +172,6 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
           />
         )}
         </div>
-      </div>
       {isModalOpen && modalProps ? (
         <RecordsetModal
           recordsetProps={modalProps.recordsetProps}

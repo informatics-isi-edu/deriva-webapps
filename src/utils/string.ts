@@ -293,7 +293,7 @@ export const toCamel = (str: string) =>{
  */
 export const gridLayoutConfigMap = (configObject: any) => {
   if(typeof configObject === 'object'){
-    const newObj: { [key: string]: any } = {};
+    const newObj:any  = {};
     for (const oldKey in configObject) {
       if (configObject.hasOwnProperty(oldKey)) {
         const newKey = toCamel(oldKey);

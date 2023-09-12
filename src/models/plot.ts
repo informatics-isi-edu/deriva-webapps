@@ -180,7 +180,7 @@ export type GridLayoutConfig = {
  * Layout config for selector
  */
 export type LayoutConfig = {
-  i: string;
+  component: any;
   x: number;
   y: number;
   w: number; 

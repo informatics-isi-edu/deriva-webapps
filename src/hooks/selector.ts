@@ -37,9 +37,9 @@ const getDataOptions = async (selectorGridObject: SelectorsGridProps) => {
 
 const changeSelectorData = (configData: any) => {
     const paramKey = configData.selectorConfig?.url_param_key;
-    const uid = configData.selectorConfig.uid;
-    const valueKey = configData.selectorConfig.request_info.value_key;
-    const defaultValue = configData.selectorConfig.request_info.default_value;
+    const uid = configData.selectorConfig?.uid;
+    const valueKey = configData.selectorConfig?.request_info?.value_key;
+    const defaultValue = configData.selectorConfig?.request_info?.default_value;
     configData.templateParams.$control_values={
         [uid]: {
             values: {},

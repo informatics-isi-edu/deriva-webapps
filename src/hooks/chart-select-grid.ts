@@ -234,7 +234,6 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
 
         const { uriPattern, valueKey, labelKey, recordsetProps } = requestInfo;
         const patternUri = getPatternUri(uriPattern, templateParams);
-        console.log('different patterns: ',patternUri);
         const headers = patternUri.headers;
         let uri = patternUri.uri;
 
