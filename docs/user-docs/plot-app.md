@@ -129,4 +129,4 @@ The file [plot-config-sample.js](/config/plot-config-sample.js) contains example
 
 ## Installation
 
-Refer to [installation guide](../docs/user-docs/installation.md).
+Refer to [installation guide](/docs/user-docs/installation.md).
