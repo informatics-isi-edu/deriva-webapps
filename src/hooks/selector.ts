@@ -15,7 +15,12 @@ type SelectorsGridProps = {
     setDataOptions: any;
 };
 
-
+/**
+ * This function retrieves dropdown options from its configuration, 
+ * mapping them into an array of label-value pairs, and returns an array of arrays containing these options.
+ * @param selectorGridObject Selector configuration, template params and setDataOptions state method
+ * @returns array of arrays containing these options
+ */
 const getDataOptions = async (selectorGridObject: SelectorsGridProps) => {
     //TODO: To fetch selector options from url_pattern
     // if (selectorGridObject?.selectorConfig?.request_info?.url_pattern) {
@@ -27,7 +32,7 @@ const getDataOptions = async (selectorGridObject: SelectorsGridProps) => {
     //     ); // perform the data fetch
     //     return { initialReference, tupleData };
     // } else {
-        const allSelectorDataOptions: (Option[] | undefined)[]=[];
+        const allSelectorDataOptions: Option[][]=[];
         selectorGridObject?.selectorConfig?.map((currentConfig)=>{
             const dataOption = currentConfig?.request_info?.data;
             const dropdownOptions: { label: any; value: any; }[] = [];
@@ -41,7 +46,14 @@ const getDataOptions = async (selectorGridObject: SelectorsGridProps) => {
     // }
 }
 
-const changeSelectorData = (configData: any) => {
+/**
+ * It iterates through its selectorConfig for multiple selectors. 
+ * For each configuration, it extracts values for the selector and sets them in $control_values object within configData.templateParams under the selector's uid
+ * and then returns the modified configData.templateParams.
+ * @param configData Selector configuration, template params and setDataOptions state method
+ * @returns modified configData.templateParams
+ */
+const changeSelectorData = (configData: SelectorsGridProps) => {
     configData.selectorConfig.map((currentConfig: SelectorConfig)=>{
         const paramKey = currentConfig?.url_param_key;
         const uid = currentConfig?.uid;
@@ -69,7 +81,13 @@ const changeSelectorData = (configData: any) => {
     })
     return configData.templateParams;
 }
-export const useSelector = (configData: any) => {
+
+/**
+ * Hook function to handle the needed data to be used by the selectors
+ *
+ * @param configData Selector configuration, template params and setDataOptions state method
+ */
+export const useSelector = (configData: SelectorsGridProps) => {
     useEffect(() => {
         changeSelectorData(configData);
         getDataOptions(configData).then((allDataOptions) => {

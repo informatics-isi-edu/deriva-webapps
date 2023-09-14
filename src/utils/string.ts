@@ -279,6 +279,12 @@ export const isDataJSON = (data: any) => {
     return false;
   }
 }
+
+/**
+ * Replace snake_case string to camel case
+ * @param str 
+ * @returns 
+ */
 export const toCamel = (str: string) =>{
   return str.replace(
     /(?!^)_(.)/g,
@@ -287,7 +293,7 @@ export const toCamel = (str: string) =>{
 }
 
 /**
- * 
+ * Converts snake_case keys of an object to camel case
  * @param configObject an object with snake case keys
  * @returns object with the camel case keys
  */

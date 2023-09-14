@@ -1,6 +1,6 @@
 import DropdownSelect from '@isrd-isi-edu/deriva-webapps/src/components/plot/dropdown-select';
 import { Option } from '@isrd-isi-edu/deriva-webapps/src/components/virtualized-select';
-import GridLayout, { Responsive, WidthProvider } from 'react-grid-layout';
+import { Responsive, WidthProvider } from 'react-grid-layout';
 import { gridLayoutConfigMap } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 import '/node_modules/react-resizable/css/styles.css';
 import '/node_modules/react-grid-layout/css/styles.css';
@@ -22,8 +22,20 @@ type SelectorsGridProps = {
     setSelectorOptionChanged: any;
     width: number | string;
 };
+
+//In simple cases a HOC WidthProvider can be used to automatically determine width upon initialization and window resize events.
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
+
+/**
+ * It sets a new value in templateParams.$control_values based on selector, 
+ * triggers the setSelectorOptionChanged function, and returns the option
+ * @param option changed option
+ * @param selectorConfig configuration of the given selector
+ * @param templateParams 
+ * @param setSelectorOptionChanged setState method to indicate the change
+ * @returns 
+ */
 const handleChange = (option: Option, selectorConfig: SelectorConfig, templateParams: PlotTemplateParams, setSelectorOptionChanged: any) => {
     if (option) {
         setSelectorOptionChanged(true);
@@ -41,6 +53,7 @@ const SelectorsGrid = ({ selectorData, selectorOptions, setSelectorOptionChanged
     const uid:string[]=[];
     const valueKey:string[]=[];
     const selectorValue: Option[]=[];
+    //Collect uid's and valueKey's for all selectors
     selectorData.selectorConfig?.map((currentConfig,index)=>{
         const currUid=currentConfig?.uid;
         const currValueKey=currentConfig?.request_info.value_key;
@@ -52,17 +65,17 @@ const SelectorsGrid = ({ selectorData, selectorOptions, setSelectorOptionChanged
             selectorValue.push(selectedOption);
         }
     });
-    const gridConfig = selectorData.gridConfig;
-    const gridProps=gridLayoutConfigMap(gridConfig);
-    const mappedLayoutValues=Object.values(selectorData.layout)?.map((resLayout: any) => 
-    (
+
+    const gridProps=gridLayoutConfigMap(selectorData.gridConfig);
+    //Convert snake_case keys inside different selector's layout to camel case
+    const mappedLayoutValues=Object.values(selectorData.layout)?.map((resLayout: any) => (
         resLayout.map((item: LayoutConfig)=>gridLayoutConfigMap(({
+        //i defines the item on which the given layout will be applied
         i: item?.source_uid,
         ...item,
     })))
     ));
     const layoutObj=Object.fromEntries(Object.entries(selectorData.layout).map(([key,val],index)=>[key,mappedLayoutValues[index]]));
-    console.log(layoutObj,Object.values(layoutObj)[0]);
     return (
         <div className='selectors-grid' style={{ display: 'flex', flex: 1, width: width }}>
         <ResponsiveGridLayout className='grid-layout layout' 
