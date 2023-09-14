@@ -58,7 +58,7 @@ export type Plot = {
   gene_uri_pattern?: string;
   study_uri_pattern?: string;
   plotly?: Plotly;
-  dropdown: SelectorConfig;
+  user_controls: SelectorConfig[]; //NOTE: For now user_controls will be considered of type dropdown only
 };
 
 /**
@@ -180,7 +180,7 @@ export type GridLayoutConfig = {
  * Layout config for selector
  */
 export type LayoutConfig = {
-  component: any;
+  source_uid: any;
   x: number;
   y: number;
   w: number; 

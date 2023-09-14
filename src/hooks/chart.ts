@@ -287,14 +287,14 @@ export const useChartData = (plot: Plot) => {
 
   useEffect(() => {
     setSelectorData({
-      selectorConfig: plot?.dropdown,
+      selectorConfig: plot?.user_controls,
       gridConfig: plot?.grid_layout_config,
       layout: plot?.layout,
       templateParams,
     });
   }, [plot, templateParams]);
   useSelector({
-    selectorConfig: plot?.dropdown,
+    selectorConfig: plot?.user_controls,
     templateParams,
     setDataOptions,
   });
