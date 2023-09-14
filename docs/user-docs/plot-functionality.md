@@ -12,6 +12,9 @@ This document aims to describe the functionality available for each plot type in
      * [Gene](#gene)
      * [Study](#gene)
      * [Group By](#group-by)
+ * [Other Plot Features:](#other-plot-features)
+   * [Plot Responsiveness](#plot-responsiveness)
+   * [Plot data from a file](#plot-data-from-a-file)
 
 
 ### General Configuration
@@ -57,7 +60,9 @@ With selections made, individual studies can also be removed by clicking the "x"
 ##### Group By
 The Group By selector allows for the user to change how the data is grouped in the graph for the current gene and selected studies. Clicking on the input will open a dropdown menu with a list of options. This selector is setup by defining `config.xaxis.group_keys` that the dropdown is populated with. See [plot-functionality.md](/user-docs/plot-functionality.md) for more information.
 
-##### Plot Responsiveness
+### Other Plot Features
+
+#### Plot Responsiveness
 When the screen size is below 1000px( i.e the screen width threshold) the plots that have the legend array being passed into layout object will be displayed horizontally and at the bottom of the plot.  
 - The legend text will be wrapped based on the screen size, ensuring that the width of the legends is limited to a certain value relative to the plot area. This prevents the legends from occupying excessive space and affecting the visibility of the plot along with resizing window handling. 
 - The following is the step function responsible for determining the width of the legend and the wrapping limit: 
@@ -70,18 +75,22 @@ When the screen size is below 1000px( i.e the screen width threshold) the plots 
   - If the number of violins is greater than 30 and the width-to-plot-width ratio is greater than 0.3,
    the legendNames array is modified similarly to the previous step, but using the character limit (i.e 30)
 
-##### Plot data from a file
-- This functionality enables to fetch data for the plot app from a specified file, which can be either in 'csv' or 'json' format. The data will be parsed and presented as a plot based on the content type of the file. To utilize this feature, two parameters can be configured in the config file:
+#### Plot data from a file
+This functionality enables to fetch data for the plot app from a specified file, which can be either in 'csv' or 'json' format. The data will be parsed and presented as a plot based on the content type of the file. To utilize this feature, two parameters can be configured in the config file:
  - `url_pattern`: The URL from which the data will be fetched.
  - `response_format`(optional): It specifies the file type to be used with the url_pattern parameter.
+   -  The file type is expected to be formatted in proper `csv` or `json` format
+   -  For `csv`, there should be a header row of column names first that labels what each value in a row is for
+   -  For `json`, each value should be keyed by the column name
 
-- If the `response_format` doesn't match with the type of file provided by `url_pattern` then following alert warnings can be shown on top of the plot:
+##### Error cases with fetching plot data from files
+If the `response_format` doesn't match with the type of file provided by `url_pattern` then following alert warnings can be shown on top of the plot:
  - `Format of response data from “url_pattern” does not match configuration property “response_format” while trying to parse data as “csv”`
  - `Format of response data from “url_pattern” does not match configuration property “response_format” while trying to parse data as “json”`
 
-- If no `response_format` is provided and the file type in `url_pattern` is other than `json` or `csv` then following alert warning will be shown:
+If no `response_format` is provided and the file type in `url_pattern` is other than `json` or `csv` then following alert warning will be shown:
  - `Invalid format of response data from “url_pattern” while trying to parse data as “json”`
 
-- If any values other than `csv` or `json` is configured for `response_format` then following will be shown:
+If any values other than `csv` or `json` is configured for `response_format` then following will be shown:
  - Alert warning saying that `Invalid value for “response_format”, expected “csv” or “json”`
  - Plot should have no data shown and title "No Data".
