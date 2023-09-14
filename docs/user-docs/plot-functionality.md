@@ -2,7 +2,7 @@
 This document aims to describe the functionality available for each plot type in the plot webapp.
 
 ## Table of Contents:
- * [General Configuration:](#general-configuration)
+ * [General Configuration](#general-configuration)
    * [Markdown Links](#markdown-links)
    * [Legend](#legend)
    * [Graph Click](#graph-click)
@@ -12,7 +12,7 @@ This document aims to describe the functionality available for each plot type in
      * [Gene](#gene)
      * [Study](#gene)
      * [Group By](#group-by)
- * [Other Plot Features:](#other-plot-features)
+ * [Other Plot Features](#other-plot-features)
    * [Plot Responsiveness](#plot-responsiveness)
    * [Plot data from a file](#plot-data-from-a-file)
 
