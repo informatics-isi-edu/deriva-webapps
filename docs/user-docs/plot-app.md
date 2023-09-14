@@ -125,7 +125,7 @@ default template parameters:
 ```
 
 ### Sample plot-config.js (also included in the repo)
-The file [plot-config-sample.js](plot-config-sample.js) contains examples for different plot types, including `violin`, `pie`, `bar`, `histogram`, and `scatter`. More examples can be found in the division repo recipes for rbk dev/staging/production.
+The file [plot-config-sample.js](/config/plot-config-sample.js) contains examples for different plot types, including `violin`, `pie`, `bar`, `histogram`, and `scatter`. More examples can be found in the division repo recipes for rbk dev/staging/production.
 
 ## Installation
 
