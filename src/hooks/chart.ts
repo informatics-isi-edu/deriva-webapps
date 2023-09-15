@@ -1136,6 +1136,40 @@ export const useChartData = (plot: Plot) => {
     }
   }
 
+  const parseGeneralResponse = (trace: Trace, plot: Plot, responseData: ResponseData) => {
+    const result: Partial<TraceConfig> & Partial<PlotlyPlotData> & Partial<ClickableLinks> = {
+      ...trace,
+      type: plot.plot_type,
+      x: [], // x data
+      y: [], // y data
+    };
+
+    const { config } = plot;
+    const { xaxis, yaxis, format_data_x = false, format_data_y = false } = config;
+
+    const x: string[] = [];
+    const y: string[] = [];
+    responseData.forEach((item: any, i: number) => {
+      // Add X data
+      trace?.x_col?.forEach((colName: string) => {
+        const value = getValue(item, colName, xaxis, format_data_x, plot);
+        x.push(value?.toString());
+      });
+
+      // Add Y data
+      trace?.y_col?.forEach((colName: string) => {
+        const value = getValue(item, colName, yaxis, format_data_y, plot);
+        y.push(value?.toString());
+      });
+      
+    });
+    
+    result.x = x;
+    result.y = y;
+
+    return result;
+  }
+
   /**
    * Parses response data obtained for every trace within the plot
    *
@@ -1196,6 +1230,7 @@ export const useChartData = (plot: Plot) => {
    * @returns
    */
   const parseScatterResponse = (trace: Trace, plot: Plot, responseData: ResponseData) => {
+    // NOTE: almost the same as parseGeneralResponse
     const result: Partial<TraceConfig> & Partial<PlotlyPlotData> & Partial<ClickableLinks> = {
       ...trace,
       mode: 'markers',
@@ -1398,6 +1433,58 @@ export const useChartData = (plot: Plot) => {
     return plotlyData;
   };
 
+  /**
+   * Parses response data obtained for every trace within the plot
+   *
+   * @param trace current trace from the plot config
+   * @param plot plot config
+   * @param responseData data received from request to be parsed
+   * @returns
+   */
+  const parseLineResponse = (trace: Trace, plot: Plot, responseData: ResponseData) => {
+    const { config } = plot;
+    const { xaxis, yaxis, format_data_x = false, format_data_y = false } = config;
+
+    const plotlyData: any[] = []
+    // iterate over y_col array since this implies multiple traces for this plot type
+    // TODO: how to configure this to mean something different
+    trace?.y_col?.forEach((colName: string, i: number) => {
+      const plotlyDataObject: Partial<TraceConfig> & Partial<PlotlyPlotData> & PlotResultData = {
+        ...trace,
+        type: plot.plot_type,
+        x: [],
+        y: [],
+        text: []
+      };
+
+      if (trace?.legend) {
+        plotlyDataObject.name = Array.isArray(trace.legend) ? trace.legend[i] : trace.legend;
+      }
+
+      if (trace?.marker) {
+        plotlyDataObject.marker = {}
+        plotlyDataObject.marker.symbol = Array.isArray(trace.marker) ? trace.marker[i] : trace.marker;
+        plotlyDataObject.marker.size = 20;
+      }
+
+      responseData.forEach((item: any) => {
+        // Add the y values for the bar plot
+        // update the trace data if orientation is vertical
+        const yValue = getValue(item, colName, yaxis, format_data_y, plot);
+        plotlyDataObject.y.push(yValue.toString());
+
+        trace?.x_col?.forEach((colName: string) => {
+          const xValue = getValue(item, colName, xaxis, format_data_x, plot);
+          plotlyDataObject.x.push(xValue.toString());
+        });
+      });
+
+      plotlyData.push(plotlyDataObject);
+    });
+
+    return plotlyData;
+  }
+
 
   /**
    * Parses response data obtained for every trace within the plot
@@ -1561,6 +1648,10 @@ export const useChartData = (plot: Plot) => {
           // returns an array of objects similar to PlotlyPlotData
           const barPlotData = parseBarResponse(currTrace, plot, responseData);
           barPlotData.forEach((data: any) => plotlyData.push(data));
+        } else if (plot.plot_type === 'line') {
+          // returns an array of objects similar to PlotlyPlotData
+          const linePlotData = parseLineResponse(currTrace, plot, responseData);
+          linePlotData.forEach((data: any) => plotlyData.push(data));
         } else if (plot.plot_type === 'pie') {
           // returns a single object similar to PlotlyPieData
           plotlyData.push(parsePieResponse(currTrace, plot, responseData));
@@ -1586,6 +1677,9 @@ export const useChartData = (plot: Plot) => {
           const heatmapData = parseHeatmapResponse(currTrace, plot, responseData);
           additionalLayout = { ...heatmapData.layoutParams };
           plotlyData.push(heatmapData.result);
+        } else {
+          // default case for plot types without any specific functionality
+          plotlyData.push(parseGeneralResponse(currTrace, plot, responseData));
         }
       }
       //Otherwise if the type of file is other than csv/json, show an alert warning
