@@ -17,8 +17,8 @@ Each object in the `plots` array can have the following parameters:
 1. `plot_title`: Title to be displayed above the line plot. DEPRECATED, use `plotly.layout.title` instead
 2. `x_axis_label`: Label to be displayed along the x-axis. DEPRECATED, use `plotly.layout.xaxis.title` instead
 3. `y_axis_label`: Label to be displayed along the y-axis. DEPRECATED, use `plotly.layout.yaxis.title` instead
-4. `plot_type`: The type of plot to be displayed i.e `line`, `bar`, `dot`, `area`, `dot-lines`, `pie`,  `histogram-horizontal`, `histogram-vertical`, `violin`.
-5. `config`: the config for the plot
+4. `plot_type`: The type of plot to be displayed i.e `bar`, `pie`, `scatter`, `histogram`, `violin`, and `heatmap`
+6. `config`: the config for the plot
     1. `bargap`: Distance between the bins in the histogram - Only valid for plot type as histogram
     2. `showlegend`: To show the legend or not. DEPRECATED, define in `plotly.layout`
     3. `height`: Height of the plot - DEPRECATED, define in `plotly.layout.height` instead
@@ -60,12 +60,12 @@ Each object in the `plots` array can have the following parameters:
         3. `xaxis.default_all_studies_group`: the `column_name` value from `xaxis.group_keys` array to use as a default when "all studies" is selected on page load
             - takes precedence over `default` property from the list of `group_keys` ONLY when "all studies" is selected
         4. `yaxis.group_key`: similar to x-axis, this matches the `column_name` returned with the data for measuring data on the yaxis
-6. `plotly.config`: the config is ignored if plotly.config is provided. For available options, see the documentation [here](https://plotly.com/javascript/configuration-options/)
+7. `plotly.config`: the config is ignored if plotly.config is provided. For available options, see the documentation [here](https://plotly.com/javascript/configuration-options/)
     1. avoid using `plotly_config`, this property will be DEPRECATED in the future
-7. `plotly.layout`: the `layout` object passed directly to plotly when provided. For available options, see the documentation [here](https://plotly.com/javascript/configuration-options/)
-8. `gene_uri_pattern`: For violin plot only. The url from which the gene data is fetched after applying handlebars templating. This parameter is required to fetch the data for the gene selector and initialize the plot.
-9. `study_uri_pattern`: For violin plot only. The url from which the study data is fetched after applying handlebars templating. This parameter is required to fetch the data for the study selector and display and to initialize the plot.
-10. `traces`: Contains the information about each dataset and how to map that data to plotly.
+8. `plotly.layout`: the `layout` object passed directly to plotly when provided. For available options, see the documentation [here](https://plotly.com/javascript/configuration-options/)
+9. `gene_uri_pattern`: For violin plot only. The url from which the gene data is fetched after applying handlebars templating. This parameter is required to fetch the data for the gene selector and initialize the plot.
+10. `study_uri_pattern`: For violin plot only. The url from which the study data is fetched after applying handlebars templating. This parameter is required to fetch the data for the study selector and display and to initialize the plot.
+11. `traces`: Contains the information about each dataset and how to map that data to plotly.
     1. Properties available to most plot types:
         1. `url_pattern`: The url from which the data has to be fetched
         2. `uri`: The url from which the data has to be fetched. DEPRECATED, use `traces.url_pattern` instead
@@ -88,7 +88,7 @@ Each object in the `plots` array can have the following parameters:
         3. `data_col`: The column name for the values
         4. `legend_col`: An array of column name for the legend to be shown for the respective values
         5. `show_percentage`: To show the percentage or not on slices
-11. `plotlyButtonsToRemove`: The button to be removed shown by plotly by defualt. DEPRECATED, use `plotly.config.modeBarButtonsToRemove` instead
+12. `plotlyButtonsToRemove`: The button to be removed shown by plotly by defualt. DEPRECATED, use `plotly.config.modeBarButtonsToRemove` instead
 
 #### Note
 If any of the above (Presentation or data) values is not mentioned, the app will throw an error. If you don't want to set a value, set it to `null`.
