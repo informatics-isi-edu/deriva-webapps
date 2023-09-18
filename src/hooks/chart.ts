@@ -46,7 +46,7 @@ import {
   invalidJsonAlert
 } from '@isrd-isi-edu/deriva-webapps/src/utils/message-map';
 import useIsFirstRender from '@isrd-isi-edu/chaise/src/hooks/is-first-render';
-import { getQueryParam } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
+import { getQueryParam, getQueryParams } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
 import { ChaiseAlertType } from '@isrd-isi-edu/chaise/src/providers/alerts';
 import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
@@ -386,7 +386,16 @@ export const useChartData = (plot: Plot) => {
     const fetchInitData = async () => {
       console.log('fetch initial occurred');
       setIsInitLoading(true);
-      if (getQueryParam(window.location.href, 'config') === 'study-violin') {
+      // TODO: uncomment the following 5 lines of code to support general query params
+      const allQueryParams = getQueryParams(window.location.href);
+
+      // push query parameters into templating environment
+      Object.keys(allQueryParams).forEach((key: string) => {
+        templateParams.$url_parameters[key] = allQueryParams[key];
+      });
+
+      if (plot.plot_type === 'violin') {
+      // if (getQueryParam(window.location.href, 'config') === 'study-violin') {
         const selectGrid = createStudyViolinSelectGrid(plot); // TODO: change plot.plot_type to study-violin
 
         // selectGrid is a 2D array of selector objects
@@ -1457,15 +1466,22 @@ export const useChartData = (plot: Plot) => {
         text: []
       };
 
-      if (trace?.legend) {
-        plotlyDataObject.name = Array.isArray(trace.legend) ? trace.legend[i] : trace.legend;
+      // use trace.type, then plotly.data.type, then plot_type
+      // TODO: plotly.data support to be added
+      if (trace?.type && Array.isArray(trace.type)) {
+        // TODO: do this for legend, mode, and marker
+        // part of heuristics changes when making assumptions about the data
+        // if (i !== 0 && !trace.type[i]) {
+        //   // throw warning / error
+        // } else {
+          plotlyDataObject.type = trace.type[i];
+        // }
       }
 
-      if (trace?.marker) {
-        plotlyDataObject.marker = {}
-        plotlyDataObject.marker.symbol = Array.isArray(trace.marker) ? trace.marker[i] : trace.marker;
-        plotlyDataObject.marker.size = 20;
-      }
+      // plotly has default values for the following if not defined
+      if (trace?.legend && Array.isArray(trace.legend)) plotlyDataObject.name = trace.legend[i];
+      if (trace?.mode && Array.isArray(trace.mode)) plotlyDataObject.mode = trace.mode[i];
+      if (trace?.marker && Array.isArray(trace.marker)) plotlyDataObject.marker = trace.marker[i];
 
       responseData.forEach((item: any) => {
         // Add the y values for the bar plot
