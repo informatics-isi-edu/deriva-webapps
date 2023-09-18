@@ -1,49 +1,18 @@
 import { forwardRef, memo, ForwardedRef, CSSProperties } from 'react';
 import { VariableSizeList as List, ListOnScrollProps } from 'react-window';
 
-type RowHeadersProps = {
-  /**
-   * top position of row headers
-   */
-  top: number;
-  /**
-   * height of grid cell
-   */
-  cellHeight: number;
-  /**
-   * width of grid cell
-   */
-  cellWidth: number;
-  /**
-   * each row width
-   */
-  width: number;
-  /**
-   * overall height
-   */
-  height: number;
-  /**
-   * number of rows
-   */
-  itemCount: number;
-  /**
-   *  data passed to each row
-   */
-  itemData?: any;
-  /**
-   * on scroll event
-   */
+// Shared common props for row header
+import SharedRowHeaders, { SharedRowHeadersProps } from '@isrd-isi-edu/deriva-webapps/src/components/matrix//shared-row-headers';
+
+type RowHeadersProps = SharedRowHeadersProps & {
   onScroll?: (props: ListOnScrollProps) => any;
 };
 
 /**
  * Virtualized row Header that displays headers as they scroll into the given height
  */
-const RowHeaders = (
-  { top, width, cellHeight, height, itemCount, itemData, onScroll }: RowHeadersProps,
-  ref: ForwardedRef<any>
-): JSX.Element => {
-  const { listData } = itemData;
+const RowHeaders = (props: RowHeadersProps, ref: ForwardedRef<any>): JSX.Element => {
+  const { listData } = props.itemData;
 
   /**
    * Gets item size based on given index
@@ -52,28 +21,30 @@ const RowHeaders = (
    * @param {number} index
    * @returns {number} item size
    */
-  const itemSize = (index: number) => (index < listData.length - 1 ? cellHeight : cellHeight + 15);
+  const itemSize = (index: number) => (index < listData.length - 1 ? props.cellHeight : props.cellHeight + 15);
 
   const rowHeadersStyles: CSSProperties = {
     position: 'absolute',
-    top: top,
+    top: props.top,
   };
 
   return (
-    <List
-      className='grid-row-headers'
-      style={rowHeadersStyles}
-      height={height}
-      itemSize={itemSize} // each row height
-      width={width}
-      itemCount={itemCount}
-      itemData={itemData}
-      onScroll={onScroll}
-      overscanCount={30}
-      ref={ref}
-    >
-      {MemoizedHeader}
-    </List>
+    <SharedRowHeaders {...props}>
+      <List
+        className='grid-row-headers'
+        style={rowHeadersStyles}
+        height={props.height}
+        itemSize={itemSize} // each row height
+        width={props.width}
+        itemCount={props.itemCount}
+        itemData={props.itemData}
+        onScroll={props.onScroll}
+        overscanCount={30}
+        ref={ref}
+      >
+        {MemoizedHeader}
+      </List>
+    </SharedRowHeaders>
   );
 };
 
@@ -87,19 +58,21 @@ type HeaderComponentProps = {
  * Header component for each row
  */
 const HeaderComponent = ({ index, data, style }: HeaderComponentProps): JSX.Element => {
-  const { hoveredRowIndex, setHoveredRowIndex, setHoveredColIndex, searchedRowIndex, setHoveredColID, listData } =
+  const { hoveredRowID, setHoveredRowID, searchedRowID, setHoveredColID, listData } =
     data;
   let link = '';
   let title = '';
+  let id = '';
   if (index < listData.length) {
     const rowData = listData[index][0];
     link = rowData.row.link;
     title = rowData.row.title;
+    id = rowData.row.id;
   }
 
-  let containerClassName = hoveredRowIndex === index ? 'hovered-cell' : 'unhovered-cell';
-  let linkClassName = hoveredRowIndex === index ? 'hovered-header' : 'unhovered-header';
-  if (searchedRowIndex === index) {
+  let containerClassName = hoveredRowID === id ? 'hovered-cell' : 'unhovered-cell';
+  let linkClassName = hoveredRowID === id ? 'hovered-header' : 'unhovered-header';
+  if (searchedRowID === id) {
     containerClassName += ' searched-cell';
     linkClassName += ' searched-cell';
   }
@@ -113,8 +86,7 @@ const HeaderComponent = ({ index, data, style }: HeaderComponentProps): JSX.Elem
       className={`row-header ${containerClassName}`}
       style={style}
       onMouseEnter={() => {
-        setHoveredRowIndex(index);
-        setHoveredColIndex(null);
+        setHoveredRowID(id);
         setHoveredColID(null);
       }}
     >

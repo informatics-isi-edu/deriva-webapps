@@ -1,5 +1,8 @@
 import { memo, forwardRef, ForwardedRef, CSSProperties, useState, useEffect } from 'react';
 
+// Shared common props for column header
+import SharedColumnHeaders, { SharedColumnHeadersProps } from '@isrd-isi-edu/deriva-webapps/src/components/matrix//shared-column-headers';
+
 // Data type used for treeview
 import { ParsedGridCell } from '@isrd-isi-edu/deriva-webapps/src/hooks/matrix';
 import { MatrixTreeDatum } from '@isrd-isi-edu/deriva-webapps/src/hooks/matrix';
@@ -14,31 +17,7 @@ import clsx from 'clsx';
 import Typography from '@mui/material/Typography';
 
 
-type ColumnHeadersProps = {
-  /**
-   * height of grid cell
-   */
-  cellHeight?: number;
-  /**
-   * width of grid cell
-   */
-  cellWidth: number;
-  /**
-   *  height of each column header
-   */
-  height: number;
-  /**
-   * width of all column headers
-   */
-  width: number;
-  /**
-   * number of columns
-   */
-  itemCount: number;
-  /**
-   * data passed to each column
-   */
-  itemData?: any;
+type ColumnHeadersProps = SharedColumnHeadersProps & {
   /**
   *  x hierarchical data passed to each column
   */
@@ -52,10 +31,6 @@ type ColumnHeadersProps = {
    */
   treeNodesMap: TreeNodeMap;
   /**
-   * left position of column
-   */
-  left: number;
-  /**
    * on scroll event
    */
   onScroll?: any;
@@ -64,10 +39,7 @@ type ColumnHeadersProps = {
 /**
  * Virtualized Column Header that displays headers as they scroll into the given width
  */
-const ColumnHeaders = (
-  { left, cellWidth, height, width, itemData, treeData, treeNodes, treeNodesMap, onScroll }: ColumnHeadersProps,
-  ref: ForwardedRef<any>
-): JSX.Element => {
+const ColumnHeaders = (props: ColumnHeadersProps, ref: ForwardedRef<any>): JSX.Element => {
 
   const { 
     searchedColID, 
@@ -75,7 +47,7 @@ const ColumnHeaders = (
     setFilteredGridXData, 
     setVisiableColNodes,
     scrollTreeYIniPos,
-    isScrolling } = itemData;
+    isScrolling } = props.itemData;
 
   const [prevSearched, setPrevSearched] = useState<string | null>(null); // previous searched enrty
   const [expanded, setExpanded] = useState<string[]>([]); // all expanded nodes
@@ -90,12 +62,12 @@ const ColumnHeaders = (
   // style for the whole tree
   const columnTreeHeadersStyles: CSSProperties = {
     position: 'absolute',
-    left: left,
-    height: height,
-    width: width,
+    left: props.left,
+    height: props.height,
+    width: props.width,
     overflow: 'hidden',
     willChange: 'transform',
-    maxHeight: height,
+    maxHeight: props.height,
   };
 
   /**
@@ -130,12 +102,12 @@ const ColumnHeaders = (
 
   // Initialize the dictionary to store relationship of parent and child for tree data
   useEffect(() => {
-    const initialTreeDataDict = treeData.reduce((dict: Record<string, MatrixTreeDatum>, node: MatrixTreeDatum) => {
+    const initialTreeDataDict = props.treeData.reduce((dict: Record<string, MatrixTreeDatum>, node: MatrixTreeDatum) => {
       dict[node.child_id] = node;
       return dict;
     }, {});
     setTreeDataDict(initialTreeDataDict);
-  }, [treeData]);
+  }, [props.treeData]);
 
   /**
    * Refresh visiableRowNodes and filteredGridXData whenever expanded nodes change,
@@ -145,7 +117,7 @@ const ColumnHeaders = (
   useEffect(() => {
     const newSet = new Set<string>();
     // Add all top nodes by default
-    for (const node of treeNodes) {
+    for (const node of props.treeNodes) {
       newSet.add(node.key);
     }
     // Check visibility and add all visiable nodes to the set
@@ -153,7 +125,7 @@ const ColumnHeaders = (
     expanded.forEach(nodeId => {
       const visiable = checkParentChainExist(treeDataDict, nodeId, nodesSet);
       if(visiable){
-        const node = treeNodesMap[nodeId];
+        const node = props.treeNodesMap[nodeId];
         if (node) {
           if (node.children.length > 0) {
             for (const child of node.children) {
@@ -193,66 +165,68 @@ const ColumnHeaders = (
   };
 
   return (
-    <div 
-      className='grid-column-headers'
-      style={columnTreeHeadersStyles}
+    <SharedColumnHeaders {...props}>
+      <div
+        className='grid-column-headers'
+        style={columnTreeHeadersStyles}
       >
 
-      <div 
-        style={{ maxHeight: height, overflow: 'auto'}} 
-        onScroll={onScroll} 
-        ref={ref}>
+        <div
+          style={{ maxHeight: props.height, overflow: 'auto'}} 
+          onScroll={props.onScroll} 
+          ref={ref}>
 
-          <div
-          style={{
-            transformOrigin: 'top left',
-            transform: 'rotate(-90deg)',
-            width: height,
-            marginLeft: 0,
-            marginTop: height,
-          }}>
+            <div
+            style={{
+              transformOrigin: 'top left',
+              transform: 'rotate(-90deg)',
+              width: props.height,
+              marginLeft: 0,
+              marginTop: props.height,
+            }}>
 
-            <TreeView
-              aria-label='rich object'
-              defaultExpanded={['root']}
-              defaultCollapseIcon={<MemoizedMinusSquare cellWidth={cellWidth} iconSize={iconSize}/>}
-              defaultExpandIcon={<MemoizedPlusSquare cellWidth={cellWidth} iconSize={iconSize}/>}
-              defaultEndIcon={<MemoizedCloseSquare cellWidth={cellWidth}/>}
-              expanded={expanded}
-              onNodeToggle={handleToggle}
-              style={{
-                height: 'fit-content',
-                width: 'fit-content',
-                position: 'absolute',
-                /**
-                 * For vertical scrolling function of the horizontal tree, we only want to scroll up. But after using
-                 * transform, there is a blank space at the bottom of the tree. To eliminate the space, we set 
-                 * transformOrigin to 'top left'. Then the initial y position of the tree does not focus on the tree 
-                 * entries but blanks. So we set 'left' attribute to it and use a variable to memorize the position
-                 * of the tree entries, then update it whenever scroll the tree vertically.
-                 */
-                left: -scrollTreeYIniPos, // Adjust the left value based on the desired position
-                /**
-                 * For the highlight alignment issue, we're adding empty cells and headers in the falt column headers.
-                 * But Mui is ignoring the empty tree elements, and we use 'transform' for the tree in column header.
-                 * So we add a paddingBottom attribute as the style of the tree manually. 
-                 */
-                paddingBottom: cellWidth + 15,
-              }}
-              sx={{ overflow: 'clip' }}
-            >
-              <MemoizedRenderTree
-                nodes={treeNodes}
-                data={itemData}
-                cellWidth={cellWidth}
-                treeNodesMap={treeNodesMap}
-                isScrolling={isScrolling}
-              />
-            </TreeView>
+              <TreeView
+                aria-label='rich object'
+                defaultExpanded={['root']}
+                defaultCollapseIcon={<MemoizedMinusSquare cellWidth={props.cellWidth} iconSize={iconSize}/>}
+                defaultExpandIcon={<MemoizedPlusSquare cellWidth={props.cellWidth} iconSize={iconSize}/>}
+                defaultEndIcon={<MemoizedCloseSquare cellWidth={props.cellWidth}/>}
+                expanded={expanded}
+                onNodeToggle={handleToggle}
+                style={{
+                  height: 'fit-content',
+                  width: 'fit-content',
+                  position: 'absolute',
+                  /**
+                   * For vertical scrolling function of the horizontal tree, we only want to scroll up. But after using
+                   * transform, there is a blank space at the bottom of the tree. To eliminate the space, we set 
+                   * transformOrigin to 'top left'. Then the initial y position of the tree does not focus on the tree 
+                   * entries but blanks. So we set 'left' attribute to it and use a variable to memorize the position
+                   * of the tree entries, then update it whenever scroll the tree vertically.
+                   */
+                  left: -scrollTreeYIniPos, // Adjust the left value based on the desired position
+                  /**
+                   * For the highlight alignment issue, we're adding empty cells and headers in the falt column headers.
+                   * But Mui is ignoring the empty tree elements, and we use 'transform' for the tree in column header.
+                   * So we add a paddingBottom attribute as the style of the tree manually. 
+                   */
+                  paddingBottom: props.cellWidth + 15,
+                }}
+                sx={{ overflow: 'clip' }}
+              >
+                <MemoizedRenderTree
+                  nodes={props.treeNodes}
+                  data={props.itemData}
+                  cellWidth={props.cellWidth}
+                  treeNodesMap={props.treeNodesMap}
+                  isScrolling={isScrolling}
+                />
+              </TreeView>
 
-          </div>
+            </div>
+        </div>
       </div>
-    </div>
+    </SharedColumnHeaders>
   );
 };
 
@@ -384,8 +358,7 @@ const MemoizedRenderTree = memo(({ nodes, data, cellWidth, treeNodesMap, isScrol
     searchedColID, 
     hoveredColID,
     setHoveredColID,
-    setHoveredRowID,
-    setHoveredRowIndex } = data;
+    setHoveredRowID } = data;
 
   // style for the background of each entry
   const rowTreeItemOuterBgStyles: CSSProperties = {
@@ -436,7 +409,7 @@ const MemoizedRenderTree = memo(({ nodes, data, cellWidth, treeNodesMap, isScrol
     if(!isScrolling){
       setHoveredColID(nodeId);
       setHoveredRowID(null);
-      setHoveredRowIndex(null);
+      // setHoveredRowIndex(null);
     }
   };
 
@@ -582,15 +555,15 @@ const MemoizedRenderTree = memo(({ nodes, data, cellWidth, treeNodesMap, isScrol
    */
   const renderTree = (nodes: TreeNode[]) => {
     return nodes.map((node) => (
-        <StyledTreeItem 
-          key={node.link} 
-          nodeId={node.key} 
-          label={node.title} 
-          className='MUI-tree'
-          node = {node}
-        >
-          {Array.isArray(node.children) ? renderTree(node.children) : null}
-        </StyledTreeItem>
+      <StyledTreeItem 
+        key={node.link} 
+        nodeId={node.key} 
+        label={node.title} 
+        className='MUI-tree'
+        node = {node}
+      >
+        {Array.isArray(node.children) ? renderTree(node.children) : null}
+      </StyledTreeItem>
     ));
   };
 

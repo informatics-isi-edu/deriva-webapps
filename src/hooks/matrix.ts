@@ -167,26 +167,6 @@ export type GridDataMap = {
      */
     type: 'row' | 'col';
     /**
-     * index on the row or column
-     */
-    index: number;
-  };
-};
-
-/**
- * Grid map data for tree used to search rows and columns
- * Here we need an id to track entry so that it can filter id when search
- */
-export type GridDataTreeMap = {
-  /**
-   * unique identifier for grid row or column
-   */
-  [key: string]: {
-    /**
-     * corresponding type of grid row or column
-     */
-    type: 'row' | 'col';
-    /**
      * id on the row or column
      */
     id: string;
@@ -369,7 +349,6 @@ export type ParsedMatrixData = {
   xTreeNodesMap?: TreeNodeMap;
   legendData: Array<LegendDatum>;
   gridDataMap: GridDataMap;
-  gridDataTreeMap?: GridDataTreeMap;
   options: Array<Option>;
 };
 
@@ -504,13 +483,13 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
   // Create the options and datamap used for the matrix search feature
   const options: Array<Option> = [];
   const gridDataMap: GridDataMap = {};
-  yData.forEach((y: MatrixDatum, row: number) => {
+  yData.forEach((y: MatrixDatum) => {
     options.push({ value: y.id, label: y.title });
-    gridDataMap[y.title.toLowerCase()] = { type: 'row', index: row };
+    gridDataMap[y.title.toLowerCase()] = { type: 'row', id: y.id };
   });
-  xData.forEach((x: MatrixDatum, col: number) => {
+  xData.forEach((x: MatrixDatum) => {
     options.push({ value: x.id, label: x.title });
-    gridDataMap[x.title.toLowerCase()] = { type: 'col', index: col };
+    gridDataMap[x.title.toLowerCase()] = { type: 'col', id: x.id };
   });
 
   /**
@@ -652,15 +631,6 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
   // Add the empty row to the last
   gridData.push(emptyRow);
 
-  // Create the tree datamap used for the matrix search feature
-  const gridDataTreeMap: GridDataTreeMap = {};
-  yData.forEach((y: MatrixDatum) => {
-    gridDataTreeMap[y.title.toLowerCase()] = { type: 'row', id: y.id };
-  });
-  xData.forEach((x: MatrixDatum) => {
-    gridDataTreeMap[x.title.toLowerCase()] = { type: 'col', id: x.id };
-  });
-
   // Return the required data based on whether xTreeData or yTreeData exists
   const parsedData: ParsedMatrixData = {
     gridData,
@@ -673,9 +643,6 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
       xTreeData,
       xTreeNodes,
       xTreeNodesMap,
-    },
-    ... (yTreeData.length > 0 || xTreeData.length > 0) && {
-      gridDataTreeMap,
     },
     legendData,
     gridDataMap,

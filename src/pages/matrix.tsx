@@ -12,7 +12,6 @@ import VirtualizedGrid from '@isrd-isi-edu/deriva-webapps/src/components/matrix/
 import SearchBar from '@isrd-isi-edu/deriva-webapps/src/components/search-input';
 import VirtualizedSelect from '@isrd-isi-edu/deriva-webapps/src/components/virtualized-select';
 import DisplayValue from '@isrd-isi-edu/chaise/src/components/display-value';
-import VirtualizedTreeGrid from '@isrd-isi-edu/deriva-webapps/src/components/matrix/virtualized-tree-grid';
 
 // hooks
 import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
@@ -63,7 +62,7 @@ const MatrixApp = (): JSX.Element => {
     return <ChaiseSpinner />;
   }
 
-  const { gridDataMap, gridDataTreeMap, gridData, legendData, options, 
+  const { gridDataMap, gridData, legendData, options, 
     yTreeData, yTreeNodes, yTreeNodesMap, xTreeData, xTreeNodes, xTreeNodesMap } = matrixData;
 
   /**
@@ -113,44 +112,18 @@ const MatrixApp = (): JSX.Element => {
     if (!currInput) {
       return;
     }
-    // If the tree data is given to matrix, then search item by id
-    if(gridDataTreeMap){
-      if(!gridDataTreeMap[currInput.toLowerCase()]){
-        showNoResults();
-        return;
-      }
 
-      const selected = gridDataTreeMap[currInput.toLowerCase()];
-      const selectedBasic = gridDataMap[currInput.toLowerCase()];
-      if (selected.type === 'row') {
-        if(yTreeData){
-          gridRef.current.searchRow(selected.id);
-        }else{
-          gridRef.current.searchRowIndex(selectedBasic.index);
-        }
-      } else if (selected.type === 'col') {
-        if(xTreeData){
-          gridRef.current.searchCol(selected.id);
-        }else{
-          gridRef.current.searchColIndex(selectedBasic.index);
-        }
-      }
-
-    // If there is no tree data, then search item by index
-    }else{
-      if (!gridDataMap[currInput.toLowerCase()]) {
-        showNoResults();
-        return;
-      }
-  
-      const selected = gridDataMap[currInput.toLowerCase()];
-      if (selected.type === 'row') {
-        gridRef.current.searchRow(selected.index);
-      } else if (selected.type === 'col') {
-        gridRef.current.searchCol(selected.index);
-      }
+    if(!gridDataMap[currInput.toLowerCase()]){
+      showNoResults();
+      return;
     }
-    
+
+    const selected = gridDataMap[currInput.toLowerCase()];
+    if (selected.type === 'row') {
+      gridRef.current.searchRow(selected.id);
+    } else if (selected.type === 'col') {
+      gridRef.current.searchCol(selected.id);
+    }
   };
 
   /**
@@ -286,38 +259,23 @@ const MatrixApp = (): JSX.Element => {
           </div>
         </div>
         <div className='matrix-container'>
-          {/* If any of tree data is given, show the Tree Grid instead of flat one */}
-          {yTreeData || xTreeData ? (
-            <VirtualizedTreeGrid
-              ref={gridRef}
-              gridHeight={gridHeight}
-              gridWidth={gridWidth}
-              rowHeaderWidth={rowHeaderWidth}
-              columnHeaderHeight={colHeaderHeight}
-              cellHeight={cellHeight}
-              cellWidth={cellWidth}
-              data={gridData}
-              yTree={yTreeData}
-              yTreeNodes={yTreeNodes}
-              yTreeNodesMap={yTreeNodesMap}
-              xTree={xTreeData}
-              xTreeNodes={xTreeNodes}
-              xTreeNodesMap={xTreeNodesMap}
-              colorScale={colorScaleMap}
-            />
-          ) : (
-            <VirtualizedGrid
-              ref={gridRef}
-              gridHeight={gridHeight}
-              gridWidth={gridWidth}
-              rowHeaderWidth={rowHeaderWidth}
-              columnHeaderHeight={colHeaderHeight}
-              cellHeight={cellHeight}
-              cellWidth={cellWidth}
-              data={gridData}
-              colorScale={colorScaleMap}
-            />
-          )}
+          <VirtualizedGrid
+            ref={gridRef}
+            gridHeight={gridHeight}
+            gridWidth={gridWidth}
+            rowHeaderWidth={rowHeaderWidth}
+            columnHeaderHeight={colHeaderHeight}
+            cellHeight={cellHeight}
+            cellWidth={cellWidth}
+            data={gridData}
+            yTree={yTreeData}
+            yTreeNodes={yTreeNodes}
+            yTreeNodesMap={yTreeNodesMap}
+            xTree={xTreeData}
+            xTreeNodes={xTreeNodes}
+            xTreeNodesMap={xTreeNodesMap}
+            colorScale={colorScaleMap}
+          />
           <Legend
             width={legendWidth}
             height={legendHeight}
