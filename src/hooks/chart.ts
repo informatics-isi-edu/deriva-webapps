@@ -747,6 +747,38 @@ export const useChartData = (plot: Plot) => {
     result.layout.autoresize = true;
   };
 
+  const initializePlotlyDataObject = (
+    trace: Trace, 
+    plotType: Plot['plot_type'],
+    i: number
+  ): Partial<TraceConfig> & Partial<PlotlyPlotData> & PlotResultData & ClickableLinks=> {
+    const dataObject: Partial<TraceConfig> & Partial<PlotlyPlotData> & PlotResultData & ClickableLinks = {
+      ...trace,
+      type: plotType,
+      x: [],
+      y: [],
+      text: [],
+      legend_clickable_links: [], // array of links for when clicking legend
+      graphic_clickable_links: [], // array of links for when clicking graph
+    };
+    if (trace?.type && Array.isArray(trace.type) && trace.type[i]) {
+      // TODO: do this for legend, mode, and marker
+      // part of heuristics changes when making assumptions about the data
+      // if (i !== 0 && !trace.type[i]) {
+      //   // throw warning / error
+      // } else {
+        dataObject.type = trace.type[i];
+      // }
+    }
+
+    // plotly has default values for the following if not defined
+    if (trace?.legend && Array.isArray(trace.legend) && trace.legend[i]) dataObject.name = trace.legend[i];
+    if (trace?.mode && Array.isArray(trace.mode) && trace.mode[i]) dataObject.mode = trace.mode[i];
+    if (trace?.marker && Array.isArray(trace.marker) && trace.marker[i]) dataObject.marker = trace.marker[i];
+
+    return dataObject;
+  }
+
   /**
    * Parses response data obtained for every trace within the plot
    *
@@ -1360,17 +1392,9 @@ export const useChartData = (plot: Plot) => {
       // iterate over x_col array since this implies multiple traces when in this orientation
       // TODO: how to configure this to mean something different
       trace?.x_col?.forEach((colName: string, i: number) => {
-        const plotlyDataObject: Partial<TraceConfig> & Partial<PlotlyPlotData> & PlotResultData & ClickableLinks = {
-          ...trace,
-          type: plot.plot_type,
-          textposition: 'outside', // position of bar values
-          hoverinfo: 'text', // value to show on hover of a bar
-          x: [], // x data
-          y: [], // y data
-          text: [], // text data
-          legend_clickable_links: [], // array of links for when clicking legend
-          graphic_clickable_links: [], // array of links for when clicking graph
-        };
+        const plotlyDataObject = initializePlotlyDataObject(trace, plot.plot_type, i);
+        plotlyDataObject.textposition = 'outside'; // position of bar values
+        plotlyDataObject.hoverinfo = 'text'; // value to show on hover of a bar
 
         // item is each row returned from trace.uri
         responseData.forEach((item: any) => {
@@ -1402,17 +1426,9 @@ export const useChartData = (plot: Plot) => {
     } else {
       // default is vertical
       trace?.y_col?.forEach((colName: string, i: number) => {
-        const plotlyDataObject: Partial<TraceConfig> & Partial<PlotlyPlotData> & PlotResultData & ClickableLinks = {
-          ...trace,
-          type: plot.plot_type,
-          textposition: 'outside', // position of bar values
-          hoverinfo: 'text', // value to show on hover of a bar
-          x: [], // x data
-          y: [], // y data
-          text: [], // text data
-          legend_clickable_links: [], // array of links for when clicking legend
-          graphic_clickable_links: [], // array of links for when clicking graph
-        };
+        const plotlyDataObject = initializePlotlyDataObject(trace, plot.plot_type, i);
+        plotlyDataObject.textposition = 'outside'; // position of bar values
+        plotlyDataObject.hoverinfo = 'text'; // value to show on hover of a bar
 
         responseData.forEach((item: any) => {
           // Add the y values for the bar plot
@@ -1458,30 +1474,7 @@ export const useChartData = (plot: Plot) => {
     // iterate over y_col array since this implies multiple traces for this plot type
     // TODO: how to configure this to mean something different
     trace?.y_col?.forEach((colName: string, i: number) => {
-      const plotlyDataObject: Partial<TraceConfig> & Partial<PlotlyPlotData> & PlotResultData = {
-        ...trace,
-        type: plot.plot_type,
-        x: [],
-        y: [],
-        text: []
-      };
-
-      // use trace.type, then plotly.data.type, then plot_type
-      // TODO: plotly.data support to be added
-      if (trace?.type && Array.isArray(trace.type) && trace.type[i]) {
-        // TODO: do this for legend, mode, and marker
-        // part of heuristics changes when making assumptions about the data
-        // if (i !== 0 && !trace.type[i]) {
-        //   // throw warning / error
-        // } else {
-          plotlyDataObject.type = trace.type[i];
-        // }
-      }
-
-      // plotly has default values for the following if not defined
-      if (trace?.legend && Array.isArray(trace.legend) && trace.legend[i]) plotlyDataObject.name = trace.legend[i];
-      if (trace?.mode && Array.isArray(trace.mode) && trace.mode[i]) plotlyDataObject.mode = trace.mode[i];
-      if (trace?.marker && Array.isArray(trace.marker) && trace.marker[i]) plotlyDataObject.marker = trace.marker[i];
+      const plotlyDataObject = initializePlotlyDataObject(trace, plot.plot_type, i)
 
       responseData.forEach((item: any) => {
         // Add the y values for the bar plot
