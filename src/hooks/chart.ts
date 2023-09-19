@@ -1468,7 +1468,7 @@ export const useChartData = (plot: Plot) => {
 
       // use trace.type, then plotly.data.type, then plot_type
       // TODO: plotly.data support to be added
-      if (trace?.type && Array.isArray(trace.type)) {
+      if (trace?.type && Array.isArray(trace.type) && trace.type[i]) {
         // TODO: do this for legend, mode, and marker
         // part of heuristics changes when making assumptions about the data
         // if (i !== 0 && !trace.type[i]) {
@@ -1479,9 +1479,9 @@ export const useChartData = (plot: Plot) => {
       }
 
       // plotly has default values for the following if not defined
-      if (trace?.legend && Array.isArray(trace.legend)) plotlyDataObject.name = trace.legend[i];
-      if (trace?.mode && Array.isArray(trace.mode)) plotlyDataObject.mode = trace.mode[i];
-      if (trace?.marker && Array.isArray(trace.marker)) plotlyDataObject.marker = trace.marker[i];
+      if (trace?.legend && Array.isArray(trace.legend) && trace.legend[i]) plotlyDataObject.name = trace.legend[i];
+      if (trace?.mode && Array.isArray(trace.mode) && trace.mode[i]) plotlyDataObject.mode = trace.mode[i];
+      if (trace?.marker && Array.isArray(trace.marker) && trace.marker[i]) plotlyDataObject.marker = trace.marker[i];
 
       responseData.forEach((item: any) => {
         // Add the y values for the bar plot
