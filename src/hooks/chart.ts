@@ -386,7 +386,6 @@ export const useChartData = (plot: Plot) => {
     const fetchInitData = async () => {
       console.log('fetch initial occurred');
       setIsInitLoading(true);
-      // TODO: uncomment the following 5 lines of code to support general query params
       const allQueryParams = getQueryParams(window.location.href);
 
       // push query parameters into templating environment
@@ -395,8 +394,7 @@ export const useChartData = (plot: Plot) => {
       });
 
       if (plot.plot_type === 'violin') {
-      // if (getQueryParam(window.location.href, 'config') === 'study-violin') {
-        const selectGrid = createStudyViolinSelectGrid(plot); // TODO: change plot.plot_type to study-violin
+        const selectGrid = createStudyViolinSelectGrid(plot);
 
         // selectGrid is a 2D array of selector objects
         // TODO: add proper typing once *SelectData objects are typed properly
