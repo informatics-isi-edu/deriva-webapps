@@ -39,11 +39,9 @@ import {
 
 } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 import {
-  invalidResponseFormatAlert,
-  invalidDataAlert,
-  invalidKeyAlert,
-  invalidCsvAlert,
-  invalidJsonAlert
+  invalidCsvAlert, invalidDataAlert, invalidJsonAlert, invalidKeyAlert, invalidResponseFormatAlert,
+  emptyDataColArrayAlert, emptyXColArrayAlert, emptyYColArrayAlert, incompatibleColArraysAlert,
+  noColumnsDefinedAlert, xColOnlyAlert, yColOnlyAlert, xYColsNotAnArrayAlert
 } from '@isrd-isi-edu/deriva-webapps/src/utils/message-map';
 import useIsFirstRender from '@isrd-isi-edu/chaise/src/hooks/is-first-render';
 import { getQueryParam, getQueryParams } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
@@ -746,15 +744,15 @@ export const useChartData = (plot: Plot) => {
   };
 
   const initializePlotlyDataObject = (
-    trace: Trace, 
-    plotType: Plot['plot_type'],
+    trace: Trace,
     i: number
-  ): Partial<TraceConfig> & Partial<PlotlyPlotData> & PlotResultData & ClickableLinks=> {
+  ): Partial<TraceConfig> & Partial<PlotlyPlotData> & PlotResultData & ClickableLinks => {
     const dataObject: Partial<TraceConfig> & Partial<PlotlyPlotData> & PlotResultData & ClickableLinks = {
       ...trace,
-      type: plotType,
+      type: plot.plot_type,
       x: [],
       y: [],
+      values: [], // used for pie charts and other 1D plots
       text: [],
       legend_clickable_links: [], // array of links for when clicking legend
       graphic_clickable_links: [], // array of links for when clicking graph
@@ -765,7 +763,7 @@ export const useChartData = (plot: Plot) => {
       // if (i !== 0 && !trace.type[i]) {
       //   // throw warning / error
       // } else {
-        dataObject.type = trace.type[i];
+      dataObject.type = trace.type[i];
       // }
     }
 
@@ -1175,38 +1173,112 @@ export const useChartData = (plot: Plot) => {
     }
   }
 
-  const parseGeneralResponse = (trace: Trace, plot: Plot, responseData: ResponseData) => {
-    const result: Partial<TraceConfig> & Partial<PlotlyPlotData> & Partial<ClickableLinks> = {
-      ...trace,
-      type: plot.plot_type,
-      x: [], // x data
-      y: [], // y data
-    };
+  const validateDataXYCol = (trace: Trace): string | boolean => {
+    // Show warning if no data_col, x_col, or y_col
+    if (!trace.data_col && (!trace.x_col || !trace.y_col)) {
+      let noColumnAlertMessage = noColumnsDefinedAlert;
 
+      if (!trace.x_col && trace.y_col) {
+        // x_col error
+        noColumnAlertMessage = yColOnlyAlert;
+      } else if (trace.x_col && !trace.y_col) {
+        // y_col error
+        noColumnAlertMessage = xColOnlyAlert;
+      }
+
+      return noColumnAlertMessage;
+    }
+
+    // data_col is defined but empty
+    if (Array.isArray(trace.data_col) && trace.data_col.length === 0) return emptyDataColArrayAlert;
+    if (!Array.isArray(trace.x_col) || !Array.isArray(trace.y_col)) return xYColsNotAnArrayAlert;
+
+    if (Array.isArray(trace.x_col) && trace.x_col.length === 0) return emptyXColArrayAlert;
+    if (Array.isArray(trace.y_col) && trace.y_col.length === 0) return emptyYColArrayAlert;
+
+    // if both arrays are size > 1 and x_col.length !== y_col.length, show a warning to user that data is inconsistent
+    if ((trace.x_col?.length && trace.x_col?.length > 1) &&
+      (trace.y_col?.length && trace.y_col?.length > 1) &&
+      (trace.x_col?.length !== trace.y_col?.length)) {
+      return incompatibleColArraysAlert;
+    }
+
+    return true;
+  }
+
+  /**
+   * 
+   * @param trace current trace object in plot config
+   * @param responseData response data after parsing into a format we expect
+   * @returns 
+   */
+  const parseGeneralResponse = (trace: Trace, responseData: ResponseData) => {
     const { config } = plot;
-    const { xaxis, yaxis, format_data_x = false, format_data_y = false } = config;
+    const { xaxis, yaxis, format_data_x = false, format_data_y = false, format_data = false } = config;
 
-    const x: string[] = [];
-    const y: string[] = [];
-    responseData.forEach((item: any, i: number) => {
-      // Add X data
-      trace?.x_col?.forEach((colName: string) => {
-        const value = getValue(item, colName, xaxis, format_data_x, plot);
-        x.push(value?.toString());
-      });
+    // do we have multiple x or multiple y?
+    // x_col and y_col should be the same sized array
+    //   - if one array is size 1 and the other size N,
+    //     duplicate value in array of size 1 to be an array of size N with value N times
 
-      // Add Y data
-      trace?.y_col?.forEach((colName: string) => {
-        const value = getValue(item, colName, yaxis, format_data_y, plot);
-        y.push(value?.toString());
-      });
-      
-    });
-    
-    result.x = x;
-    result.y = y;
+    const isValid = validateDataXYCol(trace);
+    if (typeof isValid === 'string') {
+      alertFunctions.addAlert(isValid, ChaiseAlertType.WARNING);
+      return;
+    }
 
-    return result;
+    // Either data_col is defined (a string or nonempty array) OR
+    //   x_col and y_col are defined (non empty arrays)
+    //   prefer x_col/y_col to data_col
+
+    let numberPlotTraces = 1;
+    let data_colIsArray = false;
+    // fix x_col and y_col to be same size
+    // if only 1 x_col value, copy that value so x_col and y_col arrays are same size
+    if (trace.x_col?.length === 1 && (trace.y_col?.length && trace.y_col?.length > 1)) {
+      for (let i = 1; i < trace.y_col.length; i++) trace.x_col[i] = trace.x_col[0];
+      numberPlotTraces = trace.y_col.length;
+    } else if (trace.y_col?.length === 1 && (trace.x_col?.length && trace.x_col?.length > 1)) {
+      for (let i = 1; i < trace.x_col.length; i++) trace.y_col[i] = trace.y_col[0];
+      numberPlotTraces = trace.x_col.length;
+    } else if (Array.isArray(trace.data_col)) {
+      numberPlotTraces = trace.data_col.length;
+      data_colIsArray = true;
+    } // else { both are length 1 so do nothing }
+
+    // TODO: fix trace.type, trace.mode, trace.markers similar to above
+
+    const plotlyData: any[] = []
+    for (let j = 0; j < numberPlotTraces; j++) {
+      if (trace.x_col && trace.y_col) {
+        const x_col = trace.x_col[j];
+        const y_col = trace.x_col[j];
+        const plotlyDataObject = initializePlotlyDataObject(trace, j)
+
+        responseData.forEach((item: any) => {
+          const xValue = getValue(item, x_col, xaxis, format_data_x, plot);
+          plotlyDataObject.x.push(xValue.toString());
+
+          const yValue = getValue(item, y_col, yaxis, format_data_y, plot);
+          plotlyDataObject.y.push(yValue.toString());
+        });
+
+        plotlyData.push(plotlyDataObject);
+      } else {
+        // use data_col instead
+        if (trace.data_col) {
+          const data_col = Array.isArray(trace.data_col) ? trace.data_col[j] : trace.data_col;
+          const plotlyDataObject = initializePlotlyDataObject(trace, j)
+
+          responseData.forEach((item: any) => {
+            const value = getValue(item, data_col, undefined, format_data, plot);
+            if (Array.isArray(plotlyDataObject.values)) plotlyDataObject.values.push(value);
+          });
+        }        
+      }
+    }
+
+    return plotlyData;
   }
 
   /**
@@ -1390,7 +1462,7 @@ export const useChartData = (plot: Plot) => {
       // iterate over x_col array since this implies multiple traces when in this orientation
       // TODO: how to configure this to mean something different
       trace?.x_col?.forEach((colName: string, i: number) => {
-        const plotlyDataObject = initializePlotlyDataObject(trace, plot.plot_type, i);
+        const plotlyDataObject = initializePlotlyDataObject(trace, i);
         plotlyDataObject.textposition = 'outside'; // position of bar values
         plotlyDataObject.hoverinfo = 'text'; // value to show on hover of a bar
 
@@ -1424,7 +1496,7 @@ export const useChartData = (plot: Plot) => {
     } else {
       // default is vertical
       trace?.y_col?.forEach((colName: string, i: number) => {
-        const plotlyDataObject = initializePlotlyDataObject(trace, plot.plot_type, i);
+        const plotlyDataObject = initializePlotlyDataObject(trace, i);
         plotlyDataObject.textposition = 'outside'; // position of bar values
         plotlyDataObject.hoverinfo = 'text'; // value to show on hover of a bar
 
@@ -1472,7 +1544,7 @@ export const useChartData = (plot: Plot) => {
     // iterate over y_col array since this implies multiple traces for this plot type
     // TODO: how to configure this to mean something different
     trace?.y_col?.forEach((colName: string, i: number) => {
-      const plotlyDataObject = initializePlotlyDataObject(trace, plot.plot_type, i)
+      const plotlyDataObject = initializePlotlyDataObject(trace, i);
 
       responseData.forEach((item: any) => {
         // Add the y values for the bar plot
@@ -1580,77 +1652,103 @@ export const useChartData = (plot: Plot) => {
   }
 
   /**
-  * Parses data for the unpackedResponses for every plot based on its type
-  *
-  * @param plot configs for a specific plot
-  * @param unpackedResponses response data
+  * Parses the data for the response objects for every plot based on its type
   * @returns plotly data to be inserted into props
   */
-  const parsePlotData = (
-    plot: Plot,
-    unpackedResponses: ResponseData[],
-    selectDataGrid: any,
-  ) => {
+  const parsePlotData = () => {
     const result: any = { data: [] };
+
     result.config = { ...plot?.plotly?.config };
     let hovertemplate_display_pattern;
+    let additionalLayout = {};
+
+    // NOTE: width and height max are set in dynamic styles of chart-with-effect.tsx
     result.layout = {
       ...plot.plotly?.layout,
       width: undefined, // undefined to allow for responsive layout
       height: undefined, // undefined to allow for responsive layout
     };
-    // NOTE: width and height max are set in dynamic styles of chart-with-effect.tsx
 
-    // Add all plot "traces" to data array based on plot type
-    let additionalLayout = {};
-    // multiple unpackedResponses means multiple trace objects in plot.traces
-    // TODO: this data should be combined together in some way and not be treated as separate traces in plotly
-    //     - how do we configure this for responseA[] union responseB[]
-    //     - configure for separate traces in same plot
     // array of plotly.data objects
     const plotlyData: any[] = [];
-    //CHECK: Flag to set if we want to show specific invalid configuration alerts. If it's false general alert will be shown.
+    // This boolean is used to set if we want to show specific invalid configuration alerts (bootstrap alerts). If it's false, global error handler will be used (modal popup)
     let showAlert = false;
-    //If the plot has multiple traces, multiTrace will be set to true
-    const multiTrace = unpackedResponses.length > 1;
-    result.data = unpackedResponses.map((responseData: ResponseData, index: number) => {
+    // multiple data objects means multiple trace objects in plot.traces
+    // data is an array of response objects
+    // If the plot data object has multiple objects in the traces array, multiTrace will be set to true
+    const multiTrace = data.length > 1;
+
+    // Add all plot "traces" to data array based on plot type
+    result.data = data.map((responseData: ResponseData, index: number) => {
       const currTrace = plot.traces[index];
-      //To add trace number against the alert message if multiple traces are given for a plot
+      const isResponseJson = isDataJSON(responseData);
+
+      // To add trace number against the alert message if multiple traces are given for a plot
       const alertMsg = multiTrace ? `Trace ${index + 1}: ` : '';
       hovertemplate_display_pattern = currTrace.hovertemplate_display_pattern; //use trace info
-      const isResponseJson = isDataJSON(responseData);
-      //If the response_format is configured then check the format against type of file and parse the data accordingly
+
+      // If the response_format is configured then check the format against type of file and parse the data accordingly
       if (responseData && currTrace.response_format) {
-        //If the given format is not from the allowed types then show an alert warning
         if (!(validFileTypes.includes(currTrace.response_format)) && !alertFunctions.alerts.some(
           (alert) => alert.message.includes(invalidResponseFormatAlert))) {
+          // If the given format is not from the allowed types then show an alert warning
           alertFunctions.addAlert(alertMsg + invalidResponseFormatAlert, ChaiseAlertType.WARNING);
-        }
-        //If the given format is csv and the content of file is also of type csv then parse the data using csv parser
-        else if (currTrace.response_format === 'csv' && !isResponseJson) {
+        } else if (currTrace.response_format === 'csv' && !isResponseJson) {
+          // If the given format is csv and the content of file is also of type csv then parse the data using csv parser
           responseData = parseCsvData(responseData?.toString());
-        }
-        //If the given format is json but the type of file is csv then parse the data using csv parser and show an alert warning for wrong configuration
-        else if (currTrace.response_format === 'json' && !isResponseJson) {
+        } else if (currTrace.response_format === 'json' && !isResponseJson) {
+          // If the given format is json but the type of file is csv then parse the data using csv parser and show an alert warning for wrong configuration
           responseData = parseCsvData(responseData?.toString());
           if (!alertFunctions.alerts.some((alert) => alert.message.includes(alertMsg + invalidJsonAlert))) {
             showAlert = true;
             alertFunctions.addAlert(alertMsg + invalidJsonAlert, ChaiseAlertType.WARNING);
           }
-        }
-        //If the given format is csv but the type of file is json then use the data as is and show an alert warning for wrong configuration
-        else if ((currTrace.response_format === 'csv' && isResponseJson)) {
+        } else if ((currTrace.response_format === 'csv' && isResponseJson)) {
+          // If the given format is csv but the type of file is json then use the data as is and show an alert warning for wrong configuration
           if (!alertFunctions.alerts.some((alert) => alert.message.includes(alertMsg + invalidCsvAlert))) {
             showAlert = true;
             alertFunctions.addAlert(alertMsg + invalidCsvAlert, ChaiseAlertType.WARNING);
           }
         }
       }
+
+      // If response_format is not defined, and the response object is NOT json, assume it is CSV and try to parse the data
       if (responseData && currTrace?.response_format === undefined && !isResponseJson) {
         responseData = parseCsvData(responseData?.toString());
       }
-      //If the responseData is succesfully parsed as json/csv then classify and parse as per plot_type
+
+      // If the responseData is succesfully parsed as json/csv, parse the data into a format plotly expects
+      // after initially parsing the data, check the type of the plot and do any extra work to set up plotly for that plot type
       if (responseData?.length >= 1) {
+        // intially parse the data to a general form that plotly expects before handling specific cases
+        const plotData = parseGeneralResponse(currTrace, responseData);
+
+        // error parsing the data
+        if (!plotData) return;
+
+        // TODO: iterate over plotData and see what else needs to be done for each "type + mode combination"
+        // each object in plot data is for displaying data in separate traces in plotly (so we can have multiple bars or bar + lines etc)
+        plotData.forEach((data: any) => {
+          switch (data.type) {
+            // 2D cases
+            case 'bar':
+            case 'scatter':
+            case 'line':
+
+            // 3D cases
+            case 'heatmap':
+            case 'histogram':
+            case 'violin':
+
+            // 1D cases
+            case 'pie':
+            default:
+              break;
+          }
+
+          plotlyData.push(data);
+        })
+
         if (plot.plot_type === 'bar') {
           // returns an array of objects similar to PlotlyPlotData
           const barPlotData = parseBarResponse(currTrace, plot, responseData);
@@ -1674,7 +1772,7 @@ export const useChartData = (plot: Plot) => {
             currTrace,
             plot,
             responseData,
-            selectDataGrid,
+            selectData,
             { width, height },
             templateParams.noData
           );
@@ -1686,16 +1784,15 @@ export const useChartData = (plot: Plot) => {
           plotlyData.push(heatmapData.result);
         } else {
           // default case for plot types without any specific functionality
-          plotlyData.push(parseGeneralResponse(currTrace, plot, responseData));
+          plotlyData.push(parseGeneralResponse(currTrace, responseData));
         }
-      }
-      //Otherwise if the type of file is other than csv/json, show an alert warning
-      else {
-        //If no other alerts are shown then show this alert
+      } else {
+        // Otherwise if the type of file is other than csv/json, show an alert warning
+        // If no other alerts are shown then show this alert
         if (!showAlert && !alertFunctions.alerts.some((alert) => alert.message.includes(alertMsg + invalidDataAlert))) {
           alertFunctions.addAlert(alertMsg + invalidDataAlert, ChaiseAlertType.WARNING);
         }
-        //return empty data
+        // return empty data
         return {};
       }
     });
@@ -1705,8 +1802,9 @@ export const useChartData = (plot: Plot) => {
       templateParams.noData = true;
     }
     updatePlotlyConfig(plot, result); // update the config
-    updatePlotlyLayout(plot, result, additionalLayout, selectDataGrid); // update the layout
-    //If hovertemplate_display_pattern is not configured, set default hover text for plot
+    // updatePlotlyLayout(plot, result, additionalLayout, selectDataGrid); // update the layout
+    updatePlotlyLayout(plot, result, additionalLayout, selectData); // update the layout
+    // If hovertemplate_display_pattern is not configured, set default hover text for plot
     if (!hovertemplate_display_pattern) {
       defaultHoverTemplateDisplay(result); // default hover template
     }
@@ -1717,8 +1815,9 @@ export const useChartData = (plot: Plot) => {
   // Parse data on state changes to data or selectData
   useEffect(() => {
     if (data && !isDataLoading && !isInitLoading && !isFetchSelected) {
-      const parsedPlotData = parsePlotData(plot, data, selectData);
-      setParsedData(parsedPlotData);
+      // const parsedPlotData = parsePlotData(plot, data, selectData);
+      // const parsedPlotData = ;
+      setParsedData(parsePlotData());
       setIsParseLoading(false); // set loading to false after parsing
     }
 
