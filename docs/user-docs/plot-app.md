@@ -17,8 +17,8 @@ Each object in the `plots` array can have the following parameters:
 1. `plot_title`: Title to be displayed above the line plot. DEPRECATED, use `plotly.layout.title` instead
 2. `x_axis_label`: Label to be displayed along the x-axis. DEPRECATED, use `plotly.layout.xaxis.title` instead
 3. `y_axis_label`: Label to be displayed along the y-axis. DEPRECATED, use `plotly.layout.yaxis.title` instead
-4. `plot_type`: The type of plot to be displayed i.e `line`, `bar`, `dot`, `area`, `dot-lines`, `pie`,  `histogram-horizontal`, `histogram-vertical`, `violin`.
-5. `config`: the config for the plot
+4. `plot_type`: The type of plot to be displayed i.e `bar`, `pie`, `scatter`, `histogram`, `violin`, and `heatmap`
+6. `config`: the config for the plot
     1. `bargap`: Distance between the bins in the histogram - Only valid for plot type as histogram
     2. `showlegend`: To show the legend or not. DEPRECATED, define in `plotly.layout`
     3. `height`: Height of the plot - DEPRECATED, define in `plotly.layout.height` instead
@@ -60,12 +60,12 @@ Each object in the `plots` array can have the following parameters:
         3. `xaxis.default_all_studies_group`: the `column_name` value from `xaxis.group_keys` array to use as a default when "all studies" is selected on page load
             - takes precedence over `default` property from the list of `group_keys` ONLY when "all studies" is selected
         4. `yaxis.group_key`: similar to x-axis, this matches the `column_name` returned with the data for measuring data on the yaxis
-6. `plotly.config`: the config is ignored if plotly.config is provided. For available options, see the documentation [here](https://plotly.com/javascript/configuration-options/)
+7. `plotly.config`: the config is ignored if plotly.config is provided. For available options, see the documentation [here](https://plotly.com/javascript/configuration-options/)
     1. avoid using `plotly_config`, this property will be DEPRECATED in the future
-7. `plotly.layout`: the `layout` object passed directly to plotly when provided. For available options, see the documentation [here](https://plotly.com/javascript/configuration-options/)
-8. `gene_uri_pattern`: For violin plot only. The url from which the gene data is fetched after applying handlebars templating. This parameter is required to fetch the data for the gene selector and initialize the plot.
-9. `study_uri_pattern`: For violin plot only. The url from which the study data is fetched after applying handlebars templating. This parameter is required to fetch the data for the study selector and display and to initialize the plot.
-10. `traces`: Contains the information about each dataset and how to map that data to plotly.
+8. `plotly.layout`: the `layout` object passed directly to plotly when provided. For available options, see the documentation [here](https://plotly.com/javascript/configuration-options/)
+9. `gene_uri_pattern`: For violin plot only. The url from which the gene data is fetched after applying handlebars templating. This parameter is required to fetch the data for the gene selector and initialize the plot.
+10. `study_uri_pattern`: For violin plot only. The url from which the study data is fetched after applying handlebars templating. This parameter is required to fetch the data for the study selector and display and to initialize the plot.
+11. `traces`: Contains the information about each dataset and how to map that data to plotly.
     1. Properties available to most plot types:
         1. `url_pattern`: The url from which the data has to be fetched
         2. `uri`: The url from which the data has to be fetched. DEPRECATED, use `traces.url_pattern` instead
@@ -88,8 +88,8 @@ Each object in the `plots` array can have the following parameters:
         3. `data_col`: The column name for the values
         4. `legend_col`: An array of column name for the legend to be shown for the respective values
         5. `show_percentage`: To show the percentage or not on slices
-11. `plotlyButtonsToRemove`: The button to be removed shown by plotly by defualt. DEPRECATED, use `plotly.config.modeBarButtonsToRemove` instead
-12. `user_controls`: Contains information about each user control (data for the control, default value, etc) 
+12. `plotlyButtonsToRemove`: The button to be removed shown by plotly by defualt. DEPRECATED, use `plotly.config.modeBarButtonsToRemove` instead
+13. `user_controls`: Contains information about each user control (data for the control, default value, etc) 
     1. `uid`: Key for referencing this user control; in other configuration properties
     2. `label`: Name to display next to this user control
     3. `type`:  The type of control to display, more info below about control types (NOTE: For now, only type `dropdown` is supported)
@@ -100,7 +100,7 @@ Each object in the `plots` array can have the following parameters:
         3. `default_values`: The initial value(s) to use for this user control on page load
         4. `value_key`: Column to use for templating in queries
         5. `selected_value_pattern`: A pattern string to show in the user control for each selected option
-13. `grid_layout_config`: Properties for responsive grid
+14. `grid_layout_config`: Properties for responsive grid
     1. `width`: Width in pixels, not needed if using responsive grid layout component
     2. `auto_size`: Height grows/shrinks to fit content
     3. `breakpoints`: Map to identify when a different layout configuration should be used based on grid size
@@ -110,7 +110,7 @@ Each object in the `plots` array can have the following parameters:
     7. `row_height`: Height of each row in pixels
     8. `is_draggable`: Controls ability to move all components
     9. `is_resizable`: Controls ability to resize all components
-14. `layout`: Layout for each item that will be placed inside the grid
+15. `layout`: Layout for each item that will be placed inside the grid
     1. `source_uid`: Corresponds to the component key (`uid`) from user_controls (or plots if global layouts),
     2. `x`: Grid index in grid units for the x position, 
     3. `y`: Grid index in grid units for the y position,
@@ -123,6 +123,7 @@ Each object in the `plots` array can have the following parameters:
     10. `max_w`(Optional): Max width in grid units,
     11. `min_h`(Optional): Min height in grid units,
     12. `max_h`(Optional): Max height in grid units
+
 #### Note
 If any of the above (Presentation or data) values is not mentioned, the app will throw an error. If you don't want to set a value, set it to `null`.
 
@@ -158,8 +159,8 @@ default template parameters:
 ```
 
 ### Sample plot-config.js (also included in the repo)
-The file [plot-config-sample.js](plot-config-sample.js) contains examples for different plot types, including `violin`, `pie`, `bar`, `histogram`, and `scatter`. More examples can be found in the division repo recipes for rbk dev/staging/production.
+The file [plot-config-sample.js](/config/plot-config-sample.js) contains examples for different plot types, including `violin`, `pie`, `bar`, `histogram`, and `scatter`. More examples can be found in the division repo recipes for rbk dev/staging/production.
 
 ## Installation
 
-Refer to [installation guide](../docs/user-docs/installation.md).
+Refer to [installation guide](/docs/user-docs/installation.md).
