@@ -49,7 +49,7 @@ const handleChange = (option: Option, userControlConfig: UserControlConfig, temp
 };
 
 
-const SelectorsGrid = ({ userControlData, selectorOptions, setSelectorOptionChanged, width }: UserControlsGridProps): JSX.Element => {
+const UserControlsGrid = ({ userControlData, selectorOptions, setSelectorOptionChanged, width }: UserControlsGridProps): JSX.Element => {
     const uid: string[] = [];
     const valueKey: string[] = [];
     const selectorValue: Option[] = [];
@@ -76,7 +76,7 @@ const SelectorsGrid = ({ userControlData, selectorOptions, setSelectorOptionChan
     ));
     const layoutObj = Object.fromEntries(Object.entries(userControlData.layout).map(([key, val], index) => [key, mappedLayoutValues[index]]));
     return (
-        <div className='selectors-grid' style={{ display: 'flex', flex: 1, width: width }}>
+        <div className='selectors-grid' style={{ display: 'flex', flex: '0 1 0%', width: gridProps.width || width }}>
             <ResponsiveGridLayout className='grid-layout layout'
                 layouts={layoutObj}
                 {...gridProps}
@@ -101,4 +101,4 @@ const SelectorsGrid = ({ userControlData, selectorOptions, setSelectorOptionChan
 
 };
 
-export default SelectorsGrid;
+export default UserControlsGrid;

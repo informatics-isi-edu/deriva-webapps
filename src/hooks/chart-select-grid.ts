@@ -19,7 +19,7 @@ import {
  *
  * @returns
  */
-export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOpen }: any) => {
+export const useChartControlsGrid = ({ templateParams, setModalProps, setIsModalOpen }: any) => {
   const [selectData, setSelectData] = useState<any>(null);
   const [isFetchSelected, setIsFetchSelected] = useState<boolean>(false);
   /**

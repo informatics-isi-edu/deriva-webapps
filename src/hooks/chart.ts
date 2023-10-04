@@ -22,7 +22,7 @@ import { flatten2DArray } from '@isrd-isi-edu/deriva-webapps/src/utils/data';
 import useError from '@isrd-isi-edu/chaise/src/hooks/error';
 import {
   createStudyViolinSelectGrid,
-  useChartSelectGrid,
+  useChartControlsGrid,
 } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart-select-grid';
 
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
@@ -51,7 +51,7 @@ import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
 import { ChaiseAlertType } from '@isrd-isi-edu/chaise/src/providers/alerts';
 import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
 import Papa from 'papaparse';
-import { useSelector } from '@isrd-isi-edu/deriva-webapps/src/hooks/selector';
+import { useControl } from '@isrd-isi-edu/deriva-webapps/src/hooks/control';
 
 /**
  * Data received from API request
@@ -278,13 +278,16 @@ export const useChartData = (plot: Plot) => {
     setSelectData,
     isFetchSelected,
     setIsFetchSelected,
-  } = useChartSelectGrid({
+  } = useChartControlsGrid({
     plot,
     templateParams,
     setModalProps,
     setIsModalOpen,
   });
 
+  /**
+   * It should be called once to initialize the configuration data for the user controls into the state variable
+  */
   useEffect(() => {
     setUserControlData({
       userControlConfig: plot?.user_controls,
@@ -293,7 +296,8 @@ export const useChartData = (plot: Plot) => {
       templateParams,
     });
   }, []);
-  useSelector({
+  
+  useControl({
     userControlConfig: plot?.user_controls,
     templateParams,
     setDataOptions,

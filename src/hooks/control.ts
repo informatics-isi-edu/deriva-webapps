@@ -18,7 +18,7 @@ type UserControlGridProps = {
 /**
  * This function retrieves dropdown options from its configuration, 
  * mapping them into an array of label-value pairs, and returns an array of arrays containing these options.
- * @param selectorGridObject Selector configuration, template params and setDataOptions state method
+ * @param userControlGridObject Selector configuration, template params and setDataOptions state method
  * @returns array of arrays containing these options
  */
 const getDataOptions = async (userControlGridObject: UserControlGridProps) => {
@@ -53,7 +53,7 @@ const getDataOptions = async (userControlGridObject: UserControlGridProps) => {
  * @param configData Selector configuration, template params and setDataOptions state method
  * @returns modified configData.templateParams
  */
-const setSelectorData = (configData: UserControlGridProps) => {
+const setControlData = (configData: UserControlGridProps) => {
     configData?.userControlConfig?.map((currentConfig: UserControlConfig) => {
         const paramKey = currentConfig?.url_param_key;
         const uid = currentConfig?.uid;
@@ -87,9 +87,9 @@ const setSelectorData = (configData: UserControlGridProps) => {
  *
  * @param configData Selector configuration, template params and setDataOptions state method
  */
-export const useSelector = (configData: UserControlGridProps) => {
+export const useControl = (configData: UserControlGridProps) => {
     useEffect(() => {
-        setSelectorData(configData);
+        setControlData(configData);
         getDataOptions(configData).then((allDataOptions) => {
             configData.setDataOptions(allDataOptions);
         });

@@ -12,7 +12,7 @@ import PlotlyChart from '@isrd-isi-edu/deriva-webapps/src/components/plot/plotly
 import RecordsetModal from '@isrd-isi-edu/chaise/src/components/modals/recordset-modal';
 import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
 import { SelectedRow } from '@isrd-isi-edu/chaise/src/models/recordset';
-import SelectorsGrid from '@isrd-isi-edu/deriva-webapps/src/components/plot/selectors-grid';
+import UserControlsGrid from '@isrd-isi-edu/deriva-webapps/src/components/plot/user-controls-grid';
 
 export type ChartWithEffectProps = {
   config: Plot;
@@ -156,7 +156,7 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
           <SelectGrid selectors={selectData} width={dynamicStyles.width} />
         ) : null}
         {userControlData && Object.keys(userControlData)?.length > 0 && dataOptions && dataOptions.length > 0 ? (
-          <SelectorsGrid userControlData={userControlData} selectorOptions={dataOptions}
+          <UserControlsGrid userControlData={userControlData} selectorOptions={dataOptions}
             setSelectorOptionChanged={setSelectorOptionChanged} width={dynamicStyles.width} />
         ) : null}
         {isParseLoading || isFetchSelected ? (
