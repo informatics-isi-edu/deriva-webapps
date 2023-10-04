@@ -132,7 +132,7 @@ export type PlotTemplateParams = {
     [paramKey: string]: any;
   };
   /**
-   * Parameters for URL //Deprecated. Use control_values instead
+   * Parameters for URL 
    */
   $url_parameters: {
     [paramKey: string]: any;
@@ -234,7 +234,7 @@ export const useChartData = (plot: Plot) => {
   const isFirstRender = useIsFirstRender();
   const [data, setData] = useState<any | null>(null);
   const [dataOptions, setDataOptions] = useState<any>(null);
-  const [selectorData, setSelectorData] = useState<any>(null);
+  const [userControlData, setUserControlData] = useState<any>(null);
   const [parsedData, setParsedData] = useState<any>(null);
   const [modalProps, setModalProps] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -286,15 +286,15 @@ export const useChartData = (plot: Plot) => {
   });
 
   useEffect(() => {
-    setSelectorData({
-      selectorConfig: plot?.user_controls,
+    setUserControlData({
+      userControlConfig: plot?.user_controls,
       gridConfig: plot?.grid_layout_config,
       layout: plot?.layout,
       templateParams,
     });
-  }, [plot, templateParams]);
+  }, []);
   useSelector({
-    selectorConfig: plot?.user_controls,
+    userControlConfig: plot?.user_controls,
     templateParams,
     setDataOptions,
   });
@@ -1661,7 +1661,7 @@ export const useChartData = (plot: Plot) => {
     modalProps,
     isModalOpen,
     selectData,
-    selectorData,
+    userControlData,
     parsedData,
     data,
     errors,

@@ -1,4 +1,3 @@
-import { ChaiseAlertType } from '@isrd-isi-edu/chaise/src/providers/alerts';
 import {
   Layout as PlotlyLayout,
   Config as PlotlyConfig,
@@ -7,6 +6,7 @@ import {
   PieData as PlotlyPieData,
   PlotData,
 } from 'plotly.js';
+import { ResponsiveProps as ResponsiveGridConfig } from 'react-grid-layout';
 
 
 /**
@@ -23,21 +23,21 @@ export type DataConfig = {
   plots: Plot[];
 };
 
-export type SelectorDataConfig={
+export type UserControlDataConfig={
   Name: string;
   Display: string;
 }
 
-export type SelectorConfig = {
+export type UserControlConfig = {
   uid: string;
   label: string;
   url_param_key?: string;
-  request_info: SelectorRequestInfoConfig;
+  request_info: UserControlRequestInfoConfig;
 }
 
-export type SelectorRequestInfoConfig = {
+export type UserControlRequestInfoConfig = {
   url_pattern?: string;
-  data?: SelectorDataConfig[];
+  data?: UserControlDataConfig[];
   default_value?: string;
   value_key: string;
   selected_value_pattern?: string;
@@ -53,12 +53,12 @@ export type Plot = {
   plot_type: 'bar' & 'violin' & 'pie' & 'scatter' & 'histogram' & 'heatmap';
   config: PlotConfigConfig;
   layout: LayoutConfig;
-  grid_layout_config?: GridLayoutConfig;
+  grid_layout_config?: ResponsiveGridConfig;
   traces: Trace[];
   gene_uri_pattern?: string;
   study_uri_pattern?: string;
   plotly?: Plotly;
-  user_controls: SelectorConfig[]; //NOTE: For now user_controls will be considered of type dropdown only
+  user_controls: UserControlConfig[]; //NOTE: For now user_controls will be considered of type dropdown only
 };
 
 /**
@@ -159,22 +159,6 @@ export type MarginPaddingConfig =
   sm: [number, number]; 
   xs: [number, number];
 }
-
-/**
- * Grid Layout config
- */
-export type GridLayoutConfig = {
-  width: number;
-  auto_size: boolean;
-  position: 'top' & 'bottom';
-  breakpoints: BreakpointConfig;
-  cols:  string | BreakpointConfig;            
-  margin: [number, number] | MarginPaddingConfig;
-  container_padding: [number, number] | MarginPaddingConfig;
-  row_height: number,
-  is_draggable: boolean;
-  is_resizable: boolean;
-};
 
 /**
  * Layout config for selector

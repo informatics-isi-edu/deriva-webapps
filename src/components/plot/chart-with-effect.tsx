@@ -49,7 +49,7 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
     dataOptions,
     parsedData,
     selectData,
-    selectorData,
+    userControlData,
     modalProps,
     isModalOpen,
     isFetchSelected,
@@ -149,16 +149,15 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
       modalProps.recordsetProps.initialSelectedRows = selectData[i][j].selectedRows;
     }
   }
-
   return (
     <div className='chart-container'>
       <div className='chart'>
         {selectData && selectData.length > 0 ? (
           <SelectGrid selectors={selectData} width={dynamicStyles.width} />
         ) : null}
-        {selectorData && Object.keys(selectorData)?.length>0 && dataOptions && dataOptions.length>0 ? (
-          <SelectorsGrid selectorData={selectorData} selectorOptions={dataOptions} 
-          setSelectorOptionChanged={setSelectorOptionChanged} width={dynamicStyles.width}/>
+        {userControlData && Object.keys(userControlData)?.length > 0 && dataOptions && dataOptions.length > 0 ? (
+          <SelectorsGrid userControlData={userControlData} selectorOptions={dataOptions}
+            setSelectorOptionChanged={setSelectorOptionChanged} width={dynamicStyles.width} />
         ) : null}
         {isParseLoading || isFetchSelected ? (
           <ChaiseSpinner />
@@ -171,7 +170,7 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
             useResizeHandler
           />
         )}
-        </div>
+      </div>
       {isModalOpen && modalProps ? (
         <RecordsetModal
           recordsetProps={modalProps.recordsetProps}

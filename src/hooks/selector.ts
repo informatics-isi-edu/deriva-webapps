@@ -1,16 +1,16 @@
 import { useEffect } from 'react';
 
-import { SelectorConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 import { PlotTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
 import { getQueryParam } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 import { windowRef } from '@isrd-isi-edu/chaise/src/utils/window-ref';
 import { Option } from '@isrd-isi-edu/deriva-webapps/src/components/virtualized-select';
 
-type SelectorsGridProps = {
+type UserControlGridProps = {
     /**
      * selectors data to be rendered
      */
-    selectorConfig: SelectorConfig[];
+    userControlConfig: UserControlConfig[];
     templateParams: PlotTemplateParams;
     setDataOptions: any;
 };
@@ -21,7 +21,7 @@ type SelectorsGridProps = {
  * @param selectorGridObject Selector configuration, template params and setDataOptions state method
  * @returns array of arrays containing these options
  */
-const getDataOptions = async (selectorGridObject: SelectorsGridProps) => {
+const getDataOptions = async (userControlGridObject: UserControlGridProps) => {
     //TODO: To fetch selector options from url_pattern
     // if (selectorGridObject?.selectorConfig?.request_info?.url_pattern) {
     //     const pattern = selectorGridObject?.selectorConfig?.request_info?.url_pattern;
@@ -32,17 +32,17 @@ const getDataOptions = async (selectorGridObject: SelectorsGridProps) => {
     //     ); // perform the data fetch
     //     return { initialReference, tupleData };
     // } else {
-        const allSelectorDataOptions: Option[][]=[];
-        selectorGridObject?.selectorConfig?.map((currentConfig)=>{
-            const dataOption = currentConfig?.request_info?.data;
-            const dropdownOptions: { label: any; value: any; }[] = [];
-            dataOption?.map((option: any) => {
-                dropdownOptions.push({ 'label': option.Display, 'value': option.Name });
-            });
-            allSelectorDataOptions.push(dropdownOptions);
-        })
-        
-        return allSelectorDataOptions;
+    const allSelectorDataOptions: Option[][] = [];
+    userControlGridObject?.userControlConfig?.map((currentConfig) => {
+        const dataOption = currentConfig?.request_info?.data;
+        const dropdownOptions: { label: any; value: any; }[] = [];
+        dataOption?.map((option: any) => {
+            dropdownOptions.push({ 'label': option.Display, 'value': option.Name });
+        });
+        allSelectorDataOptions.push(dropdownOptions);
+    })
+
+    return allSelectorDataOptions;
     // }
 }
 
@@ -53,13 +53,13 @@ const getDataOptions = async (selectorGridObject: SelectorsGridProps) => {
  * @param configData Selector configuration, template params and setDataOptions state method
  * @returns modified configData.templateParams
  */
-const changeSelectorData = (configData: SelectorsGridProps) => {
-    configData.selectorConfig.map((currentConfig: SelectorConfig)=>{
+const setSelectorData = (configData: UserControlGridProps) => {
+    configData?.userControlConfig?.map((currentConfig: UserControlConfig) => {
         const paramKey = currentConfig?.url_param_key;
         const uid = currentConfig?.uid;
         const valueKey = currentConfig?.request_info?.value_key;
         const defaultValue = currentConfig?.request_info?.default_value;
-        configData.templateParams.$control_values={
+        configData.templateParams.$control_values = {
             ...configData.templateParams.$control_values,
             [uid]: {
                 values: {},
@@ -87,11 +87,11 @@ const changeSelectorData = (configData: SelectorsGridProps) => {
  *
  * @param configData Selector configuration, template params and setDataOptions state method
  */
-export const useSelector = (configData: SelectorsGridProps) => {
+export const useSelector = (configData: UserControlGridProps) => {
     useEffect(() => {
-        changeSelectorData(configData);
+        setSelectorData(configData);
         getDataOptions(configData).then((allDataOptions) => {
             configData.setDataOptions(allDataOptions);
         });
-    }, [configData.selectorConfig]);
+    }, []);
 };

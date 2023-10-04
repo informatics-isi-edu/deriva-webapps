@@ -690,7 +690,7 @@ var plotConfigs = {
           layout: {
             title: 'Number of GUDMAP resources released to date (log scale)',
             height: 500,
-            width: 1200,
+            // width: 1200,
             showlegend: true,
             xaxis: {
               title: 'Number of Records', // plot x_axis label
@@ -769,13 +769,13 @@ var plotConfigs = {
         },
         grid_layout_config: {
           // This allows setting the initial width on the server side.
-          width: 1200,
+          // width: 1200,
           auto_size: true,
           breakpoints: { lg: 1100, md: 996, sm: 768, xs: 480 },
           position: 'top',
           cols: { lg: 12, md: 10, sm: 6, xs: 4 },
           margin: { lg: [12, 12], md: [10, 10], sm: [9, 9], xs: [5, 5] },
-          container_padding: { lg: [12, 12], md: [10, 10], sm: [9, 9], xs: [5, 5] },
+          // container_padding: { lg: [12, 12], md: [10, 10], sm: [9, 9], xs: [5, 5] },
           row_height: 30,
         },
         user_controls: [{
