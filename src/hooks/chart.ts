@@ -1100,7 +1100,7 @@ export const useChartData = (plot: Plot) => {
     //   - if one array is size 1 and the other size N,
     //     duplicate value in array of size 1 to be an array of size N with value N times
 
-    let numberPlotTraces = 1;
+    let numberPlotTraces = (trace.y_col?.length && trace.x_col?.length === trace.y_col.length) ? trace.y_col.length : 1;
     // fix x_col and y_col to be same size
     if (trace.x_col?.length === 1 && (trace.y_col?.length && trace.y_col?.length > 1)) {
       numberPlotTraces = trace.y_col.length;
@@ -1449,8 +1449,9 @@ export const useChartData = (plot: Plot) => {
   * Parses the data for the response objects for every plot based on its type
   * @returns plotly data to be inserted into props
   */
-  const parsePlotData = () => {
+  const parsePlotData = (newData?: any) => {
     const result: any = { data: [] };
+    const dataToParse = newData || data;
 
     result.config = { ...plot?.plotly?.config };
     let hovertemplate_display_pattern;
@@ -1471,13 +1472,13 @@ export const useChartData = (plot: Plot) => {
     // multiple data objects means multiple trace objects in plot.traces
     // data is an array of response objects
     // If the plot data object has multiple objects in the traces array, multiTrace will be set to true
-    const multiTrace = data.length > 1;
+    const multiTrace = dataToParse.length > 1;
 
     // Add all plot "traces" to data array based on plot type
     // NOTE: this assumes multiple traces in plot.traces[] will produce different objects in result.data[]
     // TODO: combine data from multiple data sources into the same result.data[n]
     //    - if all x_col or all y_col or all data_col are the same
-    data.forEach((responseData: ResponseData, index: number) => {
+    dataToParse.forEach((responseData: ResponseData, index: number) => {
       const currTrace = plot.traces[index];
       const isResponseJson = isDataJSON(responseData);
 
@@ -1603,8 +1604,6 @@ export const useChartData = (plot: Plot) => {
   // Parse data on state changes to data or selectData
   useEffect(() => {
     if (data && !isDataLoading && !isInitLoading && !isFetchSelected) {
-      // const parsedPlotData = parsePlotData(plot, data, selectData);
-      // const parsedPlotData = ;
       setParsedData(parsePlotData());
       setIsParseLoading(false); // set loading to false after parsing
     }
