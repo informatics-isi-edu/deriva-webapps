@@ -20,7 +20,7 @@ var matrixConfigs = {
     /**
      * API for the tree data of the y axis (must return child_id and parent_id. other columns will be ignored.)
      */
-    yTreeURL: baseUri + 'y_values_tree.json',
+    // yTreeURL: baseUri + 'y_values_tree.json',
     /**
      * API for the z axis data (color axis)
      */
@@ -32,7 +32,7 @@ var matrixConfigs = {
     /**
      * The source path of x. used for generating the facet blob
      */
-    xSource: [{'inbound':['isa','dataset_stage_dataset_id_fkey']},{'outbound':['isa','dataset_stage_stage_fkey']},'id'],
+    xSource: [{ 'inbound': ['isa', 'dataset_stage_dataset_id_fkey'] }, { 'outbound': ['isa', 'dataset_stage_stage_fkey'] }, 'id'],
     /**
      * key name of data from the x axis API response
      */
@@ -40,7 +40,7 @@ var matrixConfigs = {
     /**
      * The source path of y. used for generating the facet blob
      */
-    ySource: [{'inbound':['isa','dataset_anatomy_dataset_id_fkey']},{'outbound':['isa','dataset_anatomy_anatomy_fkey']},'id'],
+    ySource: [{ 'inbound': ['isa', 'dataset_anatomy_dataset_id_fkey'] }, { 'outbound': ['isa', 'dataset_anatomy_anatomy_fkey'] }, 'id'],
     /**
      * key name of data from the y axis API response
      */
@@ -48,7 +48,7 @@ var matrixConfigs = {
     /**
      * The source path of z. used for generating the facet blob
      */
-    zSource: [{'inbound':['isa','dataset_experiment_type_dataset_id_fkey']},{'outbound':['isa','dataset_experiment_type_experiment_type_fkey']},'id'],
+    zSource: [{ 'inbound': ['isa', 'dataset_experiment_type_dataset_id_fkey'] }, { 'outbound': ['isa', 'dataset_experiment_type_experiment_type_fkey'] }, 'id'],
     /**
      * key name of data from the z axis API response
      */
@@ -91,13 +91,27 @@ var matrixConfigs = {
        */
       cellHeight: 25,
       /**
-       * Width of the row headers
+       * Properties of the row headers
        */
-      rowHeaderWidth: 250,
+      rowHeader: {
+        // Width of the row headers
+        width: 250,
+        // Whether allow scroll
+        scrollable: true,
+        // The max width of the scrollable content
+        scrollableMaxWidth: 300,
+      },
       /**
-       * Height of the column headers
+       * Properties of the column headers
        */
-      colHeaderHeight: 80,
+      columnHeader: {
+        // Height of the column headers
+        width: 80,
+        // Whether allow scroll
+        scrollable: true,
+        // The max height of the scrollable content
+        scrollableMaxWidth: 100,
+      },
       /**
        * Height of the legend
        */

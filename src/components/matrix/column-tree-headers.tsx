@@ -19,15 +19,15 @@ import Typography from '@mui/material/Typography';
 
 type ColumnHeadersProps = SharedColumnHeadersProps & {
   /**
-  *  x hierarchical data passed to each column
-  */
+   * x hierarchical data passed to each column
+   */
   treeData: MatrixTreeDatum[];
   /**
-   *  x hierarchical data nodes passed to each column
+   * x hierarchical data nodes passed to each column
    */
   treeNodes: TreeNode[];
   /**
-   *  x hierarchical data nodes map passed to each column
+   * x hierarchical data nodes map passed to each column
    */
   treeNodesMap: TreeNodeMap;
   /**
@@ -41,10 +41,10 @@ type ColumnHeadersProps = SharedColumnHeadersProps & {
  */
 const ColumnHeaders = (props: ColumnHeadersProps, ref: ForwardedRef<any>): JSX.Element => {
 
-  const { 
-    searchedColID, 
-    listData, 
-    setFilteredGridXData, 
+  const {
+    searchedColID,
+    listData,
+    setFilteredGridXData,
     setVisiableColNodes,
     scrollTreeYIniPos,
     isScrolling } = props.itemData;
@@ -62,7 +62,7 @@ const ColumnHeaders = (props: ColumnHeadersProps, ref: ForwardedRef<any>): JSX.E
   // style for the whole tree
   const columnTreeHeadersStyles: CSSProperties = {
     position: 'absolute',
-    left: props.left,
+    left: 0,
     height: props.height,
     width: props.width,
     overflow: 'hidden',
@@ -71,10 +71,8 @@ const ColumnHeaders = (props: ColumnHeadersProps, ref: ForwardedRef<any>): JSX.E
   };
 
   /**
-   * Interaction functions
+   * Check whether all ancestors of a node exist in visitedNode list
    */
-
-  // Check whether all ancestors of a node exist in visitedNode list
   const checkParentChainExist = (treeDataDict: Record<string, MatrixTreeDatum>, nodeId: string, visitedNodes: Set<string>): boolean => {
     const node = treeDataDict[nodeId];
     if (node.parent_id === null) {
@@ -86,7 +84,9 @@ const ColumnHeaders = (props: ColumnHeadersProps, ref: ForwardedRef<any>): JSX.E
     return checkParentChainExist(treeDataDict, node.parent_id, visitedNodes);
   };
 
-  // Find all ancestor nodes of the searched node
+  /**
+   * Find all ancestor nodes of the searched node
+   */
   const getParentChain = (treeDataDict: Record<string, MatrixTreeDatum>, nodeId: string, visitedNodes: Set<string>): Set<string> => {
     let node = treeDataDict[nodeId];
     if (node.parent_id === null) {
@@ -100,7 +100,9 @@ const ColumnHeaders = (props: ColumnHeadersProps, ref: ForwardedRef<any>): JSX.E
     return visitedNodes;
   };
 
-  // Initialize the dictionary to store relationship of parent and child for tree data
+  /**
+   * Initialize the dictionary to store relationship of parent and child for tree data
+   */
   useEffect(() => {
     const initialTreeDataDict = props.treeData.reduce((dict: Record<string, MatrixTreeDatum>, node: MatrixTreeDatum) => {
       dict[node.child_id] = node;
@@ -123,24 +125,22 @@ const ColumnHeaders = (props: ColumnHeadersProps, ref: ForwardedRef<any>): JSX.E
     // Check visibility and add all visiable nodes to the set
     const nodesSet: Set<string> = new Set(expanded);
     expanded.forEach(nodeId => {
-      const visiable = checkParentChainExist(treeDataDict, nodeId, nodesSet);
-      if(visiable){
-        const node = props.treeNodesMap[nodeId];
-        if (node) {
-          if (node.children.length > 0) {
-            for (const child of node.children) {
-              newSet.add(child.key);
-            }
-          }
+      const visible = checkParentChainExist(treeDataDict, nodeId, nodesSet);
+      if (!visible) return;
+      const node = props.treeNodesMap[nodeId];
+      if (!node || node.children.length === 0) return;
+      if (node.children.length > 0) {
+        for (const child of node.children) {
+          newSet.add(child.key);
         }
       }
     });
     setVisiableColNodes(newSet);
     // If there is an update to the searched row entry, then update filteredGridData for locating function
-    if( searchedColID && prevSearched !== searchedColID){
-      let filteredGridData : ParsedGridCell[] = listData[0];
+    if (searchedColID && prevSearched !== searchedColID) {
+      let filteredGridData: ParsedGridCell[] = listData[0];
 
-      if(newSet){
+      if (newSet) {
         filteredGridData = listData[0].filter((cell: ParsedGridCell) => newSet.has(cell.column.id));
       }
 
@@ -149,9 +149,11 @@ const ColumnHeaders = (props: ColumnHeadersProps, ref: ForwardedRef<any>): JSX.E
     }
   }, [expanded]);
 
-  // Refresh the expanded nodes list when search a row
+  /**
+   * Refresh the expanded nodes list when search a row
+   */
   useEffect(() => {
-    if (searchedColID){
+    if (searchedColID) {
       const nodesSet: Set<string> = new Set(expanded);
       const newNodesSet = getParentChain(treeDataDict, searchedColID, nodesSet);
       const newExpanded: string[] = Array.from(newNodesSet);
@@ -159,7 +161,9 @@ const ColumnHeaders = (props: ColumnHeadersProps, ref: ForwardedRef<any>): JSX.E
     }
   }, [searchedColID]);
 
-  // Handle toggle in tree view
+  /**
+   * Handle toggle in tree view
+   */
   const handleToggle = (event: React.SyntheticEvent, nodeIds: string[]) => {
     setExpanded(nodeIds);
   };
@@ -172,11 +176,11 @@ const ColumnHeaders = (props: ColumnHeadersProps, ref: ForwardedRef<any>): JSX.E
       >
 
         <div
-          style={{ maxHeight: props.height, overflow: 'auto'}} 
-          onScroll={props.onScroll} 
+          style={{ maxHeight: props.height, overflow: 'auto' }}
+          onScroll={props.onScroll}
           ref={ref}>
 
-            <div
+          <div
             style={{
               transformOrigin: 'top left',
               transform: 'rotate(-90deg)',
@@ -185,45 +189,45 @@ const ColumnHeaders = (props: ColumnHeadersProps, ref: ForwardedRef<any>): JSX.E
               marginTop: props.height,
             }}>
 
-              <TreeView
-                aria-label='rich object'
-                defaultExpanded={['root']}
-                defaultCollapseIcon={<MemoizedMinusSquare cellWidth={props.cellWidth} iconSize={iconSize}/>}
-                defaultExpandIcon={<MemoizedPlusSquare cellWidth={props.cellWidth} iconSize={iconSize}/>}
-                defaultEndIcon={<MemoizedCloseSquare cellWidth={props.cellWidth}/>}
-                expanded={expanded}
-                onNodeToggle={handleToggle}
-                style={{
-                  height: 'fit-content',
-                  width: 'fit-content',
-                  position: 'absolute',
-                  /**
-                   * For vertical scrolling function of the horizontal tree, we only want to scroll up. But after using
-                   * transform, there is a blank space at the bottom of the tree. To eliminate the space, we set 
-                   * transformOrigin to 'top left'. Then the initial y position of the tree does not focus on the tree 
-                   * entries but blanks. So we set 'left' attribute to it and use a variable to memorize the position
-                   * of the tree entries, then update it whenever scroll the tree vertically.
-                   */
-                  left: -scrollTreeYIniPos, // Adjust the left value based on the desired position
-                  /**
-                   * For the highlight alignment issue, we're adding empty cells and headers in the falt column headers.
-                   * But Mui is ignoring the empty tree elements, and we use 'transform' for the tree in column header.
-                   * So we add a paddingBottom attribute as the style of the tree manually. 
-                   */
-                  paddingBottom: props.cellWidth + 15,
-                }}
-                sx={{ overflow: 'clip' }}
-              >
-                <MemoizedRenderTree
-                  nodes={props.treeNodes}
-                  data={props.itemData}
-                  cellWidth={props.cellWidth}
-                  treeNodesMap={props.treeNodesMap}
-                  isScrolling={isScrolling}
-                />
-              </TreeView>
+            <TreeView
+              aria-label='rich object'
+              defaultExpanded={['root']}
+              defaultCollapseIcon={<MemoizedMinusSquare cellWidth={props.cellWidth} iconSize={iconSize} />}
+              defaultExpandIcon={<MemoizedPlusSquare cellWidth={props.cellWidth} iconSize={iconSize} />}
+              defaultEndIcon={<MemoizedCloseSquare cellWidth={props.cellWidth} />}
+              expanded={expanded}
+              onNodeToggle={handleToggle}
+              style={{
+                height: 'fit-content',
+                width: 'fit-content',
+                position: 'absolute',
+                /**
+                 * For vertical scrolling function of the horizontal tree, we only want to scroll up. But after using
+                 * transform, there is a blank space at the bottom of the tree. To eliminate the space, we set 
+                 * transformOrigin to 'top left'. Then the initial y position of the tree does not focus on the tree 
+                 * entries but blanks. So we set 'left' attribute to it and use a variable to memorize the position
+                 * of the tree entries, then update it whenever scroll the tree vertically.
+                 */
+                left: -scrollTreeYIniPos, // Adjust the left value based on the desired position
+                /**
+                 * For the highlight alignment issue, we're adding empty cells and headers in the falt column headers.
+                 * But Mui is ignoring the empty tree elements, and we use 'transform' for the tree in column header.
+                 * So we add a paddingBottom attribute as the style of the tree manually. 
+                 */
+                paddingBottom: props.cellWidth + 15,
+              }}
+              sx={{ overflow: 'clip' }}
+            >
+              <MemoizedRenderTree
+                nodes={props.treeNodes}
+                data={props.itemData}
+                cellWidth={props.cellWidth}
+                treeNodesMap={props.treeNodesMap}
+                isScrolling={isScrolling}
+              />
+            </TreeView>
 
-            </div>
+          </div>
         </div>
       </div>
     </SharedColumnHeaders>
@@ -244,7 +248,7 @@ const MemoizedMinusSquare = memo(({ cellWidth, iconSize }: MemoizedIconSquarePro
       style={{
         marginLeft: 5.5,
         paddingLeft: 2,
-        height: (cellWidth-iconSize)/2,
+        height: (cellWidth - iconSize) / 2,
         marginBottom: -4,
         borderLeft: '1px dotted grey'
       }}
@@ -263,7 +267,7 @@ const MemoizedMinusSquare = memo(({ cellWidth, iconSize }: MemoizedIconSquarePro
       style={{
         marginRight: 5.5,
         paddingRight: 2,
-        height: (cellWidth-iconSize)/2,
+        height: (cellWidth - iconSize) / 2,
         marginTop: -4,
         borderRight: '1px dotted grey'
       }}
@@ -282,7 +286,7 @@ const MemoizedPlusSquare = memo(({ cellWidth, iconSize }: MemoizedIconSquareProp
       style={{
         marginLeft: 5.5,
         paddingLeft: 2,
-        height: (cellWidth-iconSize)/2,
+        height: (cellWidth - iconSize) / 2,
         marginBottom: -4,
         borderLeft: '1px dotted grey'
       }}
@@ -301,7 +305,7 @@ const MemoizedPlusSquare = memo(({ cellWidth, iconSize }: MemoizedIconSquareProp
       style={{
         marginRight: 5.5,
         paddingRight: 2,
-        height: (cellWidth-iconSize)/2,
+        height: (cellWidth - iconSize) / 2,
         marginTop: -4,
         borderRight: '1px dotted grey'
       }}
@@ -324,13 +328,13 @@ const MemoizedCloseSquare = memo(({ cellWidth }: MemoizedCloseSquareProps) => (
         marginLeft: 16.5,
         paddingLeft: 2,
         height: cellWidth,
-        marginTop: -(cellWidth/2),
+        marginTop: -(cellWidth / 2),
         borderLeft: '1px dotted grey'
       }}
     />
     <div
       style={{
-        marginTop: -(cellWidth/2),
+        marginTop: -(cellWidth / 2),
         marginLeft: 18,
         width: 16,
         borderTop: '1px dotted grey'
@@ -354,8 +358,8 @@ type MemoizedRenderTreeProps = {
 };
 
 const MemoizedRenderTree = memo(({ nodes, data, cellWidth, treeNodesMap, isScrolling }: MemoizedRenderTreeProps) => {
-  const { 
-    searchedColID, 
+  const {
+    searchedColID,
     hoveredColID,
     setHoveredColID,
     setHoveredRowID } = data;
@@ -404,16 +408,19 @@ const MemoizedRenderTree = memo(({ nodes, data, cellWidth, treeNodesMap, isScrol
     node: TreeNode;
   }
 
-  // Update id or index for when hover an item
+  /**
+   * Update id or index for when hover an item
+   */
   const updateColId = (nodeId: string) => {
-    if(!isScrolling){
+    if (!isScrolling) {
       setHoveredColID(nodeId);
       setHoveredRowID(null);
-      // setHoveredRowIndex(null);
     }
   };
 
-  // Customize tree item so that the link function and expand/collapse function are separate
+  /**
+   * Customize tree item so that the link function and expand/collapse function are separate
+   */
   const CustomContent = forwardRef(function CustomContent(
     props: TreeItemContentProps,
     ref
@@ -483,7 +490,7 @@ const MemoizedRenderTree = memo(({ nodes, data, cellWidth, treeNodesMap, isScrol
           component='div'
           className={classes.label}
         >
-          <a 
+          <a
             href={link}
             className={linkClassName}>
             {label}
@@ -493,7 +500,9 @@ const MemoizedRenderTree = memo(({ nodes, data, cellWidth, treeNodesMap, isScrol
     );
   });
 
-  // Define interaction and style for tree item
+  /**
+   * Define interaction and style for tree item
+   */
   const StyledTreeItem = memo(styled(({ node, ...props }: CustomTreeItemProps) => {
     // Check if the node key matches the hovered row id
     const isNodeKeyMatched = node.key === hoveredColID;
@@ -509,8 +518,8 @@ const MemoizedRenderTree = memo(({ nodes, data, cellWidth, treeNodesMap, isScrol
               isNodeKeyMatchedSearch
                 ? rowTreeItemBgStylesSearch
                 : isNodeKeyMatched
-                ? rowTreeItemBgStylesHover
-                : rowTreeItemBgStyles
+                  ? rowTreeItemBgStylesHover
+                  : rowTreeItemBgStyles
             }
           ></div>
         </div>
@@ -555,12 +564,12 @@ const MemoizedRenderTree = memo(({ nodes, data, cellWidth, treeNodesMap, isScrol
    */
   const renderTree = (nodes: TreeNode[]) => {
     return nodes.map((node) => (
-      <StyledTreeItem 
-        key={node.link} 
-        nodeId={node.key} 
-        label={node.title} 
+      <StyledTreeItem
+        key={node.link}
+        nodeId={node.key}
+        label={node.title}
         className='MUI-tree'
-        node = {node}
+        node={node}
       >
         {Array.isArray(node.children) ? renderTree(node.children) : null}
       </StyledTreeItem>

@@ -77,7 +77,7 @@ export type TreeNode = {
 /**
  * The tree node datum dictionary to be parsed
  */
-export type TreeNodeMap = { 
+export type TreeNodeMap = {
   [key: string]: TreeNode;
 };
 
@@ -283,14 +283,14 @@ export const useMatrixData = (matrixConfigs: MatrixConfig): MatrixData => {
       if (config.yTreeURL) {
         yTreePromise = ConfigService.http.get(config.yTreeURL);
       } else {
-        yTreePromise = new Promise((resolve) => resolve({data: {}}));
+        yTreePromise = new Promise((resolve) => resolve({ data: {} }));
       }
 
       let xTreePromise;
       if (config.xTreeURL) {
         xTreePromise = ConfigService.http.get(config.xTreeURL);
       } else {
-        xTreePromise = new Promise((resolve) => resolve({data: {}}));
+        xTreePromise = new Promise((resolve) => resolve({ data: {} }));
       }
 
       const zPromise = ConfigService.http.get(config.zURL);
@@ -350,6 +350,8 @@ export type ParsedMatrixData = {
   legendData: Array<LegendDatum>;
   gridDataMap: GridDataMap;
   options: Array<Option>;
+  yDataMaxLength: number;
+  xDataMaxLength: number;
 };
 
 /**
@@ -374,7 +376,7 @@ const flattenTree = (tree: TreeNode[], flatList: string[] = []): string[] => {
  * @returns parsed data used by matrix visualization component
  */
 const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse): ParsedMatrixData => {
-  const [{ data: xData }, { data: yData }, { data: zData }, { data: xyzData }, { data: yTreeData }, { data: xTreeData}, ] = response;
+  const [{ data: xData }, { data: yData }, { data: zData }, { data: xyzData }, { data: yTreeData }, { data: xTreeData },] = response;
 
   /**
    * 'yTreeData' and 'xTreeData' are the returned tree data. these values are optional.
@@ -480,16 +482,29 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
     colors: [],
   });
 
+  // Find the max length of titles for both y-axis and x-axis
+  let yDataMaxLength = 0;
+  let xDataMaxLength = 0;
   // Create the options and datamap used for the matrix search feature
   const options: Array<Option> = [];
   const gridDataMap: GridDataMap = {};
   yData.forEach((y: MatrixDatum) => {
     options.push({ value: y.id, label: y.title });
     gridDataMap[y.title.toLowerCase()] = { type: 'row', id: y.id };
+
+    const titleLength = y.title.length;
+    if (titleLength > yDataMaxLength) {
+      yDataMaxLength = titleLength;
+    }
   });
   xData.forEach((x: MatrixDatum) => {
     options.push({ value: x.id, label: x.title });
     gridDataMap[x.title.toLowerCase()] = { type: 'col', id: x.id };
+
+    const titleLength = x.title.length;
+    if (titleLength > xDataMaxLength) {
+      xDataMaxLength = titleLength;
+    }
   });
 
   /**
@@ -498,10 +513,10 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
   // Y tree data
   const yTreeNodes: TreeNode[] = [];
   const yTreeNodesMap: { [key: string]: TreeNode } = {};
-  const yReferenceNodesMap: {[key: string]: {title: string, link?: string}} = {};
+  const yReferenceNodesMap: { [key: string]: { title: string, link?: string } } = {};
 
   gridData.forEach((element: ParsedGridCell[]) => {
-    if(element[0]['row']['id']){
+    if (element[0]['row']['id']) {
       const referenceNode = {
         title: element[0]['row']['title'],
         link: element[0]['row']['link'],
@@ -510,7 +525,7 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
     }
   });
 
-  if(Object.keys(yTreeData).length !== 0){
+  if (Object.keys(yTreeData).length !== 0) {
     yTreeData.forEach((item) => {
       const { child_id, parent_id } = item;
 
@@ -519,31 +534,31 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
       const childNode = child_id in yTreeNodesMap
         ? yTreeNodesMap[child_id]
         : {
-            title: childTitle,
-            key: child_id,
-            link: childLink,
-            children: [],
-          };
+          title: childTitle,
+          key: child_id,
+          link: childLink,
+          children: [],
+        };
 
       yTreeNodesMap[child_id] = childNode;
 
-      if(parent_id !== null){
-        const parentTitle = parent_id in yReferenceNodesMap ? yReferenceNodesMap[parent_id].title: 'None';
+      if (parent_id !== null) {
+        const parentTitle = parent_id in yReferenceNodesMap ? yReferenceNodesMap[parent_id].title : 'None';
         const parentLink = parent_id in yReferenceNodesMap ? yReferenceNodesMap[parent_id].link : '';
         const parentNode = parent_id in yTreeNodesMap
           ? yTreeNodesMap[parent_id]
           : {
-              title: parentTitle,
-              key: parent_id,
-              link: parentLink,
-              children: [],
-            };
-      
+            title: parentTitle,
+            key: parent_id,
+            link: parentLink,
+            children: [],
+          };
+
         parentNode.children.push(childNode);
         yTreeNodesMap[parent_id] = parentNode;
       }
 
-      if(parent_id === null){
+      if (parent_id === null) {
         yTreeNodes.push(childNode);
       }
     });
@@ -558,7 +573,7 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
   // X tree data
   const xTreeNodes: TreeNode[] = [];
   const xTreeNodesMap: { [key: string]: TreeNode } = {};
-  const xReferenceNodesMap: {[key: string]: {title: string, link: string}} = {};
+  const xReferenceNodesMap: { [key: string]: { title: string, link: string } } = {};
 
   xData.forEach((x: MatrixDatum) => {
     // Parse Columns
@@ -569,7 +584,7 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
     xReferenceNodesMap[x.id] = referenceNode;
   });
 
-  if(Object.keys(xTreeData).length !== 0){
+  if (Object.keys(xTreeData).length !== 0) {
     xTreeData.forEach((item) => {
       const { child_id, parent_id } = item;
 
@@ -578,31 +593,31 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
       const childNode = child_id in xTreeNodesMap
         ? xTreeNodesMap[child_id]
         : {
-            title: childTitle,
-            key: child_id,
-            link: childLink,
-            children: [],
-          };
+          title: childTitle,
+          key: child_id,
+          link: childLink,
+          children: [],
+        };
 
       xTreeNodesMap[child_id] = childNode;
 
-      if(parent_id !== null){
-        const parentTitle = parent_id in xReferenceNodesMap ? xReferenceNodesMap[parent_id].title: 'None';
+      if (parent_id !== null) {
+        const parentTitle = parent_id in xReferenceNodesMap ? xReferenceNodesMap[parent_id].title : 'None';
         const parentLink = parent_id in xReferenceNodesMap ? xReferenceNodesMap[parent_id].link : '';
         const parentNode = parent_id in xTreeNodesMap
           ? xTreeNodesMap[parent_id]
           : {
-              title: parentTitle,
-              key: parent_id,
-              link: parentLink,
-              children: [],
-            };
+            title: parentTitle,
+            key: parent_id,
+            link: parentLink,
+            children: [],
+          };
 
         parentNode.children.push(childNode);
         xTreeNodesMap[parent_id] = parentNode;
       }
 
-      if(parent_id === null){
+      if (parent_id === null) {
         xTreeNodes.push(childNode);
       }
     });
@@ -618,11 +633,11 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
     });
   }
 
-  if(Object.keys(xTreeData).length !== 0){
+  if (Object.keys(xTreeData).length !== 0) {
     // Shift the empty cell to the last
     gridData.forEach((gridRow) => {
       const firstElement = gridRow.shift(); // Remove the first element
-      if(firstElement){
+      if (firstElement) {
         gridRow.push(firstElement);
       }
     });
@@ -634,12 +649,12 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
   // Return the required data based on whether xTreeData or yTreeData exists
   const parsedData: ParsedMatrixData = {
     gridData,
-    ... yTreeData.length > 0 && {
+    ...yTreeData.length > 0 && {
       yTreeData,
       yTreeNodes,
       yTreeNodesMap
     },
-    ... xTreeData.length > 0 && {
+    ...xTreeData.length > 0 && {
       xTreeData,
       xTreeNodes,
       xTreeNodesMap,
@@ -647,6 +662,8 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
     legendData,
     gridDataMap,
     options,
+    yDataMaxLength,
+    xDataMaxLength,
   };
   return parsedData;
 };

@@ -62,8 +62,8 @@ const MatrixApp = (): JSX.Element => {
     return <ChaiseSpinner />;
   }
 
-  const { gridDataMap, gridData, legendData, options, 
-    yTreeData, yTreeNodes, yTreeNodesMap, xTreeData, xTreeNodes, xTreeNodesMap } = matrixData;
+  const { gridDataMap, gridData, legendData, options,
+    yTreeData, yTreeNodes, yTreeNodesMap, xTreeData, xTreeNodes, xTreeNodesMap, yDataMaxLength, xDataMaxLength } = matrixData;
 
   /**
    * Handles changes to the search bar
@@ -113,7 +113,7 @@ const MatrixApp = (): JSX.Element => {
       return;
     }
 
-    if(!gridDataMap[currInput.toLowerCase()]){
+    if (!gridDataMap[currInput.toLowerCase()]) {
       showNoResults();
       return;
     }
@@ -152,8 +152,37 @@ const MatrixApp = (): JSX.Element => {
   const maxCols = styles?.maxCols;
   const maxRows = styles?.maxRows;
 
-  const rowHeaderWidth = styles?.rowHeaderWidth ? styles?.rowHeaderWidth : 250;
-  const colHeaderHeight = styles?.colHeaderHeight ? styles?.colHeaderHeight : 50;
+  const rowHeaderWidth = styles?.rowHeader?.width ? styles?.rowHeader?.width : 250;
+  const colHeaderHeight = styles?.columnHeader?.width ? styles?.columnHeader?.width : 50;
+
+  // Configuration for headers scrolling
+  let rowHeaderScrollable = styles?.rowHeader?.scrollable ? styles?.rowHeader?.scrollable : false;
+  let colHeaderScrollable = styles?.columnHeader?.scrollable ? styles?.columnHeader?.scrollable : false;
+  const rowHeaderScrollableMaxWidthExist = styles?.rowHeader?.scrollableMaxWidth ? true : false;
+  const colHeaderScrollableMaxHeightExist = styles?.columnHeader?.scrollableMaxWidth ? true : false;
+  let rowHeaderScrollableMaxWidth = styles?.rowHeader?.scrollableMaxWidth ? styles?.rowHeader?.scrollableMaxWidth : rowHeaderWidth;
+  let colHeaderScrollableMaxHeight = styles?.columnHeader?.scrollableMaxWidth ? styles?.columnHeader?.scrollableMaxWidth : colHeaderHeight;
+  if (rowHeaderScrollableMaxWidthExist && rowHeaderScrollableMaxWidth <= rowHeaderWidth) {
+    rowHeaderScrollableMaxWidth = rowHeaderWidth;
+    rowHeaderScrollable = false;
+  }
+  if (colHeaderScrollableMaxHeightExist && colHeaderScrollableMaxHeight <= colHeaderHeight) {
+    colHeaderScrollableMaxHeight = colHeaderHeight;
+    colHeaderScrollable = false;
+  }
+  if (!rowHeaderScrollable) {
+    rowHeaderScrollableMaxWidth = rowHeaderWidth;
+  }
+  if (!colHeaderScrollable) {
+    colHeaderScrollableMaxHeight = colHeaderHeight;
+  }
+  if (rowHeaderScrollable && !rowHeaderScrollableMaxWidthExist) {
+    rowHeaderScrollableMaxWidth = -1;
+  }
+  if (colHeaderScrollable && !colHeaderScrollableMaxHeightExist) {
+    colHeaderScrollableMaxHeight = -1;
+  }
+
   const cellHeight = styles?.cellHeight ? styles?.cellHeight : 25;
   const cellWidth = styles?.cellWidth ? styles?.cellWidth : 25;
 
@@ -265,6 +294,10 @@ const MatrixApp = (): JSX.Element => {
             gridWidth={gridWidth}
             rowHeaderWidth={rowHeaderWidth}
             columnHeaderHeight={colHeaderHeight}
+            rowHeaderScrollable={rowHeaderScrollable}
+            colHeaderScrollable={colHeaderScrollable}
+            rowHeaderScrollableMaxWidth={rowHeaderScrollableMaxWidth}
+            colHeaderScrollableMaxHeight={colHeaderScrollableMaxHeight}
             cellHeight={cellHeight}
             cellWidth={cellWidth}
             data={gridData}
@@ -274,6 +307,8 @@ const MatrixApp = (): JSX.Element => {
             xTree={xTreeData}
             xTreeNodes={xTreeNodes}
             xTreeNodesMap={xTreeNodesMap}
+            yDataMaxLength={yDataMaxLength}
+            xDataMaxLength={xDataMaxLength}
             colorScale={colorScaleMap}
           />
           <Legend

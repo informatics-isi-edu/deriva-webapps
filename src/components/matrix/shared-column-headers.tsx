@@ -1,3 +1,5 @@
+import { CSSProperties } from 'react';
+
 export type SharedColumnHeadersProps = {
   /**
    * height of grid cell
@@ -27,6 +29,14 @@ export type SharedColumnHeadersProps = {
    * left position of column
    */
   left: number;
+  /**
+   * whether the header is scrollable
+   */
+  scrollable: boolean;
+  /**
+   * the max width of scrollable content when the header is scrollable
+   */
+  scrollableMaxWidth: number;
 };
 
 export type SharedColumnHeadersCompProps = SharedColumnHeadersProps & {
@@ -34,11 +44,18 @@ export type SharedColumnHeadersCompProps = SharedColumnHeadersProps & {
 };
 
 const SharedColumnHeaders = (
-  { children }: SharedColumnHeadersCompProps
+  { children, height, width }: SharedColumnHeadersCompProps
 ): JSX.Element => {
 
+  const columnHeadersContainerStyles: CSSProperties = {
+    height: height,
+    width: width,
+    overflowY: 'hidden',
+    position: 'relative',
+  };
+
   return (
-    <div className='grid-column-headers-container'>
+    <div className='grid-column-headers-container' style={columnHeadersContainerStyles}>
       {children}
     </div>
   )

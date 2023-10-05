@@ -1,11 +1,22 @@
-import { memo, forwardRef, ForwardedRef, CSSProperties } from 'react';
+import { memo, forwardRef, ForwardedRef, CSSProperties, useRef } from 'react';
 import { VariableSizeList as List, ListOnScrollProps } from 'react-window';
 
 // Shared common props for column header
 import SharedColumnHeaders, { SharedColumnHeadersProps } from '@isrd-isi-edu/deriva-webapps/src/components/matrix//shared-column-headers';
 
 type ColumnHeadersProps = SharedColumnHeadersProps & {
+  /**
+   * scroll function
+   */
   onScroll?: (props: ListOnScrollProps) => any;
+  /**
+   * 
+   */
+  xDataMaxLength: number;
+  /**
+   * 
+   */
+  listHeight: number;
 };
 
 /**
@@ -23,28 +34,45 @@ const ColumnHeaders = (props: ColumnHeadersProps, ref: ForwardedRef<any>): JSX.E
    */
   const itemSize = (index: number) => (index < listData[0].length - 1 ? props.cellWidth : props.cellWidth + 30);
 
+  const divRef = useRef<any>(null);
+
   const columnHeadersStyles: CSSProperties = {
-    position: 'absolute',
-    left: props.left,
+    // position: 'absolute',
+    position: 'relative',
+    left: 0,
   };
+
+  const columnHeadersScrollContainerStyles: CSSProperties = {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    width: '100%',
+    height: props.height,
+    overflowY: props.scrollable ? 'scroll' : 'hidden',
+    overflowX: 'hidden',
+  }
+
+  
 
   return (
     <SharedColumnHeaders {...props}>
-      <List
-        className='grid-column-headers'
-        style={columnHeadersStyles}
-        width={props.width}
-        itemSize={itemSize} // width of each column header
-        height={props.height}
-        layout='horizontal'
-        itemCount={props.itemCount}
-        onScroll={props.onScroll}
-        itemData={props.itemData}
-        overscanCount={30}
-        ref={ref}
-      >
-        {MemoizedHeader}
-      </List>
+      <div ref={divRef} style={columnHeadersScrollContainerStyles}>
+        <List
+          className='grid-column-headers'
+          style={columnHeadersStyles}
+          width={props.width}
+          itemSize={itemSize} // width of each column header
+          height={props.listHeight}
+          layout='horizontal'
+          itemCount={props.itemCount}
+          onScroll={props.onScroll}
+          itemData={props.itemData}
+          overscanCount={30}
+          ref={ref}
+        >
+          {MemoizedHeader}
+        </List>
+      </div>
     </SharedColumnHeaders>
   );
 };
@@ -73,7 +101,6 @@ const HeaderComponent = ({ index, data, style }: HeaderComponentProps): JSX.Elem
       className='column-header'
       style={style}
       onMouseEnter={() => {
-        // setHoveredRowIndex(null);
         setHoveredRowID(null);
         setHoveredColID(id);
       }}

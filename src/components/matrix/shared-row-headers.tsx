@@ -1,3 +1,5 @@
+import { CSSProperties } from 'react';
+
 export type SharedRowHeadersProps = {
   /**
    * top position of row headers
@@ -24,9 +26,17 @@ export type SharedRowHeadersProps = {
    */
   itemCount: number;
   /**
-   *  data passed to each row
+   * data passed to each row
    */
   itemData?: any;
+  /**
+   * whether the header is scrollable
+   */
+  scrollable: boolean;
+  /**
+   * the max width of scrollable content when the header is scrollable
+   */
+  scrollableMaxWidth: number;
 };
 
 export type SharedRowHeadersCompProps = SharedRowHeadersProps & {
@@ -34,11 +44,17 @@ export type SharedRowHeadersCompProps = SharedRowHeadersProps & {
 };
 
 const SharedRowHeaders = (
-  { children }: SharedRowHeadersCompProps
+  { children, width }: SharedRowHeadersCompProps
 ): JSX.Element => {
 
+  const rowHeadersContainerStyles: CSSProperties = {
+    width: width,
+    overflowX: 'hidden',
+    position: 'relative',
+  };
+
   return (
-    <div className='grid-row-headers-container'>
+    <div className='grid-row-headers-container' style={rowHeadersContainerStyles}>
       {children}
     </div>
   )

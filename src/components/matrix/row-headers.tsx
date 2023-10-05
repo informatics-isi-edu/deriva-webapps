@@ -1,11 +1,22 @@
-import { forwardRef, memo, ForwardedRef, CSSProperties } from 'react';
+import { forwardRef, memo, ForwardedRef, CSSProperties, useRef, useEffect } from 'react';
 import { VariableSizeList as List, ListOnScrollProps } from 'react-window';
 
 // Shared common props for row header
 import SharedRowHeaders, { SharedRowHeadersProps } from '@isrd-isi-edu/deriva-webapps/src/components/matrix//shared-row-headers';
 
 type RowHeadersProps = SharedRowHeadersProps & {
+  /**
+   * scroll function
+   */
   onScroll?: (props: ListOnScrollProps) => any;
+  /**
+   * 
+   */
+  yDataMaxLength: number;
+  /**
+   * 
+   */
+  listWidth: number;
 };
 
 /**
@@ -23,27 +34,52 @@ const RowHeaders = (props: RowHeadersProps, ref: ForwardedRef<any>): JSX.Element
    */
   const itemSize = (index: number) => (index < listData.length - 1 ? props.cellHeight : props.cellHeight + 15);
 
+  const divRef = useRef<any>(null);
+
   const rowHeadersStyles: CSSProperties = {
+    position: 'relative',
+    right: 0,
+  };
+
+  const rowHeadersScrollContainerStyles: CSSProperties = {
     position: 'absolute',
     top: props.top,
-  };
+    right: 0,
+    width: '100%',
+    height: props.height,
+    overflowY: 'hidden',
+    overflowX: props.scrollable ? 'scroll' : 'hidden',
+  }
+
+  useEffect(() => {
+    // Ensure the innerDivRef is defined
+    if (divRef.current) {
+      // Calculate the maximum scroll position
+      const maxScrollLeft = divRef.current.scrollWidth - divRef.current.clientWidth;
+
+      // Set the scroll position to the maximum
+      divRef.current.scrollLeft = maxScrollLeft;
+    }
+  }, []); // Empty dependency array to run this effect only once
 
   return (
     <SharedRowHeaders {...props}>
-      <List
-        className='grid-row-headers'
-        style={rowHeadersStyles}
-        height={props.height}
-        itemSize={itemSize} // each row height
-        width={props.width}
-        itemCount={props.itemCount}
-        itemData={props.itemData}
-        onScroll={props.onScroll}
-        overscanCount={30}
-        ref={ref}
-      >
-        {MemoizedHeader}
-      </List>
+      <div ref={divRef} style={rowHeadersScrollContainerStyles}>
+        <List
+          className='grid-row-headers'
+          style={rowHeadersStyles}
+          height={props.height}
+          itemSize={itemSize} // each row height
+          width={props.listWidth}
+          itemCount={props.itemCount}
+          itemData={props.itemData}
+          onScroll={props.onScroll}
+          overscanCount={30}
+          ref={ref}
+        >
+          {MemoizedHeader}
+        </List>
+      </div>
     </SharedRowHeaders>
   );
 };

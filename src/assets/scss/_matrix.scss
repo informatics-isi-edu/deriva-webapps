@@ -107,6 +107,15 @@ body:not(.chaise-iframe) {
     }
   }
 
+  .grid-row-headers div {
+    -ms-overflow-style: none; /* Internet Explorer 10+ */
+    scrollbar-width: none; /* Firefox */
+
+    &::-webkit-scrollbar {
+      display: none; /* Safari and Chrome */
+    }
+  }
+
   .grid-column-headers {
     overflow-y: hidden !important;
   }
@@ -268,6 +277,32 @@ body:not(.chaise-iframe) {
     & div{
       -ms-overflow-style: none; /* Internet Explorer 10+ */
       scrollbar-width: none; /* Firefox */
+    }
+  }
+
+  .row-header-scrollbar-container{
+    direction: rtl;
+    display: flex;
+    justify-content: flex-end;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+  }
+
+  .column-header-scrollbar-container{
+    position: absolute;
+    right: 0;
+    width: 15px;
+    overflow-y: clip;
+
+    .chaise-table-top-scroll-wrapper{
+      position: relative;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column-reverse;
+      overflow-y: scroll;
+      overflow-x: scroll;
+      width: 15px;
     }
   }
 }
