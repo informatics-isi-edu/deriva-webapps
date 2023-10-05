@@ -189,7 +189,7 @@ export const extractAndFormatDate = (message: string): string => {
   match = dateRegex.exec(message);
   extractedDate = match ? match[0] : '';
   if (extractedDate) {
-    extractedDate = windowRef.moment(extractedDate).format('MMM D,YYYY');
+    extractedDate = windowRef.moment(extractedDate).format('MMM D, YYYY');
     modifiedString = message.replace(timestampRegex, extractedDate);
   }
   return modifiedString;

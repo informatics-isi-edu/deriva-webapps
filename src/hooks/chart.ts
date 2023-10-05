@@ -32,18 +32,15 @@ import {
   PlotConfigAxis,
   DataConfig,
   Trace,
-  TraceConfig,
   screenWidthThreshold,
   plotAreaFraction,
   validFileTypes,
 
 } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 import {
-  invalidResponseFormatAlert,
-  invalidDataAlert,
-  invalidKeyAlert,
-  invalidCsvAlert,
-  invalidJsonAlert
+  invalidCsvAlert, invalidDataAlert, invalidJsonAlert, invalidKeyAlert, invalidResponseFormatAlert,
+  emptyDataColArrayAlert, emptyXColArrayAlert, emptyYColArrayAlert, incompatibleColArraysAlert,
+  noColumnsDefinedAlert, xColOnlyAlert, yColOnlyAlert, xYColsNotAnArrayAlert
 } from '@isrd-isi-edu/deriva-webapps/src/utils/message-map';
 import useIsFirstRender from '@isrd-isi-edu/chaise/src/hooks/is-first-render';
 import { getQueryParam, getQueryParams } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
@@ -188,17 +185,6 @@ export type layoutParamsType = {
   yTickAngle: number,
 }
 
-export type dimensionsType = {
-  /**
-  * Width of screen
-  */
-  width: number,
-  /**
-  * Height of screen
-  */
-  height: number
-}
-
 /**
  * Sets the plot configs
  *
@@ -242,7 +228,6 @@ export const useChartData = (plot: Plot) => {
   const [isDataLoading, setIsDataLoading] = useState<boolean>(false);
   const [isParseLoading, setIsParseLoading] = useState<boolean>(false);
   const [selectorOptionChanged, setSelectorOptionChanged] = useState<boolean>(false);
-
 
   const { dispatchError, errors } = useError();
   const alertFunctions = useAlert();
@@ -312,7 +297,7 @@ export const useChartData = (plot: Plot) => {
         return parsedData?.layout?.xaxis?.tickvals?.indexOf(item) === pos;
       });
       const longestString = uniqueX?.reduce((a: any, b: any) => a.length > b.length ? a : b, '');
-      const newPlot = getWidthOfDiv(parsedData?.layout?.xaxis?.tickvals, uniqueX, { width, height }, longestString);
+      const newPlot = wrapLegendNames(parsedData?.layout?.xaxis?.tickvals, uniqueX, longestString);
       if (width && width <= screenWidthThreshold) {
         //Setting the wrapped legend text for plot and show the legend horizontally below the plot when the screen size is less than or equal to 1000px
         //It overrides the settings made in plot config
@@ -409,8 +394,15 @@ export const useChartData = (plot: Plot) => {
     return plotResponses.map((response: Response) => response.data); // unpack data
   }, [plot, templateParams, selectorOptionChanged]);
 
+  // since we're using strict mode, the useEffect is getting called twice in dev mode
+  // this is to guard against it
+  const setupStarted = useRef<boolean>(false);
+    
   // Effect to fetch initial data
   useEffect(() => {
+    if (setupStarted.current) return;
+    setupStarted.current = true;
+
     const fetchInitData = async () => {
       console.log('fetch initial occurred');
       setIsInitLoading(true);
@@ -538,14 +530,15 @@ export const useChartData = (plot: Plot) => {
 
 
   /**
+   * Takes in legendNames array and modifies the contents based on the width of the values in the legend
+   *   and how much that content would take on the screen
    * 
    * @param legendNames array of legend names
    * @param uniqueX array of unique X ticks
-   * @param dimensions object of height and width of screen
    * @param longestXTick longest X tick in the data
    * @returns updated(wrapped) legend names array based on screen size and no. of ticks
    */
-  const getWidthOfDiv = (legendNames: string[], uniqueX: string[], dimensions: dimensionsType, longestXTick: string) => {
+  const wrapLegendNames = (legendNames: string[], uniqueX: string[], longestXTick: string) => {
     const truncationLimit = 20;
     const charLimit = {
       sm: 30,
@@ -563,7 +556,7 @@ export const useChartData = (plot: Plot) => {
     document.body.appendChild(hiddenDiv);
     //calculate the width of this hidden div
     const width = hiddenDiv.offsetWidth;
-    const plotWidth = plotAreaFraction * dimensions?.width;
+    const plotWidth = plotAreaFraction * width;
     //no. of unique violins to be shown on plot
     const noOfViolins = uniqueX?.length;
     /*If screen is less than 1000px and legend is 50% of plot area then wrap the text upto 30 characters 
@@ -601,7 +594,7 @@ export const useChartData = (plot: Plot) => {
    * @param plot configs for a specific plot
    * @param result result to be updated
    */
-  const updatePlotlyConfig = (plot: Plot, result: any): void => {
+  const updatePlotlyConfig = (result: any): void => {
     result.config.displaylogo = Boolean(plot.config.displaylogo);
     // result.config.responsive = Boolean(plot.config.responsive);
     result.config.responsive = true;
@@ -620,9 +613,9 @@ export const useChartData = (plot: Plot) => {
    * @param axis
    * @returns
    */
-  const getSelectGroupByAxisTitle = (selectDataGrid: any, axis: 'x' | 'y') => {
+  const getSelectGroupByAxisTitle = (axis: 'x' | 'y') => {
     let title = '';
-    selectDataGrid.forEach((row: any) => {
+    selectData.forEach((row: any) => {
       row.forEach((cell: any) => {
         if (cell.action === 'groupby' && cell.axis === axis) {
           const { groupKeysMap, value } = cell;
@@ -645,13 +638,12 @@ export const useChartData = (plot: Plot) => {
    * @returns
    */
   const getSelectScaleAxisTitle = (
-    selectDataGrid: any,
     title_display_markdown_pattern: string,
     axis: 'x' | 'y'
   ) => {
     let title = '';
     let type = '';
-    selectDataGrid.forEach((row: any) => {
+    selectData.forEach((row: any) => {
       row.forEach((cell: any) => {
         if (cell.action === 'scale' && cell.axis === axis) {
           if (cell.value.value === 'log') {
@@ -673,10 +665,8 @@ export const useChartData = (plot: Plot) => {
    * @param result result to be updated
    */
   const updatePlotlyLayout = (
-    plot: Plot,
     result: any,
-    additionalLayout?: any,
-    selectDataGrid?: any
+    additionalLayout?: any
   ): void => {
     // title
     let title = '';
@@ -706,9 +696,9 @@ export const useChartData = (plot: Plot) => {
       // use the ticktext if it exists
       result.layout.xaxis.ticktext = additionalLayout.xaxis.ticktext;
     }
-    if (selectDataGrid) {
+    if (selectData) {
       // use the groupby axis title if it exists
-      const xaxisTitle = getSelectGroupByAxisTitle(selectDataGrid, 'x');
+      const xaxisTitle = getSelectGroupByAxisTitle('x');
       if (xaxisTitle) {
         result.layout.xaxis.title = xaxisTitle;
       }
@@ -725,9 +715,8 @@ export const useChartData = (plot: Plot) => {
     if (plot.config.yaxis?.title_display_markdown_pattern) {
       result.layout.yaxis.title = createLink(plot.config.yaxis.title_display_markdown_pattern);
 
-      if (Array.isArray(selectDataGrid)) {
+      if (Array.isArray(selectData)) {
         const yaxisTitle = getSelectScaleAxisTitle(
-          selectDataGrid,
           plot.config.yaxis.title_display_markdown_pattern,
           'y'
         );
@@ -776,139 +765,28 @@ export const useChartData = (plot: Plot) => {
     result.layout.autoresize = true;
   };
 
-  /**
-   * Parses response data obtained for every trace within the plot
-   *
-   * @param trace current trace the plot config
-   * @param plot plot config
-   * @param responseData data received from request to be parsed
-   * @param dimensions width & height of the screen
-   * @returns
-   */
-  const parseViolinResponse = (
-    trace: Trace,
-    plot: Plot,
-    responseData: ResponseData,
-    selectDataGrid: any,
-    dimensions: dimensionsType,
-    noData?: boolean
-  ) => {
-    const { ...plotlyTrace } = trace;
-    const result: Partial<TraceConfig> &
-      Partial<PlotlyViolinData> &
-      Partial<PlotlyPlotData> &
-      Partial<ClickableLinks> = {
-      ...plotlyTrace,
-      type: 'violin',
-      x: [], // x data
-      y: [], // y data
-
-      // TODO: migrate all these params options to config
-      points: 'all', // show all points on violin plot
-      pointpos: 0, // position of points on violin plot
-      box: {
-        visible: true, // show box plot
-      },
-      meanline: {
-        visible: true, // show mean line
-      },
-      line: {
-        width: 1, // width of violin plot
-      },
-
-      legend_clickable_links: [], // array of links for clicking on legend
-      graphic_clickable_links: [], // array of links for clicking on graph points
+  const initializePlotlyDataObject: any = (trace: Trace, idx: number) => {
+    // TODO: dataObject is a combination of Trace and TracePlotlyData
+    // NOTE: type in Trace is an array, type in TracePlotlyData is a string
+    const dataObject: any = {
+      ...trace,
+      type: plot.plot_type,
+      text: [],
+      legend_clickable_links: [], // array of links for when clicking legend
+      graphic_clickable_links: [], // array of links for when clicking graph
     };
 
-    const layout: any = {};
+    if (Array.isArray(trace.type)) dataObject.type = trace.type[idx];
 
-    if (!noData) {
-      const selectDataArray = flatten2DArray(selectDataGrid);
-      let yScale: any = null;
-      let xGroupBy: any = null;
-      selectDataArray.forEach((selectObj) => {
-        if (selectObj.action === 'groupby' && selectObj.axis === 'x') {
-          xGroupBy = selectObj;
-        }
-        if (selectObj.action === 'scale' && selectObj.axis === 'y') {
-          yScale = selectObj;
-        }
-      });
+    // plotly has default values for the following if not defined
+    // set legend here if trace.legend is defined
+    if (Array.isArray(trace.legend) && trace.legend[idx]) dataObject.name = trace.legend[idx];
 
-      const x: any[] = [];
-      const y: any[] = [];
-      const xTicks: any[] = [];
-      let legendNames: string[] = [];
-      const uniqueX: string[] = [];
-      let tempText: string[] & string[][] = [];
-      let longestXTick = '';
-      responseData.forEach((item: any, i: number) => {
-        if (xGroupBy) {
-          const groupByKey = xGroupBy.value.value;
-          const xGroupItem = xGroupBy.groupKeysMap[groupByKey];
-          updateWithTraceColData(result, trace, item, i, xGroupItem);
-          const xVal = xGroupItem?.legend_markdown_pattern
-            ? createLink(xGroupItem?.legend_markdown_pattern[0], { $row: item })
-            : item[groupByKey] || 'N/A';
-          //Adding all unique x values to array to calculate the no. of violins to be displayed on plot
-          if (uniqueX.indexOf(xVal) === -1) {
-            uniqueX.push(xVal);
-          }
-          //Extract text from xTick and wrap it upto 2 lines
-          const xTick = xGroupItem?.tick_display_markdown_pattern
-            ? extractValue(createLink(xGroupItem?.tick_display_markdown_pattern, { $row: item }), 25, 2)
-            : item[groupByKey] || 'N/A';
-          if (xVal.toString().length > longestXTick?.length) {
-            longestXTick = xVal.toString();
-          }
-          legendNames.push(xVal);
-          x.push(xVal);
-          xTicks.push(xTick);
-        }
+    if (Array.isArray(trace.mode)) dataObject.mode = trace.mode[idx];
+    if (Array.isArray(trace.marker)) dataObject.marker = trace.marker[idx];
 
-        if (yScale) {
-          const yItem = item[yScale.setting.group_key];
-          if (yScale.value.value === 'log') {
-            // increase 'TPM' by 1 for log scale
-            const yVal = yItem + 1;
-            if (yVal !== null && yVal !== undefined) {
-              y.push(yVal);
-            }
-          } else {
-            const yVal = yItem ? createLink(yItem.toString()) : yItem;
-            if (yVal !== null && yVal !== undefined) {
-              y.push(yVal);
-            }
-          }
-        }
-        tempText = updateHoverTemplateData(result, trace, item, tempText);
-      });
-
-      result.x = x;
-      result.y = y;
-      //sets the hovertext array and hoverinfo
-      setHoverText(result, tempText, trace);
-      //Calculate width of legend using hidden div
-      legendNames = getWidthOfDiv(legendNames, uniqueX, dimensions, longestXTick);
-
-      // group by x
-      result.transforms = [
-        {
-          type: 'groupby',
-          groups: legendNames,
-        },
-      ];
-
-      // add custom layout for x axis ticks
-      layout.xaxis = {
-        tickvals: result.x,
-        ticktext: xTicks,
-      };
-
-    }
-
-    return { result, layout };
-  };
+    return dataObject;
+  }
 
   /**
    * 
@@ -994,8 +872,7 @@ export const useChartData = (plot: Plot) => {
     item: any,
     colName: string,
     axis: PlotConfigAxis | undefined,
-    formatData: boolean,
-    plot: Plot
+    formatData: boolean
   ): string | number => {
     let value = item[colName];
     if (axis && axis?.tick_display_markdown_pattern) {
@@ -1005,12 +882,14 @@ export const useChartData = (plot: Plot) => {
   };
 
   /**
-   * Updates the trace with given the given trace passed in from plot-cnofig and the item data
+   * Updates the plot data after parsing the legend name, legend pattern, and graphic pattern
+   *   NOTE: why is extraInfo added when patterns are on trace?
    *
    * @param result trace object to be updated
    * @param trace current trace from the plot config
    * @param item each item/row of data
    * @param index index of the response
+   * @param extraInfo object with legend_markdown_pattern and graphic_link_pattern
    */
   const updateWithTraceColData = (
     result: any,
@@ -1019,72 +898,62 @@ export const useChartData = (plot: Plot) => {
     index: number,
     extraInfo?: any
   ): void => {
-    // legend name
-    let name = trace.legend ? trace.legend[index] : '';
-    if (trace.legend_markdown_pattern) {
-      name = createLink(trace.legend_markdown_pattern[index] || '');
+
+    // result.name is set in initializePlotlyDataObject if trace.legend is defined
+    // override if trace.legend_markdown_pattern is defined and an array
+    if (Array.isArray(trace.legend_markdown_pattern)) {
+      result.name = createLink(trace.legend_markdown_pattern[index] || '');
     }
-    result.name = name;
+
+    // legend click event
+    // is attached as an array on result object so when legend_click plotly event is triggered we can find the link and navigate to it
     const legend_markdown_pattern =
       trace.legend_markdown_pattern || extraInfo?.legend_markdown_pattern; // use either the trace or extraInfo
     if (legend_markdown_pattern) {
       // if there is a legend_markdown_pattern then create the link and add it to the array
-      const linkPattern = Array.isArray(legend_markdown_pattern)
+      const legendPattern = Array.isArray(legend_markdown_pattern)
         ? legend_markdown_pattern[index]
         : legend_markdown_pattern;
-      const extractedLinkPattern = createLinkWithContextParams(linkPattern);
+      const extractedLinkPattern = createLinkWithContextParams(legendPattern);
+
       if (extractedLinkPattern) {
         const link = createLink(extractedLinkPattern, { $self: { data: item }, $row: item });
-        if (link) {
-          result.legend_clickable_links.push(link);
-        }
+        if (link) result.legend_clickable_links.push(link);
       }
     }
 
+    // graph click event
+    // is attached as an array on result object so when graph_click plotly event is triggered we can find the link and navigate to it
     const graphic_link_pattern = trace.graphic_link_pattern || extraInfo?.graphic_link_pattern; // use either the trace or extraInfo
     if (graphic_link_pattern) {
       // if there is a graphic_link_pattern then create the link and it to the array
-      const linkPattern = Array.isArray(graphic_link_pattern)
+      const graphClickPattern = Array.isArray(graphic_link_pattern)
         ? graphic_link_pattern[index]
         : graphic_link_pattern;
-      if (linkPattern) {
-        const link = createLink(linkPattern, { $self: { data: item }, $row: item });
-        if (link) {
-          result.graphic_clickable_links.push(link);
-        }
+
+      if (graphClickPattern) {
+        const link = createLink(graphClickPattern, { $self: { data: item }, $row: item });
+        if (link) result.graphic_clickable_links.push(link);
       }
     }
 
   };
 
+  const invalidLinkAlert = useRef<boolean>(false);
+
   /**
+   * returns a formatted display value for display on hover in plot
    * 
-   * @param result data object to be updated
    * @param trace current trace from the plot config
    * @param item each item/row of data
-   * @param textArray array for hover text
-   * @param index provided for heatmap case for corresponding y axis values
-   * @param templateParams provided for heatmap to access url_parameters
-   * @returns 
+   * @returns formatted string
    */
-  const updateHoverTemplateData = (
-    result: any,
+  const generateHoverTemplateDisplay = (
     trace: Trace,
-    item: any,
-    /** 
-     * NOTE: The textArray can be ['a','b','c'](other plots) as well as [['a','b'],['c','d']](heatmap)
-     * At a given time it can be either of those types mentioned but to avoid lint error `string[] & string[][]` is used instead of `string[] | string[][]`
-     * 
-     * This most likely should be a Union type but I think the way the functions are nested and 
-     * the use of a switch instead of if/else caused the linter to have an issue
-     * 
-     * More info about using '&' vs '|' (Mixin types vs Union types)
-     * https://stackoverflow.com/questions/44688919/how-to-declare-a-variable-with-two-types-via-typescript/44689251#44689251
-     **/
-    textArray: string[] & string[][],
-    index: number = 0,
-    templateParams?: PlotTemplateParams,
+    item: any
   ) => {
+    let link;
+
     const hovertemplate_display_pattern = trace.hovertemplate_display_pattern; // use trace info
     if (hovertemplate_display_pattern) {
       const validLink = ConfigService.ERMrest.renderHandlebarsTemplate(hovertemplate_display_pattern, {
@@ -1092,38 +961,24 @@ export const useChartData = (plot: Plot) => {
         $row: item,
         $url_parameters: templateParams?.$url_parameters
       });
-      /**If there are any invalid params in the hover template display pattern, the link generated will be null.
-      Therefore the following piece of code will add an alert for stating that just once*/
-      if (!validLink && (Array.isArray(textArray[0]) ? textArray[0]?.length === 1 : textArray?.length === 1)) {
-        if (!alertFunctions.alerts.some((alert) => alert.message.includes(invalidKeyAlert))) {
-          alertFunctions.addAlert(invalidKeyAlert, ChaiseAlertType.WARNING);
-        }
+
+      /**
+       * If there are any invalid params in the hover template display pattern, the link generated will be null.
+       * Therefore the following piece of code will add an alert for stating that just once
+       */
+      if (!validLink && !invalidLinkAlert.current && !alertFunctions.alerts.some((alert) => alert.message.includes(invalidKeyAlert))) {
+        invalidLinkAlert.current = true;
+        alertFunctions.addAlert(invalidKeyAlert, ChaiseAlertType.WARNING);
       }
-      const link = ConfigService.ERMrest.renderHandlebarsTemplate(hovertemplate_display_pattern, {
+
+      link = ConfigService.ERMrest.renderHandlebarsTemplate(hovertemplate_display_pattern, {
         $self: { data: item },
         $row: item,
         $url_parameters: templateParams?.$url_parameters
       }, null, { avoidValidation: true });
-      if (link) {
-        switch (result.type) {
-          case 'bar':
-          case 'scatter':
-          case 'violin':
-          case 'pie':
-            textArray.push(link);
-            break;
-          case 'histogram':
-            textArray.push(extractAndFormatDate(link));
-            break;
-          case 'heatmap':
-            textArray[index].push(link);
-            break;
-          default:
-            break;
-        }
-      }
     }
-    return textArray;
+
+    return link;
   }
 
   /**
@@ -1174,438 +1029,409 @@ export const useChartData = (plot: Plot) => {
     }
   }
 
-  const parseGeneralResponse = (trace: Trace, plot: Plot, responseData: ResponseData) => {
-    const result: Partial<TraceConfig> & Partial<PlotlyPlotData> & Partial<ClickableLinks> = {
-      ...trace,
-      type: plot.plot_type,
-      x: [], // x data
-      y: [], // y data
-    };
+  const validateDataXYCol = (trace: Trace): string | boolean => {
+    // Show warning if no data_col, x_col, or y_col
+    if (!trace.data_col && (!trace.x_col || !trace.y_col)) {
+      let noColumnAlertMessage = noColumnsDefinedAlert;
 
-    const { config } = plot;
-    const { xaxis, yaxis, format_data_x = false, format_data_y = false } = config;
+      if (!trace.x_col && trace.y_col) {
+        // x_col error
+        noColumnAlertMessage = yColOnlyAlert;
+      } else if (trace.x_col && !trace.y_col) {
+        // y_col error
+        noColumnAlertMessage = xColOnlyAlert;
+      }
 
-    const x: string[] = [];
-    const y: string[] = [];
-    responseData.forEach((item: any, i: number) => {
-      // Add X data
-      trace?.x_col?.forEach((colName: string) => {
-        const value = getValue(item, colName, xaxis, format_data_x, plot);
-        x.push(value?.toString());
-      });
+      return noColumnAlertMessage;
+    }
 
-      // Add Y data
-      trace?.y_col?.forEach((colName: string) => {
-        const value = getValue(item, colName, yaxis, format_data_y, plot);
-        y.push(value?.toString());
-      });
-      
-    });
-    
-    result.x = x;
-    result.y = y;
+    // data_col is defined but empty
+    if (Array.isArray(trace.data_col) && trace.data_col.length === 0) return emptyDataColArrayAlert;
+    // no data_col and x_col or y_col are not an array
+    if (!trace.data_col && (!Array.isArray(trace.x_col) || !Array.isArray(trace.y_col))) return xYColsNotAnArrayAlert;
+    // x_col is defined as an array but empty
+    if (Array.isArray(trace.x_col) && trace.x_col.length === 0) return emptyXColArrayAlert;
+    // y_col is defined as an array but empty
+    if (Array.isArray(trace.y_col) && trace.y_col.length === 0) return emptyYColArrayAlert;
 
-    return result;
+    // if both arrays are size > 1 and x_col.length !== y_col.length, show a warning to user that data is inconsistent
+    if ((trace.x_col?.length && trace.x_col?.length > 1) &&
+      (trace.y_col?.length && trace.y_col?.length > 1) &&
+      (trace.x_col?.length !== trace.y_col?.length)) {
+      return incompatibleColArraysAlert;
+    }
+
+    return true;
   }
 
   /**
-   * Parses response data obtained for every trace within the plot
-   *
-   * @param trace current trace the plot config
-   * @param plot plot config
-   * @param responseData data received from request to be parsed
-   * @returns
+   * 
+   * @param trace current trace object in plot config
+   * @param responseData response data after parsing into a format we expect
+   * @returns 
    */
-  const parseHistogramResponse = (trace: Trace, plot: Plot, responseData: ResponseData) => {
+  const parseGeneralResponse = (trace: Trace, responseData: ResponseData) => {
     const { config } = plot;
-    const { format_data = false } = config;
-    let tempText: string[] & string[][] = [];
-    const dataPoints: Array<any> = [];
+    const { xaxis, yaxis, format_data_x = false, format_data_y = false, format_data = false } = config;
+    /** 
+     * NOTE: tempText can be ['a','b','c'](other plots) as well as [['a','b'],['c','d']](heatmap)
+     * At a given time it can be either of those types mentioned but to avoid lint error `string[] & string[][]` is used instead of `string[] | string[][]`
+     * 
+     * This most likely should be a Union type but I think the way the functions are nested and 
+     * the use of a switch instead of if/else caused the linter to have an issue
+     * 
+     * More info about using '&' vs '|' (Mixin types vs Union types)
+     * https://stackoverflow.com/questions/44688919/how-to-declare-a-variable-with-two-types-via-typescript/44689251#44689251
+     **/
+    const tempText: string[] & string[][] = [];
 
-    const createPlotlyDataObject = (colName: string) => {
-      const plotlyDataObject: Partial<TraceConfig> & Partial<PlotlyPlotData> = {
-        ...trace,
-        type: 'histogram',
-      };
+    const isValid = validateDataXYCol(trace);
+    if (typeof isValid === 'string' && plot.plot_type !== 'violin') {
+      alertFunctions.addAlert(isValid, ChaiseAlertType.WARNING);
+      return;
+    }
 
-      responseData.forEach((item: any) => {
-        const value = getValue(item, colName, undefined, format_data, plot);
-        dataPoints.push(value);
+    // Either data_col is defined (a string or nonempty array) OR
+    //   x_col and y_col are defined (non empty arrays)
+    //   prefer x_col/y_col to data_col
 
-        tempText = updateHoverTemplateData(plotlyDataObject, trace, item, tempText);
-      });
+    // do we have multiple x or multiple y?
+    // x_col and y_col should be the same sized array
+    //   - if one array is size 1 and the other size N,
+    //     duplicate value in array of size 1 to be an array of size N with value N times
 
-      // Add data to correct axis depending on orientation
-      if (trace.orientation === 'h') {
-        plotlyDataObject.y = dataPoints;
-      } else if (trace.orientation === 'v') {
-        plotlyDataObject.x = dataPoints;
+    let numberPlotTraces = 1;
+    // fix x_col and y_col to be same size
+    if (trace.x_col?.length === 1 && (trace.y_col?.length && trace.y_col?.length > 1)) {
+      numberPlotTraces = trace.y_col.length;
+      // if only 1 x_col value, copy that value so x_col and y_col arrays are same size
+      for (let i = 1; i < numberPlotTraces; i++) trace.x_col[i] = trace.x_col[0];
+    } else if (trace.y_col?.length === 1 && (trace.x_col?.length && trace.x_col?.length > 1)) {
+      numberPlotTraces = trace.x_col.length;
+      // if only 1 y_col value, copy that value so x_col and y_col arrays are same size
+      for (let i = 1; i < numberPlotTraces; i++) trace.y_col[i] = trace.y_col[0];
+    } else if (Array.isArray(trace.data_col)) {
+      numberPlotTraces = trace.data_col.length;
+    } // else { x_col and y_col or data_col are length 1 so do nothing }
+
+    // fix trace.type, trace.mode, trace.marker similar to above if length is 1 but there are multiple plotTraces
+    if (numberPlotTraces > 1) {
+      if (Array.isArray(trace.type) && trace.type.length === 1) {
+        for (let i = 1; i < numberPlotTraces; i++) trace.type[i] = trace.type[0];
+      }
+
+      if (Array.isArray(trace.mode) && trace.mode.length === 1) {
+        for (let i = 1; i < numberPlotTraces; i++) trace.mode[i] = trace.mode[0];
+      }
+
+      if (Array.isArray(trace.marker) && trace.marker.length === 1) {
+        for (let i = 1; i < numberPlotTraces; i++) trace.marker[i] = trace.marker[0];
+      }
+    }
+    
+
+    const plotlyData: any[] = []
+    for (let plotTraceIdx = 0; plotTraceIdx < numberPlotTraces; plotTraceIdx++) {
+      const plotlyDataObject = initializePlotlyDataObject(trace, plotTraceIdx);
+
+      // violin plot config sets up data using config.xaxis.group_keys and config.yaxis.group_key
+      // TODO: when general user controls configuration is complete, change this
+      if (plotlyDataObject.type === 'violin') {
+        plotlyData.push(plotlyDataObject);
+        continue;
+      }
+
+      let hoverTemplateLink;
+      if (trace.z_col && trace.x_col && trace.y_col) {
+        const x_col = trace.x_col[plotTraceIdx];
+        const y_col = trace.y_col[plotTraceIdx];
+        const z_col = trace.z_col[plotTraceIdx];
+
+        plotlyDataObject.x = [];
+        plotlyDataObject.y = [];
+        plotlyDataObject.z = [];
+
+        let yIndex = 0;
+        plotlyDataObject.longestXTick = '';
+        plotlyDataObject.longestYTick = '';
+
+        responseData.forEach((item: any, i: number) => {
+          updateWithTraceColData(plotlyDataObject, trace, item, i);
+
+          const value = getValue(item, x_col, xaxis, format_data_x);
+          if (plotlyDataObject.x.indexOf(value.toString()) < 0) {
+            plotlyDataObject.x.push(value.toString());
+
+            // unformatted x value
+            const rawXVal = item[x_col].toString();
+            if (rawXVal.length > plotlyDataObject.longestXTick?.length) {
+              plotlyDataObject.longestXTick = rawXVal;
+            }
+          }
+
+          // Add the y values for the heatmap plot
+          const yValue = getValue(item, y_col, yaxis, format_data_y);
+          // Adds the y value for the heatmap plot if it is not added yet in y array
+          if (plotlyDataObject.y.indexOf(yValue.toString()) < 0) {
+            // push returns new array length, subtract 1 to get index 
+            yIndex = plotlyDataObject.y.push(yValue.toString()) - 1;
+
+            // unformatted y value
+            const rawYVal = item[y_col].toString();
+            if (rawYVal.length > plotlyDataObject.longestYTick?.length) {
+              plotlyDataObject.longestYTick = rawYVal;
+            }
+
+            // text and z are 2D arrays
+            tempText.push([]);
+            // z.length === uniqueY
+            // z[n].length === uniqueX 
+            plotlyDataObject.z.push([]);
+          }
+
+          // Add the z values for the heatmap plot based on yValue's index
+          const zValue = item[z_col];
+          plotlyDataObject.z[yIndex].push(zValue);
+
+          // add hover template into array if not null
+          hoverTemplateLink = generateHoverTemplateDisplay(trace, item);
+          if (hoverTemplateLink) tempText[yIndex].push(hoverTemplateLink);
+        });
+      } else if (trace.x_col && trace.y_col) {
+        const x_col = trace.x_col[plotTraceIdx];
+        const y_col = trace.y_col[plotTraceIdx];
+
+        plotlyDataObject.x = [];
+        plotlyDataObject.y = [];
+
+        responseData.forEach((item: any) => {
+          // add legend name,
+          updateWithTraceColData(plotlyDataObject, trace, item, plotTraceIdx);
+
+          // set x value for this x_col
+          const xValue = getValue(item, x_col, xaxis, format_data_x);
+          plotlyDataObject.x.push(xValue.toString());
+
+          // set y value for this y_col
+          const yValue = getValue(item, y_col, yaxis, format_data_y);
+          plotlyDataObject.y.push(yValue.toString());
+
+          // add hover template into array if not null
+          hoverTemplateLink = generateHoverTemplateDisplay(trace, item);
+          if (hoverTemplateLink) tempText.push(hoverTemplateLink);
+        });
+      } else if (trace.data_col) {
+        const data_col = Array.isArray(trace.data_col) ? trace.data_col[plotTraceIdx] : trace.data_col;
+
+        if (plotlyDataObject.type === 'histogram') {
+          // histogram will define the "values in buckets" themselves if one of x/y is not provided
+          (trace.orientation === 'h') ? plotlyDataObject.y = [] : plotlyDataObject.x = [];
+        } else {
+          plotlyDataObject.values = [];
+          // array of labels for the legend
+          if (Array.isArray(trace.legend_col)) plotlyDataObject.labels = [];
+        }
+
+        responseData.forEach((item: any) => {
+          const value = getValue(item, data_col, undefined, format_data);
+          if (plotlyDataObject.type === 'histogram') {
+            if (trace.orientation === 'h') {
+              plotlyDataObject.y.push(value.toString());
+            } else {
+              // vertical is the default case
+              plotlyDataObject.x.push(value.toString());
+            }
+          } else {
+            // all other cases (currently only pie)
+            plotlyDataObject.values.push(value);
+
+            // Add legend data if it exists
+            if (Array.isArray(trace.legend_col)) {
+              const legendCol = trace.legend_col[plotTraceIdx] || trace.legend_col[0];
+
+              const textValue = createLink(item[legendCol], { $self: { data: item } });
+              let labelValue = textValue;
+              if (Array.isArray(trace.legend_markdown_pattern)) {
+                const legendPattern = trace.legend_markdown_pattern[plotTraceIdx] || trace.legend_markdown_pattern[0]
+                labelValue = createLink(legendPattern, { $self: { data: item } });
+              }
+
+              plotlyDataObject.text.push(textValue);
+              plotlyDataObject.labels.push(labelValue);
+            }
+          }
+
+          // add hover template into array if not null
+          hoverTemplateLink = generateHoverTemplateDisplay(trace, item);
+          if (hoverTemplateLink) tempText.push(extractAndFormatDate(hoverTemplateLink));
+        });
       }
 
       setHoverText(plotlyDataObject, tempText, trace);
 
-      return plotlyDataObject;
-    }
-
-    const plotlyData: Partial<TraceConfig> & Partial<PlotlyPlotData>[] = [];
-    if (trace.data_col) {
-      if (Array.isArray(trace.data_col)) {
-        trace?.data_col?.forEach((colName: string) => plotlyData.push(createPlotlyDataObject(colName)));
-      } else if (trace.data_col) {
-        plotlyData.push(createPlotlyDataObject(trace.data_col));
-      }
-    }
-
-    return plotlyData;
-  };
-
-  /**
-   * Parses response data obtained for every trace within the plot
-   *
-   * @param trace current trace the plot config
-   * @param plot plot config
-   * @param responseData data received from request to be parsed
-   * @returns
-   */
-  const parseScatterResponse = (trace: Trace, plot: Plot, responseData: ResponseData) => {
-    // NOTE: almost the same as parseGeneralResponse
-    const result: Partial<TraceConfig> & Partial<PlotlyPlotData> & Partial<ClickableLinks> = {
-      ...trace,
-      mode: 'markers',
-      name: trace.legend ? trace.legend[0] : '',
-      legend_clickable_links: [], // array of links for when clicking legend
-      graphic_clickable_links: [], // array of links for when clicking graph
-      type: plot.plot_type,
-      x: [], // x data
-      y: [], // y data
-    };
-
-    const { config } = plot;
-    const { xaxis, yaxis, format_data_x = false, format_data_y = false } = config; // TODO: move format_data_x to xaxis in config
-
-    const x: string[] = [];
-    const y: string[] = [];
-    let tempText: string[] & string[][] = [];
-    responseData.forEach((item: any, i: number) => {
-      updateWithTraceColData(result, trace, item, i);
-
-      // Add X data
-      trace?.x_col?.forEach((colName: string) => {
-        const value = getValue(item, colName, xaxis, format_data_x, plot);
-        x.push(value?.toString());
-      });
-
-      // Add Y data
-      trace?.y_col?.forEach((colName: string) => {
-        const value = getValue(item, colName, yaxis, format_data_y, plot);
-        y.push(value?.toString());
-      });
-      tempText = updateHoverTemplateData(result, trace, item, tempText);
-    });
-    //sets the hovertext array and hoverinfo
-    setHoverText(result, tempText, trace);
-    result.x = x;
-    result.y = y;
-    return result;
-  };
-
-  /**
-   * Parses response data obtained for every trace within the plot
-   *
-   * @param trace current trace the plot config
-   * @param plot plot config
-   * @param responseData data received from request to be parsed
-   * @returns
-   */
-  const parsePieResponse = (trace: Trace, plot: Plot, responseData: ResponseData) => {
-    const result: Partial<TraceConfig> & Partial<PlotlyPieData> & PieResultData & ClickableLinks = {
-      ...trace,
-      type: plot.plot_type,
-      hoverinfo: 'text+value+percent', // value to show on hover of a pie slice
-      textinfo: plot.config.slice_label || 'value', // data shown on a pie slice
-      labels: [], // array of labels for the legend
-      text: [], // text to show on hover of a pie slice
-      values: [], // the values for the legend
-      legend_clickable_links: [], // array of links for when clicking legend
-      graphic_clickable_links: [], // array of links for when clicking graph
-    };
-
-    const { config } = plot;
-    const { format_data = false } = config;
-    let tempText: string[] & string[][] = []; //use trace info
-
-    const pushPieData = (row: any, colName: string) => {
-      const value = getValue(row, colName, undefined, format_data, plot);
-      if (Array.isArray(result.values)) {
-        result.values.push(value);
-      }
-    }
-
-    responseData.forEach((item: any, i: number) => {
-      updateWithTraceColData(result, trace, item, i);
-      // Add data
-      if (trace.data_col) {
-        if (Array.isArray(trace.data_col)) {
-          // multiple data_cols implies unioning the data
-          // NOTE: no use case currently for this but should be supported in case one comes up
-          trace.data_col.forEach((colName: string) => pushPieData(item, colName));
-        } else {
-          pushPieData(item, trace.data_col);
-        }
-      }
-
-      // Add legend data if exists
-      if (trace.legend_col) {
-        const textValue = createLink(item[trace.legend_col], { $self: { data: item } });
-        let labelValue = textValue;
-        if (typeof trace.legend_markdown_pattern === 'string') {
-          labelValue = createLink(trace.legend_markdown_pattern, { $self: { data: item } });
-        }
-        result.text.push(textValue);
-        result.labels.push(labelValue);
-      }
-      tempText = updateHoverTemplateData(result, trace, item, tempText);
-    });
-    setHoverText(result, tempText, trace);
-    return result;
-  };
-
-  /**
-   * Parses response data obtained for every trace within the plot
-   *
-   * @param trace current trace the plot config
-   * @param plot plot config
-   * @param responseData data received from request to be parsed
-   * @returns
-   */
-  const parseBarResponse = (trace: Trace, plot: Plot, responseData: ResponseData) => {
-    const { config } = plot;
-    const { xaxis, yaxis, format_data_x = false, format_data_y = false } = config; // why is format_data_x not in xaxis?
-    let tempText: string[] & string[][] = [];
-
-    // objects that are used 
-    const plotlyData: any[] = []
-    if (trace.orientation === 'h') {
-      // iterate over x_col array since this implies multiple traces when in this orientation
-      // TODO: how to configure this to mean something different
-      trace?.x_col?.forEach((colName: string, i: number) => {
-        const plotlyDataObject: Partial<TraceConfig> & Partial<PlotlyPlotData> & PlotResultData & ClickableLinks = {
-          ...trace,
-          type: plot.plot_type,
-          textposition: 'outside', // position of bar values
-          hoverinfo: 'text', // value to show on hover of a bar
-          x: [], // x data
-          y: [], // y data
-          text: [], // text data
-          legend_clickable_links: [], // array of links for when clicking legend
-          graphic_clickable_links: [], // array of links for when clicking graph
-        };
-
-        // item is each row returned from trace.uri
-        responseData.forEach((item: any) => {
-          // Add the x values for the bar plot
-          // update the trace data if orientation is horizontal
-          updateWithTraceColData(plotlyDataObject, trace, item, i);
-          const textValue = getValue(item, colName, undefined, true, plot);
-          plotlyDataObject.text?.push(textValue.toString());
-
-          const xValue = getValue(item, colName, xaxis, format_data_x, plot);
-          plotlyDataObject.x.push(xValue.toString());
-
-          // Add the y values for the bar plot
-          trace?.y_col?.forEach((colName: string) => {
-            const yValue = getValue(item, colName, yaxis, format_data_y, plot);
-            plotlyDataObject.y.push(yValue.toString());
-          });
-
-          tempText = updateHoverTemplateData(plotlyDataObject, trace, item, tempText);
-        });
-
-        // sets the hovertext array and hoverinfo
-        setHoverText(plotlyDataObject, tempText, trace);
-
-        plotlyData.push(plotlyDataObject);
-      });
-      // iterate over y_col array since this implies multiple traces when in vertical orientation
-      // TODO: how to configure this to mean something different
-    } else {
-      // default is vertical
-      trace?.y_col?.forEach((colName: string, i: number) => {
-        const plotlyDataObject: Partial<TraceConfig> & Partial<PlotlyPlotData> & PlotResultData & ClickableLinks = {
-          ...trace,
-          type: plot.plot_type,
-          textposition: 'outside', // position of bar values
-          hoverinfo: 'text', // value to show on hover of a bar
-          x: [], // x data
-          y: [], // y data
-          text: [], // text data
-          legend_clickable_links: [], // array of links for when clicking legend
-          graphic_clickable_links: [], // array of links for when clicking graph
-        };
-
-        responseData.forEach((item: any) => {
-          // Add the y values for the bar plot
-          // update the trace data if orientation is vertical
-          updateWithTraceColData(plotlyDataObject, trace, item, i);
-          const textValue = getValue(item, colName, undefined, true, plot);
-          plotlyDataObject.text?.push(textValue.toString());
-
-          const yValue = getValue(item, colName, yaxis, format_data_y, plot);
-          plotlyDataObject.y.push(yValue.toString());
-
-          trace?.x_col?.forEach((colName: string) => {
-            const xValue = getValue(item, colName, xaxis, format_data_x, plot);
-            plotlyDataObject.x.push(xValue.toString());
-          });
-
-          tempText = updateHoverTemplateData(plotlyDataObject, trace, item, tempText);
-        });
-
-        // sets the hovertext array and hoverinfo
-        setHoverText(plotlyDataObject, tempText, trace);
-
-        plotlyData.push(plotlyDataObject);
-      });
-    }
-
-    return plotlyData;
-  };
-
-  /**
-   * Parses response data obtained for every trace within the plot
-   *
-   * @param trace current trace from the plot config
-   * @param plot plot config
-   * @param responseData data received from request to be parsed
-   * @returns
-   */
-  const parseLineResponse = (trace: Trace, plot: Plot, responseData: ResponseData) => {
-    const { config } = plot;
-    const { xaxis, yaxis, format_data_x = false, format_data_y = false } = config;
-
-    const plotlyData: any[] = []
-    // iterate over y_col array since this implies multiple traces for this plot type
-    // TODO: how to configure this to mean something different
-    trace?.y_col?.forEach((colName: string, i: number) => {
-      const plotlyDataObject: Partial<TraceConfig> & Partial<PlotlyPlotData> & PlotResultData = {
-        ...trace,
-        type: plot.plot_type,
-        x: [],
-        y: [],
-        text: []
-      };
-
-      // use trace.type, then plotly.data.type, then plot_type
-      // TODO: plotly.data support to be added
-      if (trace?.type && Array.isArray(trace.type)) {
-        // TODO: do this for legend, mode, and marker
-        // part of heuristics changes when making assumptions about the data
-        // if (i !== 0 && !trace.type[i]) {
-        //   // throw warning / error
-        // } else {
-          plotlyDataObject.type = trace.type[i];
-        // }
-      }
-
-      // plotly has default values for the following if not defined
-      if (trace?.legend && Array.isArray(trace.legend)) plotlyDataObject.name = trace.legend[i];
-      if (trace?.mode && Array.isArray(trace.mode)) plotlyDataObject.mode = trace.mode[i];
-      if (trace?.marker && Array.isArray(trace.marker)) plotlyDataObject.marker = trace.marker[i];
-
-      responseData.forEach((item: any) => {
-        // Add the y values for the bar plot
-        // update the trace data if orientation is vertical
-        const yValue = getValue(item, colName, yaxis, format_data_y, plot);
-        plotlyDataObject.y.push(yValue.toString());
-
-        trace?.x_col?.forEach((colName: string) => {
-          const xValue = getValue(item, colName, xaxis, format_data_x, plot);
-          plotlyDataObject.x.push(xValue.toString());
-        });
-      });
-
       plotlyData.push(plotlyDataObject);
-    });
+    }
 
     return plotlyData;
   }
 
+  const updatePieReponse = (trace: Trace, data: any) => {
+    // data displayed on a pie slice
+    data.textinfo = plot.config.slice_label || 'value';
+    // default value to show on hover of a pie slice
+    data.hoverinfo = 'text+value+percent';
+    // NOTE: should hoverinfo be allowed to be overridden?
+  }
 
   /**
-   * Parses response data obtained for every trace within the plot
-   *
-   * @param trace current trace the plot config
-   * @param plot plot config
-   * @param responseData data received from request to be parsed
-   * @returns
+   * add extra properties specific to bar plot
+   * text[] is handled differently depending on orientation of plot
+   * 
+   * @param trace trace from plot.traces[]
+   * @param data plotlyDataObject after general parser
    */
-  const parseHeatmapResponse = (trace: Trace, plot: Plot, responseData: ResponseData) => {
-    const result: Partial<TraceConfig> & Partial<PlotlyPlotData> & PlotResultData & ClickableLinks & HeatmapZData = {
-      ...trace,
-      type: plot.plot_type,
-      x: [], // x data
-      y: [], // y data
-      z: [], // z data
-      text: [], // text data
-      legend_clickable_links: [], // array of links for when clicking legend
-      graphic_clickable_links: [], // array of links for when clicking graph
-    };
-    let yIndex = 0;
-    let layoutParams = {};
-    let longestXTick = '';
-    let longestYTick = '';
-    let tempText: string[] & string[][] = [];
+  const updateBarResponse = (trace: Trace, data: any) => {
+    data.textposition = 'outside'; // position of bar values
+    data.hoverinfo = 'text'; // value to show on hover of a bar
 
-    const { config, plotly } = plot;
-    const { xaxis, yaxis, format_data_x = false, format_data_y = false } = config;
-    responseData.forEach((item: any, i: number) => {
-      updateWithTraceColData(result, trace, item, i);
-      // Add the y values for the heatmap plot
-      trace?.y_col?.forEach((colName: string) => {
-        const value = getValue(item, colName, yaxis, format_data_y, plot);
-        // Adds the y value for the heatmap plot if it is not added yet in y array
-        if (result.y.indexOf(value.toString()) < 0) {
-          result.y.push(value.toString());
-          if (item[colName].toString().length > longestYTick?.length) {
-            longestYTick = item[colName].toString();
-          }
-          tempText.push([]);
-          result.z.push([]);
-        }
-        // Fetching the index of added y value to add corresponding z value
-        yIndex = result.y.indexOf(value.toString());
+    if (trace.orientation === 'h') {
+      data.x.forEach((value: any) => {
+        data.text?.push(value.toString());
       });
-
-      // Add the z values for the heatmap plot based on y val's index
-      trace?.z_col?.forEach((colName: string) => {
-        const zValue = item[colName];
-        result?.z[yIndex]?.push(zValue);
-        tempText = updateHoverTemplateData(result, trace, item, tempText, yIndex, templateParams);
+    } else {
+      // default is vertical
+      data.y.forEach((value: any) => {
+        data.text?.push(value.toString());
       });
-      // Add the x values for the heatmap plot if its not added yet
-      trace?.x_col?.forEach((colName: string) => {
-        const value = getValue(item, colName, xaxis, format_data_x, plot);
-        if (result.x.indexOf(value.toString()) < 0) {
-          if (item[colName].toString().length > longestXTick?.length) {
-            longestXTick = item[colName].toString();
-          }
-          result.x.push(value.toString());
-        }
-      });
-
-
-    });
-    // Getting the longest x tick in the given data to determine margin and height values in getHeatmapLayoutParams function
-    const inputParams = {
-      width: typeof plotly?.layout.width !== 'undefined' ? plotly?.layout.width : 1200,
-      xTickAngle: typeof plotly?.layout.xaxis?.tickangle !== 'undefined' ? plotly?.layout.xaxis?.tickangle : 50,
     }
-    //sets the hovertext array and hoverinfo
-    setHoverText(result, tempText, trace);
+  }
 
-    layoutParams = getHeatmapLayoutParams(inputParams, longestXTick?.length, longestYTick?.length, result.y?.length);
-    return { layoutParams, result };
-  };
+  /**
+   * add extra properties specific to scatter/line plots
+   * 
+   * @param trace trace from plot.traces[]
+   * @param data plotlyDataObject after general parser
+   * @param index index of the data[] pertaining to 1 trace in the plot
+   */
+  const updateScatterResponse = (trace: Trace, data: any, defaultMode: string, index: number) => {
+    // default to 'markers' for scatter and 'lines+markers' for line
+    data.mode = defaultMode;
+
+    if (trace.mode && Array.isArray(trace.mode) && trace.mode[index]) {
+      data.mode = trace.mode[index];
+    }
+
+    // no default if marker is not defined
+    if (trace.marker && Array.isArray(trace.marker) && trace.marker[index]) {
+      data.marker = trace.marker[index];
+    }
+  }
+
+  /**
+   * add extra properties specific to scatter/line plots
+   * 
+   * @param trace trace from plot.traces[]
+   * @param data plotlyDataObject after general parser
+   * @param responseData data received from request to be parsed
+   */
+  const updateViolinResponse = (trace: Trace, data: any, responseData: ResponseData) => {
+    data.x = [];
+    data.y = [];
+
+    // for use with layout
+    data.xTicks = [];
+
+    data.points = 'all';
+    data.pointpos = 0;
+    data.box = { visible: true };
+    data.meanline = { visible: true };
+    data.line = { width: 1 }
+
+    if (templateParams.noData) return;
+
+    const selectDataArray = flatten2DArray(selectData);
+    let yScale: any = null;
+    let xGroupBy: any = null;
+
+    selectDataArray.forEach((selectObj) => {
+      if (selectObj.action === 'groupby' && selectObj.axis === 'x') {
+        xGroupBy = selectObj;
+      }
+
+      if (selectObj.action === 'scale' && selectObj.axis === 'y') {
+        yScale = selectObj;
+      }
+    });
+
+    const uniqueX: string[] = [];
+    let longestXTick = '';
+
+    let legendNames: string[] = [];
+    const tempText: string[] & string[][] = [];
+
+    let hoverTemplateLink;
+    responseData.forEach((item: any, i: number) => {
+      if (xGroupBy) {
+        const groupByKey = xGroupBy.value.value;
+        const xGroupItem = xGroupBy.groupKeysMap[groupByKey];
+
+        updateWithTraceColData(data, trace, item, i, xGroupItem);
+
+        const xVal = xGroupItem?.legend_markdown_pattern
+          ? createLink(xGroupItem?.legend_markdown_pattern[0], { $row: item })
+          : item[groupByKey] || 'N/A';
+
+        // Adding all unique x values to array to calculate the no. of violins to be displayed on plot
+        if (uniqueX.indexOf(xVal) === -1) {
+          uniqueX.push(xVal);
+        }
+
+        // Extract text from xTick and wrap it upto 2 lines
+        const xTick = xGroupItem?.tick_display_markdown_pattern
+          ? extractValue(createLink(xGroupItem?.tick_display_markdown_pattern, { $row: item }), 25, 2)
+          : item[groupByKey] || 'N/A';
+
+        if (xVal.toString().length > longestXTick?.length) {
+          longestXTick = xVal.toString();
+        }
+
+        data.x.push(xVal);
+        data.xTicks.push(xTick);
+        legendNames.push(xVal);
+      }
+
+      if (yScale) {
+        const yItem = item[yScale.setting.group_key];
+        if (yScale.value.value === 'log') {
+          // increase 'TPM' by 1 for log scale
+          const yVal = yItem + 1;
+          if (yVal !== null && yVal !== undefined) {
+            data.y.push(yVal);
+          }
+        } else {
+          const yVal = yItem ? createLink(yItem.toString()) : yItem;
+          if (yVal !== null && yVal !== undefined) {
+            data.y.push(yVal);
+          }
+        }
+      }
+
+      hoverTemplateLink = generateHoverTemplateDisplay(trace, item);
+      if (hoverTemplateLink) tempText.push(hoverTemplateLink);
+    });
+
+    // sets the hovertext array and hoverinfo
+    setHoverText(data, tempText, trace);
+
+    // Calculate width of legend using hidden div
+    legendNames = wrapLegendNames(legendNames, uniqueX, longestXTick);
+
+    // group by x
+    data.transforms = [{
+      type: 'groupby',
+      groups: legendNames,
+    }];
+  }
 
   /**
    * @param data The csv data that needs to be parsed
@@ -1618,122 +1444,141 @@ export const useChartData = (plot: Plot) => {
   }
 
   /**
-  * Parses data for the unpackedResponses for every plot based on its type
-  *
-  * @param plot configs for a specific plot
-  * @param unpackedResponses response data
+  * Parses the data for the response objects for every plot based on its type
   * @returns plotly data to be inserted into props
   */
-  const parsePlotData = (
-    plot: Plot,
-    unpackedResponses: ResponseData[],
-    selectDataGrid: any,
-  ) => {
+  const parsePlotData = () => {
     const result: any = { data: [] };
+
     result.config = { ...plot?.plotly?.config };
     let hovertemplate_display_pattern;
+    // used for heatmap and violin plot
+    let additionalLayout: any = {};
+
+    // NOTE: width and height max are set in dynamic styles of chart-with-effect.tsx
     result.layout = {
       ...plot.plotly?.layout,
       width: undefined, // undefined to allow for responsive layout
       height: undefined, // undefined to allow for responsive layout
     };
-    // NOTE: width and height max are set in dynamic styles of chart-with-effect.tsx
 
-    // Add all plot "traces" to data array based on plot type
-    let additionalLayout = {};
-    // multiple unpackedResponses means multiple trace objects in plot.traces
-    // TODO: this data should be combined together in some way and not be treated as separate traces in plotly
-    //     - how do we configure this for responseA[] union responseB[]
-    //     - configure for separate traces in same plot
     // array of plotly.data objects
     const plotlyData: any[] = [];
-    //CHECK: Flag to set if we want to show specific invalid configuration alerts. If it's false general alert will be shown.
+    // This boolean is used to set if we want to show specific invalid configuration alerts (bootstrap alerts). If it's false, global error handler will be used (modal popup)
     let showAlert = false;
-    //If the plot has multiple traces, multiTrace will be set to true
-    const multiTrace = unpackedResponses.length > 1;
-    result.data = unpackedResponses.map((responseData: ResponseData, index: number) => {
+    // multiple data objects means multiple trace objects in plot.traces
+    // data is an array of response objects
+    // If the plot data object has multiple objects in the traces array, multiTrace will be set to true
+    const multiTrace = data.length > 1;
+
+    // Add all plot "traces" to data array based on plot type
+    // NOTE: this assumes multiple traces in plot.traces[] will produce different objects in result.data[]
+    // TODO: combine data from multiple data sources into the same result.data[n]
+    //    - if all x_col or all y_col or all data_col are the same
+    data.forEach((responseData: ResponseData, index: number) => {
       const currTrace = plot.traces[index];
-      //To add trace number against the alert message if multiple traces are given for a plot
+      const isResponseJson = isDataJSON(responseData);
+
+      // To add trace number against the alert message if multiple traces are given for a plot
       const alertMsg = multiTrace ? `Trace ${index + 1}: ` : '';
       hovertemplate_display_pattern = currTrace.hovertemplate_display_pattern; //use trace info
-      const isResponseJson = isDataJSON(responseData);
-      //If the response_format is configured then check the format against type of file and parse the data accordingly
+
+      // If the response_format is configured then check the format against type of file and parse the data accordingly
       if (responseData && currTrace.response_format) {
-        //If the given format is not from the allowed types then show an alert warning
         if (!(validFileTypes.includes(currTrace.response_format)) && !alertFunctions.alerts.some(
           (alert) => alert.message.includes(invalidResponseFormatAlert))) {
+          // If the given format is not from the allowed types then show an alert warning
           alertFunctions.addAlert(alertMsg + invalidResponseFormatAlert, ChaiseAlertType.WARNING);
-        }
-        //If the given format is csv and the content of file is also of type csv then parse the data using csv parser
-        else if (currTrace.response_format === 'csv' && !isResponseJson) {
+        } else if (currTrace.response_format === 'csv' && !isResponseJson) {
+          // If the given format is csv and the content of file is also of type csv then parse the data using csv parser
           responseData = parseCsvData(responseData?.toString());
-        }
-        //If the given format is json but the type of file is csv then parse the data using csv parser and show an alert warning for wrong configuration
-        else if (currTrace.response_format === 'json' && !isResponseJson) {
+        } else if (currTrace.response_format === 'json' && !isResponseJson) {
+          // If the given format is json but the type of file is csv then parse the data using csv parser and show an alert warning for wrong configuration
           responseData = parseCsvData(responseData?.toString());
           if (!alertFunctions.alerts.some((alert) => alert.message.includes(alertMsg + invalidJsonAlert))) {
             showAlert = true;
             alertFunctions.addAlert(alertMsg + invalidJsonAlert, ChaiseAlertType.WARNING);
           }
-        }
-        //If the given format is csv but the type of file is json then use the data as is and show an alert warning for wrong configuration
-        else if ((currTrace.response_format === 'csv' && isResponseJson)) {
+        } else if ((currTrace.response_format === 'csv' && isResponseJson)) {
+          // If the given format is csv but the type of file is json then use the data as is and show an alert warning for wrong configuration
           if (!alertFunctions.alerts.some((alert) => alert.message.includes(alertMsg + invalidCsvAlert))) {
             showAlert = true;
             alertFunctions.addAlert(alertMsg + invalidCsvAlert, ChaiseAlertType.WARNING);
           }
         }
       }
+
+      // If response_format is not defined, and the response object is NOT json, assume it is CSV and try to parse the data
       if (responseData && currTrace?.response_format === undefined && !isResponseJson) {
         responseData = parseCsvData(responseData?.toString());
       }
-      //If the responseData is succesfully parsed as json/csv then classify and parse as per plot_type
+
+      // If the responseData is succesfully parsed as json/csv, parse the data into a format plotly expects
+      // after initially parsing the data, check the type of the plot and do any extra work to set up plotly for that plot type
       if (responseData?.length >= 1) {
-        if (plot.plot_type === 'bar') {
-          // returns an array of objects similar to PlotlyPlotData
-          const barPlotData = parseBarResponse(currTrace, plot, responseData);
-          barPlotData.forEach((data: any) => plotlyData.push(data));
-        } else if (plot.plot_type === 'line') {
-          // returns an array of objects similar to PlotlyPlotData
-          const linePlotData = parseLineResponse(currTrace, plot, responseData);
-          linePlotData.forEach((data: any) => plotlyData.push(data));
-        } else if (plot.plot_type === 'pie') {
-          // returns a single object similar to PlotlyPieData
-          plotlyData.push(parsePieResponse(currTrace, plot, responseData));
-        } else if (plot.plot_type === 'scatter') {
-          // returns a single object similar to PlotlyPlotData
-          plotlyData.push(parseScatterResponse(currTrace, plot, responseData));
-        } else if (plot.plot_type === 'histogram') {
-          // returns an array of objects similar to PlotlyPlotData
-          const histogramPlotData = parseHistogramResponse(currTrace, plot, responseData);
-          histogramPlotData.forEach((data: any) => plotlyData.push(data))
-        } else if (plot.plot_type === 'violin') {
-          const { result: parseResult, layout } = parseViolinResponse(
-            currTrace,
-            plot,
-            responseData,
-            selectDataGrid,
-            { width, height },
-            templateParams.noData
-          );
-          additionalLayout = layout;
-          plotlyData.push(parseResult);
-        } else if (plot.plot_type === 'heatmap') {
-          const heatmapData = parseHeatmapResponse(currTrace, plot, responseData);
-          additionalLayout = { ...heatmapData.layoutParams };
-          plotlyData.push(heatmapData.result);
-        } else {
-          // default case for plot types without any specific functionality
-          plotlyData.push(parseGeneralResponse(currTrace, plot, responseData));
+        // intially parse the data to a general form that plotly expects before handling specific cases
+        const allPlotData = parseGeneralResponse(currTrace, responseData);
+
+        // error parsing the data
+        if (!allPlotData) return;
+
+        // each object in plot data is for displaying data in separate traces in plotly (so we can have multiple bars or bar + lines etc)
+        for (let k = 0; k < allPlotData.length; k++) {
+          const plotData = { ...allPlotData[k] };
+          switch (plotData.type) {
+            case 'bar':
+              updateBarResponse(currTrace, plotData);
+              break;
+            case 'scatter':
+              updateScatterResponse(currTrace, plotData, 'markers', k);
+              break;
+            case 'line':
+              updateScatterResponse(currTrace, plotData, 'lines+markers', k);
+              break;
+            case 'heatmap':
+              // setup the layout object using some information returned from the data
+              const { plotly } = plot;
+              // Getting the longest x tick in the given data to determine margin and height values in getHeatmapLayoutParams function
+              const inputParams = {
+                width: typeof plotly?.layout.width !== 'undefined' ? plotly?.layout.width : 1200,
+                xTickAngle: typeof plotly?.layout.xaxis?.tickangle !== 'undefined' ? plotly?.layout.xaxis?.tickangle : 50,
+              }
+
+              additionalLayout = getHeatmapLayoutParams(
+                inputParams,
+                plotData.longestXTick?.length,
+                plotData.longestYTick?.length,
+                plotData.y?.length
+              );
+              break;
+            case 'violin':
+              updateViolinResponse(currTrace, plotData, responseData);
+
+              // add custom layout for x axis ticks
+              additionalLayout.xaxis = {
+                tickvals: plotData.x,
+                ticktext: plotData.xTicks,
+              };
+
+              break;
+            case 'pie':
+              updatePieReponse(currTrace, plotData);
+              break;
+            case 'histogram':
+            // do nothing special for now
+            default:
+              break;
+          }
+
+          plotlyData.push(plotData);
         }
-      }
-      //Otherwise if the type of file is other than csv/json, show an alert warning
-      else {
-        //If no other alerts are shown then show this alert
+      } else {
+        // Otherwise if the type of file is other than csv/json, show an alert warning
+        // If no other alerts are shown then show this alert
         if (!showAlert && !alertFunctions.alerts.some((alert) => alert.message.includes(alertMsg + invalidDataAlert))) {
           alertFunctions.addAlert(alertMsg + invalidDataAlert, ChaiseAlertType.WARNING);
         }
-        //return empty data
+        // return empty data
         return {};
       }
     });
@@ -1742,9 +1587,10 @@ export const useChartData = (plot: Plot) => {
     if (result.data?.every((obj: any) => Object.keys(obj)?.length === 0)) {
       templateParams.noData = true;
     }
-    updatePlotlyConfig(plot, result); // update the config
-    updatePlotlyLayout(plot, result, additionalLayout, selectDataGrid); // update the layout
-    //If hovertemplate_display_pattern is not configured, set default hover text for plot
+
+    updatePlotlyConfig(result); // update the config
+    updatePlotlyLayout(result, additionalLayout); // update the layout
+    // If hovertemplate_display_pattern is not configured, set default hover text for plot
     if (!hovertemplate_display_pattern) {
       defaultHoverTemplateDisplay(result); // default hover template
     }
@@ -1755,8 +1601,9 @@ export const useChartData = (plot: Plot) => {
   // Parse data on state changes to data or selectData
   useEffect(() => {
     if (data && !isDataLoading && !isInitLoading && !isFetchSelected) {
-      const parsedPlotData = parsePlotData(plot, data, selectData);
-      setParsedData(parsedPlotData);
+      // const parsedPlotData = parsePlotData(plot, data, selectData);
+      // const parsedPlotData = ;
+      setParsedData(parsePlotData());
       setIsParseLoading(false); // set loading to false after parsing
     }
 

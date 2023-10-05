@@ -662,7 +662,7 @@ var plotConfigs = {
             // The request url that has to be used to fetch the data.
             url_pattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
             data_col: 'Released', // name of the attribute of the data column
-            legend_col: 'Data_Type', // name of the attribute of the legend column
+            legend_col: ['Data_Type'], // name of the attribute of the legend column
           },
         ],
       },
@@ -716,8 +716,9 @@ var plotConfigs = {
             legend: ["Browser All Events 1", "Browser All Events 2"],   // name of traces in legend
             data_col: 'Released', // name of the attribute of the data column
             legend_col: 'Data_Type', // name of the attribute of the legend column
-            legend_markdown_pattern:
-              '[{{$self.data.Data_Type}}](/chaise/recordset/#2/{{{$self.data.Schema_Table}}}/*::facets::{{#encodeFacet}}{{{$self.data.Data_Type_Filter}}}{{/encodeFacet}}){target=_blank}',
+            legend_markdown_pattern: [
+              '[{{$self.data.Data_Type}}](/chaise/recordset/#2/{{{$self.data.Schema_Table}}}/*::facets::{{#encodeFacet}}{{{$self.data.Data_Type_Filter}}}{{/encodeFacet}}){target=_blank}'
+            ],
             graphic_link_pattern: [
               '/chaise/recordset/#2/{{{$self.data.Schema_Table}}}/*::facets::{{#encodeFacet}}{{{$self.data.Data_Type_Filter}}}{{/encodeFacet}}',
             ],
@@ -835,7 +836,6 @@ var plotConfigs = {
         traces: [
           {
             hovertemplate_display_pattern: "Assay Type : {{{$row.Assay_Type}}}, Name: {{{$row.Name}}}",
-            // url_pattern: '/~kenyshah/scatter.json',
             url_pattern: '/ermrest/catalog/2/attributegroup/M:=Gene_Expression:Specimen/stage:=left(Stage_ID)=(Vocabulary:Developmental_Stage:ID)/$M/Assay_Type,stage:Name',
             x_col: ['Assay_Type'],
             y_col: ['Name'],
@@ -946,12 +946,7 @@ var plotConfigs = {
             url_pattern: '/ermrest/catalog/2/entity/Gene_Expression:Specimen@sort(RCT::desc::)?limit=10000',
             data_col: 'RCT',
             orientation: 'h',
-            nbinsy: 50,
-            // legend_markdown_pattern:
-            //     '[{{$self.data.Data_Type}}](/chaise/recordset/#2/{{{$self.data.Schema_Table}}}/*::facets::{{#encodeFacet}}{{{$self.data.Data_Type_Filter}}}{{/encodeFacet}}){target=_blank}',
-            // graphic_link_pattern: [
-            //     '/chaise/recordset/#2/{{{$self.data.Schema_Table}}}/*::facets::{{#encodeFacet}}{{{$self.data.Data_Type_Filter}}}{{/encodeFacet}}',
-            // ],
+            nbinsy: 50
           },
         ],
       },

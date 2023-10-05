@@ -33,14 +33,23 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
   // Add upper bounds to layout width and height for responsive
   const minWidth = 320; // absolute min width
   const minHeight = 600; // absolute min height
-  const maxWidth = plotAreaFraction * width; // 95% of viewport, used as max width
-  const maxHeight = 0.7 * height; // 70% of viewport, used as min height
+  let maxWidth = plotAreaFraction * width; // 95% of viewport, used as max width
+  let maxHeight = 0.7 * height; // 70% of viewport, used as min height
+
+  // max width is the min of plot width or calculated max width
+  if (layout?.width && !isNaN(layout?.width as number)) {
+    maxWidth = Math.min(layout.width, maxWidth);
+  }
+
+  // max height is the min of plot height or calculated max height
+  if (layout?.height && !isNaN(layout?.height as number)) {
+    maxHeight = Math.min(layout.height, maxHeight);
+  }
+
   const dynamicStyles: { width: string | number; height: string | number } = {
-    width: '100%',
-    height: '100%',
+    width: Math.max(minWidth, maxWidth), // set width to min of VP or given Layout
+    height: Math.max(minHeight, maxHeight), // set width to min of VP or given Layout
   };
-  dynamicStyles.width = Math.max(minWidth, Math.min(layout?.width || maxWidth, maxWidth)); // set width to min of VP or given Layout
-  dynamicStyles.height = Math.max(minHeight, Math.min(layout?.height || maxHeight, maxHeight)); // set width to min of VP or given Layout
 
   /**
    * Data that goes into building the chart
