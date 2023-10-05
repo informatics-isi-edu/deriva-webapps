@@ -21,9 +21,7 @@
     flex: 1;
     flex-direction: column;
     align-items: center;
-    width: 80%;
     height: 100%;
-    padding: 20px;
   }
 
   .plotly-chart {
@@ -90,5 +88,10 @@
 //To add custom styling for study violin plot hover text to improve readability of link inside the hover text
   .main-svg .hoverlayer .hovertext text a {
     fill: inherit;
+  }
+
+  .grid-layout {
+    z-index: 1;
+    margin-bottom: 12px;
   }
 }

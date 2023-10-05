@@ -19,10 +19,9 @@ import {
  *
  * @returns
  */
-export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOpen }: any) => {
+export const useChartControlsGrid = ({ templateParams, setModalProps, setIsModalOpen }: any) => {
   const [selectData, setSelectData] = useState<any>(null);
   const [isFetchSelected, setIsFetchSelected] = useState<boolean>(false);
-
   /**
    * Handles closing the modal.
    */
@@ -255,7 +254,6 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
           ); // perform the data fetch
           recordsetProps.initialReference = initialReference; // set initial ref
           selectResult.selectedRows = tupleData; // set initial selected rows
-
           if (hrefQueryParam) {
             if (!isMulti) {
               templateParams.$url_parameters[urlParamKey].data = hrefQueryParam;

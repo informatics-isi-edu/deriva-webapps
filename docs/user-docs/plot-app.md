@@ -89,6 +89,40 @@ Each object in the `plots` array can have the following parameters:
         4. `legend_col`: An array of column name for the legend to be shown for the respective values
         5. `show_percentage`: To show the percentage or not on slices
 12. `plotlyButtonsToRemove`: The button to be removed shown by plotly by defualt. DEPRECATED, use `plotly.config.modeBarButtonsToRemove` instead
+13. `user_controls`: Contains information about each user control (data for the control, default value, etc) 
+    1. `uid`: Key for referencing this user control; in other configuration properties
+    2. `label`: Name to display next to this user control
+    3. `type`:  The type of control to display, more info below about control types (NOTE: For now, only type `dropdown` is supported)
+    4. `url_param_key`(Optional): Parameter name or object of parameter names from url params that ire associated with this user control 
+    6. `request_info`: Data for the user control
+        1. `url_pattern`(Optional): String that allows for handlebars templating for fetching data for this user control
+        2. `data`: Values to use in the user control if no query_pattern is provided 
+        3. `default_values`: The initial value(s) to use for this user control on page load
+        4. `value_key`: Column to use for templating in queries
+        5. `selected_value_pattern`: A pattern string to show in the user control for each selected option
+14. `grid_layout_config`: Properties for responsive grid
+    1. `width`: Width in pixels, not needed if using responsive grid layout component
+    2. `auto_size`: Height grows/shrinks to fit content
+    3. `breakpoints`: Map to identify when a different layout configuration should be used based on grid size
+    4. `cols`: Number of columns to show, object used for breakpoints
+    5. `margin`: Margin between grid components in pixels
+    6. `container_padding`: Padding inside of each grid component in pixels
+    7. `row_height`: Height of each row in pixels
+    8. `is_draggable`: Controls ability to move all components
+    9. `is_resizable`: Controls ability to resize all components
+15. `layout`: Layout for each item that will be placed inside the grid
+    1. `source_uid`: Corresponds to the component key (`uid`) from user_controls (or plots if global layouts),
+    2. `x`: Grid index in grid units for the x position, 
+    3. `y`: Grid index in grid units for the y position,
+    4. `w`: Number of grid units the width of the component spans, 
+    5. `h`: Number of grid units the height of the component spans,
+    6. `is_draggable`(Optional): Can the component be moved around, overrides `static`,
+    7. `is_resizable`(Optional): Can the component be resized, overrides `static`,
+    8. `static`(Optional): If true, implies `isDraggable: false` and `isResizeable: false`,
+    9. `min_w`(Optional): Min width in grid units,
+    10. `max_w`(Optional): Max width in grid units,
+    11. `min_h`(Optional): Min height in grid units,
+    12. `max_h`(Optional): Max height in grid units
 
 #### Note
 If any of the above (Presentation or data) values is not mentioned, the app will throw an error. If you don't want to set a value, set it to `null`.

@@ -188,22 +188,22 @@ export const extractAndFormatDate = (message: string): string => {
   const dateRegex = /\d{4}-\d{2}-\d{2}/;
   match = dateRegex.exec(message);
   extractedDate = match ? match[0] : '';
-  if(extractedDate){
-    extractedDate=  windowRef.moment(extractedDate).format('MMM D,YYYY');
+  if (extractedDate) {
+    extractedDate = windowRef.moment(extractedDate).format('MMM D,YYYY');
     modifiedString = message.replace(timestampRegex, extractedDate);
   }
   return modifiedString;
 };
 
- /* 
- * @param pattern uri link pattern
- * @param width no. of characters to be shown in one line used by wrapText method
- * @param wrapLimit maximum no. of lines to be shown after wrapping text used by wrapText method
- * @returns wrapped text/link with <br> tags inserted
- */
+/* 
+* @param pattern uri link pattern
+* @param width no. of characters to be shown in one line used by wrapText method
+* @param wrapLimit maximum no. of lines to be shown after wrapping text used by wrapText method
+* @returns wrapped text/link with <br> tags inserted
+*/
 export const extractValue = (pattern: string, width: number, wrapLimit: number) => {
   const anchorTagRegex = /<a\b[^>]*>(.*?)<\/a>/g;
-  let messageText=pattern;
+  let messageText = pattern;
   const match = pattern?.match(anchorTagRegex);
   //If pattern has anchor tags then replace the text inside the anchor tag
   if (match) {
@@ -273,9 +273,39 @@ export const wrapText = (text: string, width: number, wrapLimit: number) => {
  */
 export const isDataJSON = (data: any) => {
   try {
-    const parsedData=JSON.parse(JSON.stringify(data));
-    return !(typeof parsedData==='string');
+    const parsedData = JSON.parse(JSON.stringify(data));
+    return !(typeof parsedData === 'string');
   } catch (error) {
     return false;
+  }
+}
+
+/**
+ * Replace snake_case string to camel case
+ * @param str 
+ * @returns 
+ */
+export const toCamel = (str: string) => {
+  return str.replace(
+    /(?!^)_(.)/g,
+    (_, char) => char.toUpperCase()
+  );
+}
+
+/**
+ * Converts snake_case keys of an object to camel case
+ * @param configObject an object with snake case keys
+ * @returns object with the camel case keys
+ */
+export const convertKeysSnakeToCamel = (configObject: any) => {
+  if (typeof configObject === 'object') {
+    const newObj: any = {};
+    for (const oldKey in configObject) {
+      if (configObject.hasOwnProperty(oldKey)) {
+        const newKey = toCamel(oldKey);
+        newObj[newKey] = configObject[oldKey];
+      }
+    }
+    return newObj;
   }
 }

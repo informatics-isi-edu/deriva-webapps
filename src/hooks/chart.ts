@@ -22,7 +22,7 @@ import { flatten2DArray } from '@isrd-isi-edu/deriva-webapps/src/utils/data';
 import useError from '@isrd-isi-edu/chaise/src/hooks/error';
 import {
   createStudyViolinSelectGrid,
-  useChartSelectGrid,
+  useChartControlsGrid,
 } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart-select-grid';
 
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
@@ -46,11 +46,12 @@ import {
   invalidJsonAlert
 } from '@isrd-isi-edu/deriva-webapps/src/utils/message-map';
 import useIsFirstRender from '@isrd-isi-edu/chaise/src/hooks/is-first-render';
-import { getQueryParam } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
+import { getQueryParam, getQueryParams } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
 import { ChaiseAlertType } from '@isrd-isi-edu/chaise/src/providers/alerts';
 import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
 import Papa from 'papaparse';
+import { useControl } from '@isrd-isi-edu/deriva-webapps/src/hooks/control';
 
 /**
  * Data received from API request
@@ -131,9 +132,15 @@ export type PlotTemplateParams = {
     [paramKey: string]: any;
   };
   /**
-   * Parameters for URL
+   * Parameters for URL 
    */
   $url_parameters: {
+    [paramKey: string]: any;
+  };
+  /**
+   * Parameters for URL
+   */
+  $control_values: {
     [paramKey: string]: any;
   };
   /**
@@ -226,12 +233,15 @@ export const usePlotConfig = (plotConfigs: PlotConfig) => {
 export const useChartData = (plot: Plot) => {
   const isFirstRender = useIsFirstRender();
   const [data, setData] = useState<any | null>(null);
+  const [dataOptions, setDataOptions] = useState<any>(null);
+  const [userControlData, setUserControlData] = useState<any>(null);
   const [parsedData, setParsedData] = useState<any>(null);
   const [modalProps, setModalProps] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isInitLoading, setIsInitLoading] = useState<boolean>(false);
   const [isDataLoading, setIsDataLoading] = useState<boolean>(false);
   const [isParseLoading, setIsParseLoading] = useState<boolean>(false);
+  const [selectorOptionChanged, setSelectorOptionChanged] = useState<boolean>(false);
 
 
   const { dispatchError, errors } = useError();
@@ -255,11 +265,11 @@ export const useChartData = (plot: Plot) => {
         },
         Study: [],
       },
+      $control_values: {},
       noData: false, // TODO: remove hack when empty selectedRows are fixed
     }),
     []
   );
-
   const {
     selectData,
     handleCloseModal,
@@ -268,10 +278,29 @@ export const useChartData = (plot: Plot) => {
     setSelectData,
     isFetchSelected,
     setIsFetchSelected,
-  } = useChartSelectGrid({
+  } = useChartControlsGrid({
+    plot,
     templateParams,
     setModalProps,
     setIsModalOpen,
+  });
+
+  /**
+   * It should be called once to initialize the configuration data for the user controls into the state variable
+  */
+  useEffect(() => {
+    setUserControlData({
+      userControlConfig: plot?.user_controls,
+      gridConfig: plot?.grid_layout_config,
+      layout: plot?.layout,
+      templateParams,
+    });
+  }, []);
+  
+  useControl({
+    userControlConfig: plot?.user_controls,
+    templateParams,
+    setDataOptions,
   });
 
   /**
@@ -350,7 +379,6 @@ export const useChartData = (plot: Plot) => {
       }
     }
   }, [width]);
-
   /**
    * Fetches data from the plot traces in the plot config and returns the data
    */
@@ -379,15 +407,22 @@ export const useChartData = (plot: Plot) => {
     );
 
     return plotResponses.map((response: Response) => response.data); // unpack data
-  }, [plot, templateParams]);
+  }, [plot, templateParams, selectorOptionChanged]);
 
   // Effect to fetch initial data
   useEffect(() => {
     const fetchInitData = async () => {
       console.log('fetch initial occurred');
       setIsInitLoading(true);
-      if (getQueryParam(window.location.href, 'config') === 'study-violin') {
-        const selectGrid = createStudyViolinSelectGrid(plot); // TODO: change plot.plot_type to study-violin
+      const allQueryParams = getQueryParams(window.location.href);
+
+      // push query parameters into templating environment
+      Object.keys(allQueryParams).forEach((key: string) => {
+        templateParams.$url_parameters[key] = allQueryParams[key];
+      });
+
+      if (plot.plot_type === 'violin') {
+        const selectGrid = createStudyViolinSelectGrid(plot);
 
         // selectGrid is a 2D array of selector objects
         // TODO: add proper typing once *SelectData objects are typed properly
@@ -462,6 +497,7 @@ export const useChartData = (plot: Plot) => {
     fetchSelectData,
     setSelectData,
     templateParams,
+    selectorOptionChanged,
     fetchData,
     dispatchError,
   ]);
@@ -476,9 +512,10 @@ export const useChartData = (plot: Plot) => {
       setData(plotData);
       setIsDataLoading(false);
       setIsFetchSelected(false);
+      setSelectorOptionChanged(false);
     };
 
-    if (!isFirstRender && isFetchSelected) {
+    if (!isFirstRender && (isFetchSelected || selectorOptionChanged)) {
       // only run on subsequent renders and when selectData changes with isFetchSelected being true
       // we only want to fetch data when the selection made requires it
       // cause some selection changes can simply be handled by reparsing the existing data
@@ -496,6 +533,7 @@ export const useChartData = (plot: Plot) => {
     templateParams,
     fetchData,
     dispatchError,
+    selectorOptionChanged
   ]);
 
 
@@ -1457,15 +1495,22 @@ export const useChartData = (plot: Plot) => {
         text: []
       };
 
-      if (trace?.legend) {
-        plotlyDataObject.name = Array.isArray(trace.legend) ? trace.legend[i] : trace.legend;
+      // use trace.type, then plotly.data.type, then plot_type
+      // TODO: plotly.data support to be added
+      if (trace?.type && Array.isArray(trace.type)) {
+        // TODO: do this for legend, mode, and marker
+        // part of heuristics changes when making assumptions about the data
+        // if (i !== 0 && !trace.type[i]) {
+        //   // throw warning / error
+        // } else {
+          plotlyDataObject.type = trace.type[i];
+        // }
       }
 
-      if (trace?.marker) {
-        plotlyDataObject.marker = {}
-        plotlyDataObject.marker.symbol = Array.isArray(trace.marker) ? trace.marker[i] : trace.marker;
-        plotlyDataObject.marker.size = 20;
-      }
+      // plotly has default values for the following if not defined
+      if (trace?.legend && Array.isArray(trace.legend)) plotlyDataObject.name = trace.legend[i];
+      if (trace?.mode && Array.isArray(trace.mode)) plotlyDataObject.mode = trace.mode[i];
+      if (trace?.marker && Array.isArray(trace.marker)) plotlyDataObject.marker = trace.marker[i];
 
       responseData.forEach((item: any) => {
         // Add the y values for the bar plot
@@ -1720,6 +1765,7 @@ export const useChartData = (plot: Plot) => {
 
 
   return {
+    dataOptions,
     isInitLoading,
     isDataLoading,
     isParseLoading,
@@ -1727,11 +1773,13 @@ export const useChartData = (plot: Plot) => {
     modalProps,
     isModalOpen,
     selectData,
+    userControlData,
     parsedData,
     data,
     errors,
     handleCloseModal,
     handleSubmitModal,
+    setSelectorOptionChanged,
   };
 };
 

@@ -1,4 +1,3 @@
-import { ChaiseAlertType } from '@isrd-isi-edu/chaise/src/providers/alerts';
 import {
   Layout as PlotlyLayout,
   Config as PlotlyConfig,
@@ -7,6 +6,7 @@ import {
   PieData as PlotlyPieData,
   PlotData,
 } from 'plotly.js';
+import { ResponsiveProps as ResponsiveGridConfig } from 'react-grid-layout';
 
 
 /**
@@ -23,16 +23,42 @@ export type DataConfig = {
   plots: Plot[];
 };
 
+export type UserControlDataConfig={
+  Name: string;
+  Display: string;
+}
+
+export type UserControlConfig = {
+  uid: string;
+  label: string;
+  url_param_key?: string;
+  request_info: UserControlRequestInfoConfig;
+}
+
+export type UserControlRequestInfoConfig = {
+  url_pattern?: string;
+  data?: UserControlDataConfig[];
+  default_value?: string;
+  value_key: string;
+  selected_value_pattern?: string;
+  tick_markdown_pattern: string;
+}
+
+
+
 /**
  * Specific plot
  */
 export type Plot = {
   plot_type: 'bar' & 'violin' & 'pie' & 'scatter' & 'histogram' & 'heatmap';
   config: PlotConfigConfig;
+  layout: LayoutConfig;
+  grid_layout_config?: ResponsiveGridConfig;
   traces: Trace[];
   gene_uri_pattern?: string;
   study_uri_pattern?: string;
   plotly?: Plotly;
+  user_controls: UserControlConfig[]; //NOTE: For now user_controls will be considered of type dropdown only
 };
 
 /**
@@ -108,9 +134,49 @@ export type TraceConfig = {
   legendwidth?: number;
   url_pattern?: string;
   //queryPattern will be deprecated 
-  queryPattern?:string,
+  queryPattern?:string;
   response_format?: 'csv' & 'json';
 };
+
+/**
+ * Breakpoint config
+ */
+export type BreakpointConfig =
+{
+  lg: number; 
+  md: number; 
+  sm: number; 
+  xs: number;
+}
+
+/**
+ * Margin/Padding config
+ */
+export type MarginPaddingConfig =
+{
+  lg: [number, number]; 
+  md: [number, number]; 
+  sm: [number, number]; 
+  xs: [number, number];
+}
+
+/**
+ * Layout config for selector
+ */
+export type LayoutConfig = {
+  source_uid: any;
+  x: number;
+  y: number;
+  w: number; 
+  h: number;
+  min_w: number;
+  max_w: number;
+  min_h: number;
+  max_h: number;
+  static: boolean;
+  is_draggable: boolean;
+  is_resizable: boolean;
+}
 
 /**
  * Trace data
