@@ -1100,7 +1100,7 @@ export const useChartData = (plot: Plot) => {
     //   - if one array is size 1 and the other size N,
     //     duplicate value in array of size 1 to be an array of size N with value N times
 
-    let numberPlotTraces = 1;
+    let numberPlotTraces = (trace.y_col?.length && trace.x_col?.length === trace.y_col.length) ? trace.y_col.length : 1;
     // fix x_col and y_col to be same size
     if (trace.x_col?.length === 1 && (trace.y_col?.length && trace.y_col?.length > 1)) {
       numberPlotTraces = trace.y_col.length;
@@ -1603,8 +1603,6 @@ export const useChartData = (plot: Plot) => {
   // Parse data on state changes to data or selectData
   useEffect(() => {
     if (data && !isDataLoading && !isInitLoading && !isFetchSelected) {
-      // const parsedPlotData = parsePlotData(plot, data, selectData);
-      // const parsedPlotData = ;
       setParsedData(parsePlotData());
       setIsParseLoading(false); // set loading to false after parsing
     }
