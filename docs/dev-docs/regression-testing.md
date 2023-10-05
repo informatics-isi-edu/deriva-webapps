@@ -4,7 +4,7 @@
 
 #### Violin Plot
 Go to [this page](https://dev.gudmap.org/deriva-webapps/plot/?config=study-violin) on gudmap-dev and do the following:
-1. Use `violin-plot` configuration from `plot-test-config` file to test normal bar plot wihout any templating.
+1. Use `violin-plot` configuration from `plot-test-config` file to test normal violin plot wihout any templating.
 2. Use `violin-plot-w-links` configuration from `plot-test-config` file to test the templates and markdown patterns. Below given are the parameters that can be passed to use these markdown and templates. 
 - To test the url_pattern replace the `<user directory>` with testing user's directory. For instance, `/~jchudy/plot-test-data/violin.csv`.  
 - Test data files for `violin-plot` are `violin.csv` and `violin.json` under `Plot` folder of `deriva-ui-test-data` repository (https://github.com/informatics-isi-edu/deriva-ui-test-data).
@@ -193,7 +193,7 @@ Go to [this page](https://dev.gudmap.org/deriva-webapps/plot/?config=specimen-sc
 #### specimen-histogram-vertical
 Vertical histogram plot - Go to [this page](https://dev.gudmap.org/deriva-webapps/plot/?config=specimen-histogram-vertical)
 1. Use `vertical-histogram-plot` configuration from `plot-test-config` file to test normal bar plot wihout any templating.
-2. Use `vertical-histogram-w-links` configuration from `plot-test-config` file to test the templates and markdown patterns. Below given are the parameters that can be passed to use these markdown and templates. 
+2. Use `vertical-histogram-plot-w-links` configuration from `plot-test-config` file to test the templates and markdown patterns. Below given are the parameters that can be passed to use these markdown and templates. 
 - To test the url_pattern replace the `<user directory>` with testing user's directory. For instance, `/~jchudy/plot-test-data/histogram.csv`.  
 - Test data files for `vertical-histogram-plot` are `histogram.csv` and `histogram.json` under `Plot` folder of `deriva-ui-test-data` repository (https://github.com/informatics-isi-edu/deriva-ui-test-data).
 - The below given parameters outline the options for utilizing these markdown and templates, along with the corresponding redirection links:
@@ -209,7 +209,7 @@ Vertical histogram plot - Go to [this page](https://dev.gudmap.org/deriva-webapp
 #### specimen-histogram-horizontal
 Horizontal histogram plot - Go to [this page](https://dev.gudmap.org/deriva-webapps/plot/?config=specimen-histogram-horizontal)
 1. Use `horizontal-histogram-plot` configuration from `plot-test-config` file to test normal bar plot wihout any templating.
-2. Use `horizontal-histogram-plot` configuration from `plot-test-config` file to test the templates and markdown patterns. Below given are the parameters that can be passed to use these markdown and templates. 
+2. Use `horizontal-histogram-plot-w-links` configuration from `plot-test-config` file to test the templates and markdown patterns. Below given are the parameters that can be passed to use these markdown and templates. 
 - To test the url_pattern replace the `<user directory>` with testing user's directory. For instance, `/~jchudy/plot-test-data/histogram.csv`.  
 - Test data files for `horizontal-histogram-plot` are `histogram.csv` and `histogram.json` under `Plot` folder of `deriva-ui-test-data` repository (https://github.com/informatics-isi-edu/deriva-ui-test-data).
 - The below given parameters outline the options for utilizing these markdown and templates, along with the corresponding redirection links:
