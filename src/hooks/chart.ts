@@ -1449,9 +1449,8 @@ export const useChartData = (plot: Plot) => {
   * Parses the data for the response objects for every plot based on its type
   * @returns plotly data to be inserted into props
   */
-  const parsePlotData = (newData?: any) => {
+  const parsePlotData = () => {
     const result: any = { data: [] };
-    const dataToParse = newData || data;
 
     result.config = { ...plot?.plotly?.config };
     let hovertemplate_display_pattern;
@@ -1472,13 +1471,13 @@ export const useChartData = (plot: Plot) => {
     // multiple data objects means multiple trace objects in plot.traces
     // data is an array of response objects
     // If the plot data object has multiple objects in the traces array, multiTrace will be set to true
-    const multiTrace = dataToParse.length > 1;
+    const multiTrace = data.length > 1;
 
     // Add all plot "traces" to data array based on plot type
     // NOTE: this assumes multiple traces in plot.traces[] will produce different objects in result.data[]
     // TODO: combine data from multiple data sources into the same result.data[n]
     //    - if all x_col or all y_col or all data_col are the same
-    dataToParse.forEach((responseData: ResponseData, index: number) => {
+    data.forEach((responseData: ResponseData, index: number) => {
       const currTrace = plot.traces[index];
       const isResponseJson = isDataJSON(responseData);
 
