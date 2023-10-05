@@ -414,7 +414,7 @@ export const useChartData = (plot: Plot) => {
     const fetchInitData = async () => {
       console.log('fetch initial occurred');
       setIsInitLoading(true);
-      if (getQueryParam(window.location.href, 'config') === 'study-violin') {
+      if (plot.plot_type === 'violin') {
         const selectGrid = createStudyViolinSelectGrid(plot); // TODO: change plot.plot_type to study-violin
 
         // selectGrid is a 2D array of selector objects
