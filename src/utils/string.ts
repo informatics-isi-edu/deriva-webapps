@@ -188,8 +188,8 @@ export const extractAndFormatDate = (message: string): string => {
   const dateRegex = /\d{4}-\d{2}-\d{2}/;
   match = dateRegex.exec(message);
   extractedDate = match ? match[0] : '';
-  if(extractedDate){
-    extractedDate=  windowRef.moment(extractedDate).format('MMM D,YYYY');
+  if (extractedDate) {
+    extractedDate = windowRef.moment(extractedDate).format('MMM D, YYYY');
     modifiedString = message.replace(timestampRegex, extractedDate);
   }
   return modifiedString;

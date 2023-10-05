@@ -145,10 +145,12 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
           const newValues = [...prevValues];
           const [i, j] = indices;
           const prevSelectData = prevValues[i][j];
-          const selectedRows = prevSelectData.selectedRows.filter(
+          const selectedRows = prevSelectData.selectedRows?.filter(
             (curr: any) => curr.uniqueId !== removed.uniqueId
           );
-          if (selectedRows.length === 0) {
+
+          // if null or empty array, no "studies" selected so show no data
+          if (!selectedRows || selectedRows.length === 0) {
             templateParams.noData = true;
             newValues[i][j] = { ...prevSelectData, selectedRows: null };
             templateParams.$url_parameters[urlParamKey] = null;

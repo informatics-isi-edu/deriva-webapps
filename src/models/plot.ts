@@ -27,7 +27,7 @@ export type DataConfig = {
  * Specific plot
  */
 export type Plot = {
-  plot_type: 'bar' & 'violin' & 'pie' & 'scatter' & 'histogram' & 'heatmap';
+  plot_type: string;
   config: PlotConfigConfig;
   traces: Trace[];
   gene_uri_pattern?: string;
@@ -94,7 +94,7 @@ export type PlotConfigAxisGroupKey = {
 /**
  * Trace configs
  */
-export type TraceConfig = {
+export type Trace = {
   uri?: string;
   data_col?: string | string[];
   legend_col?: string;
@@ -105,11 +105,15 @@ export type TraceConfig = {
   x_col?: string[];
   y_col?: string[];
   z_col?: string[];
+  type?: string[];
+  mode?: string[];
+  marker?: string[];
   legendwidth?: number;
   url_pattern?: string;
-  //queryPattern will be deprecated 
-  queryPattern?:string,
+  // queryPattern will be deprecated
+  queryPattern?: string;
   response_format?: 'csv' & 'json';
+  orientation?: 'h' & 'v';
 };
 
 /**
@@ -122,7 +126,7 @@ export type TracePlotyData = Partial<PlotlyPlotData> &
 /**
  * Trace configs
  */
-export type Trace = TraceConfig & TracePlotyData;
+// export type Trace = TraceConfig & TracePlotyData;
 
 //Note: This is currently only used for plot app. Eventually this will be changed to a parameter from plot config. It could also be reused for other apps but we don't have a use case yet.
 export const plotAreaFraction = 0.95;

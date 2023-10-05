@@ -69,7 +69,7 @@ Each object in the `plots` array can have the following parameters:
     1. Properties available to most plot types:
         1. `url_pattern`: The url from which the data has to be fetched
         2. `uri`: The url from which the data has to be fetched. DEPRECATED, use `traces.url_pattern` instead
-        3. `legend`: The value of legend to be shown for this trace.
+        3. `legend`: An array of values to be shown in the legend
         4. `x_col`: An array of column names for the x values
         5. `y_col`: An array of column names for the y values
         6. `orientation`: Optional parameter for displaying the bar chart horizontally // default: 'h'
@@ -78,15 +78,15 @@ Each object in the `plots` array can have the following parameters:
         9. `response_format`: The type of file that is passed into url_pattern. It expects `csv` or `json`.
     2. Extra properties for pie and histogram charts:
         1. `data_col`: A column name as a string or array of column names for the data aggregation. used instead of x_col or y_xol
-        2. `legend_col`: The column name to use for display in the legend column
+        2. `legend_col`: The column name to use for display in the legend
     3. Extra properties for pie and bar charts:
-        1. `legend_markdown_pattern`: Display value to be used instead of legend_col.name.
+        1. `legend_markdown_pattern`: array of patterns to turn into display values to use for display in the legend.
         2. `graphic_link_pattern`: Link to use to navigate user when clicking on pie slice
     4. 1d plot has very similar properties. Keeping separate to preserve old documentation:
         1. `uri`: The url from which the data has to be fetched.
         2. `legend`: The value of legend to be shown for this trace.
         3. `data_col`: The column name for the values
-        4. `legend_col`: An array of column name for the legend to be shown for the respective values
+        4. `legend_col`: An array of column names for the legend to be shown for the respective values
         5. `show_percentage`: To show the percentage or not on slices
 12. `plotlyButtonsToRemove`: The button to be removed shown by plotly by defualt. DEPRECATED, use `plotly.config.modeBarButtonsToRemove` instead
 

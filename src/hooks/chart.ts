@@ -32,7 +32,6 @@ import {
   PlotConfigAxis,
   DataConfig,
   Trace,
-  TraceConfig,
   screenWidthThreshold,
   plotAreaFraction,
   validFileTypes,
@@ -220,7 +219,6 @@ export const useChartData = (plot: Plot) => {
   const [isDataLoading, setIsDataLoading] = useState<boolean>(false);
   const [isParseLoading, setIsParseLoading] = useState<boolean>(false);
 
-
   const { dispatchError, errors } = useError();
   const alertFunctions = useAlert();
   const { width = 0, height = 0 } = useWindowSize();
@@ -368,8 +366,15 @@ export const useChartData = (plot: Plot) => {
     return plotResponses.map((response: Response) => response.data); // unpack data
   }, [plot, templateParams]);
 
+  // since we're using strict mode, the useEffect is getting called twice in dev mode
+  // this is to guard against it
+  const setupStarted = useRef<boolean>(false);
+    
   // Effect to fetch initial data
   useEffect(() => {
+    if (setupStarted.current) return;
+    setupStarted.current = true;
+
     const fetchInitData = async () => {
       console.log('fetch initial occurred');
       setIsInitLoading(true);
@@ -729,8 +734,10 @@ export const useChartData = (plot: Plot) => {
     result.layout.autoresize = true;
   };
 
-  const initializePlotlyDataObject: any = (trace: Trace, i: number) => {
-    const dataObject = {
+  const initializePlotlyDataObject: any = (trace: Trace, idx: number) => {
+    // TODO: dataObject is a combination of Trace and TracePlotlyData
+    // NOTE: type in Trace is an array, type in TracePlotlyData is a string
+    const dataObject: any = {
       ...trace,
       type: plot.plot_type,
       text: [],
@@ -738,20 +745,14 @@ export const useChartData = (plot: Plot) => {
       graphic_clickable_links: [], // array of links for when clicking graph
     };
 
-    if (trace?.type && Array.isArray(trace.type) && trace.type[i]) {
-      // TODO: do this for legend, mode, and marker
-      // part of heuristics changes when making assumptions about the data
-      // if (i !== 0 && !trace.type[i]) {
-      //   // throw warning / error
-      // } else {
-      dataObject.type = trace.type[i];
-      // }
-    }
+    if (Array.isArray(trace.type)) dataObject.type = trace.type[idx];
 
     // plotly has default values for the following if not defined
-    // TODO: should this be removed here since legend might eb a markdown pattern
-    //   updateWithTraceColData also checks trace.legend
-    if (trace?.legend && Array.isArray(trace.legend) && trace.legend[i]) dataObject.name = trace.legend[i];
+    // set legend here if trace.legend is defined
+    if (Array.isArray(trace.legend) && trace.legend[idx]) dataObject.name = trace.legend[idx];
+
+    if (Array.isArray(trace.mode)) dataObject.mode = trace.mode[idx];
+    if (Array.isArray(trace.marker)) dataObject.marker = trace.marker[idx];
 
     return dataObject;
   }
@@ -867,10 +868,11 @@ export const useChartData = (plot: Plot) => {
     extraInfo?: any
   ): void => {
 
-    // legend name
-    let name = trace.legend ? trace.legend[index] : '';
-    if (trace.legend_markdown_pattern) name = createLink(trace.legend_markdown_pattern[index] || '');
-    result.name = name;
+    // result.name is set in initializePlotlyDataObject if trace.legend is defined
+    // override if trace.legend_markdown_pattern is defined and an array
+    if (Array.isArray(trace.legend_markdown_pattern)) {
+      result.name = createLink(trace.legend_markdown_pattern[index] || '');
+    }
 
     // legend click event
     // is attached as an array on result object so when legend_click plotly event is triggered we can find the link and navigate to it
@@ -906,34 +908,20 @@ export const useChartData = (plot: Plot) => {
 
   };
 
+  const invalidLinkAlert = useRef<boolean>(false);
+
   /**
+   * returns a formatted display value for display on hover in plot
    * 
-   * @param result data object to be updated
    * @param trace current trace from the plot config
    * @param item each item/row of data
-   * @param textArray array for hover text
-   * @param index provided for heatmap case for corresponding y axis values
-   * @param templateParams provided for heatmap to access url_parameters
-   * @returns 
+   * @returns formatted string
    */
-  const updateHoverTemplateData = (
-    result: any,
+  const generateHoverTemplateDisplay = (
     trace: Trace,
-    item: any,
-    /** 
-     * NOTE: The textArray can be ['a','b','c'](other plots) as well as [['a','b'],['c','d']](heatmap)
-     * At a given time it can be either of those types mentioned but to avoid lint error `string[] & string[][]` is used instead of `string[] | string[][]`
-     * 
-     * This most likely should be a Union type but I think the way the functions are nested and 
-     * the use of a switch instead of if/else caused the linter to have an issue
-     * 
-     * More info about using '&' vs '|' (Mixin types vs Union types)
-     * https://stackoverflow.com/questions/44688919/how-to-declare-a-variable-with-two-types-via-typescript/44689251#44689251
-     **/
-    textArray: string[] & string[][],
-    index: number = 0
+    item: any
   ) => {
-    const newArray: string[] & string[][] = [...textArray];
+    let link;
 
     const hovertemplate_display_pattern = trace.hovertemplate_display_pattern; // use trace info
     if (hovertemplate_display_pattern) {
@@ -947,39 +935,19 @@ export const useChartData = (plot: Plot) => {
        * If there are any invalid params in the hover template display pattern, the link generated will be null.
        * Therefore the following piece of code will add an alert for stating that just once
        */
-      if (!validLink && (Array.isArray(textArray[0]) ? textArray[0]?.length === 1 : textArray?.length === 1)) {
-        if (!alertFunctions.alerts.some((alert) => alert.message.includes(invalidKeyAlert))) {
-          alertFunctions.addAlert(invalidKeyAlert, ChaiseAlertType.WARNING);
-        }
+      if (!validLink && !invalidLinkAlert.current && !alertFunctions.alerts.some((alert) => alert.message.includes(invalidKeyAlert))) {
+        invalidLinkAlert.current = true;
+        alertFunctions.addAlert(invalidKeyAlert, ChaiseAlertType.WARNING);
       }
 
-      const link = ConfigService.ERMrest.renderHandlebarsTemplate(hovertemplate_display_pattern, {
+      link = ConfigService.ERMrest.renderHandlebarsTemplate(hovertemplate_display_pattern, {
         $self: { data: item },
         $row: item,
         $url_parameters: templateParams?.$url_parameters
       }, null, { avoidValidation: true });
-
-      if (link) {
-        switch (result.type) {
-          case 'bar':
-          case 'scatter':
-          case 'violin':
-          case 'pie':
-            newArray.push(link);
-            break;
-          case 'histogram':
-            newArray.push(extractAndFormatDate(link));
-            break;
-          case 'heatmap':
-            newArray[index].push(link);
-            break;
-          default:
-            break;
-        }
-      }
     }
 
-    return newArray;
+    return link;
   }
 
   /**
@@ -1074,12 +1042,17 @@ export const useChartData = (plot: Plot) => {
   const parseGeneralResponse = (trace: Trace, responseData: ResponseData) => {
     const { config } = plot;
     const { xaxis, yaxis, format_data_x = false, format_data_y = false, format_data = false } = config;
-    let tempText: string[] & string[][] = [];
-
-    // do we have multiple x or multiple y?
-    // x_col and y_col should be the same sized array
-    //   - if one array is size 1 and the other size N,
-    //     duplicate value in array of size 1 to be an array of size N with value N times
+    /** 
+     * NOTE: tempText can be ['a','b','c'](other plots) as well as [['a','b'],['c','d']](heatmap)
+     * At a given time it can be either of those types mentioned but to avoid lint error `string[] & string[][]` is used instead of `string[] | string[][]`
+     * 
+     * This most likely should be a Union type but I think the way the functions are nested and 
+     * the use of a switch instead of if/else caused the linter to have an issue
+     * 
+     * More info about using '&' vs '|' (Mixin types vs Union types)
+     * https://stackoverflow.com/questions/44688919/how-to-declare-a-variable-with-two-types-via-typescript/44689251#44689251
+     **/
+    const tempText: string[] & string[][] = [];
 
     const isValid = validateDataXYCol(trace);
     if (typeof isValid === 'string' && plot.plot_type !== 'violin') {
@@ -1091,36 +1064,57 @@ export const useChartData = (plot: Plot) => {
     //   x_col and y_col are defined (non empty arrays)
     //   prefer x_col/y_col to data_col
 
+    // do we have multiple x or multiple y?
+    // x_col and y_col should be the same sized array
+    //   - if one array is size 1 and the other size N,
+    //     duplicate value in array of size 1 to be an array of size N with value N times
+
     let numberPlotTraces = 1;
     // fix x_col and y_col to be same size
-    // if only 1 x_col value, copy that value so x_col and y_col arrays are same size
     if (trace.x_col?.length === 1 && (trace.y_col?.length && trace.y_col?.length > 1)) {
-      for (let i = 1; i < trace.y_col.length; i++) trace.x_col[i] = trace.x_col[0];
       numberPlotTraces = trace.y_col.length;
+      // if only 1 x_col value, copy that value so x_col and y_col arrays are same size
+      for (let i = 1; i < numberPlotTraces; i++) trace.x_col[i] = trace.x_col[0];
     } else if (trace.y_col?.length === 1 && (trace.x_col?.length && trace.x_col?.length > 1)) {
-      for (let i = 1; i < trace.x_col.length; i++) trace.y_col[i] = trace.y_col[0];
       numberPlotTraces = trace.x_col.length;
+      // if only 1 y_col value, copy that value so x_col and y_col arrays are same size
+      for (let i = 1; i < numberPlotTraces; i++) trace.y_col[i] = trace.y_col[0];
     } else if (Array.isArray(trace.data_col)) {
       numberPlotTraces = trace.data_col.length;
     } // else { x_col and y_col or data_col are length 1 so do nothing }
 
-    // TODO: fix trace.type, trace.mode, trace.markers similar to above
+    // fix trace.type, trace.mode, trace.marker similar to above if length is 1 but there are multiple plotTraces
+    if (numberPlotTraces > 1) {
+      if (Array.isArray(trace.type) && trace.type.length === 1) {
+        for (let i = 1; i < numberPlotTraces; i++) trace.type[i] = trace.type[0];
+      }
+
+      if (Array.isArray(trace.mode) && trace.mode.length === 1) {
+        for (let i = 1; i < numberPlotTraces; i++) trace.mode[i] = trace.mode[0];
+      }
+
+      if (Array.isArray(trace.marker) && trace.marker.length === 1) {
+        for (let i = 1; i < numberPlotTraces; i++) trace.marker[i] = trace.marker[0];
+      }
+    }
+    
 
     const plotlyData: any[] = []
-    for (let j = 0; j < numberPlotTraces; j++) {
-      const plotlyDataObject = initializePlotlyDataObject(trace, j);
+    for (let plotTraceIdx = 0; plotTraceIdx < numberPlotTraces; plotTraceIdx++) {
+      const plotlyDataObject = initializePlotlyDataObject(trace, plotTraceIdx);
 
       // violin plot config sets up data using config.xaxis.group_keys and config.yaxis.group_key
       // TODO: when general user controls configuration is complete, change this
-      if (trace.type === 'violin') {
+      if (plotlyDataObject.type === 'violin') {
         plotlyData.push(plotlyDataObject);
         continue;
       }
 
+      let hoverTemplateLink;
       if (trace.z_col && trace.x_col && trace.y_col) {
-        const x_col = trace.x_col[j];
-        const y_col = trace.y_col[j];
-        const z_col = trace.z_col[j];
+        const x_col = trace.x_col[plotTraceIdx];
+        const y_col = trace.y_col[plotTraceIdx];
+        const z_col = trace.z_col[plotTraceIdx];
 
         plotlyDataObject.x = [];
         plotlyDataObject.y = [];
@@ -1168,22 +1162,20 @@ export const useChartData = (plot: Plot) => {
           const zValue = item[z_col];
           plotlyDataObject.z[yIndex].push(zValue);
 
-          tempText = updateHoverTemplateData(plotlyDataObject, trace, item, tempText, yIndex);
+          // add hover template into array if not null
+          hoverTemplateLink = generateHoverTemplateDisplay(trace, item);
+          if (hoverTemplateLink) tempText[yIndex].push(hoverTemplateLink);
         });
       } else if (trace.x_col && trace.y_col) {
-        const x_col = trace.x_col[j];
-        const y_col = trace.y_col[j];
+        const x_col = trace.x_col[plotTraceIdx];
+        const y_col = trace.y_col[plotTraceIdx];
 
         plotlyDataObject.x = [];
         plotlyDataObject.y = [];
 
         responseData.forEach((item: any) => {
           // add legend name,
-          updateWithTraceColData(plotlyDataObject, trace, item, j);
-
-          // TODO: x_col or y_col
-          // const textValue = getValue(item, y_col, undefined, true);
-          // plotlyDataObject.text?.push(textValue.toString());
+          updateWithTraceColData(plotlyDataObject, trace, item, plotTraceIdx);
 
           // set x value for this x_col
           const xValue = getValue(item, x_col, xaxis, format_data_x);
@@ -1193,13 +1185,12 @@ export const useChartData = (plot: Plot) => {
           const yValue = getValue(item, y_col, yaxis, format_data_y);
           plotlyDataObject.y.push(yValue.toString());
 
-          // add values into array and return new array
-          // TODO: updateHoverTemplateData should return the linka nd handle push here
-          //   avoid reassigning object over and over
-          tempText = updateHoverTemplateData(plotlyDataObject, trace, item, tempText);
+          // add hover template into array if not null
+          hoverTemplateLink = generateHoverTemplateDisplay(trace, item);
+          if (hoverTemplateLink) tempText.push(hoverTemplateLink);
         });
       } else if (trace.data_col) {
-        const data_col = Array.isArray(trace.data_col) ? trace.data_col[j] : trace.data_col;
+        const data_col = Array.isArray(trace.data_col) ? trace.data_col[plotTraceIdx] : trace.data_col;
 
         if (plotlyDataObject.type === 'histogram') {
           // histogram will define the "values in buckets" themselves if one of x/y is not provided
@@ -1207,7 +1198,7 @@ export const useChartData = (plot: Plot) => {
         } else {
           plotlyDataObject.values = [];
           // array of labels for the legend
-          plotlyDataObject.labels = [];
+          if (Array.isArray(trace.legend_col)) plotlyDataObject.labels = [];
         }
 
         responseData.forEach((item: any) => {
@@ -1224,15 +1215,14 @@ export const useChartData = (plot: Plot) => {
             plotlyDataObject.values.push(value);
 
             // Add legend data if it exists
-            if (trace.legend_col) {
-              // TODO: this should always be an array
-              const legendCol = Array.isArray(trace.legend_col) ? trace.legend_col[0] : trace.legend_col;
+            if (Array.isArray(trace.legend_col)) {
+              const legendCol = trace.legend_col[plotTraceIdx] || trace.legend_col[0];
 
               const textValue = createLink(item[legendCol], { $self: { data: item } });
               let labelValue = textValue;
-              // TODO: this should be an array
-              if (typeof trace.legend_markdown_pattern === 'string') {
-                labelValue = createLink(trace.legend_markdown_pattern, { $self: { data: item } });
+              if (Array.isArray(trace.legend_markdown_pattern)) {
+                const legendPattern = trace.legend_markdown_pattern[plotTraceIdx] || trace.legend_markdown_pattern[0]
+                labelValue = createLink(legendPattern, { $self: { data: item } });
               }
 
               plotlyDataObject.text.push(textValue);
@@ -1240,10 +1230,9 @@ export const useChartData = (plot: Plot) => {
             }
           }
 
-          // add values into array and return new array
-          // TODO: updateHoverTemplateData should return the link and handle push here
-          //   avoid reassigning object over and over
-          tempText = updateHoverTemplateData(plotlyDataObject, trace, item, tempText);
+          // add hover template into array if not null
+          hoverTemplateLink = generateHoverTemplateDisplay(trace, item);
+          if (hoverTemplateLink) tempText.push(extractAndFormatDate(hoverTemplateLink));
         });
       }
 
@@ -1347,8 +1336,9 @@ export const useChartData = (plot: Plot) => {
     let longestXTick = '';
 
     let legendNames: string[] = [];
-    let tempText: string[] & string[][] = [];
+    const tempText: string[] & string[][] = [];
 
+    let hoverTemplateLink;
     responseData.forEach((item: any, i: number) => {
       if (xGroupBy) {
         const groupByKey = xGroupBy.value.value;
@@ -1394,7 +1384,9 @@ export const useChartData = (plot: Plot) => {
           }
         }
       }
-      tempText = updateHoverTemplateData(data, trace, item, tempText);
+
+      hoverTemplateLink = generateHoverTemplateDisplay(trace, item);
+      if (hoverTemplateLink) tempText.push(hoverTemplateLink);
     });
 
     // sets the hovertext array and hoverinfo
@@ -1449,7 +1441,10 @@ export const useChartData = (plot: Plot) => {
     const multiTrace = data.length > 1;
 
     // Add all plot "traces" to data array based on plot type
-    result.data = data.map((responseData: ResponseData, index: number) => {
+    // NOTE: this assumes multiple traces in plot.traces[] will produce different objects in result.data[]
+    // TODO: combine data from multiple data sources into the same result.data[n]
+    //    - if all x_col or all y_col or all data_col are the same
+    data.forEach((responseData: ResponseData, index: number) => {
       const currTrace = plot.traces[index];
       const isResponseJson = isDataJSON(responseData);
 
@@ -1496,7 +1491,6 @@ export const useChartData = (plot: Plot) => {
         // error parsing the data
         if (!allPlotData) return;
 
-        // TODO: iterate over plotData and see what else needs to be done for each "type + mode combination"
         // each object in plot data is for displaying data in separate traces in plotly (so we can have multiple bars or bar + lines etc)
         for (let k = 0; k < allPlotData.length; k++) {
           const plotData = { ...allPlotData[k] };
@@ -1559,7 +1553,6 @@ export const useChartData = (plot: Plot) => {
     });
 
     result.data = plotlyData;
-    // TODO: test no data case
     if (result.data?.every((obj: any) => Object.keys(obj)?.length === 0)) {
       templateParams.noData = true;
     }
