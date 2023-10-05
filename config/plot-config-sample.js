@@ -202,7 +202,7 @@ var plotConfigs = {
             // response_format: 'json',
             // legend: ["Browser All Events 1","Browser All Events 2"],   // name of traces in legend
             data_col: 'Released', // name of the attribute of the data column
-            legend_col: 'Data_Type', // name of the attribute of the legend column
+            legend_col: ['Data_Type'], // name of the attribute of the legend column
             // legend_markdown_pattern:
             //   '[{{$self.data.Data_Type}}](/chaise/recordset/#2/{{{$self.data.Schema_Table}}}/*::facets::{{#encodeFacet}}{{{$self.data.Data_Type_Filter}}}{{/encodeFacet}}){target=_blank}',
             // graphic_link_pattern: [
@@ -907,7 +907,7 @@ var plotConfigs = {
             queryPattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(%23_Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
             // legend: ["Browser All Events 1","Browser All Events 2"],   // name of traces in legend
             data_col: '#_Released', // name of the attribute of the data column
-            legend_col: 'Data_Type', // name of the attribute of the legend column
+            legend_col: ['Data_Type'], // name of the attribute of the legend column
             // legend_markdown_pattern:
             //   '[{{$self.data.Data_Type}}](/chaise/recordset/#2/{{{$self.data.Schema_Table}}}/*::facets::{{#encodeFacet}}{{{$self.data.Data_Type_Filter}}}{{/encodeFacet}}){target=_blank}',
             // graphic_link_pattern: [

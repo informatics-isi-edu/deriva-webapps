@@ -82,9 +82,11 @@ Each object in the `plots` array can have the following parameters:
     3. Extra properties for pie and bar charts:
         1. `legend_markdown_pattern`: array of patterns to turn into display values to use for display in the legend.
         2. `graphic_link_pattern`: Link to use to navigate user when clicking on pie slice
-    4. 1d plot has very similar properties. Keeping separate to preserve old documentation:
+    4. Extra properties for heatmap charts:
+        1. `z_col`: An array of column names for the z values to use as the aggregated value for the `(x, y)` combination
+    5. 1d plot has very similar properties. Keeping separate to preserve old documentation:
         1. `uri`: The url from which the data has to be fetched.
-        2. `legend`: The value of legend to be shown for this trace.
+        2. `legend`: An array of values to be shown in the legend
         3. `data_col`: The column name for the values
         4. `legend_col`: An array of column names for the legend to be shown for the respective values
         5. `show_percentage`: To show the percentage or not on slices
