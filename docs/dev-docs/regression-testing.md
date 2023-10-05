@@ -4,7 +4,7 @@
 
 #### Violin Plot
 Go to [this page](https://dev.gudmap.org/deriva-webapps/plot/?config=study-violin) on gudmap-dev and do the following:
-1. Use `violin-plot` configuration from `plot-test-config` file to test normal bar plot wihout any templating.
+1. Use `violin-plot` configuration from `plot-test-config` file to test normal violin plot wihout any templating.
 2. Use `violin-plot-w-links` configuration from `plot-test-config` file to test the templates and markdown patterns. Below given are the parameters that can be passed to use these markdown and templates. 
 - To test the url_pattern replace the `<user directory>` with testing user's directory. For instance, `/~jchudy/plot-test-data/violin.csv`.  
 - Test data files for `violin-plot` are `violin.csv` and `violin.json` under `Plot` folder of `deriva-ui-test-data` repository (https://github.com/informatics-isi-edu/deriva-ui-test-data).
@@ -102,7 +102,22 @@ A Horizontal bar plot - Go to [this page](https://dev.gudmap.org/deriva-webapps/
     `legend_markdown_pattern` (Action on click of legend name):  https://dev.gudmap.org/chaise/recordset/#2/Antibody:Antibody_Tests@sort(RID)
     `graphic_markdown_pattern` (Action on click of plot graphics):  https://dev.gudmap.org/chaise/recordset/#2/Antibody:Antibody_Tests/*::facets::
     `hover_template_display_pattern` (Text to be displayed on hovering the plot):  `Released Horizontal: 41`
-
+3. Use `bar-plot-w-selector` configuration from `plot-test-config` file to test the user controls (i.e. placed above the plot).
+- The `user_controls` object will determine the number of user controls to be positioned within the grid and which options should be available within each control. In the given configuration, it will create a `dropdown` as a React grid item, preloaded with the specified configuration options, with a default value of `All` and the label `Consortium` associated with it. The `value_key` defines that with what string the value for this dropdown will be saved into the `$control_values`.
+- To test the `grid_layout_config` parameters:
+    - `width`: It can be any number
+    - `auto_size`: If true, the container height swells and contracts to fit contents
+    - `breakpoints`: We have the flexibility to define various column configurations, margins, paddings, and layouts based on specific breakpoints. For instance, within this object: { lg: 1100, md: 996, sm: 768, xs: 480 }, any settings specified under the `md` key will be applied to grid items when the React grid size is `greater than or equal to 996 but less than 1100`.
+    - `cols`: If you wish to segment your grid into particular columns based on React grid breakpoints, you can set it up like this: `{ lg: 12, md: 10, sm: 6, xs: 4 }`. Therefore, when the React grid size corresponds to `md`, the column count will be `10`.
+    - `margin`: If you wish to give particular margins based on React grid breakpoints, you can set it up like this: `{ lg: [12, 12], md: [10, 10], sm: [9, 9], xs: [5, 5] }`. Therefore, when the React grid size corresponds to `md`, the margin x and y will be `[10,10]`.
+    - `container_padding`: This functions similarly to how margins operate with breakpoints.
+    - `row_height`: This defines the height of each row inside the react grid which will be `30px` for this case.
+    - `is_draggable`, `is_resizable` : These flags can be toggled to 'true' to enable the ability to drag and resize grid items, respectively.
+- To test the `layout` parameters:
+    - `source_uid`: This corresponds with the component key ('uid') taken from either `user_controls` or, in the case of global layouts, `plots`.
+    - `x, y`: Specifies the position of a grid item. For instance, (0,0) positions the element at the `top-left` corner of the grid, while (10,0) positions the item at the `top-right` corner, assuming a grid with 12 columns.
+    - `w, h`: Defines the width and height of the grid item in terms of column units. If there are 12 columns, and w is set to 6, then the grid item will occupy half of the grid area's width.
+    - `static`: If true, equal to `isDraggable: false, isResizable: false` i.e. the grid item will be static.
 
 #### gudmap-todate-bar-swapped
 A vertical bar plot - Go to [this page](https://dev.gudmap.org/deriva-webapps/plot/?config=gudmap-todate-bar-swapped)
@@ -178,7 +193,7 @@ Go to [this page](https://dev.gudmap.org/deriva-webapps/plot/?config=specimen-sc
 #### specimen-histogram-vertical
 Vertical histogram plot - Go to [this page](https://dev.gudmap.org/deriva-webapps/plot/?config=specimen-histogram-vertical)
 1. Use `vertical-histogram-plot` configuration from `plot-test-config` file to test normal bar plot wihout any templating.
-2. Use `vertical-histogram-w-links` configuration from `plot-test-config` file to test the templates and markdown patterns. Below given are the parameters that can be passed to use these markdown and templates. 
+2. Use `vertical-histogram-plot-w-links` configuration from `plot-test-config` file to test the templates and markdown patterns. Below given are the parameters that can be passed to use these markdown and templates. 
 - To test the url_pattern replace the `<user directory>` with testing user's directory. For instance, `/~jchudy/plot-test-data/histogram.csv`.  
 - Test data files for `vertical-histogram-plot` are `histogram.csv` and `histogram.json` under `Plot` folder of `deriva-ui-test-data` repository (https://github.com/informatics-isi-edu/deriva-ui-test-data).
 - The below given parameters outline the options for utilizing these markdown and templates, along with the corresponding redirection links:
@@ -194,7 +209,7 @@ Vertical histogram plot - Go to [this page](https://dev.gudmap.org/deriva-webapp
 #### specimen-histogram-horizontal
 Horizontal histogram plot - Go to [this page](https://dev.gudmap.org/deriva-webapps/plot/?config=specimen-histogram-horizontal)
 1. Use `horizontal-histogram-plot` configuration from `plot-test-config` file to test normal bar plot wihout any templating.
-2. Use `horizontal-histogram-plot` configuration from `plot-test-config` file to test the templates and markdown patterns. Below given are the parameters that can be passed to use these markdown and templates. 
+2. Use `horizontal-histogram-plot-w-links` configuration from `plot-test-config` file to test the templates and markdown patterns. Below given are the parameters that can be passed to use these markdown and templates. 
 - To test the url_pattern replace the `<user directory>` with testing user's directory. For instance, `/~jchudy/plot-test-data/histogram.csv`.  
 - Test data files for `horizontal-histogram-plot` are `histogram.csv` and `histogram.json` under `Plot` folder of `deriva-ui-test-data` repository (https://github.com/informatics-isi-edu/deriva-ui-test-data).
 - The below given parameters outline the options for utilizing these markdown and templates, along with the corresponding redirection links:

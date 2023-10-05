@@ -12,6 +12,7 @@ import PlotlyChart from '@isrd-isi-edu/deriva-webapps/src/components/plot/plotly
 import RecordsetModal from '@isrd-isi-edu/chaise/src/components/modals/recordset-modal';
 import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
 import { SelectedRow } from '@isrd-isi-edu/chaise/src/models/recordset';
+import UserControlsGrid from '@isrd-isi-edu/deriva-webapps/src/components/plot/user-controls-grid';
 
 export type ChartWithEffectProps = {
   config: Plot;
@@ -54,8 +55,10 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
    * Data that goes into building the chart
    */
   const {
+    dataOptions,
     parsedData,
     selectData,
+    userControlData,
     modalProps,
     isModalOpen,
     isFetchSelected,
@@ -63,6 +66,7 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
     isInitLoading,
     handleCloseModal,
     handleSubmitModal,
+    setSelectorOptionChanged,
   } = useChartData(config);
 
   if (!parsedData || isInitLoading) {
@@ -154,12 +158,15 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
       modalProps.recordsetProps.initialSelectedRows = selectData[i][j].selectedRows;
     }
   }
-
   return (
     <div className='chart-container'>
       <div className='chart'>
         {selectData && selectData.length > 0 ? (
           <SelectGrid selectors={selectData} width={dynamicStyles.width} />
+        ) : null}
+        {userControlData && Object.keys(userControlData)?.length > 0 && dataOptions && dataOptions.length > 0 ? (
+          <UserControlsGrid userControlData={userControlData} selectorOptions={dataOptions}
+            setSelectorOptionChanged={setSelectorOptionChanged} width={dynamicStyles.width} />
         ) : null}
         {isParseLoading || isFetchSelected ? (
           <ChaiseSpinner />

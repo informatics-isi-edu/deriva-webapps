@@ -45,7 +45,7 @@ BOOLEAN_SEARCH_CONFIG=$(CONFIG)/boolean-search-config.js
 $(BOOLEAN_SEARCH_CONFIG): $(CONFIG)/boolean-search-config-sample.js
 	cp -n $(CONFIG)/boolean-search-config-sample.js $(BOOLEAN_SEARCH_CONFIG) || true
 	touch $(BOOLEAN_SEARCH_CONFIG)
-  
+
 HEATMAP_CONFIG=$(CONFIG)/heatmap-config.js
 $(HEATMAP_CONFIG): $(CONFIG)/heatmap-config-sample.js
 	cp -n $(CONFIG)/heatmap-config-sample.js $(HEATMAP_CONFIG) || true
@@ -116,6 +116,18 @@ lint: $(SOURCE)
 .PHONY: lint-w-warn
 lint-w-warn: $(SOURCE)
 	@npx eslint src --ext .ts,.tsx
+
+  # run dist and deploy with proper uesrs (GNU). only works with root user
+.PHONY: root-install
+root-install:
+	su $(shell stat -c "%U" Makefile) -c "make dist"
+	make deploy
+
+# run dist and deploy with proper uesrs (FreeBSD and MAC OS X). only works with root user
+.PHONY: root-install-alt
+root-install-alt:
+	su $(shell stat -f '%Su' Makefile) -c "make dist"
+	make deploy
 
 # Rule to create the package.
 .PHONY: dist-wo-deps
@@ -226,3 +238,5 @@ usage:
 	@echo "  deploy-plot-w-config             deploy plot with the existing config file(s)"
 	@echo "  deploy-treeview                  deploy treeview app"
 	@echo "  deploy-treeview-w-config         deploy treeview app with the existing config file(s)"
+	@echo "  root-install                   should only be used as root. will use dist with proper user and then deploy, for GNU systems"
+	@echo "  root-install-alt               should only be used as root. will use dist with proper user and then deploy, for FreeBSD and MAC OS X"

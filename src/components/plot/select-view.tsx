@@ -2,6 +2,10 @@ import { ReactNode } from 'react';
 
 export type SelectViewProps = {
   /**
+   * id for the select input
+   */
+  id?: string;
+  /**
    * label for the select input
    */
   label?: string;
@@ -14,8 +18,8 @@ export type SelectViewProps = {
 /**
  * SelectView is a view component for the outer element of an input.
  */
-const SelectView = ({ label, children }: SelectViewProps): JSX.Element => (
-  <div className='selector-container'>
+const SelectView = ({ label, id, children }: SelectViewProps): JSX.Element => (
+  <div id={id} className='selector-container'>
     {label ? <label className='selector-label'>{label}: </label> : null}
     {children}
   </div>
