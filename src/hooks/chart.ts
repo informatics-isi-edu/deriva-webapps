@@ -1229,7 +1229,9 @@ export const useChartData = (plot: Plot) => {
         } else {
           plotlyDataObject.values = [];
           // array of labels for the legend
-          if (Array.isArray(trace.legend_col)) plotlyDataObject.labels = [];
+          // TODO: legend_col as a string is deprecated, ensure it's an array when fully removed
+          // if (Array.isArray(trace.legend_col)
+          if (trace.legend_col) plotlyDataObject.labels = [];
         }
 
         responseData.forEach((item: any) => {
@@ -1246,8 +1248,8 @@ export const useChartData = (plot: Plot) => {
             plotlyDataObject.values.push(value);
 
             // Add legend data if it exists
-            if (Array.isArray(trace.legend_col)) {
-              const legendCol = trace.legend_col[plotTraceIdx] || trace.legend_col[0];
+            if (trace.legend_col) {
+              const legendCol = Array.isArray(trace.legend_col) ? trace.legend_col[plotTraceIdx] || trace.legend_col[0] : trace.legend_col;
 
               const textValue = createLink(item[legendCol], { $self: { data: item } });
               let labelValue = textValue;

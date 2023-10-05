@@ -78,7 +78,7 @@ Each object in the `plots` array can have the following parameters:
         9. `response_format`: The type of file that is passed into url_pattern. It expects `csv` or `json`.
     2. Extra properties for pie and histogram charts:
         1. `data_col`: A column name as a string or array of column names for the data aggregation. used instead of x_col or y_xol
-        2. `legend_col`: The column name to use for display in the legend
+        2. `legend_col`: An array of column names for the legend
     3. Extra properties for pie and bar charts:
         1. `legend_markdown_pattern`: array of patterns to turn into display values to use for display in the legend.
         2. `graphic_link_pattern`: Link to use to navigate user when clicking on pie slice

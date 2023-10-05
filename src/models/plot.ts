@@ -123,7 +123,7 @@ export type PlotConfigAxisGroupKey = {
 export type Trace = {
   uri?: string;
   data_col?: string | string[];
-  legend_col?: string;
+  legend_col?: string | string[];
   legend_markdown_pattern?: string | string[];
   graphic_link_pattern?: string[] | string;
   hovertemplate_display_pattern?: string;
