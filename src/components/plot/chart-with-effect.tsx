@@ -159,7 +159,7 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
     }
   }
   return (
-    <div className='chart-container'>
+    <div className='chart-container' key={config.uid}>
       <div className='chart'>
         {selectData && selectData.length > 0 ? (
           <SelectGrid selectors={selectData} width={dynamicStyles.width} />

@@ -6,20 +6,22 @@ import { createRoot } from 'react-dom/client';
 import AppWrapper from '@isrd-isi-edu/chaise/src/components/app-wrapper';
 import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
 import ChartWithEffect from '@isrd-isi-edu/deriva-webapps/src/components/plot/chart-with-effect';
-import { Responsive, WidthProvider, ResponsiveProps as ResponsiveGridProps } from 'react-grid-layout';
+import { Responsive, WidthProvider, ResponsiveProps as ResponsiveGridProps, Layouts } from 'react-grid-layout';
 import DropdownSelect from '@isrd-isi-edu/deriva-webapps/src/components/plot/dropdown-select';
 
 
 
 // hooks
 import { usePlotConfig } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
+import { useEffect, useState } from 'react';
 
 // utilities
 import { ID_NAMES } from '@isrd-isi-edu/chaise/src/utils/constants';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
-import { convertKeysSnakeToCamel } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
-import { LayoutConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
-import { useEffect, useState } from 'react';
+import { DataConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { TemplateParamsProvider } from '@isrd-isi-edu/deriva-webapps/src/components/plot/template-params';
+
+import PlotControlGrid from '@isrd-isi-edu/deriva-webapps/src/components/plot/plot-control-grid';
 
 
 const plotSettings = {
@@ -30,61 +32,41 @@ const plotSettings = {
   overrideExternalLinkBehavior: false,
 };
 //In simple cases a HOC WidthProvider can be used to automatically determine width upon initialization and window resize events.
-const ResponsiveGridLayout = WidthProvider(Responsive);
 
 const PlotApp = (): JSX.Element => {
   /**
    * Use plot data to be visualized by plotly component
    */
   const { config, errors } = usePlotConfig(windowRef.plotConfigs);
-  const [layout, setLayout] = useState({});
-  const [gridProps, setGridProps] = useState({});
+
+  const [plotAppProps, setPlotAppProps] = useState<DataConfig>();
 
   useEffect(()=>{
     if(config){
-    const mappedLayoutValues = Object.values(config?.layout)?.map((resLayout: any) => (
-      resLayout.map((item: LayoutConfig) => convertKeysSnakeToCamel(({
-        //i defines the item on which the given layout will be applied
-        i: item?.source_uid,
-        ...item,
-      })))
-    ));
-    setLayout(Object.fromEntries(Object.entries(config.layout).map(([key, val], index) => [key, mappedLayoutValues[index]])));
-    setGridProps(convertKeysSnakeToCamel(config?.grid_layout_config));
+      setPlotAppProps(config);
     }
-  },[config]);
-  console.log(layout, gridProps);
+  },[config])
 
-  return (
-    !config ? <ChaiseSpinner /> : <ResponsiveGridLayout className='grid-layout layout'
-      layouts={layout}
-      {...gridProps}>
-      {/* <div className='plot-page'> */}
-      {/* {config.user_controls.map((currentControl): JSX.Element => {
-          return  (<div key={currentControl.uid}>
-          <DropdownSelect
-              id={currentControl.uid}
-              defaultOptions={currentControl[index]}
-              label={currentControl?.label}
-              //Using any for option type instead of 'Option' to avoid the lint error
-              onChange={(option: any) => {
-                  handleChange(option, currentControl, userControlData.templateParams, setSelectorOptionChanged);
-              }}
-              value={selectorValue[index]}
-          />
-      </div>);
-        })} */}
-        {config.plots.map((plotConfig): JSX.Element => {
-          return <ChartWithEffect key={plotConfig.uid} config={plotConfig} />;
-        })}
-      {/* </div> */}
-    </ResponsiveGridLayout>
-  );
+   
+  // if there was an error during setup, hide the spinner
+  if (!plotAppProps && errors.length > 0) {
+    return <></>;
+  }
+
+  if (!plotAppProps) {
+    return <ChaiseSpinner />;
+  }
+
+  return <PlotControlGrid config={plotAppProps} />;
+
+  
 };
 
 const root = createRoot(document.getElementById(ID_NAMES.APP_ROOT) as HTMLElement);
 root.render(
   <AppWrapper appSettings={plotSettings} includeNavbar displaySpinner ignoreHashChange includeAlerts>
+    <TemplateParamsProvider>
     <PlotApp />
+    </TemplateParamsProvider>
   </AppWrapper>
 );

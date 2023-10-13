@@ -6,7 +6,7 @@ import {
   PieData as PlotlyPieData,
   PlotData,
 } from 'plotly.js';
-import { ResponsiveProps as ResponsiveGridConfig, ReactGridLayoutProps } from 'react-grid-layout';
+import { ResponsiveProps as ResponsiveGridConfig, Layouts } from 'react-grid-layout';
 
 
 /**
@@ -21,7 +21,7 @@ export type PlotConfig = {
  */
 export type DataConfig = {
   plots: Plot[];
-  layout: LayoutConfig;
+  layout: Layouts;
   grid_layout_config?: ResponsiveGridConfig;
   user_controls: UserControlConfig[]; //NOTE: For now user_controls will be considered of type dropdown only
 };
@@ -55,7 +55,7 @@ export type UserControlRequestInfoConfig = {
 export type Plot = {
   plot_type: string;
   config: PlotConfigConfig;
-  layout: LayoutConfig;
+  layout: Layouts;
   grid_layout_config?: ResponsiveGridConfig;
   traces: Trace[];
   gene_uri_pattern?: string;
@@ -155,6 +155,17 @@ export type BreakpointConfig =
   md: number; 
   sm: number; 
   xs: number;
+}
+
+/**
+ * Responsive Layout config
+ */
+export type ResponsiveLayoutConfig =
+{
+  lg: LayoutConfig[]; 
+  md: LayoutConfig[]; 
+  sm: LayoutConfig[]; 
+  xs: LayoutConfig[];
 }
 
 /**

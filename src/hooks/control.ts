@@ -89,9 +89,11 @@ const setControlData = (configData: UserControlGridProps) => {
  */
 export const useControl = (configData: UserControlGridProps) => {
     useEffect(() => {
+        if(Object.values(configData).length>0){
         setControlData(configData);
         getDataOptions(configData).then((allDataOptions) => {
             configData.setDataOptions(allDataOptions);
         });
+    }
     }, []);
 };
