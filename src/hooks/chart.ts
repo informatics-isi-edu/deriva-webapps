@@ -753,7 +753,7 @@ export const useChartData = (plot: Plot) => {
     }
     if (plot.plot_type === 'heatmap') {
       result.layout.margin = additionalLayout.margin;
-      result.layout.height = additionalLayout.height;
+      // result.layout.height = '100%';
       result.layout.width = additionalLayout.width;
       if (result.data[0]) {
         result.data[0]['colorbar'] = {
