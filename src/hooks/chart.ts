@@ -1325,6 +1325,11 @@ export const useChartData = (plot: Plot) => {
     }
   }
 
+  const updateHeatmapResponse = (trace: Trace, data: any) => {
+    if (trace.xgap) data.xgap = trace.xgap;
+    if (trace.ygap) data.xgap = trace.ygap;
+  }
+
   /**
    * add extra properties specific to scatter/line plots
    * 
@@ -1534,6 +1539,7 @@ export const useChartData = (plot: Plot) => {
               updateScatterResponse(currTrace, plotData, 'lines+markers', k);
               break;
             case 'heatmap':
+              updateHeatmapResponse(currTrace, plotData);
               // setup the layout object using some information returned from the data
               const { plotly } = plot;
               // Getting the longest x tick in the given data to determine margin and height values in getHeatmapLayoutParams function
