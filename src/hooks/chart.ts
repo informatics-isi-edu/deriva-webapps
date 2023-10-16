@@ -48,7 +48,7 @@ import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
 import { ChaiseAlertType } from '@isrd-isi-edu/chaise/src/providers/alerts';
 import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
 import Papa from 'papaparse';
-import { useControl } from '@isrd-isi-edu/deriva-webapps/src/hooks/control';
+import { useUserControls } from '@isrd-isi-edu/deriva-webapps/src/hooks/control';
 
 /**
  * Data received from API request
@@ -281,8 +281,10 @@ export const useChartData = (plot: Plot) => {
       templateParams,
     });
   }, []);
-  
-  useControl({
+
+  // initialize the user controls, associated options, and display data
+  // TODO: does this need to be done at certain time in the setup process or is it fine to let react manage this?
+  useUserControls({
     userControlConfig: plot?.user_controls,
     templateParams,
     setDataOptions,

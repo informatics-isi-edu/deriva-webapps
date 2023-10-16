@@ -31,6 +31,7 @@ export type UserControlDataConfig={
 export type UserControlConfig = {
   uid: string;
   label: string;
+  type: string;
   url_param_key?: string;
   request_info: UserControlRequestInfoConfig;
 }

@@ -212,10 +212,9 @@ export const useChartControlsGrid = ({ templateParams, setModalProps, setIsModal
     // console.log('fetchselectgridcell occurred', uri);
     const resolvedRef = await ConfigService.ERMrest.resolve(uri, { headers });
     const ref = resolvedRef.contextualize.compactSelect;
-    const initialReference = resolvedRef.contextualize.compactSelect;
     const page = await ref.read(1);
     const tupleData = page.tuples;
-    return { initialReference, tupleData };
+    return { initialReference: ref, tupleData };
   };
 
   /**
