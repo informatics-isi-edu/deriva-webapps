@@ -752,13 +752,10 @@ export const useChartData = (plot: Plot) => {
       result.layout.modebar = { remove: plot?.plotly?.config?.modeBarButtonsToRemove };
     }
     if (plot.plot_type === 'heatmap') {
-      result.layout.margin = additionalLayout.margin;
-      // result.layout.height = '100%';
-      result.layout.width = additionalLayout.width;
       if (result.data[0]) {
         result.data[0]['colorbar'] = {
           lenmode: 'pixels',
-          len: additionalLayout.height - 40 < 100 ? additionalLayout.height - 40 : 100
+          len: 100
         }
       }
     }
@@ -789,14 +786,15 @@ export const useChartData = (plot: Plot) => {
   }
 
   /**
+   * Calculates the height and margins of the heatmap based on the number of y values and length of the longest X label
+   * so that the labels do not get clipped and the bar height is adjusted accordingly.
    * 
    * @param input : Input parameters of heatmap directive
    * @param longestXTick : Length of longest X axis label
    * @param longestYTick : Length of longest Y axis label
    * @param lengthY : Number of Y values
    * @returns 
-   * Calculates the height and margins of the heatmap based on the number of y values and length of the longest X label
-   * so that the labels do not get clipped and the bar height is adjusted accordingly.
+   
    * Return an object with all the required layout parameters.
    * @example
    * {
