@@ -793,9 +793,7 @@ export const useChartData = (plot: Plot) => {
    * @param longestXTick : Length of longest X axis label
    * @param longestYTick : Length of longest Y axis label
    * @param lengthY : Number of Y values
-   * @returns 
-   
-   * Return an object with all the required layout parameters.
+   * @returns an object with all the required layout parameters.
    * @example
    * {
    * 	height: height of the heatmap,
