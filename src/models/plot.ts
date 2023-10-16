@@ -88,6 +88,7 @@ export type PlotConfigConfig = {
   modeBarButtonsToRemove?: string[];
   displaylogo?: boolean;
   responsive?: boolean;
+  text_on_plot?: boolean;
 };
 
 /**

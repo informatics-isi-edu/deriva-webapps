@@ -281,7 +281,7 @@ export const useChartData = (plot: Plot) => {
       templateParams,
     });
   }, []);
-  
+
   useControl({
     userControlConfig: plot?.user_controls,
     templateParams,
@@ -397,7 +397,7 @@ export const useChartData = (plot: Plot) => {
   // since we're using strict mode, the useEffect is getting called twice in dev mode
   // this is to guard against it
   const setupStarted = useRef<boolean>(false);
-    
+
   // Effect to fetch initial data
   useEffect(() => {
     if (setupStarted.current) return;
@@ -1124,7 +1124,7 @@ export const useChartData = (plot: Plot) => {
         for (let i = 1; i < numberPlotTraces; i++) trace.marker[i] = trace.marker[0];
       }
     }
-    
+
 
     const plotlyData: any[] = []
     for (let plotTraceIdx = 0; plotTraceIdx < numberPlotTraces; plotTraceIdx++) {
@@ -1554,6 +1554,33 @@ export const useChartData = (plot: Plot) => {
                 plotData.longestYTick?.length,
                 plotData.y?.length
               );
+
+              if (plot.config.text_on_plot) {
+                result.layout.annotations = [];
+
+                const xData = plotData.x;
+                const yData = plotData.y;
+                const zData = plotData.z;
+                for (let i = 0; i < yData.length; i++) {
+                  for (let j = 0; j < xData.length; j++) {
+                    const annotation = {
+                      xref: 'x' + (k + 1),
+                      yref: 'y' + (k + 1),
+                      x: j,
+                      y: i,
+                      text: zData[i][j],
+                      font: {
+                        family: 'Arial',
+                        size: 12,
+                        color: 'white'
+                      },
+                      showarrow: false
+                    };
+
+                    result.layout.annotations.push(annotation);
+                  }
+                }
+              }
               break;
             case 'violin':
               updateViolinResponse(currTrace, plotData, responseData);
