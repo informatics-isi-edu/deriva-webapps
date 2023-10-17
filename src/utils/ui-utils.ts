@@ -13,7 +13,7 @@ export function addBottomHorizontalScroll(content: HTMLElement, scrollBar: HTMLE
 
   const topScrollElementWrapper = scrollBar.querySelector<HTMLElement>('.chaise-table-top-scroll-wrapper'),
     topScrollElement = scrollBar.querySelector<HTMLElement>('.chaise-table-top-scroll'),
-    scrollableContent = content;
+    scrollableContent = content.querySelector<HTMLElement>('.grid-row-headers-container');
 
   if (!topScrollElementWrapper || !topScrollElement || !scrollableContent) {
     return;

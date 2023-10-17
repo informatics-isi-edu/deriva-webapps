@@ -1,4 +1,4 @@
-import { CSSProperties } from 'react';
+import { CSSProperties, useRef } from 'react';
 
 export type SharedRowHeadersProps = {
   /**
@@ -44,18 +44,35 @@ export type SharedRowHeadersCompProps = SharedRowHeadersProps & {
 };
 
 const SharedRowHeaders = (
-  { children, width }: SharedRowHeadersCompProps
+  { children, width, scrollable, scrollableMaxWidth, height, top }: SharedRowHeadersCompProps
 ): JSX.Element => {
 
   const rowHeadersContainerStyles: CSSProperties = {
     width: width,
-    overflowX: 'hidden',
+    overflowX: 'scroll',
+    overflowY: 'hidden',
     position: 'relative',
+    direction: 'rtl',
+    willChange: 'transform',
+  };
+
+  const rowHeadersContainerHorizontalScrollStyles: CSSProperties = {
+    overflowX: 'hidden',
+    overflowY: 'hidden',
+    position: 'relative',
+    width: scrollable && scrollableMaxWidth===-1 ? 'fit-content' : scrollableMaxWidth,
+    direction: 'rtl',
+    height: height,
+    top: top,
+    right: 0,
   };
 
   return (
     <div className='grid-row-headers-container' style={rowHeadersContainerStyles}>
-      {children}
+      {/* The below div is for handling the scroll behaviour in horizontal direction */}
+      <div className='grid-row-headers-horizontal-scroll' style={rowHeadersContainerHorizontalScrollStyles}>
+        {children}
+      </div>
     </div>
   )
 };

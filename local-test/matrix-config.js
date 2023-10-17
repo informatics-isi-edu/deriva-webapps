@@ -20,7 +20,7 @@ var matrixConfigs = {
     /**
      * API for the tree data of the y axis (must return child_id and parent_id. other columns will be ignored.)
      */
-    // yTreeURL: baseUri + 'y_values_tree.json',
+    yTreeURL: baseUri + 'y_values_tree.json',
     /**
      * API for the z axis data (color axis)
      */

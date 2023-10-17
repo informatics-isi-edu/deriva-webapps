@@ -62,21 +62,16 @@ const RowTreeHeaders = (props: RowHeadersProps, ref: ForwardedRef<any>): JSX.Ele
 
   // style for the whole tree
   const rowTreeHeadersStyles: CSSProperties = {
-    position: 'absolute',
-    direction: 'rtl',
-    top: props.top,
     height: props.height,
-    right: 0,
-    width: '100%',
-    overflow: 'auto',
-    willChange: 'transform',
+    width: 'fit-content',
+    overflowY: 'auto',
+    overflowX: 'hidden',
   };
 
-  const rowTreeHeadersScrollContainerStyles: CSSProperties = {
-    width: props.scrollable && props.scrollableMaxWidth===-1 ? 'fit-content' : props.scrollableMaxWidth, // Set to 'auto' when Scrollable is false
-    overflowX: props.scrollable && props.scrollableMaxWidth===-1 ? 'auto' : 'hidden',
-  };
 
+  /**
+   * Dynamically adjust the width of scrollable content
+   */
   useEffect(() => {
     if (props.scrollable && props.scrollableMaxWidth === -1){
       // Access the current width here
@@ -191,13 +186,12 @@ const RowTreeHeaders = (props: RowHeadersProps, ref: ForwardedRef<any>): JSX.Ele
 
   return (
     <SharedRowHeaders {...props}>
+      {/* The below div is for handling the scroll behaviour in vertical direction */}
       <div
         className='grid-row-headers'
         style={rowTreeHeadersStyles}
         ref={ref}
         onScroll={props.onScroll}>
-
-        <div ref={divRef} style={rowTreeHeadersScrollContainerStyles}>
 
           <TreeView
             aria-label='rich object'
@@ -207,6 +201,7 @@ const RowTreeHeaders = (props: RowHeadersProps, ref: ForwardedRef<any>): JSX.Ele
             defaultEndIcon={<MemoizedCloseSquare cellHeight={props.cellHeight} />}
             expanded={expanded}
             onNodeToggle={handleToggle}
+            ref={divRef}
           >
             <MemoizedRenderTree
               nodes={props.treeNodes}
@@ -220,9 +215,7 @@ const RowTreeHeaders = (props: RowHeadersProps, ref: ForwardedRef<any>): JSX.Ele
           {/* For the highlight alignment issue, we're adding empty cells and headers in the falt row headers. 
             But Mui is ignoring the empty tree elements. So we add an element after trees manually */}
           <div style={{ height: props.cellHeight + 15 }}></div>
-          </div>
-
-        </div>
+      </div>
     </SharedRowHeaders>
   );
 };

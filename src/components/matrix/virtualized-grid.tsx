@@ -180,6 +180,7 @@ const VirtualizedGrid = (
   const rowLabelRef = useRef<any>(null);
   const columnLabelRef = useRef<any>(null);
   const gridRef = useRef<any>(null);
+  const gridContainerRef = useRef<any>(null);
 
   const rowScrollBarRef = useRef<any>(null);
   const columnScrollBarRef = useRef<any>(null);
@@ -232,8 +233,8 @@ const VirtualizedGrid = (
    * Initialize the dummy scrollbar at the bottom of the row headers
    */
   useEffect(() => {
-    if (rowHeaderScrollable && yTree && rowLabelRef.current && rowScrollBarRef.current) {
-      addBottomHorizontalScroll(rowLabelRef.current, rowScrollBarRef.current);
+    if (rowHeaderScrollable && gridContainerRef.current && rowScrollBarRef.current) {
+      addBottomHorizontalScroll(gridContainerRef.current, rowScrollBarRef.current);
     }
   }, []);
 
@@ -610,7 +611,7 @@ const VirtualizedGrid = (
   const showDown = scrollY < cellHeight * (numRows - 1) - gridHeight;
 
   return (
-    <div className='grid-container' style={gridContainerStyles}>
+    <div className='grid-container' style={gridContainerStyles} ref={gridContainerRef}>
       {/* Switch components to treeview one instead of flat one if yTree data exists */}
       {yTree ? (
         <RowTreeHeaders
@@ -638,7 +639,6 @@ const VirtualizedGrid = (
           listWidth={rowListWidth}
           scrollable={rowHeaderScrollable}
           scrollableMaxWidth={rowHeaderScrollableMaxWidth}
-          yDataMaxLength={yDataMaxLength}
           top={columnHeaderHeight}
           height={gridHeight}
           itemCount={numRows}
