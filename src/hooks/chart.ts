@@ -1,54 +1,44 @@
-import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+// hooks
 import useAlert from '@isrd-isi-edu/chaise/src/hooks/alerts';
+import { useControl } from '@isrd-isi-edu/deriva-webapps/src/hooks/control';
+import useError from '@isrd-isi-edu/chaise/src/hooks/error';
+import { createStudyViolinSelectGrid, useChartControlsGrid, } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart-select-grid';
+import useIsFirstRender from '@isrd-isi-edu/chaise/src/hooks/is-first-render';
+import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+
+// models
 import {
   PlotData as PlotlyPlotData,
   ViolinData as PlotlyViolinData,
   PieData as PlotlyPieData,
 } from 'plotly.js';
-
-import { getConfigObject } from '@isrd-isi-edu/deriva-webapps/src/utils/config';
 import {
-  formatPlotData,
-  createLink,
-  getPatternUri,
-  createLinkWithContextParams,
-  extractValue,
-  extractAndFormatDate,
-  wrapText,
-  isDataJSON,
-} from '@isrd-isi-edu/deriva-webapps/src/utils/string';
-import { flatten2DArray } from '@isrd-isi-edu/deriva-webapps/src/utils/data';
-
-import useError from '@isrd-isi-edu/chaise/src/hooks/error';
-import {
-  createStudyViolinSelectGrid,
-  useChartControlsGrid,
-} from '@isrd-isi-edu/deriva-webapps/src/hooks/chart-select-grid';
-
-import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
-import {
-  Plot,
-  PlotConfig,
-  PlotConfigAxis,
-  DataConfig,
-  Trace,
-  screenWidthThreshold,
-  plotAreaFraction,
-  validFileTypes,
-
+  Plot, PlotConfig, PlotConfigAxis,
+  DataConfig, Trace, screenWidthThreshold,
+  plotAreaFraction, validFileTypes
 } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { ChaiseAlertType } from '@isrd-isi-edu/chaise/src/providers/alerts';
+
+// services
+import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
+
+// utils
+import { getConfigObject } from '@isrd-isi-edu/deriva-webapps/src/utils/config';
+import Papa from 'papaparse';
+import { flatten2DArray } from '@isrd-isi-edu/deriva-webapps/src/utils/data';
+import { getQueryParam, getQueryParams } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
+import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
 import {
   invalidCsvAlert, invalidDataAlert, invalidJsonAlert, invalidKeyAlert, invalidResponseFormatAlert,
   emptyDataColArrayAlert, emptyXColArrayAlert, emptyYColArrayAlert, incompatibleColArraysAlert,
   noColumnsDefinedAlert, xColOnlyAlert, yColOnlyAlert, xYColsNotAnArrayAlert
 } from '@isrd-isi-edu/deriva-webapps/src/utils/message-map';
-import useIsFirstRender from '@isrd-isi-edu/chaise/src/hooks/is-first-render';
-import { getQueryParam, getQueryParams } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
-import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
-import { ChaiseAlertType } from '@isrd-isi-edu/chaise/src/providers/alerts';
-import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
-import Papa from 'papaparse';
-import { useControl } from '@isrd-isi-edu/deriva-webapps/src/hooks/control';
+import {
+  addComma, createLink, createLinkWithContextParams,
+  extractValue, extractAndFormatDate, formatPlotData,
+  getPatternUri, isDataJSON, wrapText
+} from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 
 /**
  * Data received from API request
@@ -1563,12 +1553,17 @@ export const useChartData = (plot: Plot) => {
                 const zData = plotData.z;
                 for (let i = 0; i < yData.length; i++) {
                   for (let j = 0; j < xData.length; j++) {
+                    let zText = zData[i][j];
+
+                    // zData in heatmap SHOULD be numeric type, still check and format if it is
+                    if (!isNaN(parseFloat(zText))) zText = addComma(zText);
+
                     const annotation = {
                       xref: 'x' + (k + 1),
                       yref: 'y' + (k + 1),
                       x: j,
                       y: i,
-                      text: zData[i][j],
+                      text: zText,
                       font: {
                         family: 'Arial',
                         size: 12,
