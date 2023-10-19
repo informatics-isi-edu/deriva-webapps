@@ -27,6 +27,13 @@ export function addBottomHorizontalScroll(content: HTMLElement, scrollBar: HTMLE
     if (!isSyncingTopScroll) {
       isSyncingTableScroll = true;
       scrollableContent!.scrollLeft = topScrollElementWrapper!.scrollLeft;
+
+      if(topScrollElement!.style.width !== scrollableContent!.scrollWidth + 'px'){
+        topScrollElement!.style.width = scrollableContent!.scrollWidth + 'px';
+        console.log('update---');
+      }
+      console.log('1= '+topScrollElement!.style.width);
+      console.log('2= ' +scrollableContent!.scrollWidth);
     }
     isSyncingTopScroll = false;
   });
@@ -35,6 +42,12 @@ export function addBottomHorizontalScroll(content: HTMLElement, scrollBar: HTMLE
     if (!isSyncingTableScroll) {
       isSyncingTopScroll = true;
       topScrollElementWrapper!.scrollLeft = scrollableContent!.scrollLeft;
+      if(topScrollElement!.style.width !== scrollableContent!.scrollWidth + 'px'){
+        topScrollElement!.style.width = scrollableContent!.scrollWidth + 'px';
+        console.log('update+++');
+      }
+      console.log('3= '+topScrollElement!.style.width);
+      console.log('4= ' +scrollableContent!.scrollWidth);
     }
     isSyncingTableScroll = false;
   });
@@ -79,17 +92,15 @@ export function addBottomHorizontalScroll(content: HTMLElement, scrollBar: HTMLE
  * A fixed vertical scroll is added here that sticks to the top as we scroll vertically and horizontally
  * @param {DOMElement} content - the scrollable content element
  * @param {DOMElement} scrollBar - the dummy scrollbar element
- * @param {number} scrollTreeYIniPos - the initial position of the scrollBar because the column headers have content 
- * at the very bottom and should scroll up
  * @param {boolean?} fixedPos - whether the scrollbar is fixed position or not (if so, we will attach extra rules)
  * @param {HTMLElement?} extraSensorTarget - if we want to trigger the logic based on changes to another element
  */
-export function addRightVerticalScroll(content: HTMLElement, scrollBar: HTMLElement, scrollTreeYIniPos: number, fixedPos = false, extraSensorTarget?: HTMLElement) {
+export function addRightVerticalScroll(content: HTMLElement, scrollBar: HTMLElement, fixedPos = false, extraSensorTarget?: HTMLElement) {
   if (!content || !scrollBar) return;
 
   const topScrollElementWrapper = scrollBar.querySelector<HTMLElement>('.chaise-table-top-scroll-wrapper'),
     topScrollElement = scrollBar.querySelector<HTMLElement>('.chaise-table-top-scroll'),
-    scrollableContent = content;
+    scrollableContent = content.querySelector<HTMLElement>('.grid-column-headers-container');
 
   if (!topScrollElementWrapper || !topScrollElement || !scrollableContent) {
     return;
@@ -103,6 +114,11 @@ export function addRightVerticalScroll(content: HTMLElement, scrollBar: HTMLElem
     if (!isSyncingTopScroll) {
       isSyncingTableScroll = true;
       scrollableContent!.scrollTop = topScrollElementWrapper!.scrollTop;
+
+      if(topScrollElement!.style.height !== scrollableContent!.scrollHeight + 'px'){
+        topScrollElement!.style.height = scrollableContent!.scrollHeight + 'px';
+        console.log('update2---');
+      }
     }
     isSyncingTopScroll = false;
   });
@@ -111,6 +127,11 @@ export function addRightVerticalScroll(content: HTMLElement, scrollBar: HTMLElem
     if (!isSyncingTableScroll) {
       isSyncingTopScroll = true;
       topScrollElementWrapper!.scrollTop = scrollableContent!.scrollTop;
+
+      if(topScrollElement!.style.height !== scrollableContent!.scrollHeight + 'px'){
+        topScrollElement!.style.height = scrollableContent!.scrollHeight + 'px';
+        console.log('update2+++');
+      }
     }
     isSyncingTableScroll = false;
   });
@@ -123,14 +144,15 @@ export function addRightVerticalScroll(content: HTMLElement, scrollBar: HTMLElem
 
     // there is no need of a scrollbar, content is not overflowing
     if (scrollableContent!.scrollHeight == scrollableContent!.clientHeight) {
-      topScrollElement!.style.height = '0';
-      topScrollElementWrapper!.style.width = '0';
+      // topScrollElement!.style.height = '0';
+      // topScrollElementWrapper!.style.width = '0';
     }
     else {
       topScrollElementWrapper!.style.width = '15px';
       topScrollElement!.style.height = scrollableContent!.scrollHeight + 'px';
     }
-    topScrollElementWrapper.scrollTo(0, scrollTreeYIniPos); // Initial the scroll bar position to very bottom
+    // topScrollElementWrapper.scrollTo(0, scrollTreeYIniPos); // Initial the scroll bar position to very bottom
+    topScrollElementWrapper.scrollTo(0, scrollableContent!.scrollHeight);
   }
 
   const sensors = [];

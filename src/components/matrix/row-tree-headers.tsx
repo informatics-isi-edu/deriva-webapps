@@ -73,13 +73,13 @@ const RowTreeHeaders = (props: RowHeadersProps, ref: ForwardedRef<any>): JSX.Ele
    * Dynamically adjust the width of scrollable content
    */
   useEffect(() => {
-    if (props.scrollable && props.scrollableMaxWidth === -1){
+    // if (props.scrollable && props.scrollableMaxWidth === -1){
       // Access the current width here
       const currentWidth = divRef.current.offsetWidth;
       if (currentWidth !== undefined) {
         setScrollableWidth(currentWidth);
       }
-    }
+    // }
   }, [props.scrollable, props.scrollableMaxWidth]);
 
 
@@ -234,7 +234,7 @@ const MemoizedMinusSquare = memo(({ cellHeight, iconSize }: MemoizedIconSquarePr
         marginRight: 5.5,
         paddingRight: 2,
         height: (cellHeight - iconSize) / 2,
-        marginBottom: -4,
+        marginBottom: -3,
         borderRight: '1px dotted grey'
       }}
     />
@@ -258,7 +258,7 @@ const MemoizedMinusSquare = memo(({ cellHeight, iconSize }: MemoizedIconSquarePr
         marginRight: 5.5,
         paddingRight: 2,
         height: (cellHeight - iconSize) / 2,
-        marginTop: -4,
+        marginTop: -3,
         borderRight: '1px dotted grey'
       }}
     />
@@ -277,7 +277,7 @@ const MemoizedPlusSquare = memo(({ cellHeight, iconSize }: MemoizedIconSquarePro
         marginRight: 5.5,
         paddingRight: 2,
         height: (cellHeight - iconSize) / 2,
-        marginBottom: -4,
+        marginBottom: -3,
         borderRight: '1px dotted grey'
       }}
     />
@@ -301,7 +301,7 @@ const MemoizedPlusSquare = memo(({ cellHeight, iconSize }: MemoizedIconSquarePro
         marginRight: 5.5,
         paddingRight: 2,
         height: (cellHeight - iconSize) / 2,
-        marginTop: -4,
+        marginTop: -3,
         borderRight: '1px dotted grey'
       }}
     />

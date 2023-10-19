@@ -186,8 +186,9 @@ const VirtualizedGrid = (
   const columnScrollBarRef = useRef<any>(null);
 
   // Calculate the max width for the row headers when it is scrollable and non-tree component
-  const fontCharWidth = 7;
-  let rowListWidth = rowHeaderScrollableMaxWidth===-1 ? yDataMaxLength * fontCharWidth : rowHeaderScrollableMaxWidth;
+  const rowFontCharWidth = 7;
+  const columnFontCharWidth = 8;
+  let rowListWidth = rowHeaderScrollableMaxWidth===-1 ? yDataMaxLength * rowFontCharWidth : rowHeaderScrollableMaxWidth;
   if(!yTree){
     if(rowListWidth < rowHeaderWidth){
       rowListWidth = rowHeaderWidth;
@@ -195,7 +196,7 @@ const VirtualizedGrid = (
     }
   }
   // Calculate the max height for the column headers when it is scrollable and non-tree component
-  let columnListHeight = colHeaderScrollableMaxHeight===-1 ? xDataMaxLength * fontCharWidth : colHeaderScrollableMaxHeight;
+  let columnListHeight = colHeaderScrollableMaxHeight===-1 ? xDataMaxLength * columnFontCharWidth : colHeaderScrollableMaxHeight;
   if(!xTree){
     if(columnListHeight < columnHeaderHeight){
       columnListHeight = columnHeaderHeight;
@@ -242,10 +243,10 @@ const VirtualizedGrid = (
    * Initialize the dummy scrollbar at the right of the column headers
    */
   useEffect(() => {
-    if (scrollTreeYIniPos !== 0 && xTree && columnLabelRef.current && columnScrollBarRef.current) {
-      addRightVerticalScroll(columnLabelRef.current, columnScrollBarRef.current, scrollTreeYIniPos);
+    if (colHeaderScrollable && gridContainerRef.current && columnScrollBarRef.current) {
+      addRightVerticalScroll(gridContainerRef.current, columnScrollBarRef.current);
     }
-  }, [scrollTreeYIniPos]);
+  }, []);
 
   /**
    * Initialize the inner vertical position of the horizontal tree
@@ -655,7 +656,7 @@ const VirtualizedGrid = (
           left={rowHeaderWidth}
           width={gridWidth}
           scrollable={colHeaderScrollable}
-          scrollableMaxWidth={colHeaderScrollableMaxHeight}
+          scrollableMaxHeight={colHeaderScrollableMaxHeight}
           itemCount={numColumns}
           itemData={columnHeaderTreeData}
           treeData={xTree}
@@ -672,8 +673,7 @@ const VirtualizedGrid = (
           width={gridWidth}
           listHeight={columnListHeight}
           scrollable={colHeaderScrollable}
-          scrollableMaxWidth={colHeaderScrollableMaxHeight}
-          xDataMaxLength={xDataMaxLength}
+          scrollableMaxHeight={colHeaderScrollableMaxHeight}
           itemCount={numColumns}
           itemData={columnHeaderData}
           onScroll={handleColumnLabelScroll}

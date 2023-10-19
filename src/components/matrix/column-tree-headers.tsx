@@ -1,4 +1,4 @@
-import { memo, forwardRef, ForwardedRef, CSSProperties, useState, useEffect } from 'react';
+import { memo, forwardRef, ForwardedRef, CSSProperties, useState, useEffect, useRef } from 'react';
 
 // Shared common props for column header
 import SharedColumnHeaders, { SharedColumnHeadersProps } from '@isrd-isi-edu/deriva-webapps/src/components/matrix//shared-column-headers';
@@ -52,7 +52,9 @@ const ColumnHeaders = (props: ColumnHeadersProps, ref: ForwardedRef<any>): JSX.E
   const [prevSearched, setPrevSearched] = useState<string | null>(null); // previous searched enrty
   const [expanded, setExpanded] = useState<string[]>([]); // all expanded nodes
   const [treeDataDict, setTreeDataDict] = useState<Record<string, MatrixTreeDatum>>({}); // Dictionary to store relationship of parent and child for tree data
-
+  
+  const [scrollableHeight, setScrollableHeight] = useState<number>(props.scrollableMaxHeight);
+  const divRef = useRef<any>(null);
   /**
    * styles for tree view and tree items
    */
@@ -61,14 +63,24 @@ const ColumnHeaders = (props: ColumnHeadersProps, ref: ForwardedRef<any>): JSX.E
 
   // style for the whole tree
   const columnTreeHeadersStyles: CSSProperties = {
-    position: 'absolute',
-    left: 0,
-    height: props.height,
-    width: props.width,
-    overflow: 'hidden',
+    overflowX: 'auto',
+    overflowY: 'hidden',
+    height: scrollableHeight,
     willChange: 'transform',
-    maxHeight: props.height,
   };
+
+  /**
+   * Dynamically adjust the width of scrollable content
+   */
+  useEffect(() => {
+    if (props.scrollable && props.scrollableMaxHeight === -1){
+      // Access the current width here
+      const currentHeight = divRef.current.clientWidth;
+      if (currentHeight !== undefined) {
+        setScrollableHeight(currentHeight);
+      }
+    }
+  }, [expanded]);
 
   /**
    * Check whether all ancestors of a node exist in visitedNode list
@@ -173,61 +185,55 @@ const ColumnHeaders = (props: ColumnHeadersProps, ref: ForwardedRef<any>): JSX.E
       <div
         className='grid-column-headers'
         style={columnTreeHeadersStyles}
+        onScroll={props.onScroll}
+        ref={ref}
       >
-
         <div
-          style={{ maxHeight: props.height, overflow: 'auto' }}
-          onScroll={props.onScroll}
-          ref={ref}>
+        style={{
+          transformOrigin: 'top left',
+          transform: 'rotate(-90deg)',
+        }}>
 
-          <div
+          <TreeView
+            aria-label='rich object'
+            defaultExpanded={['root']}
+            defaultCollapseIcon={<MemoizedMinusSquare cellWidth={props.cellWidth} iconSize={iconSize} />}
+            defaultExpandIcon={<MemoizedPlusSquare cellWidth={props.cellWidth} iconSize={iconSize} />}
+            defaultEndIcon={<MemoizedCloseSquare cellWidth={props.cellWidth} />}
+            expanded={expanded}
+            onNodeToggle={handleToggle}
+            ref={divRef}
             style={{
-              transformOrigin: 'top left',
-              transform: 'rotate(-90deg)',
-              width: props.height,
-              marginLeft: 0,
-              marginTop: props.height,
-            }}>
-
-            <TreeView
-              aria-label='rich object'
-              defaultExpanded={['root']}
-              defaultCollapseIcon={<MemoizedMinusSquare cellWidth={props.cellWidth} iconSize={iconSize} />}
-              defaultExpandIcon={<MemoizedPlusSquare cellWidth={props.cellWidth} iconSize={iconSize} />}
-              defaultEndIcon={<MemoizedCloseSquare cellWidth={props.cellWidth} />}
-              expanded={expanded}
-              onNodeToggle={handleToggle}
-              style={{
-                height: 'fit-content',
-                width: 'fit-content',
-                position: 'absolute',
-                /**
-                 * For vertical scrolling function of the horizontal tree, we only want to scroll up. But after using
-                 * transform, there is a blank space at the bottom of the tree. To eliminate the space, we set 
-                 * transformOrigin to 'top left'. Then the initial y position of the tree does not focus on the tree 
-                 * entries but blanks. So we set 'left' attribute to it and use a variable to memorize the position
-                 * of the tree entries, then update it whenever scroll the tree vertically.
-                 */
-                left: -scrollTreeYIniPos, // Adjust the left value based on the desired position
-                /**
-                 * For the highlight alignment issue, we're adding empty cells and headers in the falt column headers.
-                 * But Mui is ignoring the empty tree elements, and we use 'transform' for the tree in column header.
-                 * So we add a paddingBottom attribute as the style of the tree manually. 
-                 */
-                paddingBottom: props.cellWidth + 15,
-              }}
-              sx={{ overflow: 'clip' }}
-            >
-              <MemoizedRenderTree
-                nodes={props.treeNodes}
-                data={props.itemData}
-                cellWidth={props.cellWidth}
-                treeNodesMap={props.treeNodesMap}
-                isScrolling={isScrolling}
-              />
-            </TreeView>
-
-          </div>
+              // height: 'fit-content',
+              // width: 'fit-content',
+              position: 'absolute',
+              /**
+               * For vertical scrolling function of the horizontal tree, we only want to scroll up. But after using
+               * transform, there is a blank space at the bottom of the tree. To eliminate the space, we set 
+               * transformOrigin to 'top left'. Then the initial y position of the tree does not focus on the tree 
+               * entries but blanks. So we set 'left' attribute to it and use a variable to memorize the position
+               * of the tree entries, then update it whenever scroll the tree vertically.
+               */
+              // left: -scrollTreeYIniPos, // Adjust the left value based on the desired position
+              left: -scrollableHeight, // Adjust the left value based on the desired position
+              /**
+               * For the highlight alignment issue, we're adding empty cells and headers in the falt column headers.
+               * But Mui is ignoring the empty tree elements, and we use 'transform' for the tree in column header.
+               * So we add a paddingBottom attribute as the style of the tree manually. 
+               */
+              paddingBottom: props.cellWidth + 15,
+            }}
+            sx={{ overflow: 'clip' }}
+          >
+            <MemoizedRenderTree
+              nodes={props.treeNodes}
+              data={props.itemData}
+              cellWidth={props.cellWidth}
+              treeNodesMap={props.treeNodesMap}
+              isScrolling={isScrolling}
+              scrollableHeight={scrollableHeight}
+            />
+          </TreeView>
         </div>
       </div>
     </SharedColumnHeaders>
@@ -355,9 +361,10 @@ type MemoizedRenderTreeProps = {
   cellWidth: number;
   treeNodesMap: TreeNodeMap;
   isScrolling: boolean;
+  scrollableHeight: number;
 };
 
-const MemoizedRenderTree = memo(({ nodes, data, cellWidth, treeNodesMap, isScrolling }: MemoizedRenderTreeProps) => {
+const MemoizedRenderTree = memo(({ nodes, data, cellWidth, treeNodesMap, isScrolling, scrollableHeight }: MemoizedRenderTreeProps) => {
   const {
     searchedColID,
     hoveredColID,
@@ -375,8 +382,8 @@ const MemoizedRenderTree = memo(({ nodes, data, cellWidth, treeNodesMap, isScrol
   const rowTreeItemBgStyles: CSSProperties = {
     position: 'absolute',
     top: 0,
-    left: -400,
-    width: 1000,
+    left: -scrollableHeight,
+    width: 3 * scrollableHeight,
     height: cellWidth,
     zIndex: 0,
   };
@@ -385,8 +392,8 @@ const MemoizedRenderTree = memo(({ nodes, data, cellWidth, treeNodesMap, isScrol
   const rowTreeItemBgStylesHover: CSSProperties = {
     position: 'absolute',
     top: 0,
-    left: -400,
-    width: 1000,
+    left: -scrollableHeight,
+    width: 3 * scrollableHeight,
     height: cellWidth,
     zIndex: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.1)', // Grey color with 50% opacity
@@ -396,8 +403,8 @@ const MemoizedRenderTree = memo(({ nodes, data, cellWidth, treeNodesMap, isScrol
   const rowTreeItemBgStylesSearch: CSSProperties = {
     position: 'absolute',
     top: 0,
-    left: -400,
-    width: 1000,
+    left: -scrollableHeight,
+    width: 3 * scrollableHeight,
     height: cellWidth,
     zIndex: 0,
     backgroundColor: 'rgba(247, 240, 207, 0.7)', // light yellow color

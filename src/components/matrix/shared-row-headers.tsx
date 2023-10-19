@@ -1,4 +1,4 @@
-import { CSSProperties, useRef } from 'react';
+import { CSSProperties } from 'react';
 
 export type SharedRowHeadersProps = {
   /**

@@ -1,4 +1,4 @@
-import { memo, forwardRef, ForwardedRef, CSSProperties, useRef } from 'react';
+import { memo, forwardRef, ForwardedRef, CSSProperties } from 'react';
 import { VariableSizeList as List, ListOnScrollProps } from 'react-window';
 
 // Shared common props for column header
@@ -9,10 +9,6 @@ type ColumnHeadersProps = SharedColumnHeadersProps & {
    * scroll function
    */
   onScroll?: (props: ListOnScrollProps) => any;
-  /**
-   * 
-   */
-  xDataMaxLength: number;
   /**
    * 
    */
@@ -34,29 +30,13 @@ const ColumnHeaders = (props: ColumnHeadersProps, ref: ForwardedRef<any>): JSX.E
    */
   const itemSize = (index: number) => (index < listData[0].length - 1 ? props.cellWidth : props.cellWidth + 30);
 
-  const divRef = useRef<any>(null);
-
   const columnHeadersStyles: CSSProperties = {
-    // position: 'absolute',
     position: 'relative',
     left: 0,
   };
 
-  const columnHeadersScrollContainerStyles: CSSProperties = {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    width: '100%',
-    height: props.height,
-    overflowY: props.scrollable ? 'scroll' : 'hidden',
-    overflowX: 'hidden',
-  }
-
-  
-
   return (
     <SharedColumnHeaders {...props}>
-      <div ref={divRef} style={columnHeadersScrollContainerStyles}>
         <List
           className='grid-column-headers'
           style={columnHeadersStyles}
@@ -72,7 +52,6 @@ const ColumnHeaders = (props: ColumnHeadersProps, ref: ForwardedRef<any>): JSX.E
         >
           {MemoizedHeader}
         </List>
-      </div>
     </SharedColumnHeaders>
   );
 };

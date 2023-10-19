@@ -1,4 +1,4 @@
-import { CSSProperties } from 'react';
+import { CSSProperties, useEffect, useRef } from 'react';
 
 export type SharedColumnHeadersProps = {
   /**
@@ -34,9 +34,9 @@ export type SharedColumnHeadersProps = {
    */
   scrollable: boolean;
   /**
-   * the max width of scrollable content when the header is scrollable
+   * the max height of scrollable content when the header is scrollable
    */
-  scrollableMaxWidth: number;
+  scrollableMaxHeight: number;
 };
 
 export type SharedColumnHeadersCompProps = SharedColumnHeadersProps & {
@@ -44,19 +44,42 @@ export type SharedColumnHeadersCompProps = SharedColumnHeadersProps & {
 };
 
 const SharedColumnHeaders = (
-  { children, height, width }: SharedColumnHeadersCompProps
+  { children, height, width, scrollable, scrollableMaxHeight }: SharedColumnHeadersCompProps
 ): JSX.Element => {
+
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    setTimeout(() => {
+      if (containerRef.current) {
+        // Scroll to the bottom when the component mounts
+        containerRef.current.scrollTop = containerRef.current.scrollHeight;
+      }
+    }, 10); // This slight delay ensures that the rendering is complete.
+  }, []);
 
   const columnHeadersContainerStyles: CSSProperties = {
     height: height,
     width: width,
-    overflowY: 'hidden',
+    overflowY: 'scroll',
+    overflowX: 'hidden',
     position: 'relative',
   };
 
+  const columnHeadersContainerHorizontalScrollStyles: CSSProperties = {
+    overflowX: 'hidden',
+    overflowY: 'hidden',
+    position: 'relative',
+    width: width,
+    height: scrollable && scrollableMaxHeight===-1 ? 'fit-content' : scrollableMaxHeight,
+    left: 0,
+  };
+
   return (
-    <div className='grid-column-headers-container' style={columnHeadersContainerStyles}>
-      {children}
+    <div ref={containerRef} className='grid-column-headers-container' style={columnHeadersContainerStyles}>
+      <div className='grid-column-headers-horizontal-scroll' style={columnHeadersContainerHorizontalScrollStyles}>
+        {children}
+      </div>
     </div>
   )
 };
