@@ -102,11 +102,11 @@ var plotConfigs = {
         },
         config: {
           title_display_markdown_pattern:
-            '[Number of GUDMAP resources released to date (log scale)](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+            '[Number of GUDMAP resources released to date (log scale)](https://example.com){target=_blank}',
           format_data_x: true, // defualt : false - to use hack or not
           xaxis: {
             title_display_markdown_pattern:
-              '[Number of Records](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+              '[Number of Records](https://example.com){target=_blank}',
           },
           yaxis: {
             tick_display_markdown_pattern:
@@ -290,11 +290,11 @@ var plotConfigs = {
         }],
         config: {
           title_display_markdown_pattern:
-            '[Number of GUDMAP resources released to date (log scale)](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+            '[Number of GUDMAP resources released to date (log scale)](https://example.com){target=_blank}',
           format_data_x: true, // defualt : false - to use hack or not
           xaxis: {
             title_display_markdown_pattern:
-              '[Number of Records](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+              '[Number of Records](https://example.com){target=_blank}',
           },
           yaxis: {
             tick_display_markdown_pattern:
@@ -438,16 +438,16 @@ var plotConfigs = {
         },
         config: {
           title_display_markdown_pattern:
-            '[Number of GUDMAP resources released to date (log scale)](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+            '[Number of GUDMAP resources released to date (log scale)](https://example.com){target=_blank}',
           xaxis: {
             title_display_markdown_pattern:
-              '[Data_Types](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+              '[Data_Types](https://example.com){target=_blank}',
             tick_display_markdown_pattern:
               '[{{$self.data.Data_Type}}](/chaise/recordset/#2/{{{$self.data.Schema_Table}}}){target=_blank}',
           },
           yaxis: {
             title_display_markdown_pattern:
-              '[Number of Records](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+              '[Number of Records](https://example.com){target=_blank}',
           },
           format_data_x: true, // defualt : false - to use hack or not
         },
@@ -571,15 +571,15 @@ var plotConfigs = {
         },
         config: {
           title_display_markdown_pattern:
-            '[Number of GUDMAP resources released to date (log scale)](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+            '[Number of GUDMAP resources released to date (log scale)](https://example.com){target=_blank}',
           format_data_x: true, // defualt : false - to use hack or not
           xaxis: {
             title_display_markdown_pattern:
-              '[Number of Records](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+              '[Number of Records](https://example.com){target=_blank}',
           },
           yaxis: {
             title_display_markdown_pattern:
-              '[Data_Types](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+              '[Data_Types](https://example.com){target=_blank}',
             tick_display_markdown_pattern:
               '[{{$self.data.Data_Type}}](/chaise/recordset/#2/{{{$self.data.Schema_Table}}}){target=_blank}',
           },
@@ -1163,12 +1163,12 @@ var plotConfigs = {
         xaxis: {
           tick_display_markdown_pattern:
             '[{{$self.data.Label}}](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
-          title_display_markdown_pattern: '[ title x ](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+          title_display_markdown_pattern: '[ title x ](https://example.com){target=_blank}',
         },
         yaxis: {
           tick_display_markdown_pattern:
             '[{{$self.data.Probe_Set_Name}}](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
-          title_display_markdown_pattern: '[ title y ](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+          title_display_markdown_pattern: '[ title y ](https://example.com){target=_blank}',
         },
       },
       traces: [
