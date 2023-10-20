@@ -3,6 +3,7 @@
 
 // components
 import DropdownSelect from '@isrd-isi-edu/deriva-webapps/src/components/plot/dropdown-select';
+import ForeignkeyField from '@isrd-isi-edu/chaise/src/components/input-switch/foreignkey-field';
 
 // hooks
 import { PlotTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
@@ -11,7 +12,11 @@ import { useState } from 'react';
 // models
 import { Option } from '@isrd-isi-edu/deriva-webapps/src/components/virtualized-select';
 import { Responsive, WidthProvider, ResponsiveProps as ResponsiveGridProps } from 'react-grid-layout';
-import { UserControlConfig, LayoutConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { LayoutConfig, UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { LogStackPaths, LogStackTypes } from '@isrd-isi-edu/chaise/src/models/log';
+
+// services
+import { LogService } from '@isrd-isi-edu/chaise/src/services/log';
 
 // utils
 import { convertKeysSnakeToCamel } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
@@ -92,12 +97,12 @@ const UserControlsGrid = ({ userControlData, selectorOptions, setSelectorOptionC
    * Handles the click of the select button. This function will update the templateParams and selectData state.
    */
   const handleClick = (config: UserControlConfig) => {
-    
+
     setModalProps({
       // indices,
       // recordsetProps,
     });
-  
+
     setIsModalOpen(true);
   };
 
@@ -118,17 +123,37 @@ const UserControlsGrid = ({ userControlData, selectorOptions, setSelectorOptionC
             </div>
           )
         case 'facet-search-popup':
+          const columnModel = {
+            column: {},
+            isDisabled: false,
+            isRequired: false,
+            inputType: 'popup-select',
+            logStackNode: LogService.getStackNode(LogStackTypes.FOREIGN_KEY,
+              // TODO: get right table
+              // column.table,
+              'table',
+              // TODO: get right compressedDataSource
+              // { source: column.compressedDataSource, entity: true }
+              { source: {}, entity: true }
+            ),
+            logStackPathChild: LogStackPaths.FOREIGN_KEY,
+            hasDomainFilter: false
+          };
+
           return (
-            <div key={config.uid}>
-              <DropdownSelect
-                id={uid[idx]}
-                // defaultOptions={selectorOptions[idx]}
-                label={config?.label}
-                isButton={true}
-                onClick={() => handleClick(config)}
-                value={selectorValue[idx]}
-              />
-            </div>
+            <ForeignkeyField
+              type={columnModel.inputType}
+              name={config.uid}
+              // text to show in input before selecting a value (if applicable)
+              // placeholder={placeholder as string}
+              columnModel={columnModel}
+              // app mode is create if empty or edit if value exists on load
+              // appMode={appMode}
+              // data to initialize with
+              // foreignKeyData={foreignKeyData}
+              // flag to show spinner?
+              // waitingForForeignKeyData={waitingForForeignKeyData}
+            />
           )
         default:
           break;

@@ -164,7 +164,8 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
         {selectData && selectData.length > 0 ? (
           <SelectGrid selectors={selectData} width={dynamicStyles.width} />
         ) : null}
-        {userControlData && Object.keys(userControlData)?.length > 0 && dataOptions && dataOptions.length > 0 ? (
+        {userControlData && Object.keys(userControlData)?.length > 0 ? (
+        // {userControlData && Object.keys(userControlData)?.length > 0 && dataOptions && dataOptions.length > 0 ? (
           <UserControlsGrid userControlData={userControlData} selectorOptions={dataOptions}
             setSelectorOptionChanged={setSelectorOptionChanged} width={dynamicStyles.width} />
         ) : null}
