@@ -272,13 +272,9 @@ export const useChartData = (plot: Plot) => {
     });
   }, []);
 
-<<<<<<< HEAD
   // initialize the user controls, associated options, and display data
   // TODO: does this need to be done at certain time in the setup process or is it fine to let react manage this?
   useUserControls({
-=======
-  useControl({
->>>>>>> master
     userControlConfig: plot?.user_controls,
     templateParams,
     setDataOptions,
