@@ -1,54 +1,44 @@
-import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+// hooks
 import useAlert from '@isrd-isi-edu/chaise/src/hooks/alerts';
+import { useUserControls } from '@isrd-isi-edu/deriva-webapps/src/hooks/control';
+import useError from '@isrd-isi-edu/chaise/src/hooks/error';
+import { createStudyViolinSelectGrid, useChartControlsGrid, } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart-select-grid';
+import useIsFirstRender from '@isrd-isi-edu/chaise/src/hooks/is-first-render';
+import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+
+// models
 import {
   PlotData as PlotlyPlotData,
   ViolinData as PlotlyViolinData,
   PieData as PlotlyPieData,
 } from 'plotly.js';
-
-import { getConfigObject } from '@isrd-isi-edu/deriva-webapps/src/utils/config';
 import {
-  formatPlotData,
-  createLink,
-  getPatternUri,
-  createLinkWithContextParams,
-  extractValue,
-  extractAndFormatDate,
-  wrapText,
-  isDataJSON,
-} from '@isrd-isi-edu/deriva-webapps/src/utils/string';
-import { flatten2DArray } from '@isrd-isi-edu/deriva-webapps/src/utils/data';
-
-import useError from '@isrd-isi-edu/chaise/src/hooks/error';
-import {
-  createStudyViolinSelectGrid,
-  useChartControlsGrid,
-} from '@isrd-isi-edu/deriva-webapps/src/hooks/chart-select-grid';
-
-import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
-import {
-  Plot,
-  PlotConfig,
-  PlotConfigAxis,
-  DataConfig,
-  Trace,
-  screenWidthThreshold,
-  plotAreaFraction,
-  validFileTypes,
-
+  Plot, PlotConfig, PlotConfigAxis,
+  DataConfig, Trace, screenWidthThreshold,
+  plotAreaFraction, validFileTypes
 } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { ChaiseAlertType } from '@isrd-isi-edu/chaise/src/providers/alerts';
+
+// services
+import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
+
+// utils
+import { getConfigObject } from '@isrd-isi-edu/deriva-webapps/src/utils/config';
+import Papa from 'papaparse';
+import { flatten2DArray } from '@isrd-isi-edu/deriva-webapps/src/utils/data';
+import { getQueryParam, getQueryParams } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
+import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
 import {
   invalidCsvAlert, invalidDataAlert, invalidJsonAlert, invalidKeyAlert, invalidResponseFormatAlert,
   emptyDataColArrayAlert, emptyXColArrayAlert, emptyYColArrayAlert, incompatibleColArraysAlert,
   noColumnsDefinedAlert, xColOnlyAlert, yColOnlyAlert, xYColsNotAnArrayAlert
 } from '@isrd-isi-edu/deriva-webapps/src/utils/message-map';
-import useIsFirstRender from '@isrd-isi-edu/chaise/src/hooks/is-first-render';
-import { getQueryParam, getQueryParams } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
-import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
-import { ChaiseAlertType } from '@isrd-isi-edu/chaise/src/providers/alerts';
-import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
-import Papa from 'papaparse';
-import { useUserControls } from '@isrd-isi-edu/deriva-webapps/src/hooks/control';
+import {
+  addComma, createLink, createLinkWithContextParams,
+  extractValue, extractAndFormatDate, formatPlotData,
+  getPatternUri, isDataJSON, wrapText
+} from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 
 /**
  * Data received from API request
@@ -282,9 +272,13 @@ export const useChartData = (plot: Plot) => {
     });
   }, []);
 
+<<<<<<< HEAD
   // initialize the user controls, associated options, and display data
   // TODO: does this need to be done at certain time in the setup process or is it fine to let react manage this?
   useUserControls({
+=======
+  useControl({
+>>>>>>> master
     userControlConfig: plot?.user_controls,
     templateParams,
     setDataOptions,
@@ -399,7 +393,7 @@ export const useChartData = (plot: Plot) => {
   // since we're using strict mode, the useEffect is getting called twice in dev mode
   // this is to guard against it
   const setupStarted = useRef<boolean>(false);
-    
+
   // Effect to fetch initial data
   useEffect(() => {
     if (setupStarted.current) return;
@@ -754,13 +748,10 @@ export const useChartData = (plot: Plot) => {
       result.layout.modebar = { remove: plot?.plotly?.config?.modeBarButtonsToRemove };
     }
     if (plot.plot_type === 'heatmap') {
-      result.layout.margin = additionalLayout.margin;
-      result.layout.height = additionalLayout.height;
-      result.layout.width = additionalLayout.width;
       if (result.data[0]) {
         result.data[0]['colorbar'] = {
           lenmode: 'pixels',
-          len: additionalLayout.height - 40 < 100 ? additionalLayout.height - 40 : 100
+          len: 100
         }
       }
     }
@@ -791,15 +782,14 @@ export const useChartData = (plot: Plot) => {
   }
 
   /**
+   * Calculates the height and margins of the heatmap based on the number of y values and length of the longest X label
+   * so that the labels do not get clipped and the bar height is adjusted accordingly.
    * 
    * @param input : Input parameters of heatmap directive
    * @param longestXTick : Length of longest X axis label
    * @param longestYTick : Length of longest Y axis label
    * @param lengthY : Number of Y values
-   * @returns 
-   * Calculates the height and margins of the heatmap based on the number of y values and length of the longest X label
-   * so that the labels do not get clipped and the bar height is adjusted accordingly.
-   * Return an object with all the required layout parameters.
+   * @returns an object with all the required layout parameters.
    * @example
    * {
    * 	height: height of the heatmap,
@@ -1130,7 +1120,7 @@ export const useChartData = (plot: Plot) => {
         for (let i = 1; i < numberPlotTraces; i++) trace.marker[i] = trace.marker[0];
       }
     }
-    
+
 
     const plotlyData: any[] = []
     for (let plotTraceIdx = 0; plotTraceIdx < numberPlotTraces; plotTraceIdx++) {
@@ -1329,6 +1319,11 @@ export const useChartData = (plot: Plot) => {
     if (trace.marker && Array.isArray(trace.marker) && trace.marker[index]) {
       data.marker = trace.marker[index];
     }
+  }
+
+  const updateHeatmapResponse = (trace: Trace, data: any) => {
+    if (trace.xgap) data.xgap = trace.xgap;
+    if (trace.ygap) data.xgap = trace.ygap;
   }
 
   /**
@@ -1540,6 +1535,7 @@ export const useChartData = (plot: Plot) => {
               updateScatterResponse(currTrace, plotData, 'lines+markers', k);
               break;
             case 'heatmap':
+              updateHeatmapResponse(currTrace, plotData);
               // setup the layout object using some information returned from the data
               const { plotly } = plot;
               // Getting the longest x tick in the given data to determine margin and height values in getHeatmapLayoutParams function
@@ -1554,6 +1550,38 @@ export const useChartData = (plot: Plot) => {
                 plotData.longestYTick?.length,
                 plotData.y?.length
               );
+
+              if (plot.config.text_on_plot) {
+                result.layout.annotations = [];
+
+                const xData = plotData.x;
+                const yData = plotData.y;
+                const zData = plotData.z;
+                for (let i = 0; i < yData.length; i++) {
+                  for (let j = 0; j < xData.length; j++) {
+                    let zText = zData[i][j];
+
+                    // zData in heatmap SHOULD be numeric type, still check and format if it is
+                    if (!isNaN(parseFloat(zText))) zText = addComma(zText);
+
+                    const annotation = {
+                      xref: 'x' + (k + 1),
+                      yref: 'y' + (k + 1),
+                      x: j,
+                      y: i,
+                      text: zText,
+                      font: {
+                        family: 'Arial',
+                        size: 12,
+                        color: 'white'
+                      },
+                      showarrow: false
+                    };
+
+                    result.layout.annotations.push(annotation);
+                  }
+                }
+              }
               break;
             case 'violin':
               updateViolinResponse(currTrace, plotData, responseData);

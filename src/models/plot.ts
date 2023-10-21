@@ -89,6 +89,7 @@ export type PlotConfigConfig = {
   modeBarButtonsToRemove?: string[];
   displaylogo?: boolean;
   responsive?: boolean;
+  text_on_plot?: boolean;
 };
 
 /**
@@ -141,6 +142,8 @@ export type Trace = {
   queryPattern?: string;
   response_format?: 'csv' & 'json';
   orientation?: 'h' & 'v';
+  xgap?: number;
+  ygap?: number;
 };
 
 /**
