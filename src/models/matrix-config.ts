@@ -26,17 +26,23 @@ export type MatrixStyles = {
   maxRows?: number;
   cellWidth?: number;
   cellHeight?: number;
-  rowHeader?: HeaderStyles;
-  columnHeader?: HeaderStyles;
+  rowHeader?: RowHeaderStyles;
+  columnHeader?: ColHeaderStyles;
   legendHeight?: number;
   legendBarWidth?: number;
   legendBarHeight?: number;
 };
 
-export type HeaderStyles = {
+export type RowHeaderStyles = {
   width?: number;
   scrollable?: boolean;
   scrollableMaxWidth?: number;
+};
+
+export type ColHeaderStyles = {
+  height?: number;
+  scrollable?: boolean;
+  scrollableMaxHeight?: number;
 };
 
 export type MatrixConfig = {

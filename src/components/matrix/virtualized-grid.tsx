@@ -145,8 +145,6 @@ const VirtualizedGrid = (
   /** */
   const [scrollX, setScrollX] = useState<number>(0); // scroll x position
   const [scrollY, setScrollY] = useState<number>(0); // scroll y position
-  const [scrollTreeX, setScrollTreeX] = useState<number>(0); // scroll vertical treeview x position
-  const [scrollTreeY, setScrollTreeY] = useState<number>(0); // scroll horizontal treeview y position
 
   // basic component
   const [hoveredRowID, setHoveredRowID] = useState<string | null>(null); // hovered row state for row headers
@@ -161,81 +159,55 @@ const VirtualizedGrid = (
   const [visiableColNodes, setVisiableColNodes] = useState<Set<string> | null>(new Set<string>()); // visiable rows in xTree and grid
   const [filteredGridYData, setFilteredGridYData] = useState<Array<Array<ParsedGridCell>> | null>(new Array<Array<ParsedGridCell>>()); // used for locating the Y searched entry
   const [filteredGridXData, setFilteredGridXData] = useState<Array<ParsedGridCell> | null>(new Array<ParsedGridCell>()); // used for locating the X searched entry
-  const [scrollTreeYIniPos, setScrollTreeYIniPos] = useState<number>(0); // y position for scrolling horizontal treeview
   const [filteredGridData, setFilteredGridData] = useState<ParsedGridCell[][] | null>(data);
 
   // track scrolling
   const [isScrolling, setIsScrolling] = useState(false); // State to track whether scrolling is happening
   const scrollTimeoutRef = useRef<number | null>(null); // Ref to track a timerId
-  /**
-   * When use Firefox, after refresh the page, the horizontal treeview y position, which is 'scrollTreeY'
-   * will change to 0, which results the horizontal tree goes to the very top and shows only blank.
-   * This does not happen in Safari, Chrome, and not happen when reload the page in Firefox.
-   * Only happens when refresh the page in Firefox.
-   * To fix it, use a state to track whether this is the first time to load the page, if it is,
-   * then force the horizontal treeview y position go to the very bottom.
-   */
-  const [isRefresh, setIsRefresh] = useState(false); // State to track whether this is the initial loading
 
   const rowLabelRef = useRef<any>(null);
   const columnLabelRef = useRef<any>(null);
   const gridRef = useRef<any>(null);
   const gridContainerRef = useRef<any>(null);
 
-  const rowScrollBarRef = useRef<any>(null);
-  const columnScrollBarRef = useRef<any>(null);
 
-  // Calculate the max width for the row headers when it is scrollable and non-tree component
+  /**
+   * TODO
+   * 
+   * Only for non-tree headers, for the condition that we expect its scrollable max width or height to be auto. 
+   * Current solution is that, the component width or height is calculated by font size and characters.
+   * In the future, improve the solution or try other solutions.
+   */
+  // Calculate the max width for the row and column headers when it is scrollable and non-tree component
   const rowFontCharWidth = 7;
   const columnFontCharWidth = 8;
-  let rowListWidth = rowHeaderScrollableMaxWidth===-1 ? yDataMaxLength * rowFontCharWidth : rowHeaderScrollableMaxWidth;
-  if(!yTree){
-    if(rowListWidth < rowHeaderWidth){
+  let rowListWidth = rowHeaderScrollableMaxWidth === -1 ? yDataMaxLength * rowFontCharWidth : rowHeaderScrollableMaxWidth;
+  // If the current row header is non-tree
+  if (!yTree) {
+    // Check whether the maxmium width of row labels is less than the fixed width, if it is, not to set it scrollable
+    if (rowListWidth < rowHeaderWidth) {
       rowListWidth = rowHeaderWidth;
       rowHeaderScrollable = false;
     }
   }
   // Calculate the max height for the column headers when it is scrollable and non-tree component
-  let columnListHeight = colHeaderScrollableMaxHeight===-1 ? xDataMaxLength * columnFontCharWidth : colHeaderScrollableMaxHeight;
-  if(!xTree){
-    if(columnListHeight < columnHeaderHeight){
+  let columnListHeight = colHeaderScrollableMaxHeight === -1 ? xDataMaxLength * columnFontCharWidth : colHeaderScrollableMaxHeight;
+  // If the current column header is non-tree
+  if (!xTree) {
+    // Check whether the maxmium height of column labels is less than the fixed height, if it is, not to set it scrollable
+    if (columnListHeight < columnHeaderHeight) {
       columnListHeight = columnHeaderHeight;
       colHeaderScrollable = false;
     }
   }
 
   /**
-   * Calculate the y position of the horizontal tree view
-   * In particularly, Get max layer and title to help estimate the position
-   */
-  function getMaxLayersAndTitleLength(treeNodes: TreeNode[]) {
-    let maxLayers = 0;
-    let maxTitleLength = 0;
-
-    const traverseTree = (node: TreeNode, depth: number) => {
-      maxLayers = Math.max(maxLayers, depth);
-      maxTitleLength = Math.max(maxTitleLength, node.title.length);
-
-      if (node.children && node.children.length > 0) {
-        node.children.forEach((child) => {
-          traverseTree(child, depth + 1);
-        });
-      }
-    };
-
-    treeNodes.forEach((node) => {
-      traverseTree(node, 1);
-    });
-
-    return { maxLayers, maxTitleLength };
-  }
-
-  /**
    * Initialize the dummy scrollbar at the bottom of the row headers
    */
   useEffect(() => {
-    if (rowHeaderScrollable && gridContainerRef.current && rowScrollBarRef.current) {
-      addBottomHorizontalScroll(gridContainerRef.current, rowScrollBarRef.current);
+    if (rowHeaderScrollable && gridContainerRef.current) {
+      const rowTreeViewAuto = !!yTree && rowHeaderScrollableMaxWidth === -1 && rowHeaderScrollable;
+      addBottomHorizontalScroll(gridContainerRef.current, rowTreeViewAuto);
     }
   }, []);
 
@@ -243,25 +215,11 @@ const VirtualizedGrid = (
    * Initialize the dummy scrollbar at the right of the column headers
    */
   useEffect(() => {
-    if (colHeaderScrollable && gridContainerRef.current && columnScrollBarRef.current) {
-      addRightVerticalScroll(gridContainerRef.current, columnScrollBarRef.current);
+    if (colHeaderScrollable && gridContainerRef.current) {
+      const colTreeViewAuto = !!xTree && colHeaderScrollableMaxHeight === -1 && colHeaderScrollable;
+      addRightVerticalScroll(gridContainerRef.current, colTreeViewAuto);
     }
   }, []);
-
-  /**
-   * Initialize the inner vertical position of the horizontal tree
-   */
-  useEffect(() => {
-    if (xTreeNodes) {
-      const { maxLayers, maxTitleLength } = getMaxLayersAndTitleLength(xTreeNodes);
-      // Font size is 14px in this page
-      const yPositionXTree = maxLayers * maxTitleLength * 14;
-      setScrollTreeYIniPos(yPositionXTree);
-      setScrollTreeY(yPositionXTree);
-      // mark this is the initial page loading
-      setIsRefresh(true);
-    }
-  }, [xTreeNodes]);
 
   /**
    * Filter the visiable rows and columns in GridData whenever visiableRowNodes or visiableColNodes changes
@@ -273,29 +231,26 @@ const VirtualizedGrid = (
 
     let newData: ParsedGridCell[][] = data;
     const lastRow: ParsedGridCell[] = data[data.length - 1]; // Store a copy of the last row
-    if (xTree && yTree) {
-      newData = data
-        .filter((gridRow) =>
-          gridRow.some((cell) => visiableRowNodes?.has(cell.row.id))
-        )
-        .map((gridRow) =>
-          gridRow.filter((cell) => visiableColNodes?.has(cell.column.id))
-            .concat(gridRow[gridRow.length - 1])
-        );
+
+    // If the data of row header is in treeview, then for each row, filter the row.id to leave matching cells based on visiable row nodes
+    if (yTree) {
+      newData = newData.filter(gridRow =>
+        gridRow.some(cell => visiableRowNodes?.has(cell.row.id))
+      );
+      // Since the filter operation remove the last row (empty row for margin) as well, there is a need to add it back
       newData.push(lastRow);
-    } else if (!xTree && yTree) {
-      newData = data
-        .filter((gridRow) =>
-          gridRow.some((cell) => visiableRowNodes?.has(cell.row.id))
-        )
-      newData.push(lastRow);
-    } else if (xTree && !yTree) {
-      newData = data
-        .map((gridRow) =>
-          gridRow.filter((cell) => visiableColNodes?.has(cell.column.id))
-            .concat(gridRow[gridRow.length - 1])
-        );
     }
+
+    // If the data of column header is in treeview, then for each row, filter the column.id to leave matching cells based on visiable column nodes
+    // Since each item in yData contains all xData/columns, so we need to firstly map each row, then filter each cell based on column id
+    // Since the operation removes the empty column (for margin) at last of each row, need to add it back
+    if (xTree) {
+      newData = newData.map((gridRow) =>
+        gridRow.filter((cell) => visiableColNodes?.has(cell.column.id))
+          .concat(gridRow[gridRow.length - 1])
+      );
+    }
+
     setFilteredGridData(newData);
     setNumRows(newData.length);
     setNumColumns(newData[0].length);
@@ -323,9 +278,7 @@ const VirtualizedGrid = (
     }
     // The first parenthesis used to calculate the searched row offset, and then the last two make it to be the center position
     const offset = (rowIndex * cellHeight) - (gridHeight / 2) - (cellHeight / 2);
-    console.log(offset);
     setScrollY(offset);
-    setScrollTreeX(0);
   }, [filteredGridYData, cellHeight, gridHeight, searchedRowID, data]);
 
   /**
@@ -344,8 +297,7 @@ const VirtualizedGrid = (
     // The first parenthesis used to calculate the searched column offset, and then the last two make it to be the center position
     const offset = (colIndex * cellWidth) - (gridWidth / 2) - (cellWidth / 2);
     setScrollX(offset);
-    setScrollTreeY(scrollTreeYIniPos);
-  }, [cellWidth, filteredGridXData, gridWidth, scrollTreeYIniPos, searchedColID, data]);
+  }, [cellWidth, filteredGridXData, gridWidth, searchedColID, data]);
 
   /**
    * Create a ref handle for this component
@@ -391,8 +343,6 @@ const VirtualizedGrid = (
     if (e.scrollUpdateWasRequested) return;
     // The tree component does not have the event contains scrollOffset
     // So use ref to get the scrollTop to get the similar data
-    setScrollTreeX(rowLabelRef.current.scrollLeft);
-    // Set Tree horizontal position
     setScrollY(rowLabelRef.current.scrollTop);
     // Set isScrolling to true
     setIsScrolling(true);
@@ -420,10 +370,8 @@ const VirtualizedGrid = (
   const handleTreeColumnLabelScroll = useCallback((e: any) => {
     if (e.scrollUpdateWasRequested) return;
     // The tree component does not have the event contains scrollOffset
-    // So use ref to get the scrollTop to get the similar data
+    // So use ref to get the scrollLeft to get the similar data
     setScrollX(columnLabelRef.current.scrollLeft);
-    // Set Tree vertical position
-    setScrollTreeY(columnLabelRef.current.scrollTop);
     // Set isScrolling to true
     setIsScrolling(true);
     // Clear previous timeout if it exists
@@ -480,18 +428,13 @@ const VirtualizedGrid = (
    */
   useEffect(() => {
     if (yTree) {
-      rowLabelRef.current.scrollTo(scrollTreeX, scrollY);
+      rowLabelRef.current.scrollTo(0, scrollY);
     } else {
       rowLabelRef.current.scrollTo(scrollY);
     }
 
     if (xTree) {
-      columnLabelRef.current.scrollTo(scrollX, scrollTreeY);
-      // If there is a page refresh, then force the column tree header go to the very bottom
-      if (isRefresh) {
-        columnLabelRef.current.scrollTo(scrollX, scrollTreeYIniPos);
-        setIsRefresh(false);
-      }
+      columnLabelRef.current.scrollTo(scrollX, 0);
     } else {
       columnLabelRef.current.scrollTo(scrollX);
     }
@@ -500,7 +443,7 @@ const VirtualizedGrid = (
       scrollLeft: scrollX,
       scrollTop: scrollY,
     });
-  }, [scrollY, scrollX, scrollTreeY, scrollTreeX, xTree, yTree]);
+  }, [scrollY, scrollX, xTree, yTree]);
 
   // Data to be passed to Row, Column, and Grid Props
   const rowHeaderTreeData = useMemo(
@@ -524,11 +467,10 @@ const VirtualizedGrid = (
       setHoveredRowID,
       setVisiableColNodes,
       setFilteredGridXData,
-      scrollTreeYIniPos,
       isScrolling,
       listData: data,
     }),
-    [searchedColID, hoveredColID, scrollTreeYIniPos, data, isScrolling]
+    [searchedColID, hoveredColID, data, isScrolling]
   );
   const gridData = useMemo(
     () => ({
@@ -699,7 +641,7 @@ const VirtualizedGrid = (
       </Grid>
       {/* Dummy scrollbar for the row headers */}
       {rowHeaderScrollable &&
-        <div ref={rowScrollBarRef}
+        <div
           className='row-header-scrollbar-container'
           style={rowHeaderScrollBarContainer} >
           <div className='chaise-table-top-scroll-wrapper'>
@@ -711,22 +653,21 @@ const VirtualizedGrid = (
       {/* Dummy scrollbar for the column headers */}
       {colHeaderScrollable &&
         <div
-          ref={columnScrollBarRef}
           style={columnHeaderScrollBarContainer}
           className='column-header-scrollbar-container'
         >
           <div
             style={columnHeaderScrollBarWrapper}
-            className='chaise-table-top-scroll-wrapper'
+            className='chaise-table-right-scroll-wrapper'
           >
-            <div style={columnHeaderScrollBar} className='chaise-table-top-scroll'></div>
+            <div style={columnHeaderScrollBar} className='chaise-table-right-scroll'></div>
           </div>
         </div>
       }
-      {showRight && <GridRightButton onClick={pressScrollRight} rowHeaderWidth={rowHeaderWidth} rowHeaderScrollable={colHeaderScrollable}/>}
+      {showRight && <GridRightButton onClick={pressScrollRight} rowHeaderWidth={rowHeaderWidth} rowHeaderScrollable={colHeaderScrollable} />}
       {showUp && <GridUpButton onClick={pressScrollUp} rowHeaderWidth={rowHeaderWidth} />}
       {showLeft && <GridLeftButton onClick={pressScrollLeft} rowHeaderWidth={rowHeaderWidth} />}
-      {showDown && <GridDownButton onClick={pressScrollDown} rowHeaderWidth={rowHeaderWidth} rowHeaderScrollable={rowHeaderScrollable}/>}
+      {showDown && <GridDownButton onClick={pressScrollDown} rowHeaderWidth={rowHeaderWidth} rowHeaderScrollable={rowHeaderScrollable} />}
     </div>
   );
 };

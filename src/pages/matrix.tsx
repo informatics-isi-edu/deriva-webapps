@@ -21,6 +21,7 @@ import { useMatrixData } from '@isrd-isi-edu/deriva-webapps/src/hooks/matrix';
 import { ID_NAMES } from '@isrd-isi-edu/chaise/src/utils/constants';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
+import { processMatrixHeaderStyles } from '@isrd-isi-edu/deriva-webapps/src/utils/config';
 
 const matrixSettings = {
   appName: 'app/matrix',
@@ -153,35 +154,17 @@ const MatrixApp = (): JSX.Element => {
   const maxRows = styles?.maxRows;
 
   const rowHeaderWidth = styles?.rowHeader?.width ? styles?.rowHeader?.width : 250;
-  const colHeaderHeight = styles?.columnHeader?.width ? styles?.columnHeader?.width : 50;
+  const colHeaderHeight = styles?.columnHeader?.height ? styles?.columnHeader?.height : 50;
 
-  // Configuration for headers scrolling
-  let rowHeaderScrollable = styles?.rowHeader?.scrollable ? styles?.rowHeader?.scrollable : false;
-  let colHeaderScrollable = styles?.columnHeader?.scrollable ? styles?.columnHeader?.scrollable : false;
-  const rowHeaderScrollableMaxWidthExist = styles?.rowHeader?.scrollableMaxWidth ? true : false;
-  const colHeaderScrollableMaxHeightExist = styles?.columnHeader?.scrollableMaxWidth ? true : false;
-  let rowHeaderScrollableMaxWidth = styles?.rowHeader?.scrollableMaxWidth ? styles?.rowHeader?.scrollableMaxWidth : rowHeaderWidth;
-  let colHeaderScrollableMaxHeight = styles?.columnHeader?.scrollableMaxWidth ? styles?.columnHeader?.scrollableMaxWidth : colHeaderHeight;
-  if (rowHeaderScrollableMaxWidthExist && rowHeaderScrollableMaxWidth <= rowHeaderWidth) {
-    rowHeaderScrollableMaxWidth = rowHeaderWidth;
-    rowHeaderScrollable = false;
-  }
-  if (colHeaderScrollableMaxHeightExist && colHeaderScrollableMaxHeight <= colHeaderHeight) {
-    colHeaderScrollableMaxHeight = colHeaderHeight;
-    colHeaderScrollable = false;
-  }
-  if (!rowHeaderScrollable) {
-    rowHeaderScrollableMaxWidth = rowHeaderWidth;
-  }
-  if (!colHeaderScrollable) {
-    colHeaderScrollableMaxHeight = colHeaderHeight;
-  }
-  if (rowHeaderScrollable && !rowHeaderScrollableMaxWidthExist) {
-    rowHeaderScrollableMaxWidth = -1;
-  }
-  if (colHeaderScrollable && !colHeaderScrollableMaxHeightExist) {
-    colHeaderScrollableMaxHeight = -1;
-  }
+  const {
+    scrollable: rowHeaderScrollable,
+    scrollableMaxSize: rowHeaderScrollableMaxWidth
+  } = processMatrixHeaderStyles(rowHeaderWidth, styles?.rowHeader?.scrollable, styles?.rowHeader?.scrollableMaxWidth);
+
+  const {
+    scrollable: colHeaderScrollable,
+    scrollableMaxSize: colHeaderScrollableMaxHeight
+  } = processMatrixHeaderStyles(colHeaderHeight, styles?.columnHeader?.scrollable, styles?.columnHeader?.scrollableMaxHeight);
 
   const cellHeight = styles?.cellHeight ? styles?.cellHeight : 25;
   const cellWidth = styles?.cellWidth ? styles?.cellWidth : 25;

@@ -60,7 +60,7 @@ const SharedRowHeaders = (
     overflowX: 'hidden',
     overflowY: 'hidden',
     position: 'relative',
-    width: scrollable && scrollableMaxWidth===-1 ? 'fit-content' : scrollableMaxWidth,
+    width: scrollable && scrollableMaxWidth === -1 ? 'fit-content' : scrollableMaxWidth,
     direction: 'rtl',
     height: height,
     top: top,

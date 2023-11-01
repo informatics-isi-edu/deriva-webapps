@@ -482,9 +482,16 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
     colors: [],
   });
 
+  /**
+   * TODO
+   * Only for non-tree headers, for the condition that we expect its scrollable max width or height to be auto. 
+   * Current solution is that, the component width or height is calculated by font size and characters.
+   * In the future, improve the solution or try other solutions.
+   */
   // Find the max length of titles for both y-axis and x-axis
   let yDataMaxLength = 0;
   let xDataMaxLength = 0;
+  
   // Create the options and datamap used for the matrix search feature
   const options: Array<Option> = [];
   const gridDataMap: GridDataMap = {};

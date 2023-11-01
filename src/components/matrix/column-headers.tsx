@@ -10,7 +10,7 @@ type ColumnHeadersProps = SharedColumnHeadersProps & {
    */
   onScroll?: (props: ListOnScrollProps) => any;
   /**
-   * 
+   * the height of List
    */
   listHeight: number;
 };
@@ -37,21 +37,21 @@ const ColumnHeaders = (props: ColumnHeadersProps, ref: ForwardedRef<any>): JSX.E
 
   return (
     <SharedColumnHeaders {...props}>
-        <List
-          className='grid-column-headers'
-          style={columnHeadersStyles}
-          width={props.width}
-          itemSize={itemSize} // width of each column header
-          height={props.listHeight}
-          layout='horizontal'
-          itemCount={props.itemCount}
-          onScroll={props.onScroll}
-          itemData={props.itemData}
-          overscanCount={30}
-          ref={ref}
-        >
-          {MemoizedHeader}
-        </List>
+      <List
+        className='grid-column-headers'
+        style={columnHeadersStyles}
+        width={props.width}
+        itemSize={itemSize} // width of each column header
+        height={props.listHeight}
+        layout='horizontal'
+        itemCount={props.itemCount}
+        onScroll={props.onScroll}
+        itemData={props.itemData}
+        overscanCount={30}
+        ref={ref}
+      >
+        {MemoizedHeader}
+      </List>
     </SharedColumnHeaders>
   );
 };

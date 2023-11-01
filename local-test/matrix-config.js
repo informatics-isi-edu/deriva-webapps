@@ -99,18 +99,18 @@ var matrixConfigs = {
         // Whether allow scroll
         scrollable: true,
         // The max width of the scrollable content
-        // scrollableMaxWidth: 250,
+        // scrollableMaxWidth: 300,
       },
       /**
        * Properties of the column headers
        */
       columnHeader: {
         // Height of the column headers
-        width: 80,
+        height: 80,
         // Whether allow scroll
         scrollable: true,
         // The max height of the scrollable content
-        // scrollableMaxWidth: 200,
+        // scrollableMaxHeight: 100,
       },
       /**
        * Height of the legend

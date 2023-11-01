@@ -10,7 +10,7 @@ type RowHeadersProps = SharedRowHeadersProps & {
    */
   onScroll?: (props: ListOnScrollProps) => any;
   /**
-   * 
+   * the width of List
    */
   listWidth: number;
 };
@@ -37,20 +37,20 @@ const RowHeaders = (props: RowHeadersProps, ref: ForwardedRef<any>): JSX.Element
 
   return (
     <SharedRowHeaders {...props}>
-        <List
-          className='grid-row-headers'
-          style={rowHeadersStyles}
-          height={props.height}
-          itemSize={itemSize} // each row height
-          width={props.listWidth}
-          itemCount={props.itemCount}
-          itemData={props.itemData}
-          onScroll={props.onScroll}
-          overscanCount={30}
-          ref={ref}
-        >
-          {MemoizedHeader}
-        </List>
+      <List
+        className='grid-row-headers'
+        style={rowHeadersStyles}
+        height={props.height}
+        itemSize={itemSize} // each row height
+        width={props.listWidth}
+        itemCount={props.itemCount}
+        itemData={props.itemData}
+        onScroll={props.onScroll}
+        overscanCount={30}
+        ref={ref}
+      >
+        {MemoizedHeader}
+      </List>
     </SharedRowHeaders>
   );
 };

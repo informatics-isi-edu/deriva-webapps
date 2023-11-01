@@ -49,13 +49,14 @@ const SharedColumnHeaders = (
 
   const containerRef = useRef<HTMLDivElement | null>(null);
 
+  // This is used to initialize the position of scroll bar to bottom, when scrollable height is auto
   useEffect(() => {
     setTimeout(() => {
       if (containerRef.current) {
         // Scroll to the bottom when the component mounts
         containerRef.current.scrollTop = containerRef.current.scrollHeight;
       }
-    }, 10); // This slight delay ensures that the rendering is complete.
+    }, 100); // This slight delay ensures that the rendering is complete.
   }, []);
 
   const columnHeadersContainerStyles: CSSProperties = {
@@ -71,7 +72,7 @@ const SharedColumnHeaders = (
     overflowY: 'hidden',
     position: 'relative',
     width: width,
-    height: scrollable && scrollableMaxHeight===-1 ? 'fit-content' : scrollableMaxHeight,
+    height: scrollable && scrollableMaxHeight === -1 ? 'fit-content' : scrollableMaxHeight,
     left: 0,
   };
 
