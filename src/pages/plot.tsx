@@ -1,14 +1,16 @@
 import '@isrd-isi-edu/deriva-webapps/src/assets/scss/_plot.scss';
-
 import { createRoot } from 'react-dom/client';
 
 // components
 import AppWrapper from '@isrd-isi-edu/chaise/src/components/app-wrapper';
 import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
-import ChartWithEffect from '@isrd-isi-edu/deriva-webapps/src/components/plot/chart-with-effect';
+import ChartWithControls from '@isrd-isi-edu/deriva-webapps/src/components/plot/chart-with-controls';
 
 // hooks
 import { usePlotConfig } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
+
+// provider
+import PlotProvider from '@isrd-isi-edu/deriva-webapps/src/providers/plot';
 
 // utilities
 import { ID_NAMES } from '@isrd-isi-edu/chaise/src/utils/constants';
@@ -38,9 +40,11 @@ const PlotApp = (): JSX.Element => {
 
   return (
     <div className='plot-page'>
-      {config.plots.map((plotConfig, i): JSX.Element => {
-        return <ChartWithEffect key={i} config={plotConfig} />;
-      })}
+      <PlotProvider>
+        {config.plots.map((plotConfig, i): JSX.Element => {
+          return <ChartWithControls key={i} config={plotConfig} />;
+        })}
+      </PlotProvider>
     </div>
   );
 };

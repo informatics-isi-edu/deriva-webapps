@@ -1,5 +1,6 @@
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
+import { PlotTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
 
 /**
  * Appends and returns the pcid and ppid for the given link
@@ -151,7 +152,7 @@ export const createLinkWithContextParams = (
  * @param templateParams 
  * @returns 
  */
-export const getPatternUri = (queryPattern: string, templateParams: any) => {
+export const getPatternUri = (queryPattern: string, templateParams: PlotTemplateParams) => {
   const { contextHeaderName } = ConfigService.ERMrest;
   const defaultHeaders = ConfigService.contextHeaderParams;
   const uri = ConfigService.ERMrest.renderHandlebarsTemplate(queryPattern, templateParams);

@@ -1,11 +1,13 @@
 // hooks
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import useAlert from '@isrd-isi-edu/chaise/src/hooks/alerts';
-import { useUserControls } from '@isrd-isi-edu/deriva-webapps/src/hooks/control';
 import useError from '@isrd-isi-edu/chaise/src/hooks/error';
+import { useUserControls } from '@isrd-isi-edu/deriva-webapps/src/hooks/control';
+import usePlot from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
 import { createStudyViolinSelectGrid, useChartControlsGrid, } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart-select-grid';
 import useIsFirstRender from '@isrd-isi-edu/chaise/src/hooks/is-first-render';
 import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
-import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+
 
 // models
 import {
@@ -223,6 +225,8 @@ export const useChartData = (plot: Plot) => {
   const alertFunctions = useAlert();
   const { width = 0, height = 0 } = useWindowSize();
 
+  const { templateParams, setTemplateParams } = usePlot();
+
   /**
    * Template parameters for the plot
    * TODO: eventually remove this, everything in here is already stored in state
@@ -230,21 +234,22 @@ export const useChartData = (plot: Plot) => {
    * TODO: create functions to retrieve only the neccesary templateParams from state and pass them into a more local scope
    *    - gene and study selectors touch these params to modify values used in API requests
    */
-  const templateParams: PlotTemplateParams = useMemo(
-    () => ({
-      $url_parameters: {
-        Gene: {
-          data: {
-            NCBI_GeneID: getQueryParam(windowRef.location.href, 'NCBI_GeneID') || 1, // TODO: deal with default value
-          },
-        },
-        Study: [],
-      },
-      $control_values: {},
-      noData: false, // TODO: remove hack when empty selectedRows are fixed
-    }),
-    []
-  );
+  // const templateParams: PlotTemplateParams = useMemo(
+  //   () => ({
+  //     $url_parameters: {
+  //       Gene: {
+  //         data: {
+  //           NCBI_GeneID: getQueryParam(windowRef.location.href, 'NCBI_GeneID') || 1, // TODO: deal with default value
+  //         },
+  //       },
+  //       Study: [],
+  //     },
+  //     $control_values: {},
+  //     noData: false, // TODO: remove hack when empty selectedRows are fixed
+  //   }),
+  //   []
+  // );
+
   const {
     selectData,
     handleCloseModal,
@@ -255,7 +260,6 @@ export const useChartData = (plot: Plot) => {
     setIsFetchSelected,
   } = useChartControlsGrid({
     plot,
-    templateParams,
     setModalProps,
     setIsModalOpen,
   });
@@ -267,8 +271,7 @@ export const useChartData = (plot: Plot) => {
     setUserControlData({
       userControlConfig: plot?.user_controls,
       gridConfig: plot?.grid_layout_config,
-      layout: plot?.layout,
-      templateParams,
+      layout: plot?.layout
     });
   }, []);
 
@@ -276,8 +279,7 @@ export const useChartData = (plot: Plot) => {
   // TODO: does this need to be done at certain time in the setup process or is it fine to let react manage this?
   useUserControls({
     userControlConfig: plot?.user_controls,
-    templateParams,
-    setDataOptions,
+    setDataOptions
   });
 
   /**
@@ -400,12 +402,14 @@ export const useChartData = (plot: Plot) => {
       setIsInitLoading(true);
       const allQueryParams = getQueryParams(window.location.href);
 
+      const tempParams = { ...templateParams };
       // push query parameters into templating environment
       Object.keys(allQueryParams).forEach((key: string) => {
-        templateParams.$url_parameters[key] = allQueryParams[key];
+        tempParams.$url_parameters[key] = allQueryParams[key];
       });
 
       if (plot.plot_type === 'violin') {
+        // TODO: fix template params here
         const selectGrid = createStudyViolinSelectGrid(plot);
 
         // selectGrid is a 2D array of selector objects
@@ -421,18 +425,18 @@ export const useChartData = (plot: Plot) => {
 
               // check if the param key is defined yet
               if (selectorConfig.isMulti) {
-                if (!Array.isArray(templateParams.$url_parameters[selectorConfig.urlParamKey])) {
+                if (!Array.isArray(tempParams.$url_parameters[selectorConfig.urlParamKey])) {
                   // probably not needed since this case SHOULD be initializing the data
                   // NOTE: the useMemo of templateParams above initalizes "Study" to an array so this case would be skipped there
-                  templateParams.$url_parameters[selectorConfig.urlParamKey] = []
+                  tempParams.$url_parameters[selectorConfig.urlParamKey] = []
                 }
               } else {
-                templateParams.$url_parameters[selectorConfig.urlParamKey] = {}
+                tempParams.$url_parameters[selectorConfig.urlParamKey] = {}
               }
 
               if (paramValue) {
                 if (!selectorConfig.isMulti) {
-                  templateParams.$url_parameters[paramKey].data = {
+                  tempParams.$url_parameters[paramKey].data = {
                     [valueKey]: paramValue
                   }
                 } else {
@@ -440,17 +444,17 @@ export const useChartData = (plot: Plot) => {
                   //    how would that look in the url?
                   //       - ?paramKey=RID1,RID2
                   //       - ?paramKey=RID1&paramKey=RID2
-                  templateParams.$url_parameters[selectorConfig.urlParamKey].push({
+                  tempParams.$url_parameters[selectorConfig.urlParamKey].push({
                     data: { [valueKey]: paramValue }
                   });
                 }
               } else if (defaultValue) {
                 if (!selectorConfig.isMulti) {
-                  templateParams.$url_parameters[paramKey].data = {
+                  tempParams.$url_parameters[paramKey].data = {
                     [valueKey]: defaultValue
                   }
                 } else {
-                  templateParams.$url_parameters[selectorConfig.urlParamKey].push({
+                  tempParams.$url_parameters[selectorConfig.urlParamKey].push({
                     data: { [valueKey]: defaultValue }
                   });
                 }
@@ -459,9 +463,11 @@ export const useChartData = (plot: Plot) => {
           });
         });
 
+        // NOTE: might have to pass tempParams here if fetchSelectData relies on them
         const initialSelectData = await fetchSelectData(selectGrid); // fetch the data needed for the select grid
         setSelectData(initialSelectData) // set the data for the select grid
       }
+      setTemplateParams(tempParams)
       const plotData = await fetchData(); // fetch the data for the plot
       setData(plotData); // set the data for the plot
       setIsInitLoading(false); // set loading to false
@@ -947,7 +953,7 @@ export const useChartData = (plot: Plot) => {
       const validLink = ConfigService.ERMrest.renderHandlebarsTemplate(hovertemplate_display_pattern, {
         $self: { data: item },
         $row: item,
-        $url_parameters: templateParams?.$url_parameters
+        $url_parameters: templateParams.$url_parameters
       });
 
       /**
@@ -962,7 +968,7 @@ export const useChartData = (plot: Plot) => {
       link = ConfigService.ERMrest.renderHandlebarsTemplate(hovertemplate_display_pattern, {
         $self: { data: item },
         $row: item,
-        $url_parameters: templateParams?.$url_parameters
+        $url_parameters: templateParams.$url_parameters
       }, null, { avoidValidation: true });
     }
 
@@ -1613,7 +1619,7 @@ export const useChartData = (plot: Plot) => {
 
     result.data = plotlyData;
     if (result.data?.every((obj: any) => Object.keys(obj)?.length === 0)) {
-      templateParams.noData = true;
+      setTemplateParams({ ...templateParams, noData: true })
     }
 
     updatePlotlyConfig(result); // update the config
