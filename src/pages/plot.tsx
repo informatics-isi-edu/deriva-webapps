@@ -4,7 +4,7 @@ import { createRoot } from 'react-dom/client';
 // components
 import AppWrapper from '@isrd-isi-edu/chaise/src/components/app-wrapper';
 import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
-import ChartWithControls from '@isrd-isi-edu/deriva-webapps/src/components/plot/chart-with-controls';
+import ChartWithEffect from '@isrd-isi-edu/deriva-webapps/src/components/plot/chart-with-effect';
 
 // hooks
 import { usePlotConfig } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
@@ -42,7 +42,7 @@ const PlotApp = (): JSX.Element => {
     <div className='plot-page'>
       <PlotProvider>
         {config.plots.map((plotConfig, i): JSX.Element => {
-          return <ChartWithControls key={i} config={plotConfig} />;
+          return <ChartWithEffect key={i} config={plotConfig} />;
         })}
       </PlotProvider>
     </div>
