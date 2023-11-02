@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+import { useEffect, useState, useMemo, useCallback, useRef, useContext } from 'react';
 import useAlert from '@isrd-isi-edu/chaise/src/hooks/alerts';
 import {
   PlotData as PlotlyPlotData,
@@ -49,6 +49,7 @@ import { ChaiseAlertType } from '@isrd-isi-edu/chaise/src/providers/alerts';
 import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
 import Papa from 'papaparse';
 import { useControl } from '@isrd-isi-edu/deriva-webapps/src/hooks/control';
+import { TemplateParamsContext } from '@isrd-isi-edu/deriva-webapps/src/components/plot/template-params';
 
 /**
  * Data received from API request
@@ -227,7 +228,9 @@ export const useChartData = (plot: Plot) => {
   const [isInitLoading, setIsInitLoading] = useState<boolean>(false);
   const [isDataLoading, setIsDataLoading] = useState<boolean>(false);
   const [isParseLoading, setIsParseLoading] = useState<boolean>(false);
-  const [selectorOptionChanged, setSelectorOptionChanged] = useState<boolean>(false);
+  const [controlsReady, setControlsReady] = useState<boolean>(false);
+
+  // const [selectorOptionChanged, setSelectorOptionChanged] = useState<boolean>(false);
 
   const { dispatchError, errors } = useError();
   const alertFunctions = useAlert();
@@ -240,8 +243,9 @@ export const useChartData = (plot: Plot) => {
    * TODO: create functions to retrieve only the neccesary templateParams from state and pass them into a more local scope
    *    - gene and study selectors touch these params to modify values used in API requests
    */
-  const templateParams: PlotTemplateParams = useMemo(
-    () => ({
+  const {templateParams,setTemplateParams, selectorOptionChanged, setSelectorOptionChanged} = useContext(TemplateParamsContext);
+  useEffect(()=>{
+    setTemplateParams({
       $url_parameters: {
         Gene: {
           data: {
@@ -252,9 +256,40 @@ export const useChartData = (plot: Plot) => {
       },
       $control_values: {},
       noData: false, // TODO: remove hack when empty selectedRows are fixed
-    }),
-    []
-  );
+    })
+  },[]);
+
+  useControl({
+    userControlConfig: plot?.user_controls,
+    setDataOptions,
+    setControlsReady,
+  });
+
+  // useEffect(()=>{
+  //   if(plot?.user_controls && plot?.user_controls?.length>0){
+  //     console.log(dataOptions, ' data data');
+  //     setControlsReady(dataOptions && dataOptions.length>0);
+  //   }else{
+  //     setControlsReady(true);
+  //   }
+  // },[plot?.user_controls, dataOptions]);
+
+console.log(controlsReady, dataOptions);
+  // const templateParams: PlotTemplateParams = useMemo(
+  //   () => ({
+  //     $url_parameters: {
+  //       Gene: {
+  //         data: {
+  //           NCBI_GeneID: getQueryParam(windowRef.location.href, 'NCBI_GeneID') || 1, // TODO: deal with default value
+  //         },
+  //       },
+  //       Study: [],
+  //     },
+  //     $control_values: {},
+  //     noData: false, // TODO: remove hack when empty selectedRows are fixed
+  //   }),
+  //   []
+  // );
   const {
     selectData,
     handleCloseModal,
@@ -270,6 +305,8 @@ export const useChartData = (plot: Plot) => {
     setIsModalOpen,
   });
 
+  console.log('here in chart ',plot);
+
   /**
    * It should be called once to initialize the configuration data for the user controls into the state variable
   */
@@ -282,12 +319,7 @@ export const useChartData = (plot: Plot) => {
     });
   }, []);
   
-  useControl({
-    userControlConfig: plot?.user_controls,
-    templateParams,
-    setDataOptions,
-  });
-
+ 
   /**
    * Updates the legend text and orientation for all plots for which legend is available as per the change in screen width
    */
@@ -381,6 +413,7 @@ export const useChartData = (plot: Plot) => {
           //To avoid the lint error, passing empty string if both are not present'
           const pattern = trace.url_pattern || trace.queryPattern || '';
           const { uri, headers } = getPatternUri(pattern, templateParams);
+          console.log(pattern, templateParams);
           return ConfigService.http.get(uri, { headers });
         }
         else if (trace.uri) {
@@ -408,10 +441,20 @@ export const useChartData = (plot: Plot) => {
       setIsInitLoading(true);
       const allQueryParams = getQueryParams(window.location.href);
 
-      // push query parameters into templating environment
-      Object.keys(allQueryParams).forEach((key: string) => {
-        templateParams.$url_parameters[key] = allQueryParams[key];
-      });
+      //push query parameters into templating environment
+      Object.keys(allQueryParams).forEach((key: string) => 
+        setTemplateParams((prevTemplateParams)=>{
+          console.log(typeof prevTemplateParams);
+          return {
+            ...prevTemplateParams,
+            $url_parameters: {
+              ...prevTemplateParams.$url_parameters,
+              [key]: allQueryParams[key],
+            }
+
+          };
+        })
+      );
 
       if (plot.plot_type === 'violin') {
         const selectGrid = createStudyViolinSelectGrid(plot);
@@ -432,34 +475,92 @@ export const useChartData = (plot: Plot) => {
                 if (!Array.isArray(templateParams.$url_parameters[selectorConfig.urlParamKey])) {
                   // probably not needed since this case SHOULD be initializing the data
                   // NOTE: the useMemo of templateParams above initalizes "Study" to an array so this case would be skipped there
-                  templateParams.$url_parameters[selectorConfig.urlParamKey] = []
+                  setTemplateParams((prevTemplateParams)=>{
+                    return {
+                    ...prevTemplateParams,
+                    $url_parameters: {
+                    ...prevTemplateParams.$url_parameters,
+                      [selectorConfig.urlParamKey]: [],
+                    }
+                  }
+                  })
                 }
               } else {
-                templateParams.$url_parameters[selectorConfig.urlParamKey] = {}
+                setTemplateParams((prevTemplateParams)=>{
+                  return {
+                  ...prevTemplateParams,
+                  $url_parameters: {
+                  ...prevTemplateParams.$url_parameters,
+                  [selectorConfig.urlParamKey]: {},
+                  }
+                }
+                })
               }
 
               if (paramValue) {
                 if (!selectorConfig.isMulti) {
-                  templateParams.$url_parameters[paramKey].data = {
-                    [valueKey]: paramValue
+                  setTemplateParams((prevTemplateParams)=>{
+                    return {
+                    ...prevTemplateParams,
+                    $url_parameters: {
+                    ...prevTemplateParams.$url_parameters,
+                    [paramKey]: {
+                      data:{
+                        [valueKey]: paramValue,
+                      }
+                    }
+                    }
                   }
+                  })
                 } else {
                   // NOTE: do we want to support multiple queyr params for one param key?
                   //    how would that look in the url?
                   //       - ?paramKey=RID1,RID2
                   //       - ?paramKey=RID1&paramKey=RID2
-                  templateParams.$url_parameters[selectorConfig.urlParamKey].push({
-                    data: { [valueKey]: paramValue }
-                  });
+                  setTemplateParams((prevTemplateParams)=>{
+                    return {
+                    ...prevTemplateParams,
+                    $url_parameters: {
+                    ...prevTemplateParams.$url_parameters,
+                    [selectorConfig.urlParamKey]: {
+                      ...prevTemplateParams.$url_parameters[selectorConfig.urlParamKey],
+                      data:{
+                        [valueKey]: paramValue,
+                      }
+                    }
+                    }
+                  }
+                  })
                 }
               } else if (defaultValue) {
                 if (!selectorConfig.isMulti) {
-                  templateParams.$url_parameters[paramKey].data = {
-                    [valueKey]: defaultValue
+                  setTemplateParams((prevTemplateParams)=>{
+                    return {
+                    ...prevTemplateParams,
+                    $url_parameters: {
+                    ...prevTemplateParams.$url_parameters,
+                    [paramKey]: {
+                      data:{
+                        [valueKey]: defaultValue,
+                      }
+                    }
+                    }
                   }
+                  })
                 } else {
-                  templateParams.$url_parameters[selectorConfig.urlParamKey].push({
-                    data: { [valueKey]: defaultValue }
+                  setTemplateParams((prevTemplateParams)=>{
+                    return {
+                    ...prevTemplateParams,
+                    $url_parameters: {
+                    ...prevTemplateParams.$url_parameters,
+                    [selectorConfig.urlParamKey]: {
+                      ...prevTemplateParams.$url_parameters[selectorConfig.urlParamKey],
+                      data:{
+                        [valueKey]: defaultValue,
+                      }
+                    }
+                    }
+                  }
                   });
                 }
               }
@@ -475,7 +576,7 @@ export const useChartData = (plot: Plot) => {
       setIsInitLoading(false); // set loading to false
     };
 
-    if (isFirstRender) {
+    if (isFirstRender || controlsReady) {
       // only run on first render
       try {
         fetchInitData();
@@ -492,6 +593,7 @@ export const useChartData = (plot: Plot) => {
     selectorOptionChanged,
     fetchData,
     dispatchError,
+    controlsReady
   ]);
 
   // Effect to fetch data on subsequent changes when different selections are made (when selectData changes)
@@ -1541,17 +1643,17 @@ export const useChartData = (plot: Plot) => {
               // setup the layout object using some information returned from the data
               const { plotly } = plot;
               // Getting the longest x tick in the given data to determine margin and height values in getHeatmapLayoutParams function
-              const inputParams = {
-                width: typeof plotly?.layout.width !== 'undefined' ? plotly?.layout.width : 1200,
-                xTickAngle: typeof plotly?.layout.xaxis?.tickangle !== 'undefined' ? plotly?.layout.xaxis?.tickangle : 50,
-              }
+              // const inputParams = {
+              //   width: typeof plotly?.layout.width !== 'undefined' ? plotly?.layout.width : 1200,
+              //   xTickAngle: typeof plotly?.layout.xaxis?.tickangle !== 'undefined' ? plotly?.layout.xaxis?.tickangle : 50,
+              // }
 
-              additionalLayout = getHeatmapLayoutParams(
-                inputParams,
-                plotData.longestXTick?.length,
-                plotData.longestYTick?.length,
-                plotData.y?.length
-              );
+              // additionalLayout = getHeatmapLayoutParams(
+              //   inputParams,
+              //   plotData.longestXTick?.length,
+              //   plotData.longestYTick?.length,
+              //   plotData.y?.length
+              // );
               break;
             case 'violin':
               updateViolinResponse(currTrace, plotData, responseData);
@@ -1587,7 +1689,12 @@ export const useChartData = (plot: Plot) => {
 
     result.data = plotlyData;
     if (result.data?.every((obj: any) => Object.keys(obj)?.length === 0)) {
-      templateParams.noData = true;
+      setTemplateParams((prevTemplateParams)=>{
+        return{
+          ...prevTemplateParams,
+          noData: true,
+        }
+      });
     }
 
     updatePlotlyConfig(result); // update the config

@@ -6,7 +6,7 @@ import {
   PieData as PlotlyPieData,
   PlotData,
 } from 'plotly.js';
-import { ResponsiveProps as ResponsiveGridConfig, Layouts } from 'react-grid-layout';
+import { ResponsiveProps as ResponsiveGridConfig, Layouts, ResponsiveProps } from 'react-grid-layout';
 
 
 /**
@@ -217,3 +217,12 @@ export const screenWidthThreshold = 1000;
 
 //Valid file types for url_pattern
 export const validFileTypes = ['csv','json'];
+
+export const defaultGridProps = {
+  auto_size: true,
+  breakpoints: { lg: 1200, md: 996, sm: 768, xs: 480 },
+  cols: { lg: 12, md: 10, sm: 6, xs: 4 },
+  margin: { lg: [5, 5], md: [10, 10], sm: [9, 9], xs: [5, 5] },
+  container_padding: { lg: [12, 12], md: [10, 10], sm: [9, 9], xs: [5, 5] },
+  row_height: 30,
+}

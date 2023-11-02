@@ -1,10 +1,4 @@
 .plot-page {
-  overflow: auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  height: 90vh;
 
   .chart-container {
     display: flex;
@@ -22,6 +16,7 @@
     flex-direction: column;
     align-items: center;
     height: 100%;
+    width: 100%;
   }
 
   .plotly-chart {
@@ -90,6 +85,15 @@
     fill: inherit;
   }
 
+  .global-grid-layout {
+    z-index: 1;
+    margin-bottom: 12px;
+    overflow: auto;
+  // display: flex;
+    align-items: center;
+    width: 100%;
+    height: 90vh;
+  }
   .grid-layout {
     z-index: 1;
     margin-bottom: 12px;

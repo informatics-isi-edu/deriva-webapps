@@ -1,11 +1,12 @@
+import { useContext } from 'react';
 import { Option } from '@isrd-isi-edu/deriva-webapps/src/components/virtualized-select';
 import { Responsive, WidthProvider, ResponsiveProps as ResponsiveGridProps, Layouts } from 'react-grid-layout';
 import '/node_modules/react-resizable/css/styles.css';
 import '/node_modules/react-grid-layout/css/styles.css';
 import { UserControlConfig, LayoutConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
-import { PlotTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
 import { convertKeysSnakeToCamel } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 import UserControl from '@isrd-isi-edu/deriva-webapps/src/components/plot/user-control';
+import { TemplateParamsContext } from '@isrd-isi-edu/deriva-webapps/src/components/plot/template-params';
 
 
 type UserControlsGridProps = {
@@ -16,20 +17,19 @@ type UserControlsGridProps = {
         gridConfig: ResponsiveGridProps,
         layout: Layouts,
         userControlConfig: UserControlConfig[],
-        templateParams: PlotTemplateParams,
     };
     selectorOptions: Option[][];
-    setSelectorOptionChanged: any;
     width: number | string;
 };
 
 //In simple cases a HOC WidthProvider can be used to automatically determine width upon initialization and window resize events.
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
-const UserControlsGrid = ({ userControlData, selectorOptions, setSelectorOptionChanged, width }: UserControlsGridProps): JSX.Element => {
+const UserControlsGrid = ({ userControlData, selectorOptions, width }: UserControlsGridProps): JSX.Element => {
     const uid: string[] = [];
     const valueKey: string[] = [];
     const selectorValue: Option[] = [];
+    const {templateParams} = useContext(TemplateParamsContext);
     //Collect uid's and valueKey's for all selectors
     userControlData.userControlConfig?.map((currentConfig, index) => {
         const currUid = currentConfig?.uid;
@@ -37,7 +37,7 @@ const UserControlsGrid = ({ userControlData, selectorOptions, setSelectorOptionC
         uid.push(currUid);
         valueKey.push(currValueKey);
         const selectedOption = selectorOptions[index].find((option: Option) =>
-            option.value === userControlData.templateParams?.$control_values[currUid].values[currValueKey]);
+            option.value === templateParams?.$control_values[currUid]?.values[currValueKey]);
         if (selectedOption) {
             selectorValue.push(selectedOption);
         }
@@ -59,11 +59,11 @@ const UserControlsGrid = ({ userControlData, selectorOptions, setSelectorOptionC
                 {...gridProps}
             >
                 {userControlData.userControlConfig?.map((currentConfig, index) => (
+                    <div key={currentConfig.uid} style={{zIndex: 1}}>
                     <UserControl 
-                    key={currentConfig.uid} 
-                    userControlData={{controlConfig: currentConfig, templateParams: userControlData.templateParams}} 
-                    controlOptions={selectorOptions[index]} 
-                    setSelectorOptionChanged={setSelectorOptionChanged}/>
+                    controlConfig={currentConfig} 
+                    controlOptions={selectorOptions[index]} />
+                    </div>
                 ))}
             </ResponsiveGridLayout>
         </div> 
@@ -72,3 +72,4 @@ const UserControlsGrid = ({ userControlData, selectorOptions, setSelectorOptionC
 };
 
 export default UserControlsGrid;
+
