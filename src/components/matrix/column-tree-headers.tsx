@@ -150,7 +150,7 @@ const ColumnHeaders = (props: ColumnHeadersProps, ref: ForwardedRef<any>): JSX.E
   };
 
   return (
-    <SharedColumnHeaders {...props}>
+    <SharedColumnHeaders innerColumnHeaderHeight={scrollableHeight} {...props}>
       <div
         className='grid-column-headers'
         style={columnTreeHeadersStyles}

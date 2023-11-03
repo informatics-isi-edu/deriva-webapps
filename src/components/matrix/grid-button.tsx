@@ -3,13 +3,14 @@ import { MouseEventHandler } from 'react';
 export type GridMoveButton = {
   onClick: MouseEventHandler;
   rowHeaderWidth: number;
-  rowHeaderScrollable?: boolean;
+  columnHeaderHeight?: number;
+  headerScrollable?: boolean;
 };
 
 /**
  * SVG Icon for button from https://icons.getbootstrap.com/
  */
-export const GridLeftButton = ({ onClick, rowHeaderWidth }: GridMoveButton): JSX.Element => {
+export const GridLeftButton = ({ onClick, rowHeaderWidth, columnHeaderHeight }: GridMoveButton): JSX.Element => {
   return (
     <button
       title='Scroll left'
@@ -19,9 +20,9 @@ export const GridLeftButton = ({ onClick, rowHeaderWidth }: GridMoveButton): JSX
         display: 'flex',
         alignItems: 'center',
         backgroundColor: 'white',
-        height: 20,
+        height: columnHeaderHeight,
         position: 'absolute',
-        top: 12,
+        top: 2,
         left: rowHeaderWidth - 30,
       }}
     >
@@ -95,18 +96,18 @@ export const GridUpButton = ({ onClick, rowHeaderWidth }: GridMoveButton): JSX.E
 /**
  * SVG Icon for button from https://icons.getbootstrap.com/
  */
-export const GridRightButton = ({ onClick, rowHeaderScrollable }: GridMoveButton): JSX.Element => {
+export const GridRightButton = ({ onClick, columnHeaderHeight, headerScrollable }: GridMoveButton): JSX.Element => {
   return (
     <div
       style={{
         display: 'flex',
         alignItems: 'center',
         backgroundColor: 'white',
-        height: 45,
+        height: columnHeaderHeight,
         position: 'absolute',
         top: 2,
         // If the column headers is scrollable, then push the gridRightButton right
-        right: rowHeaderScrollable ? -20 : 0,
+        right: headerScrollable ? -20 : 0,
       }}
     >
       <button
@@ -140,7 +141,7 @@ export const GridRightButton = ({ onClick, rowHeaderScrollable }: GridMoveButton
 /**
  * SVG Icon for button from https://icons.getbootstrap.com/
  */
-export const GridDownButton = ({ onClick, rowHeaderWidth, rowHeaderScrollable }: GridMoveButton): JSX.Element => {
+export const GridDownButton = ({ onClick, rowHeaderWidth, headerScrollable }: GridMoveButton): JSX.Element => {
   return (
     <div
       style={{
@@ -149,7 +150,7 @@ export const GridDownButton = ({ onClick, rowHeaderWidth, rowHeaderScrollable }:
         backgroundColor: 'white',
         position: 'absolute',
         // If the row headers is scrollable, then push the gridDownButton bottom
-        bottom: rowHeaderScrollable ? -20 : 0,
+        bottom: headerScrollable ? -20 : 0,
         left: 0,
         width: rowHeaderWidth,
         paddingRight: 40,

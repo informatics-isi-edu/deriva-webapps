@@ -664,10 +664,10 @@ const VirtualizedGrid = (
           </div>
         </div>
       }
-      {showRight && <GridRightButton onClick={pressScrollRight} rowHeaderWidth={rowHeaderWidth} rowHeaderScrollable={colHeaderScrollable} />}
+      {showRight && <GridRightButton onClick={pressScrollRight} rowHeaderWidth={rowHeaderWidth} columnHeaderHeight={columnHeaderHeight} headerScrollable={colHeaderScrollable} />}
       {showUp && <GridUpButton onClick={pressScrollUp} rowHeaderWidth={rowHeaderWidth} />}
-      {showLeft && <GridLeftButton onClick={pressScrollLeft} rowHeaderWidth={rowHeaderWidth} />}
-      {showDown && <GridDownButton onClick={pressScrollDown} rowHeaderWidth={rowHeaderWidth} rowHeaderScrollable={rowHeaderScrollable} />}
+      {showLeft && <GridLeftButton onClick={pressScrollLeft} rowHeaderWidth={rowHeaderWidth} columnHeaderHeight={columnHeaderHeight} />}
+      {showDown && <GridDownButton onClick={pressScrollDown} rowHeaderWidth={rowHeaderWidth} headerScrollable={rowHeaderScrollable} />}
     </div>
   );
 };

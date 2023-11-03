@@ -110,7 +110,7 @@ var matrixConfigs = {
         // Whether allow scroll
         scrollable: true,
         // The max height of the scrollable content
-        // scrollableMaxHeight: 100,
+        // scrollableMaxHeight: 300,
       },
       /**
        * Height of the legend
