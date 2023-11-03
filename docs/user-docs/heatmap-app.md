@@ -27,9 +27,9 @@ If any of the above values is not mentioned, the app will throw an error.
 4. tickFontSize {Number} : Font size of the axis labels. Default is 12.
 
 ### Sample heatmap-config.js
-Current implementation is used by `atlas-d2k`. Currently this works for genes that have `array data`. One example for a specific gene can be found here: https://dev.atlas-d2k.org/deriva-webapps/heatmap/#2/Gene_Expression:Array_Data_view/NCBI_GeneID=12266. 
+Current implementation is used by `atlas-d2k`. Currently this works for genes that have `array data`. One example for a specific gene can be found here: https://www.atlas-d2k.org/deriva-webapps/heatmap/#2/Gene_Expression:Array_Data_view/NCBI_GeneID=12267. 
 
-More examples can be found by going to the [gene recordset page](https://dev.atlas-d2k.org/chaise/recordset/#2/Common:Gene/*::facets::N4IghgdgJiBcDaoDOB7ArgJwMYFM4gEEMMwBPAfQBEwAXMEAGhCwAsUBLXJOeGjNHAF0AviKA@sort(RID)) and filtering by rows with array data.
+More examples can be found by going to the [gene recordset page](https://www.atlas-d2k.org/chaise/recordset/#2/Common:Gene/*::facets::N4IghgdgJiBcDaoDOB7ArgJwMYFM4gEEMMwBPAfQBEwAXMEAGhCwAsUBLXJOeGjNHAF0AviKA@sort(RID)) and filtering by rows with array data.
 ```javascript
 var heatmapConfig = {
     data:{

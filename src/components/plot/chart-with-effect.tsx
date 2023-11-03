@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 
-import { Plot } from '@isrd-isi-edu/deriva-webapps/src/models/plot-config';
+
+import { Plot, plotAreaFraction } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 
 import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
 import { useChartData } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
@@ -11,6 +12,7 @@ import PlotlyChart from '@isrd-isi-edu/deriva-webapps/src/components/plot/plotly
 import RecordsetModal from '@isrd-isi-edu/chaise/src/components/modals/recordset-modal';
 import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
 import { SelectedRow } from '@isrd-isi-edu/chaise/src/models/recordset';
+import UserControlsGrid from '@isrd-isi-edu/deriva-webapps/src/components/plot/user-controls-grid';
 
 export type ChartWithEffectProps = {
   config: Plot;
@@ -19,6 +21,7 @@ export type ChartWithEffectProps = {
 // NOTE: Currently only used for violin plots
 const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
   const plotlyRef = useRef<any>(null);
+
   /**
    * Window size of component
    */
@@ -30,21 +33,32 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
   // Add upper bounds to layout width and height for responsive
   const minWidth = 320; // absolute min width
   const minHeight = 600; // absolute min height
-  const maxWidth = 0.8 * width; // 80% of viewport, used as max width
-  const maxHeight = 0.7 * height; // 70% of viewport, used as min height
+  let maxWidth = plotAreaFraction * width; // 95% of viewport, used as max width
+  let maxHeight = 0.7 * height; // 70% of viewport, used as min height
+
+  // max width is the min of plot width or calculated max width
+  if (layout?.width && !isNaN(layout?.width as number)) {
+    maxWidth = Math.min(layout.width, maxWidth);
+  }
+
+  // max height is the min of plot height or calculated max height
+  if (layout?.height && !isNaN(layout?.height as number)) {
+    maxHeight = Math.min(layout.height, maxHeight);
+  }
+
   const dynamicStyles: { width: string | number; height: string | number } = {
-    width: '100%',
-    height: '100%',
+    width: Math.max(minWidth, maxWidth), // set width to min of VP or given Layout
+    height: Math.max(minHeight, maxHeight), // set width to min of VP or given Layout
   };
-  dynamicStyles.width = Math.max(minWidth, Math.min(layout?.width || maxWidth, maxWidth)); // set width to min of VP or given Layout
-  dynamicStyles.height = Math.max(minHeight, Math.min(layout?.height || maxHeight, maxHeight)); // set width to min of VP or given Layout
 
   /**
    * Data that goes into building the chart
    */
   const {
+    dataOptions,
     parsedData,
     selectData,
+    userControlData,
     modalProps,
     isModalOpen,
     isFetchSelected,
@@ -52,11 +66,14 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
     isInitLoading,
     handleCloseModal,
     handleSubmitModal,
+    setSelectorOptionChanged,
   } = useChartData(config);
 
   if (!parsedData || isInitLoading) {
     return <ChaiseSpinner />;
   }
+
+
 
   /**
    * Handles the behavior when a graphic is clicked
@@ -95,6 +112,7 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
     }
   };
 
+
   /**
    * Handles the behavior when a graphic is clicked
    */
@@ -123,7 +141,6 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
       return !layout.disable_default_legend_click;
     }
   };
-
   // set click handlers for chart
   parsedData.onClick = handlePlotlyClick; // append click handler to the chart
   parsedData.onLegendClick = handlePlotlyLegendClick; // append legend click handler to the chart
@@ -141,12 +158,15 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
       modalProps.recordsetProps.initialSelectedRows = selectData[i][j].selectedRows;
     }
   }
-
   return (
     <div className='chart-container'>
       <div className='chart'>
         {selectData && selectData.length > 0 ? (
           <SelectGrid selectors={selectData} width={dynamicStyles.width} />
+        ) : null}
+        {userControlData && Object.keys(userControlData)?.length > 0 && dataOptions && dataOptions.length > 0 ? (
+          <UserControlsGrid userControlData={userControlData} selectorOptions={dataOptions}
+            setSelectorOptionChanged={setSelectorOptionChanged} width={dynamicStyles.width} />
         ) : null}
         {isParseLoading || isFetchSelected ? (
           <ChaiseSpinner />

@@ -173,8 +173,8 @@ const VirtualizedGrid = (
 
   /**
    * TODO
-   * 
-   * Only for non-tree headers, for the condition that we expect its scrollable max width or height to be auto. 
+   *
+   * Only for non-tree headers, for the condition that we expect its scrollable max width or height to be auto.
    * Current solution is that, the component width or height is calculated by font size and characters.
    * In the future, improve the solution or try other solutions.
    */
@@ -331,12 +331,12 @@ const VirtualizedGrid = (
 
   /**
    * Updates scroll position for Y tree when row is scrolled
-   * 
-   * In order to improve performance, especially when scrolling the tree component, 
-   * the function to update row and column id is executed continuously, 
-   * which is experimentally proven to make the scroll behavior significantly delayed. 
-   * Referring to the flat component that will pause the execution of update operation when scrolling, 
-   * we set a debounce function to record whether there is a scroll operation currently, 
+   *
+   * In order to improve performance, especially when scrolling the tree component,
+   * the function to update row and column id is executed continuously,
+   * which is experimentally proven to make the scroll behavior significantly delayed.
+   * Referring to the flat component that will pause the execution of update operation when scrolling,
+   * we set a debounce function to record whether there is a scroll operation currently,
    * if it is in progress, then stop the execution of update, otherwise, we can execute the update.
    */
   const handleTreeRowLabelScroll = useCallback((e: any) => {
@@ -364,7 +364,7 @@ const VirtualizedGrid = (
 
   /**
    * Updates scroll position for X tree when column is scrolled
-   * 
+   *
    * Implement the same improvement as handleTreeRowLabelScroll
    */
   const handleTreeColumnLabelScroll = useCallback((e: any) => {

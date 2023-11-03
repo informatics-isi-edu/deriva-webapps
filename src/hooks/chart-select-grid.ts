@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Plot } from '@isrd-isi-edu/deriva-webapps/src/models/plot-config';
+import { Plot } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
 import { createLink, extractLink, getPatternUri } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 
@@ -19,10 +19,9 @@ import {
  *
  * @returns
  */
-export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOpen }: any) => {
+export const useChartControlsGrid = ({ templateParams, setModalProps, setIsModalOpen }: any) => {
   const [selectData, setSelectData] = useState<any>(null);
   const [isFetchSelected, setIsFetchSelected] = useState<boolean>(false);
-
   /**
    * Handles closing the modal.
    */
@@ -145,10 +144,12 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
           const newValues = [...prevValues];
           const [i, j] = indices;
           const prevSelectData = prevValues[i][j];
-          const selectedRows = prevSelectData.selectedRows.filter(
+          const selectedRows = prevSelectData.selectedRows?.filter(
             (curr: any) => curr.uniqueId !== removed.uniqueId
           );
-          if (selectedRows.length === 0) {
+
+          // if null or empty array, no "studies" selected so show no data
+          if (!selectedRows || selectedRows.length === 0) {
             templateParams.noData = true;
             newValues[i][j] = { ...prevSelectData, selectedRows: null };
             templateParams.$url_parameters[urlParamKey] = null;
@@ -205,13 +206,12 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
    *
    * @param uri
    * @param headers
-   * @param compact
    * @returns
    */
-  const fetchSelectGridCellData = async (uri: string, headers: any, compact: boolean) => {
+  const fetchSelectGridCellData = async (uri: string, headers: any) => {
     // console.log('fetchselectgridcell occurred', uri);
     const resolvedRef = await ConfigService.ERMrest.resolve(uri, { headers });
-    const ref = compact ? resolvedRef.contextualize.compactSelect : resolvedRef;
+    const ref = resolvedRef.contextualize.compactSelect;
     const initialReference = resolvedRef.contextualize.compactSelect;
     const page = await ref.read(1);
     const tupleData = page.tuples;
@@ -228,7 +228,7 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
    */
   const parseSelectGridCell = useCallback(
     async (cell: any, templateParams: PlotTemplateParams) => {
-      const { type, isMulti, compact, urlParamKey, requestInfo } = cell;
+      const { type, isMulti, urlParamKey, requestInfo } = cell;
       const selectResult: any = { ...cell };
 
       if (requestInfo) {
@@ -252,12 +252,10 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
         if (uri) {
           const { initialReference, tupleData } = await fetchSelectGridCellData(
             uri,
-            headers,
-            compact
+            headers
           ); // perform the data fetch
           recordsetProps.initialReference = initialReference; // set initial ref
           selectResult.selectedRows = tupleData; // set initial selected rows
-
           if (hrefQueryParam) {
             if (!isMulti) {
               templateParams.$url_parameters[urlParamKey].data = hrefQueryParam;
@@ -306,17 +304,33 @@ export const useChartSelectGrid = ({ templateParams, setModalProps, setIsModalOp
    * Fetch the data for the select grid
    */
   const fetchSelectData = useCallback(
-    (selectGrid: any) =>
-      Promise.all(
-        selectGrid.map((row: any[]) =>
-          Promise.all(
-            row.map((cell: any) =>
-              // parse the select grid cell
-              parseSelectGridCell(cell, templateParams)
-            )
-          )
-        )
-      ),
+    async (selectGrid: any) => {
+      // harcoded to be 2 inner arrays for violin plot
+      const initialData: any[][] = [[], []];
+
+      for (let i = 0; i < selectGrid.length; i++) {
+        const row = selectGrid[i];
+        for (let j = 0; j < row.length; j++) {
+          const cell = row[j];
+
+          initialData[i][j] = await parseSelectGridCell(cell, templateParams);
+        }
+      }
+
+      return initialData; 
+
+      // Promise.all assumes all data can be fetched at the same time
+      // Promise.all(
+      //   selectGrid.map((row: any[]) =>
+      //     Promise.all(
+      //       row.map((cell: any) =>
+      //         // parse the select grid cell
+      //         parseSelectGridCell(cell, templateParams)
+      //       )
+      //     )
+      //   )
+      // )
+    },
     [parseSelectGridCell, templateParams]
   );
 
@@ -346,7 +360,6 @@ export const createStudyViolinSelectGrid = (plot: Plot) => {
   // TODO: define typing for these
   // TODO: should recordsetProps be part of requestInfo object?
   //    or moved to top level `GeneSelectData.recordsetProps`?
-  // TODO: why is gene contextualized to compactSelect and not study?
   const GeneSelectData = {
     id: 'gene',
     urlParamKey: 'Gene',
@@ -354,10 +367,10 @@ export const createStudyViolinSelectGrid = (plot: Plot) => {
     type: 'dropdown-select',
     action: 'modal',
     isButton: true,
-    compact: true,
     requestInfo: {
       valueKey: 'NCBI_GeneID',
       labelKey: 'NCBI_Symbol',
+      defaultValue: '1',
       uriPattern: plot.gene_uri_pattern,
       recordsetProps: {
         initialReference: null,
@@ -391,6 +404,8 @@ export const createStudyViolinSelectGrid = (plot: Plot) => {
       uriPattern: plot.study_uri_pattern,
       valueKey: 'RID',
       labelKey: 'RID',
+      // this selector's data can't be fetched until the selector with id='gene' data is available
+      waitFor: ['gene'],
       recordsetProps: {
         initialReference: null,
         config: {

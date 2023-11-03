@@ -21,9 +21,7 @@
     flex: 1;
     flex-direction: column;
     align-items: center;
-    width: 80%;
     height: 100%;
-    padding: 20px;
   }
 
   .plotly-chart {
@@ -84,5 +82,16 @@
     display: flex;
     align-items: center;
     margin-right: 4px;
+  }
+
+// Note: this should be avoided whenever possible. We don't have a way to customize the hover templates for box and violin plots. Only the scatter plot shows at the same time. Defining a hover template turns off the hover functionality for violin and box.
+//To add custom styling for study violin plot hover text to improve readability of link inside the hover text
+  .main-svg .hoverlayer .hovertext text a {
+    fill: inherit;
+  }
+
+  .grid-layout {
+    z-index: 1;
+    margin-bottom: 12px;
   }
 }

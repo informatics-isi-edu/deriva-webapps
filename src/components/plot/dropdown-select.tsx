@@ -9,6 +9,10 @@ import SelectInput from '@isrd-isi-edu/deriva-webapps/src/components/select-inpu
  */
 export type DropdownSelectProps = {
   /**
+   * id for the select input
+   */
+  id?: string;
+  /**
    * label for the select input
    */
   label?: string;
@@ -43,6 +47,7 @@ export type DropdownSelectProps = {
  * DropdownSelect is a component that renders a dropdown select input.
  */
 const DropdownSelect = ({
+  id,
   label,
   isButton = false,
   isDisabled,
@@ -51,9 +56,10 @@ const DropdownSelect = ({
   value,
   defaultOptions,
 }: DropdownSelectProps): JSX.Element => {
-  const SelectComponent = (): JSX.Element => (
+  const SelectComponent = ({id}:DropdownSelectProps): JSX.Element => (
     <SelectInput
       className='dropdown-select'
+      id={id}
       isDisabled={isDisabled}
       placeholder={'select...'}
       onChange={onChange}
@@ -69,7 +75,7 @@ const DropdownSelect = ({
           <SelectComponent />
         </button>
       ) : (
-        <SelectComponent />
+        <SelectComponent id={id}/>
       )}
     </SelectView>
   );

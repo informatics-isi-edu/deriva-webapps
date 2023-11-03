@@ -41,6 +41,16 @@ REACT_BUNDLES=$(DIST_REACT)/$(REACT_BUNDLES_FOLDERNAME)
 CONFIG=config
 
 # create default app-specific config files
+BOOLEAN_SEARCH_CONFIG=$(CONFIG)/boolean-search-config.js
+$(BOOLEAN_SEARCH_CONFIG): $(CONFIG)/boolean-search-config-sample.js
+	cp -n $(CONFIG)/boolean-search-config-sample.js $(BOOLEAN_SEARCH_CONFIG) || true
+	touch $(BOOLEAN_SEARCH_CONFIG)
+
+HEATMAP_CONFIG=$(CONFIG)/heatmap-config.js
+$(HEATMAP_CONFIG): $(CONFIG)/heatmap-config-sample.js
+	cp -n $(CONFIG)/heatmap-config-sample.js $(HEATMAP_CONFIG) || true
+	touch $(HEATMAP_CONFIG)
+
 MATRIX_CONFIG=$(CONFIG)/matrix-config.js
 $(MATRIX_CONFIG): $(CONFIG)/matrix-config-sample.js
 	cp -n $(CONFIG)/matrix-config-sample.js $(MATRIX_CONFIG) || true
@@ -50,6 +60,11 @@ PLOT_CONFIG=$(CONFIG)/plot-config.js
 $(PLOT_CONFIG): $(CONFIG)/plot-config-sample.js
 	cp -n $(CONFIG)/plot-config-sample.js $(PLOT_CONFIG) || true
 	touch $(PLOT_CONFIG)
+
+TREEVIEW_CONFIG=$(CONFIG)/treeview-config.js
+$(TREEVIEW_CONFIG): $(CONFIG)/treeview-config-sample.js
+	cp -n $(CONFIG)/treeview-config-sample.js $(TREEVIEW_CONFIG) || true
+	touch $(TREEVIEW_CONFIG)
 
 # vendor files that will be treated externally in webpack
 WEBPACK_EXTERNAL_VENDOR_FILES= \
@@ -84,10 +99,10 @@ npm-install-modules:
 	@npm clean-install
 
 # install packages needed for production and development (including testing)
-# --production=false makes sure to ignore NODE_ENV and install everything
+# --include=dev makes sure to ignore NODE_ENV and install everything
 .PHONY: npm-install-all-modules
 npm-install-all-modules:
-	@npm clean-install --production=false
+	@npm clean-install --include=dev
 
 # install packages (honors NOD_ENV)
 # using clean-install instead of install to ensure usage of pacakge-lock.json
@@ -101,6 +116,18 @@ lint: $(SOURCE)
 .PHONY: lint-w-warn
 lint-w-warn: $(SOURCE)
 	@npx eslint src --ext .ts,.tsx
+
+  # run dist and deploy with proper uesrs (GNU). only works with root user
+.PHONY: root-install
+root-install:
+	su $(shell stat -c "%U" Makefile) -c "make dist"
+	make deploy
+
+# run dist and deploy with proper uesrs (FreeBSD and MAC OS X). only works with root user
+.PHONY: root-install-alt
+root-install-alt:
+	su $(shell stat -f '%Su' Makefile) -c "make dist"
+	make deploy
 
 # Rule to create the package.
 .PHONY: dist-wo-deps
@@ -123,24 +150,20 @@ deploy: dont_deploy_in_root print-variables deploy-boolean-search deploy-heatmap
 deploy-w-config:dont_deploy_in_root print-variables deploy-boolean-search-w-config deploy-heatmap-w-config deploy-plot-w-config deploy-treeview-w-config deploy-matrix-w-config
 
 .PHONY: deploy-boolean-search
-deploy-boolean-search: dont_deploy_in_root print-variables
+deploy-boolean-search: dont_deploy_in_root print-variables deploy-bundles
 	$(info - deploying boolean-search)
-	@rsync -avz --exclude='/boolean-search/booleansearch-config*' boolean-search $(WEBAPPSDIR)
+	@rsync -avz $(DIST_REACT)/boolean-search/ $(WEBAPPSDIR)/boolean-search/
 
 .PHONY: deploy-boolean-search-w-config
-deploy-boolean-search-w-config: dont_deploy_in_root print-variables
-	$(info - deploying boolean-search with the existing config file(s))
-	@rsync -avz boolean-search $(WEBAPPSDIR)
+deploy-boolean-search-w-config: dont_deploy_in_root print-variables deploy-boolean-search deploy-config-folder
 
 .PHONY: deploy-heatmap
-deploy-heatmap: dont_deploy_in_root print-variables
+deploy-heatmap: dont_deploy_in_root print-variables deploy-bundles
 	$(info - deploying heatmap)
-	@rsync -avz --exclude='/heatmap/heatmap-config*' heatmap $(WEBAPPSDIR)
+	@rsync -avz $(DIST_REACT)/heatmap/ $(WEBAPPSDIR)/heatmap/
 
 .PHONY: deploy-heatmap-w-config
-deploy-heatmap-w-config: dont_deploy_in_root print-variables
-	$(info - deploying heatmap with the existing config file(s))
-	@rsync -avz heatmap $(WEBAPPSDIR)
+deploy-heatmap-w-config: dont_deploy_in_root print-variables deploy-heatmap deploy-config-folder
 
 .PHONY: deploy-plot
 deploy-plot: dont_deploy_in_root print-variables deploy-bundles
@@ -156,9 +179,7 @@ deploy-treeview: dont_deploy_in_root print-variables
 	@rsync -avz --exclude='/treeview/treeview-config*' treeview $(WEBAPPSDIR)
 
 .PHONY: deploy-treeview-w-config
-deploy-treeview-w-config: dont_deploy_in_root print-variables
-	$(info - deploying treeview with the existing config file(s))
-	@rsync -avz treeview $(WEBAPPSDIR)
+deploy-treeview-w-config: dont_deploy_in_root print-variables deploy-treeview deploy-config-folder
 
 .PHONY: deploy-matrix
 deploy-matrix: dont_deploy_in_root print-variables deploy-bundles
@@ -170,7 +191,7 @@ deploy-matrix-w-config: dont_deploy_in_root print-variables deploy-matrix deploy
 
 # rsync the config files used by react apps.
 .PHONY: deploy-config-folder
-deploy-config-folder: dont_deploy_in_root $(MATRIX_CONFIG) $(PLOT_CONFIG)
+deploy-config-folder: dont_deploy_in_root $(MATRIX_CONFIG) $(PLOT_CONFIG) $(TREEVIEW_CONFIG) $(HEATMAP_CONFIG)
 	$(info - deploying the config folder)
 	@rsync -avz $(CONFIG) $(WEBAPPSDIR)
 
@@ -217,3 +238,5 @@ usage:
 	@echo "  deploy-plot-w-config             deploy plot with the existing config file(s)"
 	@echo "  deploy-treeview                  deploy treeview app"
 	@echo "  deploy-treeview-w-config         deploy treeview app with the existing config file(s)"
+	@echo "  root-install                   should only be used as root. will use dist with proper user and then deploy, for GNU systems"
+	@echo "  root-install-alt               should only be used as root. will use dist with proper user and then deploy, for FreeBSD and MAC OS X"
