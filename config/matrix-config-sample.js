@@ -25,7 +25,7 @@ var matrixConfigs = {
     /**
      * The source path of x. used for generating the facet blob
      */
-    xSource: [{'inbound':['isa','dataset_stage_dataset_id_fkey']},{'outbound':['isa','dataset_stage_stage_fkey']},'id'],
+    xSource: [{ 'inbound': ['isa', 'dataset_stage_dataset_id_fkey'] }, { 'outbound': ['isa', 'dataset_stage_stage_fkey'] }, 'id'],
     /**
      * key name of data from the x axis API response
      */
@@ -33,7 +33,7 @@ var matrixConfigs = {
     /**
      * The source path of y. used for generating the facet blob
      */
-    ySource: [{'inbound':['isa','dataset_anatomy_dataset_id_fkey']},{'outbound':['isa','dataset_anatomy_anatomy_fkey']},'id'],
+    ySource: [{ 'inbound': ['isa', 'dataset_anatomy_dataset_id_fkey'] }, { 'outbound': ['isa', 'dataset_anatomy_anatomy_fkey'] }, 'id'],
     /**
      * key name of data from the y axis API response
      */
@@ -41,7 +41,7 @@ var matrixConfigs = {
     /**
      * The source path of z. used for generating the facet blob
      */
-    zSource: [{'inbound':['isa','dataset_experiment_type_dataset_id_fkey']},{'outbound':['isa','dataset_experiment_type_experiment_type_fkey']},'id'],
+    zSource: [{ 'inbound': ['isa', 'dataset_experiment_type_dataset_id_fkey'] }, { 'outbound': ['isa', 'dataset_experiment_type_experiment_type_fkey'] }, 'id'],
     /**
      * key name of data from the z axis API response
      */
@@ -84,13 +84,17 @@ var matrixConfigs = {
        */
       cellHeight: 25,
       /**
-       * Width of the row headers
+       * Properties of the row headers
        */
-      rowHeaderWidth: 250,
+      rowHeader: {
+        width: 250
+      },
       /**
-       * Height of the column headers
+       * Properties of the column headers
        */
-      colHeaderHeight: 50,
+      columnHeader: {
+        height: 80
+      },
       /**
        * Height of the legend
        */
