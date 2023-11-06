@@ -66,12 +66,12 @@ The following properties can be used to customize the display settings:
   - `cellHeight`: Height of each cell within the grid (default: 25).
   - `rowHeader`: Properties related to column headers
     - `width`: The width that should be used for column headers (default: 250)
-    - 'scrollable': A boolean to indicate whether you want the headers to have a horizontal scrollbar (default: false).
-    - 'scrollableMaxSize': Allows you to customize the maximum allowed width of the scrollable container. Only applicable if `scrollable` is set to `true`.
+    - `scrollable`: A boolean to indicate whether you want the headers to have a horizontal scrollbar (default: false).
+    - `scrollableMaxSize`: Allows you to customize the maximum allowed width of the scrollable container. Only applicable if `scrollable` is set to `true`.
   - `columnHeader`: Properties related to row headers
-    - 'height': The height that should be used for column headers (default: 50)
-    - 'scrollable': A boolean to indicate whether you want the headers to have a vertical scrollbar (default: false).
-    - 'scrollableMaxSize': Allows you to customize the maximum allowed height of the scrollable container. Only applicable if `scrollable` is set to `true`.
+    - `height`: The height that should be used for column headers (default: 50)
+    - `scrollable`: A boolean to indicate whether you want the headers to have a vertical scrollbar (default: false).
+    - `scrollableMaxSize`: Allows you to customize the maximum allowed height of the scrollable container. Only applicable if `scrollable` is set to `true`.
   - `legendHeight`: Height of the legend (default: 200).
   - `legendBarWidth`: Width of the legend bar (default: 55).
   - `legendBarHeight`: Height of the legend bar (default: 15).
