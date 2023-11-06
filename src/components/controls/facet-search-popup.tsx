@@ -13,12 +13,11 @@ import { ActionMeta, OnChangeValue } from 'react-select';
 import { UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
 import { RecordsetDisplayMode, RecordsetSelectMode, SelectedRow } from '@isrd-isi-edu/chaise/src/models/recordset';
-import { PlotTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
 
 /**
  * DropdownSelectProps is the type of props for DropdownSelect component.
  */
-export type FacetSearchPopupInputProps = {
+export type FacetSearchPopupControlProps = {
   /**
    * id for the select input
    */
@@ -50,7 +49,7 @@ export type FacetSearchPopupInputProps = {
 /**
  * DropdownSelect is a component that renders a dropdown select input.
  */
-const FacetSearchPopupInput = ({
+const FacetSearchPopupControl = ({
   id,
   label,
   isDisabled,
@@ -58,7 +57,7 @@ const FacetSearchPopupInput = ({
   value,
   defaultOptions,
   userControlConfig
-}: FacetSearchPopupInputProps): JSX.Element => {
+}: FacetSearchPopupControlProps): JSX.Element => {
 
   const [reference, setReference] = useState<any>();
   const [recordsetModalProps, setRecordsetModalProps] = useState<any>(null);
@@ -74,6 +73,8 @@ const FacetSearchPopupInput = ({
 
       const createReference = async (url: string) => {
         const ref = await windowRef.ERMrest.resolve(url);
+
+        console.log(value);
 
         setReference(ref);
       };
@@ -181,4 +182,4 @@ const FacetSearchPopupInput = ({
   );
 };
 
-export default FacetSearchPopupInput;
+export default FacetSearchPopupControl;

@@ -56,7 +56,9 @@ const DropdownSelect = ({
   value,
   defaultOptions,
 }: DropdownSelectProps): JSX.Element => {
-  const SelectComponent = ({id}:DropdownSelectProps): JSX.Element => (
+  
+
+  const SelectComponent = ({id}: DropdownSelectProps): JSX.Element => (
     <SelectInput
       className='dropdown-select'
       id={id}

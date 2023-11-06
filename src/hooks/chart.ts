@@ -211,7 +211,6 @@ export const usePlotConfig = (plotConfigs: PlotConfig) => {
 export const useChartData = (plot: Plot) => {
   const isFirstRender = useIsFirstRender();
   const [data, setData] = useState<any | null>(null);
-  const [dataOptions, setDataOptions] = useState<any>(null);
   const [userControlData, setUserControlData] = useState<any>(null);
   const [parsedData, setParsedData] = useState<any>(null);
   const [modalProps, setModalProps] = useState<any>(null);
@@ -226,29 +225,6 @@ export const useChartData = (plot: Plot) => {
   const { width = 0, height = 0 } = useWindowSize();
 
   const { templateParams, setTemplateParams } = usePlot();
-
-  /**
-   * Template parameters for the plot
-   * TODO: eventually remove this, everything in here is already stored in state
-   *    - or could be a provider created for each plot
-   * TODO: create functions to retrieve only the neccesary templateParams from state and pass them into a more local scope
-   *    - gene and study selectors touch these params to modify values used in API requests
-   */
-  // const templateParams: PlotTemplateParams = useMemo(
-  //   () => ({
-  //     $url_parameters: {
-  //       Gene: {
-  //         data: {
-  //           NCBI_GeneID: getQueryParam(windowRef.location.href, 'NCBI_GeneID') || 1, // TODO: deal with default value
-  //         },
-  //       },
-  //       Study: [],
-  //     },
-  //     $control_values: {},
-  //     noData: false, // TODO: remove hack when empty selectedRows are fixed
-  //   }),
-  //   []
-  // );
 
   const {
     selectData,
@@ -278,8 +254,7 @@ export const useChartData = (plot: Plot) => {
   // initialize the user controls, associated options, and display data
   // TODO: does this need to be done at certain time in the setup process or is it fine to let react manage this?
   useUserControls({
-    userControlConfig: plot?.user_controls,
-    setDataOptions
+    userControlConfig: plot?.user_controls
   });
 
   /**
@@ -409,7 +384,6 @@ export const useChartData = (plot: Plot) => {
       });
 
       if (plot.plot_type === 'violin') {
-        // TODO: fix template params here
         const selectGrid = createStudyViolinSelectGrid(plot);
 
         // selectGrid is a 2D array of selector objects
@@ -1644,7 +1618,6 @@ export const useChartData = (plot: Plot) => {
 
 
   return {
-    dataOptions,
     isInitLoading,
     isDataLoading,
     isParseLoading,

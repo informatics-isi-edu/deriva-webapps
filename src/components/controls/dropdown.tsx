@@ -1,0 +1,141 @@
+// components
+import DropdownSelect from '@isrd-isi-edu/deriva-webapps/src/components/plot/dropdown-select';
+
+// hooks
+import { useEffect, useState } from 'react';
+import useError from '@isrd-isi-edu/chaise/src/hooks/error';
+import usePlot from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
+
+// models
+import { Option } from '@isrd-isi-edu/deriva-webapps/src/components/virtualized-select';
+import { UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+
+// utils
+import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
+import { useUserControl } from '@isrd-isi-edu/deriva-webapps/src/hooks/control';
+
+/**
+ * DropdownSelectProps is the type of props for DropdownSelect component.
+ */
+export type DropdownProps = {
+  /**
+   * id for the select input
+   */
+  // id?: string;
+  // /**
+  //  * label for the select input
+  //  */
+  // label?: string;
+  // isDisabled?: boolean;
+  // /**
+  //  * onChange callback for the select input
+  //  * 
+  //  * @param newValue 
+  //  * @param actionMeta 
+  //  * @returns 
+  //  */
+  // onChange?: (newValue: OnChangeValue<unknown, boolean>, actionMeta: ActionMeta<unknown>) => void;
+  /**
+   * value for the select input
+   */
+  value?: any;
+  userControlConfig: UserControlConfig;
+  setSelectorOptionChanged: any;
+};
+
+/**
+ * DropdownSelect is a component that renders a dropdown select input.
+ */
+const Dropdown = ({
+  // id,
+  // label,
+  // isDisabled,
+  // onChange,
+  value,
+  // defaultOptions,
+  userControlConfig,
+  setSelectorOptionChanged
+}: DropdownProps): JSX.Element => {
+
+  const [reference, setReference] = useState<any>();
+  const [selectedValue, setSelectedValue] = useState<any>(value);
+
+  const { dispatchError } = useError();
+  const { templateParams, setTemplateParams } = usePlot();
+
+  const { controlData, initialized } = useUserControl(userControlConfig)
+
+  const requestInfo = userControlConfig.request_info;
+
+  useEffect(() => {
+    if (!initialized) return;
+
+    // TODO: move this to user control hook
+    // if (requestInfo.url_pattern) {
+
+    //   const createReference = async (url: string) => {
+    //     const ref = await windowRef.ERMrest.resolve(url);
+
+    //     console.log(value);
+
+    //     setReference(ref);
+    //   };
+
+    //   try {
+    //     console.log(value);
+    //     createReference(requestInfo.url_pattern);
+    //   } catch (error) {
+    //     dispatchError({ error });
+    //   }
+    // } 
+    if (controlData.length > 0) {
+      const currUid = userControlConfig.uid;
+      const currValueKey = userControlConfig.request_info.value_key;
+
+      const selectedOption = controlData.find((option: Option) => {
+        return option.value === templateParams.$control_values[currUid]?.values[currValueKey]
+      });
+
+      if (selectedOption) setSelectedValue(selectedOption);
+    }
+  }, [initialized])
+
+  /**
+   * It sets a new value in templateParams.$control_values based on selector, 
+   * triggers the setSelectorOptionChanged function, and returns the option
+   * @param option changed option
+   * @returns 
+   */
+  const handleChange = (option: Option) => {
+    if (option) {
+      const uid = userControlConfig?.uid;
+      const valueKey = userControlConfig?.request_info?.value_key;
+      const tempParams = { ...templateParams }
+
+      tempParams.$control_values[uid].values = {
+        [valueKey]: option.value
+      }
+
+      setTemplateParams(tempParams);
+      setSelectedValue(option);
+
+      setSelectorOptionChanged(true);
+    }
+  };
+
+  return (
+    <>
+      <DropdownSelect
+        id={userControlConfig.uid}
+        defaultOptions={controlData}
+        label={userControlConfig.label}
+        // Using any for option type instead of 'Option' to avoid the lint error
+        onChange={(option: any) => handleChange(option)}
+        value={selectedValue}
+      />
+
+    </>
+  );
+};
+
+export default Dropdown;

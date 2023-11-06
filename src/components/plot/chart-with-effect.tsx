@@ -54,7 +54,6 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
    * Data that goes into building the chart
    */
   const {
-    dataOptions,
     parsedData,
     selectData,
     userControlData,
@@ -163,7 +162,7 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
         ) : null}
         {!selectData && userControlData && Object.keys(userControlData)?.length > 0 ? (
         // {userControlData && Object.keys(userControlData)?.length > 0 && dataOptions && dataOptions.length > 0 ? (
-          <UserControlsGrid userControlData={userControlData} selectorOptions={dataOptions}
+          <UserControlsGrid userControlData={userControlData}
             setSelectorOptionChanged={setSelectorOptionChanged} width={dynamicStyles.width} />
         ) : null}
         {isParseLoading || isFetchSelected ? (
