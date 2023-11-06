@@ -1,46 +1,25 @@
 import { memo, forwardRef, ForwardedRef, CSSProperties } from 'react';
 import { VariableSizeList as List, ListOnScrollProps } from 'react-window';
 
-type ColumnHeadersProps = {
+// Shared common props for column header
+import SharedColumnHeaders, { SharedColumnHeadersProps } from '@isrd-isi-edu/deriva-webapps/src/components/matrix//shared-column-headers';
+
+type ColumnHeadersProps = SharedColumnHeadersProps & {
   /**
-   * height of grid cell
+   * scroll function
    */
-  cellHeight?: number;
-  /**
-   * width of grid cell
-   */
-  cellWidth: number;
-  /**
-   *  height of each column header
-   */
-  height: number;
-  /**
-   * width of all column headers
-   */
-  width: number;
-  /**
-   * number of columns
-   */
-  itemCount: number;
-  /**
-   * data passed to each column
-   */
-  itemData?: any;
-  /**
-   * left position of column
-   */
-  left: number;
   onScroll?: (props: ListOnScrollProps) => any;
+  /**
+   * the height of List
+   */
+  listHeight: number;
 };
 
 /**
  * Virtualized Column Header that displays headers as they scroll into the given width
  */
-const ColumnHeaders = (
-  { left, cellWidth, height, width, itemCount, itemData, onScroll }: ColumnHeadersProps,
-  ref: ForwardedRef<any>
-): JSX.Element => {
-  const { listData } = itemData;
+const ColumnHeaders = (props: ColumnHeadersProps, ref: ForwardedRef<any>): JSX.Element => {
+  const { listData } = props.itemData;
 
   /**
    * Gets item size based on given index
@@ -49,29 +28,31 @@ const ColumnHeaders = (
    * @param {number} index
    * @returns {number} item size
    */
-  const itemSize = (index: number) => (index < listData[0].length - 1 ? cellWidth : cellWidth + 30);
+  const itemSize = (index: number) => (index < listData[0].length - 1 ? props.cellWidth : props.cellWidth + 30);
 
   const columnHeadersStyles: CSSProperties = {
-    position: 'absolute',
-    left: left,
+    position: 'relative',
+    left: 0,
   };
 
   return (
-    <List
-      className='grid-column-headers'
-      style={columnHeadersStyles}
-      width={width}
-      itemSize={itemSize} // width of each column header
-      height={height}
-      layout='horizontal'
-      itemCount={itemCount}
-      onScroll={onScroll}
-      itemData={itemData}
-      overscanCount={30}
-      ref={ref}
-    >
-      {MemoizedHeader}
-    </List>
+    <SharedColumnHeaders {...props}>
+      <List
+        className='grid-column-headers'
+        style={columnHeadersStyles}
+        width={props.width}
+        itemSize={itemSize} // width of each column header
+        height={props.listHeight}
+        layout='horizontal'
+        itemCount={props.itemCount}
+        onScroll={props.onScroll}
+        itemData={props.itemData}
+        overscanCount={30}
+        ref={ref}
+      >
+        {MemoizedHeader}
+      </List>
+    </SharedColumnHeaders>
   );
 };
 
@@ -85,22 +66,22 @@ type HeaderComponentProps = {
  * Header component for each column
  */
 const HeaderComponent = ({ index, data, style }: HeaderComponentProps): JSX.Element => {
-  const { hoveredColIndex, setHoveredRowIndex, setHoveredColIndex, searchedColIndex, listData } =
+  const { hoveredColID, setHoveredRowID, setHoveredColID, searchedColID, listData } =
     data;
 
   const { column } = listData[0][index];
-  const { link, title } = column;
+  const { link, title, id } = column;
 
-  const linkClassName = hoveredColIndex === index ? 'hovered-header' : 'unhovered-header';
-  const linkDivClassName = searchedColIndex === index ? 'searched-header' : 'unsearched-header';
+  const linkClassName = hoveredColID === id ? 'hovered-header' : 'unhovered-header';
+  const linkDivClassName = searchedColID === id ? 'searched-header' : 'unsearched-header';
 
   return (
     <div
       className='column-header'
       style={style}
       onMouseEnter={() => {
-        setHoveredRowIndex(null);
-        setHoveredColIndex(index);
+        setHoveredRowID(null);
+        setHoveredColID(id);
       }}
     >
       <a className={`column-header-link ${linkClassName}`} href={link} title={title}>
