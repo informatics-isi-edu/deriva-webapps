@@ -2,7 +2,6 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import useAlert from '@isrd-isi-edu/chaise/src/hooks/alerts';
 import useError from '@isrd-isi-edu/chaise/src/hooks/error';
-import { useUserControls } from '@isrd-isi-edu/deriva-webapps/src/hooks/control';
 import usePlot from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
 import { createStudyViolinSelectGrid, useChartControlsGrid, } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart-select-grid';
 import useIsFirstRender from '@isrd-isi-edu/chaise/src/hooks/is-first-render';
@@ -18,7 +17,7 @@ import {
 import {
   Plot, PlotConfig, PlotConfigAxis,
   DataConfig, Trace, screenWidthThreshold,
-  plotAreaFraction, validFileTypes
+  plotAreaFraction, validFileTypes, UserControlConfig
 } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 import { ChaiseAlertType } from '@isrd-isi-edu/chaise/src/providers/alerts';
 
@@ -219,6 +218,7 @@ export const useChartData = (plot: Plot) => {
   const [isDataLoading, setIsDataLoading] = useState<boolean>(false);
   const [isParseLoading, setIsParseLoading] = useState<boolean>(false);
   const [selectorOptionChanged, setSelectorOptionChanged] = useState<boolean>(false);
+  const [controlTemplateVariablesInitialized, setControlTemplateVariablesInitialized] = useState<boolean>(false);
 
   const { dispatchError, errors } = useError();
   const alertFunctions = useAlert();
@@ -249,13 +249,41 @@ export const useChartData = (plot: Plot) => {
       gridConfig: plot?.grid_layout_config,
       layout: plot?.layout
     });
+
+    const tempParams = { ...templateParams };
+    plot?.user_controls.forEach((config: UserControlConfig) => {
+      tempParams.$control_values[config.uid] = { 
+        values: initalizeControlData(config)
+      }
+    });
+
+    setTemplateParams(tempParams);
+
+    setControlTemplateVariablesInitialized(true);
   }, []);
 
-  // initialize the user controls, associated options, and display data
-  // TODO: does this need to be done at certain time in the setup process or is it fine to let react manage this?
-  useUserControls({
-    userControlConfig: plot?.user_controls
-  });
+  /**
+   * extracts values for the selector returns them for the templateParams under the selector's uid
+   * 
+   * @param config User Control configuration
+   * @returns values for intializing template params for control
+   */
+  const initalizeControlData = (config: UserControlConfig) => {
+    const paramKey = config.url_param_key;
+    const valueKey = config.request_info?.value_key;
+    const defaultValue = config.request_info?.default_value;
+
+    const values: any = {};
+    // use url_param value if defined, fall back to default value if not
+    if (paramKey) {
+      const paramValue = getQueryParam(windowRef.location.href, paramKey);
+      if (paramValue) values[valueKey] = paramValue;
+    } else if (defaultValue) {
+      values[valueKey] = defaultValue;
+    }
+
+    return values;
+  }
 
   /**
    * Updates the legend text and orientation for all plots for which legend is available as per the change in screen width
@@ -369,7 +397,7 @@ export const useChartData = (plot: Plot) => {
 
   // Effect to fetch initial data
   useEffect(() => {
-    if (setupStarted.current) return;
+    if (setupStarted.current && controlTemplateVariablesInitialized) return;
     setupStarted.current = true;
 
     const fetchInitData = async () => {
@@ -441,7 +469,8 @@ export const useChartData = (plot: Plot) => {
         const initialSelectData = await fetchSelectData(selectGrid); // fetch the data needed for the select grid
         setSelectData(initialSelectData) // set the data for the select grid
       }
-      setTemplateParams(tempParams)
+      setTemplateParams(tempParams);
+      
       const plotData = await fetchData(); // fetch the data for the plot
       setData(plotData); // set the data for the plot
       setIsInitLoading(false); // set loading to false
@@ -464,6 +493,7 @@ export const useChartData = (plot: Plot) => {
     selectorOptionChanged,
     fetchData,
     dispatchError,
+    controlTemplateVariablesInitialized
   ]);
 
   // Effect to fetch data on subsequent changes when different selections are made (when selectData changes)
@@ -1632,6 +1662,7 @@ export const useChartData = (plot: Plot) => {
     handleCloseModal,
     handleSubmitModal,
     setSelectorOptionChanged,
+    controlTemplateVariablesInitialized
   };
 };
 

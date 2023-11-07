@@ -65,6 +65,7 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
     handleCloseModal,
     handleSubmitModal,
     setSelectorOptionChanged,
+    controlTemplateVariablesInitialized
   } = useChartData(config);
 
   if (!parsedData || isInitLoading) {
