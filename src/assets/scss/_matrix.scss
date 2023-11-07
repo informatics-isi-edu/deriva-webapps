@@ -67,7 +67,7 @@ body:not(.chaise-iframe) {
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    // margin: auto;
+    margin: auto;
 
     .dummy-option {
       width: 220px;
@@ -97,6 +97,8 @@ body:not(.chaise-iframe) {
     scrollbar-gutter: stable;
   }
 
+  .grid-row-headers-container,
+  .grid-column-headers-container,
   .grid-row-headers,
   .grid-column-headers {
     -ms-overflow-style: none; /* Internet Explorer 10+ */
@@ -209,7 +211,7 @@ body:not(.chaise-iframe) {
     flex-direction: column;
     overflow-x: scroll;
     overflow-y: visible;
-    margin-top: 10px;
+    margin-top: 25px;
   }
 
   .legend-bars-container {
@@ -258,4 +260,42 @@ body:not(.chaise-iframe) {
     margin-right: 8px;
   }
 
+  // Make scrollbar invisible in tree column header component
+  .grid-column-headers{
+    & ::-webkit-scrollbar {
+      width: 0;  /* Remove scrollbar space */
+      height: 0;
+      background: transparent;  /* Optional: just make scrollbar invisible */
+    }
+    & div{
+      -ms-overflow-style: none; /* Internet Explorer 10+ */
+      scrollbar-width: none; /* Firefox */
+    }
+  }
+
+  .row-header-scrollbar-container{
+    direction: rtl;
+    display: flex;
+    justify-content: flex-end;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+  }
+
+  .column-header-scrollbar-container{
+    position: absolute;
+    right: 0;
+    width: 15px;
+    overflow-y: clip;
+
+    .chaise-table-right-scroll-wrapper{
+      position: relative;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column-reverse;
+      overflow-y: scroll;
+      overflow-x: scroll;
+      width: 15px;
+    }
+  }
 }

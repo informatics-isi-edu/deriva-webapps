@@ -21,6 +21,7 @@ import { useMatrixData } from '@isrd-isi-edu/deriva-webapps/src/hooks/matrix';
 import { ID_NAMES } from '@isrd-isi-edu/chaise/src/utils/constants';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
+import { processMatrixHeaderStyles } from '@isrd-isi-edu/deriva-webapps/src/utils/config';
 
 const matrixSettings = {
   appName: 'app/matrix',
@@ -62,7 +63,8 @@ const MatrixApp = (): JSX.Element => {
     return <ChaiseSpinner />;
   }
 
-  const { gridDataMap, gridData, legendData, options } = matrixData;
+  const { gridDataMap, gridData, legendData, options,
+    yTreeData, yTreeNodes, yTreeNodesMap, xTreeData, xTreeNodes, xTreeNodesMap, yDataMaxLength, xDataMaxLength } = matrixData;
 
   /**
    * Handles changes to the search bar
@@ -102,7 +104,8 @@ const MatrixApp = (): JSX.Element => {
   /**
    * Scrolls the grid to the given input string if found in the matrix,
    * otherwise shows a no results message
-   *
+   * Edited for Treeview components
+   * 
    * @param currInput
    * @returns
    */
@@ -110,6 +113,7 @@ const MatrixApp = (): JSX.Element => {
     if (!currInput) {
       return;
     }
+
     if (!gridDataMap[currInput.toLowerCase()]) {
       showNoResults();
       return;
@@ -117,9 +121,9 @@ const MatrixApp = (): JSX.Element => {
 
     const selected = gridDataMap[currInput.toLowerCase()];
     if (selected.type === 'row') {
-      gridRef.current.searchRow(selected.index);
+      gridRef.current.searchRow(selected.id);
     } else if (selected.type === 'col') {
-      gridRef.current.searchCol(selected.index);
+      gridRef.current.searchCol(selected.id);
     }
   };
 
@@ -149,8 +153,19 @@ const MatrixApp = (): JSX.Element => {
   const maxCols = styles?.maxCols;
   const maxRows = styles?.maxRows;
 
-  const rowHeaderWidth = styles?.rowHeaderWidth ? styles?.rowHeaderWidth : 250;
-  const colHeaderHeight = styles?.colHeaderHeight ? styles?.colHeaderHeight : 50;
+  const rowHeaderWidth = styles?.rowHeader?.width ? styles?.rowHeader?.width : 250;
+  const colHeaderHeight = styles?.columnHeader?.height ? styles?.columnHeader?.height : 50;
+
+  const {
+    scrollable: rowHeaderScrollable,
+    scrollableMaxSize: rowHeaderScrollableMaxWidth
+  } = processMatrixHeaderStyles(rowHeaderWidth, styles?.rowHeader?.scrollable, styles?.rowHeader?.scrollableMaxWidth);
+
+  const {
+    scrollable: colHeaderScrollable,
+    scrollableMaxSize: colHeaderScrollableMaxHeight
+  } = processMatrixHeaderStyles(colHeaderHeight, styles?.columnHeader?.scrollable, styles?.columnHeader?.scrollableMaxHeight);
+
   const cellHeight = styles?.cellHeight ? styles?.cellHeight : 25;
   const cellWidth = styles?.cellWidth ? styles?.cellWidth : 25;
 
@@ -262,9 +277,21 @@ const MatrixApp = (): JSX.Element => {
             gridWidth={gridWidth}
             rowHeaderWidth={rowHeaderWidth}
             columnHeaderHeight={colHeaderHeight}
+            rowHeaderScrollable={rowHeaderScrollable}
+            colHeaderScrollable={colHeaderScrollable}
+            rowHeaderScrollableMaxWidth={rowHeaderScrollableMaxWidth}
+            colHeaderScrollableMaxHeight={colHeaderScrollableMaxHeight}
             cellHeight={cellHeight}
             cellWidth={cellWidth}
             data={gridData}
+            yTree={yTreeData}
+            yTreeNodes={yTreeNodes}
+            yTreeNodesMap={yTreeNodesMap}
+            xTree={xTreeData}
+            xTreeNodes={xTreeNodes}
+            xTreeNodesMap={xTreeNodesMap}
+            yDataMaxLength={yDataMaxLength}
+            xDataMaxLength={xDataMaxLength}
             colorScale={colorScaleMap}
           />
           <Legend
@@ -288,7 +315,7 @@ const MatrixApp = (): JSX.Element => {
 
 const root = createRoot(document.getElementById(ID_NAMES.APP_ROOT) as HTMLElement);
 root.render(
-  <AppWrapper appSettings={matrixSettings} includeNavbar displaySpinner ignoreHashChange>
+  <AppWrapper appSettings={matrixSettings} includeNavbar displaySpinner ignoreHashChange dontFetchSession>
     <MatrixApp />
   </AppWrapper>
 );
