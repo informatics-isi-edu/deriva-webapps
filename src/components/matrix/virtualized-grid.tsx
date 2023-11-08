@@ -665,7 +665,7 @@ const VirtualizedGrid = (
         </div>
       }
       {showRight && <GridRightButton onClick={pressScrollRight} rowHeaderWidth={rowHeaderWidth} columnHeaderHeight={columnHeaderHeight} headerScrollable={colHeaderScrollable} />}
-      {showUp && <GridUpButton onClick={pressScrollUp} rowHeaderWidth={rowHeaderWidth} />}
+      {showUp && <GridUpButton onClick={pressScrollUp} rowHeaderWidth={rowHeaderWidth} columnHeaderHeight={columnHeaderHeight} />}
       {showLeft && <GridLeftButton onClick={pressScrollLeft} rowHeaderWidth={rowHeaderWidth} columnHeaderHeight={columnHeaderHeight} />}
       {showDown && <GridDownButton onClick={pressScrollDown} rowHeaderWidth={rowHeaderWidth} headerScrollable={rowHeaderScrollable} />}
     </div>

@@ -33,13 +33,14 @@ export const GridLeftButton = ({ onClick, rowHeaderWidth, columnHeaderHeight }: 
 /**
  * SVG Icon for button from https://icons.getbootstrap.com/
  */
-export const GridUpButton = ({ onClick, rowHeaderWidth }: GridMoveButton): JSX.Element => {
+export const GridUpButton = ({ onClick, rowHeaderWidth, columnHeaderHeight }: GridMoveButton): JSX.Element => {
   return (
     <div
       className='grid-scroll-btn-container grid-scroll-up-btn-container'
       style={{
         justifyContent: 'center',
-        top: 25,
+        alignItems: 'end',
+        height: columnHeaderHeight,
         width: rowHeaderWidth
       }}
     >
