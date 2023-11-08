@@ -64,7 +64,7 @@ export const GridRightButton = ({ onClick, columnHeaderHeight, headerScrollable 
         height: columnHeaderHeight,
         top: 0,
         // If the column headers is scrollable, then push the gridRightButton right
-        right: headerScrollable ? -20 : 0,
+        right: headerScrollable ? 15 : 0,
       }}
     >
       <ChaiseTooltip tooltip='Scroll right' placement='bottom'>
@@ -85,7 +85,7 @@ export const GridDownButton = ({ onClick, rowHeaderWidth, headerScrollable }: Gr
         justifyContent: 'center',
         background: 'white',
         // If the row headers is scrollable, then push the gridDownButton bottom
-        bottom: headerScrollable ? -20 : 0,
+        bottom: headerScrollable ? 15 : 0,
         left: 0,
         width: rowHeaderWidth
       }}
