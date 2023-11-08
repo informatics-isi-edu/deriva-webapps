@@ -50,9 +50,24 @@ const GridCell = ({ columnIndex, rowIndex, data, style }: GridCellProps): JSX.El
     gridCellClassName += ' searched-cell';
   }
 
+  // the first cell border top will have a different size
+  if (rowIndex === 0) {
+    gridCellClassName += ' first-row-cell';
+  }
+
+  // the first cell border top will have a different size
+  if (columnIndex === 0) {
+    gridCellClassName += ' first-column-cell';
+  }
+
   // className different for the last margin cell
   if (rowIndex === gridData.length - 1 || columnIndex === gridData[0].length - 1) {
     gridCellClassName = 'margin-cell';
+    if (rowIndex === gridData.length - 1) {
+      gridCellClassName += ' last-row-cell';
+    } else {
+      gridCellClassName += ' last-column-cell';
+    }
   }
 
   return (
