@@ -154,25 +154,31 @@ body:not(.chaise-iframe) {
     }
   }
 
-  // border above the column-headers
-  .grid-container {
-    border-top: 2px solid $_header_border_color;
+  // border above the whole matrix (defining this on grid-container messes with height logic)
+  .grid-column-headers-container, .grid-row-headers-container {
+    border-top: $_header_border;
   }
 
   // border above the grid (below the column-headers)
   .grid-column-headers-container {
-    border-bottom: 2px solid $_header_border_color;
+    border-bottom: $_header_border;
   }
 
-  // border for the row-headers
   .grid-row-headers-horizontal-scroll {
+    // border above the row headers
     border-top: $_header_border;
-    border-right: $_header_border;
-    // bringing the whole section one pixel up so they align properly
-    margin-top: -2px;
+    // accomodate for the borders that we're adding
+    margin-top: -4px;
   }
 
+  // border to the right of row headers
+  .grid-row-headers-container {
+    border-right: $_header_border;
+  }
+
+  // make sure these buttons are showing the same borders
   .grid-scroll-left-btn-container, .grid-scroll-right-btn-container {
+    border-top: $_header_border;
     border-bottom: $_header_border;
   }
   .grid-scroll-down-btn-container {
@@ -183,6 +189,7 @@ body:not(.chaise-iframe) {
   .grid-scroll-btn-container {
     display: flex;
     position: absolute;
+    padding: 1px;
     button {
       background: transparent;
       color: #4674a7;
