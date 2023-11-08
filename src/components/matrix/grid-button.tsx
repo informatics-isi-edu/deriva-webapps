@@ -1,3 +1,4 @@
+import ChaiseTooltip from '@isrd-isi-edu/chaise/src/components/tooltip';
 import { MouseEventHandler } from 'react';
 
 export type GridMoveButton = {
@@ -12,38 +13,20 @@ export type GridMoveButton = {
  */
 export const GridLeftButton = ({ onClick, rowHeaderWidth, columnHeaderHeight }: GridMoveButton): JSX.Element => {
   return (
-    <button
-      title='Scroll left'
-      className='grid-left-btn'
-      onClick={onClick}
+    <div
+      className='grid-scroll-btn-container grid-scroll-left-btn-container'
       style={{
-        display: 'flex',
         alignItems: 'center',
-        backgroundColor: 'white',
+        justifyContent: 'end',
         height: columnHeaderHeight,
-        position: 'absolute',
-        top: 2,
-        left: rowHeaderWidth - 30,
+        width: rowHeaderWidth,
+        top: 0,
       }}
     >
-      <svg
-        xmlns='http://www.w3.org/2000/svg'
-        width='20'
-        height='20'
-        fill='#4674a7'
-        className='bi bi-chevron-double-left'
-        viewBox='0 0 16 16'
-      >
-        <path
-          fillRule='evenodd'
-          d='M8.354 1.646a.5.5 0 0 1 0 .708L2.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z'
-        />
-        <path
-          fillRule='evenodd'
-          d='M12.354 1.646a.5.5 0 0 1 0 .708L6.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z'
-        />
-      </svg>
-    </button>
+      <ChaiseTooltip tooltip='Scroll left' placement='bottom'>
+        <button onClick={onClick}><i className='fa-solid fa-angles-left'></i></button>
+      </ChaiseTooltip>
+    </div>
   );
 };
 
@@ -53,42 +36,16 @@ export const GridLeftButton = ({ onClick, rowHeaderWidth, columnHeaderHeight }: 
 export const GridUpButton = ({ onClick, rowHeaderWidth }: GridMoveButton): JSX.Element => {
   return (
     <div
+      className='grid-scroll-btn-container grid-scroll-up-btn-container'
       style={{
-        display: 'flex',
-        justifyContent: 'flex-end',
-        backgroundColor: 'white',
-        position: 'absolute',
+        justifyContent: 'center',
         top: 25,
-        width: rowHeaderWidth,
-        paddingRight: 40,
+        width: rowHeaderWidth
       }}
     >
-      <button
-        title='Scroll up'
-        onClick={onClick}
-        className='grid-up-btn'
-        style={{
-          backgroundColor: 'transparent',
-        }}
-      >
-        <svg
-          xmlns='http://www.w3.org/2000/svg'
-          width='20'
-          height='20'
-          fill='#4674a7'
-          className='bi bi-chevron-double-up'
-          viewBox='0 0 16 16'
-        >
-          <path
-            fillRule='evenodd'
-            d='M7.646 2.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 3.707 2.354 9.354a.5.5 0 1 1-.708-.708l6-6z'
-          />
-          <path
-            fillRule='evenodd'
-            d='M7.646 6.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 7.707l-5.646 5.647a.5.5 0 0 1-.708-.708l6-6z'
-          />
-        </svg>
-      </button>
+      <ChaiseTooltip tooltip='Scroll up' placement='bottom'>
+        <button onClick={onClick}><i className='fa-solid fa-angles-up'></i></button>
+      </ChaiseTooltip>
     </div>
   );
 };
@@ -99,41 +56,19 @@ export const GridUpButton = ({ onClick, rowHeaderWidth }: GridMoveButton): JSX.E
 export const GridRightButton = ({ onClick, columnHeaderHeight, headerScrollable }: GridMoveButton): JSX.Element => {
   return (
     <div
+      className='grid-scroll-btn-container grid-scroll-right-btn-container'
       style={{
-        display: 'flex',
         alignItems: 'center',
-        backgroundColor: 'white',
+        background: 'white',
         height: columnHeaderHeight,
-        position: 'absolute',
-        top: 2,
+        top: 0,
         // If the column headers is scrollable, then push the gridRightButton right
         right: headerScrollable ? -20 : 0,
       }}
     >
-      <button
-        title='Scroll right'
-        onClick={onClick}
-        className='grid-down-btn'
-        style={{ backgroundColor: 'transparent' }}
-      >
-        <svg
-          xmlns='http://www.w3.org/2000/svg'
-          width='20'
-          height='20'
-          fill='#4674a7'
-          className='bi bi-chevron-double-right'
-          viewBox='0 0 16 16'
-        >
-          <path
-            fillRule='evenodd'
-            d='M3.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L9.293 8 3.646 2.354a.5.5 0 0 1 0-.708z'
-          />
-          <path
-            fillRule='evenodd'
-            d='M7.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L13.293 8 7.646 2.354a.5.5 0 0 1 0-.708z'
-          />
-        </svg>
-      </button>
+      <ChaiseTooltip tooltip='Scroll right' placement='bottom'>
+        <button onClick={onClick}><i className='fa-solid fa-angles-right'></i></button>
+      </ChaiseTooltip>
     </div>
   );
 };
@@ -144,44 +79,19 @@ export const GridRightButton = ({ onClick, columnHeaderHeight, headerScrollable 
 export const GridDownButton = ({ onClick, rowHeaderWidth, headerScrollable }: GridMoveButton): JSX.Element => {
   return (
     <div
+      className='grid-scroll-btn-container grid-scroll-down-btn-container'
       style={{
-        display: 'flex',
-        justifyContent: 'flex-end',
-        backgroundColor: 'white',
-        position: 'absolute',
+        justifyContent: 'center',
+        background: 'white',
         // If the row headers is scrollable, then push the gridDownButton bottom
         bottom: headerScrollable ? -20 : 0,
         left: 0,
-        width: rowHeaderWidth,
-        paddingRight: 40,
+        width: rowHeaderWidth
       }}
     >
-      <button
-        title='Scroll down'
-        className='grid-down-btn'
-        onClick={onClick}
-        style={{
-          backgroundColor: 'transparent',
-        }}
-      >
-        <svg
-          xmlns='http://www.w3.org/2000/svg'
-          width='20'
-          height='20'
-          fill='#4674a7'
-          className='bi bi-chevron-double-down'
-          viewBox='0 0 16 16'
-        >
-          <path
-            fillRule='evenodd'
-            d='M1.646 6.646a.5.5 0 0 1 .708 0L8 12.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'
-          />
-          <path
-            fillRule='evenodd'
-            d='M1.646 2.646a.5.5 0 0 1 .708 0L8 8.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'
-          />
-        </svg>
-      </button>
+      <ChaiseTooltip tooltip='Scroll down' placement='bottom'>
+        <button onClick={onClick}><i className='fa-solid fa-angles-down'></i></button>
+      </ChaiseTooltip>
     </div>
   );
 };

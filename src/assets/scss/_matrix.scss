@@ -68,6 +68,7 @@ body:not(.chaise-iframe) {
     justify-content: space-between;
     align-items: center;
     margin: auto;
+    margin-bottom: 5px;
 
     .dummy-option {
       width: 220px;
@@ -111,6 +112,81 @@ body:not(.chaise-iframe) {
 
   .grid-column-headers {
     overflow-y: hidden !important;
+  }
+
+
+  /* ============ grid borders ================= */
+  $_cell_border_color: #ddd;
+  $_header_border_color: #555;
+  $_header_border: 2px solid $_header_border_color;
+
+
+  // cell borders
+  .grid-cell {
+    // this way the space between each cell would be 2px
+    border: 1px solid $_cell_border_color;
+    &.first-row-cell {
+      border-top: 0;
+    }
+    &.first-column-cell {
+      border-left: 0;
+    }
+  }
+  .margin-cell {
+    &.last-row-cell {
+      border-top: 1px solid $_cell_border_color;
+    }
+    &.last-column-cell {
+      border-left: 1px solid $_cell_border_color;
+    }
+  }
+
+  // border between row-headers
+  .row-header {
+    border: 1px solid $_cell_border_color;
+    border-left: 0;
+    border-right: 0;
+    &.first-row-header {
+      border-top: 0;
+    }
+    &.row-margin {
+      border-bottom: 0;
+    }
+  }
+
+  // border above the column-headers
+  .grid-container {
+    border-top: 2px solid $_header_border_color;
+  }
+
+  // border above the grid (below the column-headers)
+  .grid-column-headers-container {
+    border-bottom: 2px solid $_header_border_color;
+  }
+
+  // border for the row-headers
+  .grid-row-headers-horizontal-scroll {
+    border-top: $_header_border;
+    border-right: $_header_border;
+    // bringing the whole section one pixel up so they align properly
+    margin-top: -2px;
+  }
+
+  .grid-scroll-left-btn-container, .grid-scroll-right-btn-container {
+    border-bottom: $_header_border;
+  }
+  .grid-scroll-down-btn-container {
+    border-right: $_header_border;
+  }
+
+  /* ============== grid buttons ================= */
+  .grid-scroll-btn-container {
+    display: flex;
+    position: absolute;
+    button {
+      background: transparent;
+      color: #4674a7;
+    }
   }
 
   /* ============================================= */
@@ -174,7 +250,6 @@ body:not(.chaise-iframe) {
 
   .grid-cell {
     display: flex;
-    border: 1px solid #ddd;
 
     .cell-link {
       display: flex;
