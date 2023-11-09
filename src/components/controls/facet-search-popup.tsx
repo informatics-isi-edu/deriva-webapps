@@ -2,17 +2,19 @@
 import RecordsetModal from '@isrd-isi-edu/chaise/src/components/modals/recordset-modal';
 import SelectView from '@isrd-isi-edu/deriva-webapps/src/components/plot/select-view';
 import SelectInput from '@isrd-isi-edu/deriva-webapps/src/components/select-input';
+import Spinner from 'react-bootstrap/Spinner';
 
 // hooks
-import { MouseEventHandler, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import useError from '@isrd-isi-edu/chaise/src/hooks/error';
 import usePlot from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
 
 // models
 import { ActionMeta, OnChangeValue } from 'react-select';
 import { UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
-import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
 import { RecordsetDisplayMode, RecordsetSelectMode, SelectedRow } from '@isrd-isi-edu/chaise/src/models/recordset';
+import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
+import { Option } from '@isrd-isi-edu/deriva-webapps/src/components/virtualized-select';
 
 /**
  * DropdownSelectProps is the type of props for DropdownSelect component.
@@ -38,12 +40,9 @@ export type FacetSearchPopupControlProps = {
   /**
    * value for the select input
    */
-  value?: any;
-  /**
-   * default options for the select input
-   */
-  defaultOptions?: any;
+  value?: Option;
   userControlConfig: UserControlConfig;
+  setSelectorOptionChanged: any;
 };
 
 /**
@@ -55,13 +54,14 @@ const FacetSearchPopupControl = ({
   isDisabled,
   onChange,
   value,
-  defaultOptions,
-  userControlConfig
+  userControlConfig,
+  setSelectorOptionChanged
 }: FacetSearchPopupControlProps): JSX.Element => {
 
+  const [showSpinner, setShowSpinner] = useState<boolean>(true);
   const [reference, setReference] = useState<any>();
   const [recordsetModalProps, setRecordsetModalProps] = useState<any>(null);
-  const [selectedValue, setSelectedValue] = useState<any>(value);
+  const [selectedValue, setSelectedValue] = useState<Option | null>(null);
 
   const { dispatchError } = useError();
   const { templateParams, setTemplateParams } = usePlot();
@@ -72,15 +72,39 @@ const FacetSearchPopupControl = ({
     if (requestInfo.url_pattern) {
 
       const createReference = async (url: string) => {
-        const ref = await windowRef.ERMrest.resolve(url);
-
-        console.log(value);
+        const ref = await ConfigService.ERMrest.resolve(url);
 
         setReference(ref);
+
+        const valueKey = requestInfo.value_key;
+
+        // Use value from template params since chart.ts initializes it from the url or default
+        const initialValue = templateParams.$control_values[userControlConfig.uid].values[valueKey];
+        const initialValueUrl = requestInfo.url_pattern + '/' + valueKey + '=' + initialValue;
+
+        const data = await getInitialValue(initialValueUrl);
+
+        const selfTemplateParams = { ...templateParams };
+        selfTemplateParams['$self'] = { values: data }
+
+        const displayValue = ConfigService.ERMrest.renderHandlebarsTemplate(requestInfo.selected_value_pattern, selfTemplateParams);
+
+        setSelectedValue({ 
+          label: displayValue,
+          value: initialValue
+        });
+
+        setShowSpinner(false);
       };
 
+      const getInitialValue = async (url: string) => {
+        const response = await ConfigService.http.get(url);
+
+        return response.data[0];
+      }
+
       try {
-        console.log(value);
+        // TODO: templating
         createReference(requestInfo.url_pattern);
       } catch (error) {
         dispatchError({ error });
@@ -112,17 +136,26 @@ const FacetSearchPopupControl = ({
 
   const handleSubmitModal = (selectedRows: SelectedRow[]) => {
     const tempParams = { ...templateParams }
-    // TODO: change url_param_key being checked. It is required for this user control
-    // if it's not defined, this user control configuration is invalid
-    if (selectedRows && selectedRows.length > 0 && userControlConfig.url_param_key) {
+
+    if (selectedRows && selectedRows.length > 0) {
       // if (!isMulti) {
       // if the cell is not multi, we update the selected row with one value
       // should have only 1 value
       const selectedTuple = selectedRows[0];
 
-      
+      tempParams.$control_values[userControlConfig.uid].values = selectedTuple.data;
 
-      tempParams.$control_values[userControlConfig.url_param_key].values = selectedTuple.data;
+      // we don't want $self to be saved to the templateParams, so copy again
+      const selfTemplateParams = { ...tempParams };
+      selfTemplateParams['$self'] = { values: selectedTuple.data }
+
+      const displayValue = ConfigService.ERMrest.renderHandlebarsTemplate(requestInfo.selected_value_pattern, selfTemplateParams);
+
+      setSelectedValue({ 
+        label: displayValue,
+        value: selectedTuple.data[requestInfo.value_key]
+      });
+
       // }
       // TODO: mode === multiSelect 
       // else {
@@ -144,26 +177,30 @@ const FacetSearchPopupControl = ({
 
     console.log(selectedRows);
     hideModal();
+    setSelectorOptionChanged(true);
   }
 
   const hideModal = () => {
     setRecordsetModalProps(null);
   }
 
-  if (!reference) return <></>;
-
   return (
     <>
+      {showSpinner && !reference &&
+        <div className='column-cell-spinner-container'>
+          <div className='column-cell-spinner-backdrop'></div>
+          <Spinner animation='border' size='sm' />
+        </div>
+      }
       <SelectView label={label}>
         <button className='select-input-button' onClick={openModal}>
           <SelectInput
             className='dropdown-select'
             id={id}
             isDisabled={isDisabled}
-            placeholder={'select...'}
+            placeholder={'Select a value'}
             onChange={onChange}
-            value={value}
-            defaultOptions={defaultOptions}
+            value={selectedValue}
           />
         </button>
       </SelectView>

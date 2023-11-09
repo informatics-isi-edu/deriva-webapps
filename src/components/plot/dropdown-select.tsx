@@ -1,8 +1,12 @@
 import { MouseEventHandler } from 'react';
 import { ActionMeta, OnChangeValue } from 'react-select';
 
+// components
 import SelectView from '@isrd-isi-edu/deriva-webapps/src/components/plot/select-view';
 import SelectInput from '@isrd-isi-edu/deriva-webapps/src/components/select-input';
+
+// models
+import { Option } from '@isrd-isi-edu/deriva-webapps/src/components/virtualized-select';
 
 /**
  * DropdownSelectProps is the type of props for DropdownSelect component.
@@ -36,7 +40,7 @@ export type DropdownSelectProps = {
   /**
    * value for the select input
    */
-  value?: any;
+  value?: Option;
   /**
    * default options for the select input
    */

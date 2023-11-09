@@ -74,7 +74,7 @@ const Dropdown = ({
     // if (requestInfo.url_pattern) {
 
     //   const createReference = async (url: string) => {
-    //     const ref = await windowRef.ERMrest.resolve(url);
+    //     const ref = await ConfigService.ERMrest.resolve(url);
 
     //     console.log(value);
 

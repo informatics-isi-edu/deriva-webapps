@@ -244,14 +244,16 @@ export const useChartData = (plot: Plot) => {
    * It should be called once to initialize the configuration data for the user controls into the state variable
   */
   useEffect(() => {
+    if (!plot.user_controls) return;
+
     setUserControlData({
-      userControlConfig: plot?.user_controls,
+      userControlConfig: plot.user_controls,
       gridConfig: plot?.grid_layout_config,
       layout: plot?.layout
     });
 
     const tempParams = { ...templateParams };
-    plot?.user_controls.forEach((config: UserControlConfig) => {
+    plot.user_controls.forEach((config: UserControlConfig) => {
       tempParams.$control_values[config.uid] = { 
         values: initalizeControlData(config)
       }

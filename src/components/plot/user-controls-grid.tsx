@@ -5,18 +5,9 @@
 import Dropdown from '@isrd-isi-edu/deriva-webapps/src/components/controls/dropdown';
 import FacetSearchPopupControl from '@isrd-isi-edu/deriva-webapps/src/components/controls/facet-search-popup';
 
-// hooks
-import { useState } from 'react';
-import usePlot from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
-
 // models
-import { Option } from '@isrd-isi-edu/deriva-webapps/src/components/virtualized-select';
 import { Responsive, WidthProvider, ResponsiveProps as ResponsiveGridProps } from 'react-grid-layout';
 import { LayoutConfig, UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
-import { LogStackPaths, LogStackTypes } from '@isrd-isi-edu/chaise/src/models/log';
-
-// services
-import { LogService } from '@isrd-isi-edu/chaise/src/services/log';
 
 // utils
 import { convertKeysSnakeToCamel } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
@@ -38,25 +29,6 @@ type UserControlsGridProps = {
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
 const UserControlsGrid = ({ userControlData, setSelectorOptionChanged, width }: UserControlsGridProps): JSX.Element => {
-  const uid: string[] = [];
-  const valueKey: string[] = [];
-  const selectorValue: Option[] = [];
-
-  const { templateParams, setTemplateParams } = usePlot();
-
-  // Collect uid's and valueKey's for all selectors
-  // userControlData.userControlConfig?.map((currentConfig, index) => {
-  //   const currUid = currentConfig?.uid;
-  //   const currValueKey = currentConfig?.request_info.value_key;
-  //   uid.push(currUid);
-  //   valueKey.push(currValueKey);
-  //   const selectedOption = selectorOptions[index]?.find((option: Option) =>
-  //     option.value === templateParams.$control_values[currUid]?.values[currValueKey]);
-  //   if (selectedOption) {
-  //     selectorValue.push(selectedOption);
-  //   }
-  // });
-
   const gridProps = convertKeysSnakeToCamel(userControlData.gridConfig);
   //Convert snake_case keys inside different selector's layout to camel case
   const mappedLayoutValues = Object.values(userControlData.layout)?.map((resLayout: any) => (
@@ -87,11 +59,9 @@ const UserControlsGrid = ({ userControlData, setSelectorOptionChanged, width }: 
               <div key={config.uid}>
                 <FacetSearchPopupControl
                   id={config.uid}
-                  // defaultOptions={selectorOptions[idx]}
                   label={config?.label}
-                  // TODO: default value if set on load from url
-                  value={selectorValue[idx]}
                   userControlConfig={config}
+                  setSelectorOptionChanged={setSelectorOptionChanged}
                 />
               </div>
             )
