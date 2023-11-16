@@ -313,12 +313,12 @@ export const convertKeysSnakeToCamel = (configObject: any) => {
 
 
 /**
- * Converts snake_case keys of an object to camel case
- * @param configObject an object with snake case keys
+ * This function validates the grid props wrt the ResponsiveGridLayout component's layout object and creates a valid grid layout object
+ * @param gridConfigObject an object with snake case keys (original grid config object)
  * @returns object with the camel case keys
  */
-export const validateGridProps = (configObject: any) => {
-  const convertedKeyProps = convertKeysSnakeToCamel(configObject);
+export const validateGridProps = (gridConfigObject: any) => {
+  const convertedKeyProps = convertKeysSnakeToCamel(gridConfigObject);
   const breakpoints = convertedKeyProps?.breakpoints || defaultGridProps.breakpoints;
   const regenObject:any={};
   if (typeof convertedKeyProps === 'object') {

@@ -7,25 +7,25 @@ var baseUri =
 var matrixConfigs = {
   '*': {
     /**
-     * API for the x axis data
+     * API for the x axis data (must return id and title. other projected columns will be ignored.)
      */
     xURL: baseUri + '/sort_key:=X:sort_key,id:=X:id,title:=X:name@sort(sort_key)',
     /**
-     * API for the y axis data
+     * API for the y axis data (must return id and title. other projected columns will be ignored.)
      */
     yURL: baseUri + '/id:=Y:id,title:=Y:name@sort(title)',
     /**
-     * API for the z axis data (color axis)
+     * API for the z axis data (color axis) (must return id and title. other projected columns will be ignored.)
      */
     zURL: baseUri + '/id:=Z:id,title:=Z:name@sort(title)',
     /**
-     * API for xyz axis
+     * API for xyz axis (must return xid, yid, and zid. other projected columns will be ignored.)
      */
     xysURL: baseUri + '/xid:=X:id,yid:=Y:id;zid:=array(Z:name)',
     /**
      * The source path of x. used for generating the facet blob
      */
-    xSource: [{'inbound':['isa','dataset_stage_dataset_id_fkey']},{'outbound':['isa','dataset_stage_stage_fkey']},'id'],
+    xSource: [{ 'inbound': ['isa', 'dataset_stage_dataset_id_fkey'] }, { 'outbound': ['isa', 'dataset_stage_stage_fkey'] }, 'id'],
     /**
      * key name of data from the x axis API response
      */
@@ -33,7 +33,7 @@ var matrixConfigs = {
     /**
      * The source path of y. used for generating the facet blob
      */
-    ySource: [{'inbound':['isa','dataset_anatomy_dataset_id_fkey']},{'outbound':['isa','dataset_anatomy_anatomy_fkey']},'id'],
+    ySource: [{ 'inbound': ['isa', 'dataset_anatomy_dataset_id_fkey'] }, { 'outbound': ['isa', 'dataset_anatomy_anatomy_fkey'] }, 'id'],
     /**
      * key name of data from the y axis API response
      */
@@ -41,7 +41,7 @@ var matrixConfigs = {
     /**
      * The source path of z. used for generating the facet blob
      */
-    zSource: [{'inbound':['isa','dataset_experiment_type_dataset_id_fkey']},{'outbound':['isa','dataset_experiment_type_experiment_type_fkey']},'id'],
+    zSource: [{ 'inbound': ['isa', 'dataset_experiment_type_dataset_id_fkey'] }, { 'outbound': ['isa', 'dataset_experiment_type_experiment_type_fkey'] }, 'id'],
     /**
      * key name of data from the z axis API response
      */
@@ -84,13 +84,17 @@ var matrixConfigs = {
        */
       cellHeight: 25,
       /**
-       * Width of the row headers
+       * Properties of the row headers
        */
-      rowHeaderWidth: 250,
+      rowHeader: {
+        width: 250
+      },
       /**
-       * Height of the column headers
+       * Properties of the column headers
        */
-      colHeaderHeight: 50,
+      columnHeader: {
+        height: 80
+      },
       /**
        * Height of the legend
        */

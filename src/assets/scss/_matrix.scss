@@ -67,7 +67,8 @@ body:not(.chaise-iframe) {
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    // margin: auto;
+    margin: auto;
+    margin-bottom: 5px;
 
     .dummy-option {
       width: 220px;
@@ -97,6 +98,8 @@ body:not(.chaise-iframe) {
     scrollbar-gutter: stable;
   }
 
+  .grid-row-headers-container,
+  .grid-column-headers-container,
   .grid-row-headers,
   .grid-column-headers {
     -ms-overflow-style: none; /* Internet Explorer 10+ */
@@ -109,6 +112,88 @@ body:not(.chaise-iframe) {
 
   .grid-column-headers {
     overflow-y: hidden !important;
+  }
+
+
+  /* ============ grid borders ================= */
+  $_cell_border_color: #ddd;
+  $_header_border_color: #555;
+  $_header_border: 2px solid $_header_border_color;
+
+
+  // cell borders
+  .grid-cell {
+    // this way the space between each cell would be 2px
+    border: 1px solid $_cell_border_color;
+    &.first-row-cell {
+      border-top: 0;
+    }
+    &.first-column-cell {
+      border-left: 0;
+    }
+  }
+  .margin-cell {
+    &.last-row-cell {
+      border-top: 1px solid $_cell_border_color;
+    }
+    &.last-column-cell {
+      border-left: 1px solid $_cell_border_color;
+    }
+  }
+
+  // border between row-headers
+  .row-header {
+    border: 1px solid $_cell_border_color;
+    border-left: 0;
+    border-right: 0;
+    &.first-row-header {
+      border-top: 0;
+    }
+    &.row-margin {
+      border-bottom: 0;
+    }
+  }
+
+  // border above the whole matrix (defining this on grid-container messes with height logic)
+  .grid-column-headers-container, .grid-row-headers-container {
+    border-top: $_header_border;
+  }
+
+  // border above the grid (below the column-headers)
+  .grid-column-headers-container {
+    border-bottom: $_header_border;
+  }
+
+  .grid-row-headers-horizontal-scroll {
+    // border above the row headers
+    border-top: $_header_border;
+    // accomodate for the borders that we're adding
+    margin-top: -4px;
+  }
+
+  // border to the right of row headers
+  .grid-row-headers-container {
+    border-right: $_header_border;
+  }
+
+  // make sure these buttons are showing the same borders
+  .grid-scroll-left-btn-container, .grid-scroll-right-btn-container {
+    border-top: $_header_border;
+    border-bottom: $_header_border;
+  }
+  .grid-scroll-down-btn-container {
+    border-right: $_header_border;
+  }
+
+  /* ============== grid buttons ================= */
+  .grid-scroll-btn-container {
+    display: flex;
+    position: absolute;
+    padding: 1px;
+    button {
+      background: transparent;
+      color: #4674a7;
+    }
   }
 
   /* ============================================= */
@@ -172,7 +257,6 @@ body:not(.chaise-iframe) {
 
   .grid-cell {
     display: flex;
-    border: 1px solid #ddd;
 
     .cell-link {
       display: flex;
@@ -209,7 +293,7 @@ body:not(.chaise-iframe) {
     flex-direction: column;
     overflow-x: scroll;
     overflow-y: visible;
-    margin-top: 10px;
+    margin-top: 25px;
   }
 
   .legend-bars-container {
@@ -258,4 +342,42 @@ body:not(.chaise-iframe) {
     margin-right: 8px;
   }
 
+  // Make scrollbar invisible in tree column header component
+  .grid-column-headers{
+    & ::-webkit-scrollbar {
+      width: 0;  /* Remove scrollbar space */
+      height: 0;
+      background: transparent;  /* Optional: just make scrollbar invisible */
+    }
+    & div{
+      -ms-overflow-style: none; /* Internet Explorer 10+ */
+      scrollbar-width: none; /* Firefox */
+    }
+  }
+
+  .row-header-scrollbar-container{
+    direction: rtl;
+    display: flex;
+    justify-content: flex-end;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+  }
+
+  .column-header-scrollbar-container{
+    position: absolute;
+    right: 0;
+    width: 15px;
+    overflow-y: clip;
+
+    .chaise-table-right-scroll-wrapper{
+      position: relative;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column-reverse;
+      overflow-y: scroll;
+      overflow-x: scroll;
+      width: 15px;
+    }
+  }
 }

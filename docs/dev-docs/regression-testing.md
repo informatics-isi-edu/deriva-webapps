@@ -91,9 +91,9 @@ A Horizontal bar plot - Go to [this page](https://dev.gudmap.org/deriva-webapps/
 - To test the url_pattern replace the `<user directory>` with testing user's directory. For instance, `/~jchudy/plot-test-data/gudmap.csv`.  
 - Test data files for `gudmap-todate-bar-swapped` are `gudmap.csv` and `gudmap.json` under `Plot` folder of `deriva-ui-test-data` repository (https://github.com/informatics-isi-edu/deriva-ui-test-data).
 - The below given parameters outline the options for utilizing these markdown and templates, along with the corresponding redirection links:
-    `title_markdown_pattern` (Action on click of plot title):   https://dev.isrd.isi.edu/chaise/search?pcid=app/plot&ppid=2j3z23oc1vqv1rab1jax1mx1
+    `title_markdown_pattern` (Action on click of plot title):   https://example.com?pcid=app/plot&ppid=2j3z23oc1vqv1rab1jax1mx1
     `xaxis`: {
-        `title_markdown_pattern` (Action on click of x axis title):   https://dev.isrd.isi.edu/chaise/search?pcid=app/plot&ppid=2j3z23oc1vqv1rab1jax1mx1
+        `title_markdown_pattern` (Action on click of x axis title):   https://example.com?pcid=app/plot&ppid=2j3z23oc1vqv1rab1jax1mx1
     }
     `yaxis`: {
         `title_markdown_pattern`(Action on click of y axis title):  https://dev.gudmap.org/chaise/recordset/#2/Gene_Expression:Specimen
@@ -126,9 +126,9 @@ A vertical bar plot - Go to [this page](https://dev.gudmap.org/deriva-webapps/pl
 - To test the url_pattern replace the `<user directory>` with testing user's directory. For instance, `/~jchudy/plot-test-data/gudmap.csv`.  
 - Test data files for `gudmap-todate-bar-swapped` are `gudmap.csv` and `gudmap.json` under `Plot` folder of `deriva-ui-test-data` repository (https://github.com/informatics-isi-edu/deriva-ui-test-data).
 - The below given parameters outline the options for utilizing these markdown and templates, along with the corresponding redirection links:
-    `title_markdown_pattern` (Action on click of plot title):   https://dev.isrd.isi.edu/chaise/search?pcid=app/plot&ppid=2j3z23oc1vqv1rab1jax1mx1
+    `title_markdown_pattern` (Action on click of plot title):   https://example.com?pcid=app/plot&ppid=2j3z23oc1vqv1rab1jax1mx1
     `xaxis`: {
-        `title_markdown_pattern` (Action on click of x axis title):   https://dev.isrd.isi.edu/chaise/search?pcid=app/plot&ppid=2j3z23oc1vqv1rab1jax1mx1
+        `title_markdown_pattern` (Action on click of x axis title):   https://example.com?pcid=app/plot&ppid=2j3z23oc1vqv1rab1jax1mx1
         `tick_markdown_pattern` (Action on click of x axis tick label):  (As per the tick label clicked) https://dev.gudmap.org/chaise/recordset/#2/RNASeq:Study@sort(RMT::desc::,RID)
     }
     `yaxis`: {
@@ -146,12 +146,12 @@ Go to [this page](https://dev.gudmap.org/deriva-webapps/plot/?config=gudmap-data
 - To test the url_pattern replace the `<user directory>` with testing user's directory. For instance, `/~jchudy/plot-test-data/gudmap.csv`.  
 - Test data files for `gudmap-data-summary-responsive` are `gudmap.csv` and `gudmap.json` under `Plot` folder of `deriva-ui-test-data` repository (https://github.com/informatics-isi-edu/deriva-ui-test-data).
 - The below given parameters outline the options for utilizing these markdown and templates, along with the corresponding redirection links:
-    `title_markdown_pattern` (Action on click of plot title):   https://dev.isrd.isi.edu/chaise/search?pcid=app/plot&ppid=2j3z23oc1vqv1rab1jax1mx1
+    `title_markdown_pattern` (Action on click of plot title):   https://example.com?pcid=app/plot&ppid=2j3z23oc1vqv1rab1jax1mx1
     `xaxis`: {
-        `title_markdown_pattern` (Action on click of x axis title):   https://dev.isrd.isi.edu/chaise/search?pcid=app/plot&ppid=2j3z23oc1vqv1rab1jax1mx1
+        `title_markdown_pattern` (Action on click of x axis title):   https://example.com?pcid=app/plot&ppid=2j3z23oc1vqv1rab1jax1mx1
     }
     `yaxis`: {
-        `title_markdown_pattern`(Action on click of y axis title):  https://dev.isrd.isi.edu/chaise/search?pcid=app/plot&ppid=2j3z23oc1vqv1rab1jax1mx1
+        `title_markdown_pattern`(Action on click of y axis title):  https://example.com?pcid=app/plot&ppid=2j3z23oc1vqv1rab1jax1mx1
         `tick_markdown_pattern` (Action on click of y axis tick label):  (As per the tick label clicked) https://dev.gudmap.org/chaise/recordset/#2/RNASeq:Study@sort(RMT::desc::,RID)
     }
     `legend_markdown_pattern` (Action on click of legend name):  https://dev.gudmap.org/chaise/recordset/#2/Antibody:Antibody_Tests@sort(RID)
@@ -232,11 +232,11 @@ Heatmap plot - Go to [this page](https://dev.gudmap.org/deriva-webapps/plot/?con
 - The below given parameters outline the options for utilizing these markdown and templates, along with the corresponding redirection links:
     `title_markdown_pattern` (Action on click of plot title):   https://dev.gudmap.org/chaise/recordset/#2/RNASeq:Replicate_Expression@sort(ID)
     `xaxis`: {
-        `title_markdown_pattern` (Action on click of x axis title):   https://dev.isrd.isi.edu/chaise/search?pcid=app/plot&ppid=2j3z23oc1vqv1rab1jax1mx1
+        `title_markdown_pattern` (Action on click of x axis title):   https://example.com?pcid=app/plot&ppid=2j3z23oc1vqv1rab1jax1mx1
         `tick_markdown_pattern` (Action on click of x axis tick label):   https://dev.gudmap.org/chaise/recordset/#2/RNASeq:Replicate_Expression@sort(ID)
     }
     `yaxis`: {
-        `title_markdown_pattern`(Action on click of y axis title):  https://dev.isrd.isi.edu/chaise/search?pcid=app/plot&ppid=2j3z23oc1vqv1rab1jax1mx1
+        `title_markdown_pattern`(Action on click of y axis title):  https://example.com?pcid=app/plot&ppid=2j3z23oc1vqv1rab1jax1mx1
         `tick_markdown_pattern` (Action on click of y axis tick label):   https://dev.gudmap.org/chaise/recordset/#2/RNASeq:Replicate_Expression@sort(ID)
     }
     `legend_markdown_pattern` (Action on click of legend name):  https://dev.gudmap.org/chaise/recordset/#2/Antibody:Antibody_Tests@sort(RID)
