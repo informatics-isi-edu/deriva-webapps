@@ -1,18 +1,16 @@
 import '@isrd-isi-edu/deriva-webapps/src/assets/scss/_heatmap.scss';
 
 // hooks
-import { useEffect, useState, useContext, useRef, useLayoutEffect } from 'react';
-
+import { useEffect, useState } from 'react';
+import '/node_modules/react-resizable/css/styles.css';
+import '/node_modules/react-grid-layout/css/styles.css';
 // services
 import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
 import { DataConfig, defaultGridProps } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
-import { convertKeysSnakeToCamel } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
+import { convertKeysSnakeToCamel, validateGridProps } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 import { LayoutConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
-import UserControlsGrid from '@isrd-isi-edu/deriva-webapps/src/components/plot/user-controls-grid';
-import { useControl } from '@isrd-isi-edu/deriva-webapps/src/hooks/control';
+import { setControlData, useControl } from '@isrd-isi-edu/deriva-webapps/src/hooks/control';
 import { Layouts, Responsive, WidthProvider } from 'react-grid-layout';
-import { TemplateParamsContext } from '@isrd-isi-edu/deriva-webapps/src/components/plot/template-params';
-import { Option } from '@isrd-isi-edu/deriva-webapps/src/components/virtualized-select';
 import ChartWithEffect from '@isrd-isi-edu/deriva-webapps/src/components/plot/chart-with-effect';
 import UserControl from '@isrd-isi-edu/deriva-webapps/src/components/plot/user-control';
 
@@ -27,98 +25,136 @@ const PlotControlGrid = ({
   config,
 }: PlotControlGridProps): JSX.Element => {
 
-    const [layout, setLayout] = useState<Layouts>({});
-    const [gridProps, setGridProps] = useState({});
-    const [dataOptions, setDataOptions] = useState<any>(null);
+  const [layout, setLayout] = useState<Layouts>({});
+  const [gridProps, setGridProps] = useState({});
+  const [dataOptions, setDataOptions] = useState<any>(null);
+  const [userControlsExists, setUserControlExists] = useState<boolean>(false);
+  const [userControlsReady, setUserControlReady] = useState<boolean>(false);
+  const [initialParams, setInitialParams] = useState<any>({
+    $url_parameters: {
+      Gene: {
+        data: {
+          NCBI_GeneID: 1, // TODO: deal with default value
+        },
+      },
+      Study: [],
+    },
+    $control_values: {},
+    noData: false
+  });
 
-    const {templateParams} = useContext(TemplateParamsContext);
-
-    useEffect(()=>{
-      if(config){
-        if(config?.layout && Object.values(config?.layout).length>0){
-          const mappedLayoutValues = Object.values(config?.layout)?.map((resLayout: any) => (
-            resLayout.map((item: LayoutConfig) => convertKeysSnakeToCamel(({
-              //i defines the item on which the given layout will be applied
-              i: item?.source_uid,
-              ...item,
-            })))
-          ));
-          setLayout(Object.fromEntries(Object.entries(config.layout).map(([key]: any, index) => [key, mappedLayoutValues[index]])));
+  useEffect(() => {
+    if (config) {
+      if (config?.layout && Object.values(config?.layout).length > 0) {
+        const mappedLayoutValues = Object.values(config?.layout)?.map((resLayout: any) => (
+          resLayout.map((item: LayoutConfig) => convertKeysSnakeToCamel(({
+            //i defines the item on which the given layout will be applied
+            i: item?.source_uid,
+            ...item,
+          })))
+        ));
+        setLayout(Object.fromEntries(Object.entries(config.layout).map(([key]: any, index) => [key, mappedLayoutValues[index]])));
+      } else {
+        const defaultPlotUid = config.plots.map((plot) => {
+          return plot.uid;
+        });
+        const defaultControlUid = config.user_controls?.map((control) => {
+          return control.uid;
+        });
+        let plotsControls:string[];
+        if(defaultControlUid){
+          plotsControls = [...defaultControlUid,...defaultPlotUid];
         }else{
-          const defaultPlotUid = config.plots.map((plot)=>{
-              return plot.uid;
-          });
-          const currColumn = Object.values(defaultGridProps.cols);
-          console.log(currColumn);
-          setLayout(Object.fromEntries(Object.entries(defaultGridProps.breakpoints).map(([key]: any, index) => [key,defaultPlotUid.map((id,i)=>({
-            i: id,
-            x: 0,
-            y: i,
-            w: currColumn[index],
-            h: 15,
-            static: true,  
-          }))])));
+          plotsControls = [...defaultPlotUid];
         }
-        console.log(layout);
-        setGridProps(convertKeysSnakeToCamel(config?.grid_layout_config));
-    //   if(config?.user_controls?.length>0 && dataOptions && dataOptions.length>0){
-    //   config?.user_controls?.map((currentConfig, index) => {
-    //     const currUid = currentConfig?.uid;
-    //     const currValueKey = currentConfig?.request_info.value_key;
-    //     const selectedOption = dataOptions[index].find((option: Option) =>
-    //         option.value === templateParams?.$control_values[currUid]?.values[currValueKey]);
-    //     if (selectedOption) {
-    //       setGlobalUserControlValues((values)=>[...values,selectedOption]);
-    //     }
-    //   });
-    // }    
+        const columnNumber = typeof config?.grid_layout_config?.cols === 'number' && config?.grid_layout_config?.cols;
+        const defaultColumns = config?.grid_layout_config?.cols && !columnNumber &&  Object.values(config?.grid_layout_config?.cols) 
+                              || Object.values(defaultGridProps.cols);
+        const breakpointsApplied = config?.grid_layout_config?.breakpoints || defaultGridProps.breakpoints;
+
+        plotsControls.map((id, ind:number)=> console.log(id, ' - ', ind));
+        setLayout(Object.fromEntries(Object.entries(breakpointsApplied).map(([key]: any, index) => [key, plotsControls.map((id, ind:number) => {
+          return {
+          i: id,
+          x: 0,
+          y: ind===0 || defaultControlUid?.includes(plotsControls[ind-1]) ? ind : ind + 14,
+          w: columnNumber ? (defaultControlUid?.includes(id) ? columnNumber/2 : columnNumber) : 
+          defaultControlUid?.includes(id) ? defaultColumns[index]/2 : defaultColumns[index],
+          h: defaultControlUid?.includes(id) ? 1 : 15,
+          static: true,
+        }})])));
       }
-    },[config,dataOptions]);
-    useControl({
-      userControlConfig: config?.user_controls,
-      setDataOptions,
-    });
-    const defaultGridPropsConverted = convertKeysSnakeToCamel(defaultGridProps);
-    console.log('dataOptions: ', dataOptions,templateParams);
-    console.log(config?.user_controls && config?.user_controls?.length > 0);
-    console.log('plots ',config.plots);
-    if(!config || (config?.user_controls && config?.user_controls?.length > 0  && !(dataOptions && dataOptions.length>0))){
-    return <ChaiseSpinner />;
+    } 
+  }, [config, dataOptions]);
+  useEffect(()=>{
+    if(config?.grid_layout_config){
+      setGridProps(validateGridProps(config?.grid_layout_config));
     }
-    return (
-        <div className='plot-page'>
-        <ResponsiveGridLayout className='global-grid-layout layout'
-          layouts={layout}
-          {...defaultGridPropsConverted}
-          {...gridProps}>
-          {config.plots.map((plotConfig): JSX.Element => {
-              return <div key={plotConfig.uid}>
-                <ChartWithEffect config={plotConfig}/>
-                </div>;
-          })}          
-          {config?.user_controls && config?.user_controls?.length > 0 ? 
-          dataOptions?.length>0 && config?.user_controls?.map((currentConfig, index) => (
-              <div key={currentConfig.uid} style={{zIndex: 1}}>
-              <UserControl 
-              controlConfig={currentConfig} 
-              controlOptions={dataOptions[index]} />
-              </div>
-          )): null}
-        </ResponsiveGridLayout>
-        {/* <ResponsiveGridLayout
-        className='layout'
-        layouts={{lg: [{ x: 0, y: 0, w: 1, h: 2, i: '1', static: true }, 
-        { x: 1, y: 0, w: 2, h: 1, i: '2', static: true },
-         { x: 3, y: 0, w: 2, h: 1, i: '3', static: true }]}}
-        breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-        cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
-      >
-        <div key="1" style={{backgroundColor: 'beige'}}>1</div>
-        <div key="2" style={{backgroundColor: 'pink'}}>2</div>
-        <div key="3" style={{backgroundColor: 'blue'}}>3</div>
-      </ResponsiveGridLayout> */}
-        </div>
-      );
+  },[config])
+
+  useEffect(() => {
+    let userControlFlag = false;
+    config.plots?.map((plotConfig) => {
+      if (plotConfig?.user_controls?.length > 0) {
+        userControlFlag = true;
+        setControlData(plotConfig?.user_controls, setInitialParams);
+      }
+    });
+    if(config?.user_controls?.length>0){
+        userControlFlag = true;
+        setControlData(config.user_controls, setInitialParams);
+    }
+    setUserControlExists(userControlFlag);
+    if (!userControlFlag) {
+      setUserControlReady(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (userControlsExists && initialParams?.$control_values) {
+      const controlValuesKeys = Object.keys(initialParams?.$control_values);
+      if (controlValuesKeys.length > 0) {
+        setUserControlReady(true);
+      }
+    }
+  }, [initialParams]);
+
+  useControl({
+    userControlConfig: config?.user_controls,
+    setDataOptions,
+  });
+
+  const defaultGridPropsConverted = convertKeysSnakeToCamel(defaultGridProps);
+  if (!config ||
+    (config?.user_controls && config?.user_controls?.length > 0 && !(dataOptions && dataOptions.length > 0)) ||
+    !userControlsReady
+    ) {
+    return <ChaiseSpinner />;
+  }
+  return (
+    <div className='plot-page'>
+      <div className='grid-container'>
+      <ResponsiveGridLayout className='global-grid-layout layout'
+        layouts={layout}
+        {...defaultGridPropsConverted}
+        {...gridProps}>
+        {config.plots.map((plotConfig): JSX.Element => {
+          return <div key={plotConfig.uid}>
+            <ChartWithEffect config={plotConfig} initialParams={initialParams} />
+          </div>;
+        })}
+        {config?.user_controls && config?.user_controls?.length > 0 ?
+          dataOptions?.length > 0 && config?.user_controls?.map((currentConfig, index) => (
+            <div key={currentConfig.uid} style={{ zIndex: 1 }}>
+              <UserControl
+                controlConfig={currentConfig}
+                controlOptions={dataOptions[index]} />
+            </div>
+          )) : null}
+      </ResponsiveGridLayout>
+      </div>
+    </div>
+  );
 }
 
 export default PlotControlGrid;

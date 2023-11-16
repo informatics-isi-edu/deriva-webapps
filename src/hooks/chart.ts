@@ -35,6 +35,7 @@ import {
   screenWidthThreshold,
   plotAreaFraction,
   validFileTypes,
+  UserControlConfig,
 
 } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 import {
@@ -48,7 +49,7 @@ import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
 import { ChaiseAlertType } from '@isrd-isi-edu/chaise/src/providers/alerts';
 import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
 import Papa from 'papaparse';
-import { useControl } from '@isrd-isi-edu/deriva-webapps/src/hooks/control';
+import { setControlData, useControl } from '@isrd-isi-edu/deriva-webapps/src/hooks/control';
 import { TemplateParamsContext } from '@isrd-isi-edu/deriva-webapps/src/components/plot/template-params';
 
 /**
@@ -217,7 +218,7 @@ export const usePlotConfig = (plotConfigs: PlotConfig) => {
  * @param plot configuration object
  * @returns all data to be used by plot
  */
-export const useChartData = (plot: Plot) => {
+export const useChartData = (plot: Plot, initialParams: PlotTemplateParams) => {
   const isFirstRender = useIsFirstRender();
   const [data, setData] = useState<any | null>(null);
   const [dataOptions, setDataOptions] = useState<any>(null);
@@ -244,20 +245,6 @@ export const useChartData = (plot: Plot) => {
    *    - gene and study selectors touch these params to modify values used in API requests
    */
   const {templateParams,setTemplateParams, selectorOptionChanged, setSelectorOptionChanged} = useContext(TemplateParamsContext);
-  useEffect(()=>{
-    setTemplateParams({
-      $url_parameters: {
-        Gene: {
-          data: {
-            NCBI_GeneID: getQueryParam(windowRef.location.href, 'NCBI_GeneID') || 1, // TODO: deal with default value
-          },
-        },
-        Study: [],
-      },
-      $control_values: {},
-      noData: false, // TODO: remove hack when empty selectedRows are fixed
-    })
-  },[]);
 
   useControl({
     userControlConfig: plot?.user_controls,
@@ -265,31 +252,6 @@ export const useChartData = (plot: Plot) => {
     setControlsReady,
   });
 
-  // useEffect(()=>{
-  //   if(plot?.user_controls && plot?.user_controls?.length>0){
-  //     console.log(dataOptions, ' data data');
-  //     setControlsReady(dataOptions && dataOptions.length>0);
-  //   }else{
-  //     setControlsReady(true);
-  //   }
-  // },[plot?.user_controls, dataOptions]);
-
-console.log(controlsReady, dataOptions);
-  // const templateParams: PlotTemplateParams = useMemo(
-  //   () => ({
-  //     $url_parameters: {
-  //       Gene: {
-  //         data: {
-  //           NCBI_GeneID: getQueryParam(windowRef.location.href, 'NCBI_GeneID') || 1, // TODO: deal with default value
-  //         },
-  //       },
-  //       Study: [],
-  //     },
-  //     $control_values: {},
-  //     noData: false, // TODO: remove hack when empty selectedRows are fixed
-  //   }),
-  //   []
-  // );
   const {
     selectData,
     handleCloseModal,
@@ -305,10 +267,8 @@ console.log(controlsReady, dataOptions);
     setIsModalOpen,
   });
 
-  console.log('here in chart ',plot);
-
   /**
-   * It should be called once to initialize the configuration data for the user controls into the state variable
+  * It should be called once to initialize the configuration data for the user controls into the state variable
   */
   useEffect(() => {
     setUserControlData({
@@ -399,7 +359,7 @@ console.log(controlsReady, dataOptions);
   /**
    * Fetches data from the plot traces in the plot config and returns the data
    */
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (useInitialParams: boolean) => {
     // console.log('fetchData occurred');
     // Fulfill promise for plot
     // NOTE: If 1 trace request fails, all requests fail. Should this be addressed?
@@ -412,8 +372,7 @@ console.log(controlsReady, dataOptions);
         if (trace.url_pattern || trace.queryPattern) {
           //To avoid the lint error, passing empty string if both are not present'
           const pattern = trace.url_pattern || trace.queryPattern || '';
-          const { uri, headers } = getPatternUri(pattern, templateParams);
-          console.log(pattern, templateParams);
+          const { uri, headers } = getPatternUri(pattern, useInitialParams ? initialParams: templateParams);
           return ConfigService.http.get(uri, { headers });
         }
         else if (trace.uri) {
@@ -430,6 +389,7 @@ console.log(controlsReady, dataOptions);
   // since we're using strict mode, the useEffect is getting called twice in dev mode
   // this is to guard against it
   const setupStarted = useRef<boolean>(false);
+
     
   // Effect to fetch initial data
   useEffect(() => {
@@ -437,14 +397,12 @@ console.log(controlsReady, dataOptions);
     setupStarted.current = true;
 
     const fetchInitData = async () => {
-      console.log('fetch initial occurred');
       setIsInitLoading(true);
       const allQueryParams = getQueryParams(window.location.href);
 
       //push query parameters into templating environment
       Object.keys(allQueryParams).forEach((key: string) => 
         setTemplateParams((prevTemplateParams)=>{
-          console.log(typeof prevTemplateParams);
           return {
             ...prevTemplateParams,
             $url_parameters: {
@@ -571,18 +529,20 @@ console.log(controlsReady, dataOptions);
         const initialSelectData = await fetchSelectData(selectGrid); // fetch the data needed for the select grid
         setSelectData(initialSelectData) // set the data for the select grid
       }
-      const plotData = await fetchData(); // fetch the data for the plot
+      const plotData = await fetchData(true); // fetch the data for the plot
       setData(plotData); // set the data for the plot
       setIsInitLoading(false); // set loading to false
     };
 
-    if (isFirstRender || controlsReady) {
+    if (isFirstRender) {
       // only run on first render
-      try {
-        fetchInitData();
-      } catch (error) {
-        dispatchError({ error });
-      }
+        // setControlData(plot?.user_controls, setTemplateParams).then(()=>{
+          try {
+          fetchInitData();
+        }catch (error) {
+          dispatchError({ error });
+        }
+      // });
     }
   }, [
     plot,
@@ -602,7 +562,7 @@ console.log(controlsReady, dataOptions);
       console.log('fetch occurred');
       setIsDataLoading(true);
       setIsParseLoading(true);
-      const plotData = await fetchData();
+      const plotData = await fetchData(false);
       setData(plotData);
       setIsDataLoading(false);
       setIsFetchSelected(false);

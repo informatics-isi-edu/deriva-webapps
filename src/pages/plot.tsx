@@ -58,8 +58,6 @@ const PlotApp = (): JSX.Element => {
   }
 
   return <PlotControlGrid config={plotAppProps} />;
-
-  
 };
 
 const root = createRoot(document.getElementById(ID_NAMES.APP_ROOT) as HTMLElement);

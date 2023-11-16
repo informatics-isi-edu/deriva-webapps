@@ -1,10 +1,9 @@
-import { useEffect, useContext } from 'react';
+import { useEffect } from 'react';
 
 import { UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 import { getQueryParam } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 import { windowRef } from '@isrd-isi-edu/chaise/src/utils/window-ref';
 import { Option } from '@isrd-isi-edu/deriva-webapps/src/components/virtualized-select';
-import { TemplateParamsContext } from '@isrd-isi-edu/deriva-webapps/src/components/plot/template-params';
 
 type UserControlGridProps = {
     /**
@@ -41,7 +40,6 @@ const getDataOptions = async (userControlGridObject: UserControlGridProps) => {
         });
         allSelectorDataOptions.push(dropdownOptions);
     })
-    console.log('in dataOpt setup ',allSelectorDataOptions );
     return allSelectorDataOptions;
     // }
 }
@@ -53,19 +51,12 @@ const getDataOptions = async (userControlGridObject: UserControlGridProps) => {
  * @param configData Selector configuration, template params and setDataOptions state method
  * @returns modified configData.templateParams
  */
-const setControlData = (configData: UserControlGridProps, setTemplateParams: any, setControlsReady?: any) => {
-    console.log('Now setup use control');
-    configData?.userControlConfig?.map((currentConfig: UserControlConfig) => {
+export const setControlData = (configData: UserControlConfig[], setTemplateParams: any) => {
+    configData?.map((currentConfig: UserControlConfig) => {
         const paramKey = currentConfig?.url_param_key;
         const uid = currentConfig?.uid;
         const valueKey = currentConfig?.request_info?.value_key;
         const defaultValue = currentConfig?.request_info?.default_value;
-        // configData.templateParams.$control_values = {
-        //     ...configData.templateParams.$control_values,
-        //     [uid]: {
-        //         values: {},
-        //     },
-        // };
         if (paramKey) {
             const paramValue = getQueryParam(windowRef.location.href, paramKey);
             if (paramValue) {
@@ -98,11 +89,8 @@ const setControlData = (configData: UserControlGridProps, setTemplateParams: any
                     }
                 }
             });
-        }
+        } 
     })
-    if(setControlsReady){
-    setControlsReady(true);
-    }
 }
 
 /**
@@ -111,10 +99,8 @@ const setControlData = (configData: UserControlGridProps, setTemplateParams: any
  * @param configData Selector configuration, template params and setDataOptions state method
  */
 export const useControl = (configData: UserControlGridProps) => {
-    const {setTemplateParams} = useContext(TemplateParamsContext);
     useEffect(() => {
         if(Object.values(configData).length>0){
-        setControlData(configData, setTemplateParams, configData?.setControlsReady);
         getDataOptions(configData).then((allDataOptions) => {
             configData.setDataOptions(allDataOptions);
         });

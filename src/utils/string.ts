@@ -1,5 +1,6 @@
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
+import { defaultGridProps } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 
 /**
  * Appends and returns the pcid and ppid for the given link
@@ -307,5 +308,51 @@ export const convertKeysSnakeToCamel = (configObject: any) => {
       }
     }
     return newObj;
+  }
+}
+
+
+/**
+ * Converts snake_case keys of an object to camel case
+ * @param configObject an object with snake case keys
+ * @returns object with the camel case keys
+ */
+export const validateGridProps = (configObject: any) => {
+  const convertedKeyProps = convertKeysSnakeToCamel(configObject);
+  const breakpoints = convertedKeyProps?.breakpoints || defaultGridProps.breakpoints;
+  const regenObject:any={};
+  if (typeof convertedKeyProps === 'object') {
+  Object.entries(convertedKeyProps).map(([key, val]) => {
+    switch (key) {
+      case 'cols':
+        if (typeof val === 'number') {
+          const colObj = Object.fromEntries(
+            Object.entries(breakpoints).map(([key]) => [key, val])
+          );
+          regenObject[key]=colObj;
+        }
+        break;
+      case 'margin':
+        if (Array.isArray(val)) {
+          const marginObj = Object.fromEntries(
+            Object.entries(breakpoints).map(([key]) => [key, val])
+          );
+          regenObject[key]=marginObj;
+        }
+        break;
+      case 'containerPadding':
+          if (Array.isArray(val)) {
+            const marginObj = Object.fromEntries(
+              Object.entries(breakpoints).map(([key]) => [key, val])
+            );
+            regenObject[key]=marginObj;
+          }
+          break;
+      default:
+        regenObject[key]=val;
+        break;
+    }
+  });
+  return regenObject;
   }
 }

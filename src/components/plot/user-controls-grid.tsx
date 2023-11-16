@@ -1,10 +1,10 @@
-import { useContext } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { Option } from '@isrd-isi-edu/deriva-webapps/src/components/virtualized-select';
 import { Responsive, WidthProvider, ResponsiveProps as ResponsiveGridProps, Layouts } from 'react-grid-layout';
 import '/node_modules/react-resizable/css/styles.css';
 import '/node_modules/react-grid-layout/css/styles.css';
-import { UserControlConfig, LayoutConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
-import { convertKeysSnakeToCamel } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
+import { UserControlConfig, LayoutConfig, defaultGridProps } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { convertKeysSnakeToCamel, validateGridProps } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 import UserControl from '@isrd-isi-edu/deriva-webapps/src/components/plot/user-control';
 import { TemplateParamsContext } from '@isrd-isi-edu/deriva-webapps/src/components/plot/template-params';
 
@@ -26,6 +26,8 @@ type UserControlsGridProps = {
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
 const UserControlsGrid = ({ userControlData, selectorOptions, width }: UserControlsGridProps): JSX.Element => {
+    const [layout, setLayout] = useState<Layouts>({});
+    const [gridProps, setGridProps] = useState<ResponsiveGridProps>({});  
     const uid: string[] = [];
     const valueKey: string[] = [];
     const selectorValue: Option[] = [];
@@ -42,20 +44,46 @@ const UserControlsGrid = ({ userControlData, selectorOptions, width }: UserContr
             selectorValue.push(selectedOption);
         }
     });
-    const gridProps = convertKeysSnakeToCamel(userControlData.gridConfig);
-    //Convert snake_case keys inside different selector's layout to camel case
-    const mappedLayoutValues = Object.values(userControlData.layout)?.map((resLayout: any) => (
-        resLayout.map((item: LayoutConfig) => convertKeysSnakeToCamel(({
-            //i defines the item on which the given layout will be applied
-            i: item?.source_uid,
-            ...item,
-        })))
-    ));
-    const layoutObj = Object.fromEntries(Object.entries(userControlData.layout).map(([key], index) => [key, mappedLayoutValues[index]]));
+    useEffect(() => {
+        if (userControlData.gridConfig) {
+          if (userControlData?.layout && Object.values(userControlData.layout).length > 0) {
+            const mappedLayoutValues = Object.values(userControlData?.layout)?.map((resLayout: any) => (
+              resLayout.map((item: LayoutConfig) => convertKeysSnakeToCamel(({
+                //i defines the item on which the given layout will be applied
+                i: item?.source_uid,
+                ...item,
+              })))
+            ));
+            setLayout(Object.fromEntries(Object.entries(userControlData.layout).map(([key]: any, index) => [key, mappedLayoutValues[index]])));
+          } else {
+            const defaultControlUid = userControlData.userControlConfig.map((control) => {
+              return control.uid;
+            });
+            const columnNumber = typeof userControlData.gridConfig.cols === 'number' && userControlData.gridConfig.cols;
+        const defaultColumns = userControlData.gridConfig.cols && !columnNumber &&  Object.values(userControlData.gridConfig.cols) 
+                              || Object.values(defaultGridProps.cols);
+            const breakpointsApplied = userControlData.gridConfig?.breakpoints || defaultGridProps.breakpoints;
+
+            setLayout(Object.fromEntries(Object.entries(breakpointsApplied).map(([key]: any, index) => [key, defaultControlUid.map((id, ind) => ({
+              i: id,
+              x: ind%2===0 ? 0 : ind + (columnNumber ? columnNumber/2 : defaultColumns[index]/2),
+              y: Math.floor(ind / 2),
+              w: columnNumber ? columnNumber/2 : defaultColumns[index]/2,
+              h: 1,
+              static: true,
+            }))])));
+          }
+        }
+      }, [userControlData.gridConfig, userControlData.layout]);
+      useEffect(()=>{
+        if(userControlData.gridConfig){
+          setGridProps(validateGridProps(userControlData.gridConfig));
+        }
+      },[userControlData.gridConfig])
     return (
         <div className='selectors-grid' style={{ display: 'flex', flex: '0 1 0%', width: gridProps.width || width }}>
             <ResponsiveGridLayout className='grid-layout layout'
-                layouts={layoutObj}
+                layouts={layout}
                 {...gridProps}
             >
                 {userControlData.userControlConfig?.map((currentConfig, index) => (

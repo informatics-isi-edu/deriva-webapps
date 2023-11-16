@@ -1,32 +1,44 @@
-import { useRef, useState, useLayoutEffect, forwardRef,useEffect, useContext, useCallback, LegacyRef, SetStateAction } from 'react';
+import { useRef, useState,useEffect, useContext, useCallback } from 'react';
 
 
 import { Plot, plotAreaFraction } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 
 import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
-import { useChartData } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
+import { PlotTemplateParams, useChartData } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
 
-// import Chart from '@isrd-isi-edu/deriva-webapps/src/components/plot/chart';
 import SelectGrid from '@isrd-isi-edu/deriva-webapps/src/components/plot/select-grid';
 import PlotlyChart from '@isrd-isi-edu/deriva-webapps/src/components/plot/plotly-chart';
 import RecordsetModal from '@isrd-isi-edu/chaise/src/components/modals/recordset-modal';
 import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
 import { SelectedRow } from '@isrd-isi-edu/chaise/src/models/recordset';
 import UserControlsGrid from '@isrd-isi-edu/deriva-webapps/src/components/plot/user-controls-grid';
-import { useControl } from '@isrd-isi-edu/deriva-webapps/src/hooks/control';
 import { TemplateParamsContext } from '@isrd-isi-edu/deriva-webapps/src/components/plot/template-params';
 import { getQueryParam } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
 
 export type ChartWithEffectProps = {
   config: Plot;
+  initialParams: PlotTemplateParams;
 };
 
 // NOTE: Currently only used for violin plots
-const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
+const ChartWithEffect = ({ config, initialParams }: ChartWithEffectProps): JSX.Element => {
   const plotlyRef = useRef<any>(null);
-  // const ref = useRef<HTMLDivElement>(null);
   const [parentWidth, setParentWidth] = useState(0);
+  const [updateInitialParams] = useState({
+    ...initialParams,
+    $url_parameters: {
+      ...initialParams.$url_parameters,
+    Gene: {
+      data: {
+        NCBI_GeneID: getQueryParam(windowRef.location.href, 'NCBI_GeneID') || 1, // TODO: deal with default value
+      },
+    },
+    Study: [],
+    }
+  });
+
+  const {setTemplateParams} = useContext(TemplateParamsContext);
 
   const ref = useCallback((node: any) => {
     if (node !== null) {
@@ -64,7 +76,9 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
     height: Math.max(minHeight, maxHeight), // set width to min of VP or given Layout
   };
 
-  console.log(parentWidth);
+  useEffect(()=>{
+    setTemplateParams(updateInitialParams);
+  },[]);
 
   /**
    * Data that goes into building the chart
@@ -81,7 +95,7 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
     isInitLoading,
     handleCloseModal,
     handleSubmitModal,
-  } = useChartData(config);
+  } = useChartData(config,updateInitialParams);
 
   if (!parsedData || isInitLoading) {
     return <ChaiseSpinner />;
@@ -172,7 +186,6 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
       modalProps.recordsetProps.initialSelectedRows = selectData[i][j].selectedRows;
     }
   }
-  console.log(config);
   return (
     <div className='chart-container'>
       <div className='chart' ref={ref}>
