@@ -25,6 +25,7 @@ export type ChartWithEffectProps = {
 const ChartWithEffect = ({ config, initialParams }: ChartWithEffectProps): JSX.Element => {
   const plotlyRef = useRef<any>(null);
   const [parentWidth, setParentWidth] = useState(0);
+  //Setting initial template params
   const [updateInitialParams] = useState({
     ...initialParams,
     $url_parameters: {
@@ -76,6 +77,7 @@ const ChartWithEffect = ({ config, initialParams }: ChartWithEffectProps): JSX.E
     height: Math.max(minHeight, maxHeight), // set width to min of VP or given Layout
   };
 
+  //setting initial params in context object
   useEffect(()=>{
     setTemplateParams(updateInitialParams);
   },[]);

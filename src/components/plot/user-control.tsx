@@ -43,9 +43,6 @@ const handleChange = (option: Option, userControlConfig: UserControlConfig, setT
                 }
             }
         })
-        // templateParams.$control_values[uid].values = {
-        //     [valueKey]: option.value, //else use default value
-        // };
         return option;
     }
 };

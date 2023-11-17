@@ -20,7 +20,11 @@ export type PlotControlGridProps = {
   config: DataConfig,
 };
 const ResponsiveGridLayout = WidthProvider(Responsive);
-
+/**
+ * 
+ * @param config config object for the given plot
+ * @returns 
+ */
 const PlotControlGrid = ({
   config,
 }: PlotControlGridProps): JSX.Element => {
@@ -45,6 +49,7 @@ const PlotControlGrid = ({
 
   useEffect(() => {
     if (config) {
+      //If layout is configured use the given layout
       if (config?.layout && Object.values(config?.layout).length > 0) {
         const mappedLayoutValues = Object.values(config?.layout)?.map((resLayout: any) => (
           resLayout.map((item: LayoutConfig) => convertKeysSnakeToCamel(({
@@ -54,25 +59,22 @@ const PlotControlGrid = ({
           })))
         ));
         setLayout(Object.fromEntries(Object.entries(config.layout).map(([key]: any, index) => [key, mappedLayoutValues[index]])));
-      } else {
+      }
+      //Otherwise set the default layout to display controls and plots 
+      else {
         const defaultPlotUid = config.plots.map((plot) => {
           return plot.uid;
         });
         const defaultControlUid = config.user_controls?.map((control) => {
           return control.uid;
         });
-        let plotsControls:string[];
-        if(defaultControlUid){
-          plotsControls = [...defaultControlUid,...defaultPlotUid];
-        }else{
-          plotsControls = [...defaultPlotUid];
-        }
+        
+        const plotsControls = defaultControlUid ? [...defaultControlUid,...defaultPlotUid] : [...defaultPlotUid];
         const columnNumber = typeof config?.grid_layout_config?.cols === 'number' && config?.grid_layout_config?.cols;
         const defaultColumns = config?.grid_layout_config?.cols && !columnNumber &&  Object.values(config?.grid_layout_config?.cols) 
                               || Object.values(defaultGridProps.cols);
         const breakpointsApplied = config?.grid_layout_config?.breakpoints || defaultGridProps.breakpoints;
 
-        plotsControls.map((id, ind:number)=> console.log(id, ' - ', ind));
         setLayout(Object.fromEntries(Object.entries(breakpointsApplied).map(([key]: any, index) => [key, plotsControls.map((id, ind:number) => {
           return {
           i: id,
@@ -86,12 +88,15 @@ const PlotControlGrid = ({
       }
     } 
   }, [config, dataOptions]);
+
+  //Validate (Transform the keys to the correct case, adjust the values to suit ResponsiveGridLayout) and configure the grid layout props
   useEffect(()=>{
     if(config?.grid_layout_config){
       setGridProps(validateGridProps(config?.grid_layout_config));
     }
   },[config])
 
+  //set the controls data into the template params with the setControlData function
   useEffect(() => {
     let userControlFlag = false;
     config.plots?.map((plotConfig) => {
@@ -105,11 +110,13 @@ const PlotControlGrid = ({
         setControlData(config.user_controls, setInitialParams);
     }
     setUserControlExists(userControlFlag);
+    //If no controls are present we don't want to wait
     if (!userControlFlag) {
       setUserControlReady(true);
     }
   }, []);
 
+  //Set userControlsReady to true only if initial template params are updated with control values object.
   useEffect(() => {
     if (userControlsExists && initialParams?.$control_values) {
       const controlValuesKeys = Object.keys(initialParams?.$control_values);
@@ -119,12 +126,14 @@ const PlotControlGrid = ({
     }
   }, [initialParams]);
 
+  //Set dataoptions for common controls with useControl hook
   useControl({
     userControlConfig: config?.user_controls,
     setDataOptions,
   });
 
   const defaultGridPropsConverted = convertKeysSnakeToCamel(defaultGridProps);
+
   if (!config ||
     (config?.user_controls && config?.user_controls?.length > 0 && !(dataOptions && dataOptions.length > 0)) ||
     !userControlsReady

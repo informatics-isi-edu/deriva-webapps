@@ -44,6 +44,8 @@ const UserControlsGrid = ({ userControlData, selectorOptions, width }: UserContr
             selectorValue.push(selectedOption);
         }
     });
+
+    //set layout and grid props for local react grid
     useEffect(() => {
         if (userControlData.gridConfig) {
           if (userControlData?.layout && Object.values(userControlData.layout).length > 0) {
@@ -60,7 +62,7 @@ const UserControlsGrid = ({ userControlData, selectorOptions, width }: UserContr
               return control.uid;
             });
             const columnNumber = typeof userControlData.gridConfig.cols === 'number' && userControlData.gridConfig.cols;
-        const defaultColumns = userControlData.gridConfig.cols && !columnNumber &&  Object.values(userControlData.gridConfig.cols) 
+            const defaultColumns = userControlData.gridConfig.cols && !columnNumber &&  Object.values(userControlData.gridConfig.cols) 
                               || Object.values(defaultGridProps.cols);
             const breakpointsApplied = userControlData.gridConfig?.breakpoints || defaultGridProps.breakpoints;
 
@@ -75,7 +77,9 @@ const UserControlsGrid = ({ userControlData, selectorOptions, width }: UserContr
           }
         }
       }, [userControlData.gridConfig, userControlData.layout]);
-      useEffect(()=>{
+
+    //Validate (Transform the keys to the correct case, adjust the values to suit ResponsiveGridLayout) and configure the grid layout props
+    useEffect(()=>{
         if(userControlData.gridConfig){
           setGridProps(validateGridProps(userControlData.gridConfig));
         }

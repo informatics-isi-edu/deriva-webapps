@@ -240,6 +240,7 @@ export const useChartData = (plot: Plot, initialParams: PlotTemplateParams) => {
    */
   const {templateParams,setTemplateParams, selectorOptionChanged, setSelectorOptionChanged} = useContext(TemplateParamsContext);
 
+  // To set the dataoptions for the dropdown controllers
   useControl({
     userControlConfig: plot?.user_controls,
     setDataOptions,
@@ -527,13 +528,11 @@ export const useChartData = (plot: Plot, initialParams: PlotTemplateParams) => {
 
     if (isFirstRender) {
       // only run on first render
-        // setControlData(plot?.user_controls, setTemplateParams).then(()=>{
           try {
           fetchInitData();
         }catch (error) {
           dispatchError({ error });
         }
-      // });
     }
   }, [
     plot,

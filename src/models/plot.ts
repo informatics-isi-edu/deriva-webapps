@@ -221,6 +221,7 @@ export const screenWidthThreshold = 1000;
 //Valid file types for url_pattern
 export const validFileTypes = ['csv','json'];
 
+//Default grid layout object to supply to the ResponsiveGridLayout if no grid configuration is provided in the config file
 export const defaultGridProps = {
   auto_size: true,
   breakpoints: { lg: 1200, md: 996, sm: 768, xs: 480 },
