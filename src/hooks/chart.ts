@@ -131,10 +131,6 @@ export type PlotTemplateParams = {
   $control_values: {
     [paramKey: string]: any;
   };
-  /**
-   * No data flag
-   */
-  noData: boolean;
 };
 
 export type inputParamsType = {
@@ -217,14 +213,17 @@ export const useChartData = (plot: Plot) => {
   const [isInitLoading, setIsInitLoading] = useState<boolean>(false);
   const [isDataLoading, setIsDataLoading] = useState<boolean>(false);
   const [isParseLoading, setIsParseLoading] = useState<boolean>(false);
-  const [selectorOptionChanged, setSelectorOptionChanged] = useState<boolean>(false);
   const [controlTemplateVariablesInitialized, setControlTemplateVariablesInitialized] = useState<boolean>(false);
 
   const { dispatchError, errors } = useError();
   const alertFunctions = useAlert();
   const { width = 0, height = 0 } = useWindowSize();
 
-  const { templateParams, setTemplateParams } = usePlot();
+  const { 
+    noData, setNoData,
+    selectorOptionChanged, setSelectorOptionChanged, 
+    templateParams, setTemplateParams 
+  } = usePlot();
 
   const {
     selectData,
@@ -391,7 +390,7 @@ export const useChartData = (plot: Plot) => {
     );
 
     return plotResponses.map((response: Response) => response.data); // unpack data
-  }, [plot, templateParams, selectorOptionChanged]);
+  }, [plot, templateParams]);
 
   // since we're using strict mode, the useEffect is getting called twice in dev mode
   // this is to guard against it
@@ -399,7 +398,7 @@ export const useChartData = (plot: Plot) => {
 
   // Effect to fetch initial data
   useEffect(() => {
-    if (setupStarted.current && controlTemplateVariablesInitialized) return;
+    if (setupStarted.current && !controlTemplateVariablesInitialized) return;
     setupStarted.current = true;
 
     const fetchInitData = async () => {
@@ -476,6 +475,7 @@ export const useChartData = (plot: Plot) => {
       const plotData = await fetchData(); // fetch the data for the plot
       setData(plotData); // set the data for the plot
       setIsInitLoading(false); // set loading to false
+      setSelectorOptionChanged(false);
     };
 
     if (isFirstRender) {
@@ -670,6 +670,7 @@ export const useChartData = (plot: Plot) => {
    */
   const updatePlotlyLayout = (
     result: any,
+    noData: boolean | null,
     additionalLayout?: any
   ): void => {
     // title
@@ -678,8 +679,7 @@ export const useChartData = (plot: Plot) => {
       // use the title_display_markdown_pattern if it exists
       title = createLink(plot.config.title_display_markdown_pattern, templateParams);
     }
-    if (templateParams.noData) {
-      // TODO: remove this hack
+    if (noData) {
       title = 'No Data';
     }
     if (title) result.layout.title = title;
@@ -816,7 +816,7 @@ export const useChartData = (plot: Plot) => {
   const getHeatmapLayoutParams = (input: inputParamsType, longestXTick: number, longestYTick: number, lengthY: number) => {
     let height;
     let yTickAngle;
-    const tMargin = 25;
+    const tMargin = 0;
     let rMargin, bMargin, lMargin;
     if (longestXTick <= 18) {
       height = longestXTick * 9 + lengthY * 10 + 50;
@@ -1354,7 +1354,7 @@ export const useChartData = (plot: Plot) => {
     data.meanline = { visible: true };
     data.line = { width: 1 }
 
-    if (templateParams.noData) return;
+    if (noData) return;
 
     const selectDataArray = flatten2DArray(selectData);
     let yScale: any = null;
@@ -1612,24 +1612,22 @@ export const useChartData = (plot: Plot) => {
 
           plotlyData.push(plotData);
         }
-      } else {
-        // Otherwise if the type of file is other than csv/json, show an alert warning
-        // If no other alerts are shown then show this alert
-        if (!showAlert && !alertFunctions.alerts.some((alert) => alert.message.includes(alertMsg + invalidDataAlert))) {
-          alertFunctions.addAlert(alertMsg + invalidDataAlert, ChaiseAlertType.WARNING);
-        }
-        // return empty data
-        return {};
-      }
+      } 
+      // NOTE: if data.length === 0, do nothing (don't push any data into plotlyData
+      //       plot title will be set to "No Data" after this mapping function
     });
 
     result.data = plotlyData;
-    if (result.data?.every((obj: any) => Object.keys(obj)?.length === 0)) {
-      setTemplateParams({ ...templateParams, noData: true })
-    }
+    // check each object in data to verify there are keys returned on them
+    // returns true if objects in data[] are empty or data[] is empty
+    const tempNoData = result.data?.every((obj: any) => Object.keys(obj)?.length === 0)
+    setNoData(tempNoData);
 
     updatePlotlyConfig(result); // update the config
-    updatePlotlyLayout(result, additionalLayout); // update the layout
+    updatePlotlyLayout(result, tempNoData, additionalLayout); // update the layout
+
+    if (tempNoData) return;
+
     // If hovertemplate_display_pattern is not configured, set default hover text for plot
     if (!hovertemplate_display_pattern) {
       defaultHoverTemplateDisplay(result); // default hover template
@@ -1663,7 +1661,6 @@ export const useChartData = (plot: Plot) => {
     errors,
     handleCloseModal,
     handleSubmitModal,
-    setSelectorOptionChanged,
     controlTemplateVariablesInitialized
   };
 };

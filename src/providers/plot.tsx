@@ -1,10 +1,13 @@
 // hooks
 import { createContext, useEffect, useMemo, useRef, useState } from 'react';
 import { PlotTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
-import { useUserControls } from '@isrd-isi-edu/deriva-webapps/src/hooks/control';
 
 
 export const PlotContext = createContext<{
+  noData: boolean | null;
+  setNoData: Function;
+  selectorOptionChanged: boolean;
+  setSelectorOptionChanged: Function;
   templateParams: PlotTemplateParams;
   setTemplateParams: Function;
 } | null>(null);
@@ -17,11 +20,12 @@ export default function PlotProvider({
   children
 }: PlotProviderProps): JSX.Element {
 
+  const [noData, setNoData] = useState<boolean | null>(null);
+  const [selectorOptionChanged, setSelectorOptionChanged] = useState<boolean>(false);
   const [templateParams, setTemplateParams] = useState<PlotTemplateParams>({
     $url_parameters: {},
-    $control_values: {},
-    noData: false, // TODO: remove hack when empty selectedRows are fixed
-  })
+    $control_values: {}
+  });
 
   // since we're using strict mode, the useEffect is getting called twice in dev mode
   // this is to guard against it
@@ -36,11 +40,15 @@ export default function PlotProvider({
 
   const providerValue = useMemo(() => {
     return {
+      noData,
+      setNoData,
+      selectorOptionChanged,
+      setSelectorOptionChanged,
       templateParams,
       setTemplateParams
     };
   }, [
-    templateParams
+    noData, selectorOptionChanged, templateParams
   ]);
 
   return (

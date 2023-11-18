@@ -64,7 +64,6 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
     isInitLoading,
     handleCloseModal,
     handleSubmitModal,
-    setSelectorOptionChanged,
     controlTemplateVariablesInitialized
   } = useChartData(config);
 
@@ -163,8 +162,7 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
         ) : null}
         {!selectData && userControlData && controlTemplateVariablesInitialized && Object.keys(userControlData)?.length > 0 ? (
         // {userControlData && Object.keys(userControlData)?.length > 0 && dataOptions && dataOptions.length > 0 ? (
-          <UserControlsGrid userControlData={userControlData}
-            setSelectorOptionChanged={setSelectorOptionChanged} width={dynamicStyles.width} />
+          <UserControlsGrid userControlData={userControlData} width={dynamicStyles.width} />
         ) : null}
         {isParseLoading || isFetchSelected ? (
           <ChaiseSpinner />

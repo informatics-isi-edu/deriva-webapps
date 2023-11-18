@@ -21,14 +21,13 @@ type UserControlsGridProps = {
     layout: LayoutConfig[],
     userControlConfig: UserControlConfig[]
   };
-  setSelectorOptionChanged: any;
   width: number | string;
 };
 
 // In simple cases a HOC WidthProvider can be used to automatically determine width upon initialization and window resize events.
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
-const UserControlsGrid = ({ userControlData, setSelectorOptionChanged, width }: UserControlsGridProps): JSX.Element => {
+const UserControlsGrid = ({ userControlData, width }: UserControlsGridProps): JSX.Element => {
   const gridProps = convertKeysSnakeToCamel(userControlData.gridConfig);
   //Convert snake_case keys inside different selector's layout to camel case
   const mappedLayoutValues = Object.values(userControlData.layout)?.map((resLayout: any) => (
@@ -49,7 +48,6 @@ const UserControlsGrid = ({ userControlData, setSelectorOptionChanged, width }: 
             return (
               <div key={config.uid}>
                 <Dropdown
-                  setSelectorOptionChanged={setSelectorOptionChanged}
                   userControlConfig={config} 
                 />
               </div>
@@ -61,7 +59,6 @@ const UserControlsGrid = ({ userControlData, setSelectorOptionChanged, width }: 
                   id={config.uid}
                   label={config?.label}
                   userControlConfig={config}
-                  setSelectorOptionChanged={setSelectorOptionChanged}
                 />
               </div>
             )

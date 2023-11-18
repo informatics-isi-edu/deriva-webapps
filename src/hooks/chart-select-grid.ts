@@ -29,7 +29,7 @@ export const useChartControlsGrid = ({ setModalProps, setIsModalOpen }: any) => 
   const [selectData, setSelectData] = useState<any>(null);
   const [isFetchSelected, setIsFetchSelected] = useState<boolean>(false);
 
-  const { templateParams, setTemplateParams } = usePlot()
+  const { templateParams, setTemplateParams, setNoData } = usePlot()
   /**
    * Handles closing the modal.
    */
@@ -60,7 +60,7 @@ export const useChartControlsGrid = ({ setModalProps, setIsModalOpen }: any) => 
         if (prevValues[i][j].id === 'study') {
           // if there is selected rows, we need to set the noData flag to false for violin plot, study selector
           // TODO: eventually remove this hack. Don't use noData or this condition
-          tempParams.noData = false;
+          setNoData(false);
         }
 
         if (!isMulti) {
@@ -82,7 +82,7 @@ export const useChartControlsGrid = ({ setModalProps, setIsModalOpen }: any) => 
         if (prevValues[i][j].id === 'study') {
           // if there is no selected rows, we need to set the noData flag to true for violin plot, study selector
           // TODO: remove this hack. Don't use noData or this condition
-          tempParams.noData = true;
+          setNoData(true);
         }
       }
 
@@ -98,7 +98,7 @@ export const useChartControlsGrid = ({ setModalProps, setIsModalOpen }: any) => 
     (indices: number[], cell: any) => {
       const { urlParamKey } = cell;
       const tempParams = { ...templateParams };
-      tempParams.noData = false; // set noData to false when select all is clicked
+      setNoData(false); // set noData to false when select all is clicked
       setIsFetchSelected(true); // this action requires fetching data
       setSelectData((prevValues: any) => {
         const newValues = [...prevValues];
@@ -146,9 +146,9 @@ export const useChartControlsGrid = ({ setModalProps, setIsModalOpen }: any) => 
 
           const tempParams = { ...templateParams };
           tempParams.$url_parameters[urlParamKey] = null;
-          tempParams.noData = true;
+          setNoData(true);
 
-          setTemplateParams(templateParams);
+          setTemplateParams(tempParams);
 
           return newValues;
         });
@@ -165,15 +165,15 @@ export const useChartControlsGrid = ({ setModalProps, setIsModalOpen }: any) => 
           const tempParams = { ...templateParams };
           // if null or empty array, no "studies" selected so show no data
           if (!selectedRows || selectedRows.length === 0) {
-            tempParams.noData = true;
+            setNoData(true);
             newValues[i][j] = { ...prevSelectData, selectedRows: null };
             tempParams.$url_parameters[urlParamKey] = null;
           } else {
-            tempParams.noData = false;
+            setNoData(false);
             newValues[i][j] = { ...prevSelectData, selectedRows };
             tempParams.$url_parameters[urlParamKey] = selectedRows;
           }
-          setTemplateParams(templateParams)
+          setTemplateParams(tempParams)
 
           return newValues;
         });

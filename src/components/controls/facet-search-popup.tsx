@@ -1,20 +1,21 @@
 // components
+import DisplayValue from '@isrd-isi-edu/chaise/src/components/display-value';
 import RecordsetModal from '@isrd-isi-edu/chaise/src/components/modals/recordset-modal';
-import SelectView from '@isrd-isi-edu/deriva-webapps/src/components/plot/select-view';
-import SelectInput from '@isrd-isi-edu/deriva-webapps/src/components/select-input';
 import Spinner from 'react-bootstrap/Spinner';
 
 // hooks
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import useError from '@isrd-isi-edu/chaise/src/hooks/error';
 import usePlot from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
 
 // models
-import { ActionMeta, OnChangeValue } from 'react-select';
 import { UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 import { RecordsetDisplayMode, RecordsetSelectMode, SelectedRow } from '@isrd-isi-edu/chaise/src/models/recordset';
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
-import { Option } from '@isrd-isi-edu/deriva-webapps/src/components/virtualized-select';
+
+// utils
+import { isStringAndNotEmpty } from '@isrd-isi-edu/chaise/src/utils/type-utils';
+
 
 /**
  * DropdownSelectProps is the type of props for DropdownSelect component.
@@ -29,20 +30,7 @@ export type FacetSearchPopupControlProps = {
    */
   label?: string;
   isDisabled?: boolean;
-  /**
-   * onChange callback for the select input
-   * 
-   * @param newValue 
-   * @param actionMeta 
-   * @returns 
-   */
-  onChange?: (newValue: OnChangeValue<unknown, boolean>, actionMeta: ActionMeta<unknown>) => void;
-  /**
-   * value for the select input
-   */
-  value?: Option;
   userControlConfig: UserControlConfig;
-  setSelectorOptionChanged: any;
 };
 
 /**
@@ -51,30 +39,36 @@ export type FacetSearchPopupControlProps = {
 const FacetSearchPopupControl = ({
   id,
   label,
-  isDisabled,
-  onChange,
-  value,
-  userControlConfig,
-  setSelectorOptionChanged
+  isDisabled = false,
+  userControlConfig
 }: FacetSearchPopupControlProps): JSX.Element => {
 
   const [showSpinner, setShowSpinner] = useState<boolean>(true);
   const [reference, setReference] = useState<any>();
   const [recordsetModalProps, setRecordsetModalProps] = useState<any>(null);
-  const [selectedValue, setSelectedValue] = useState<Option | null>(null);
+  const [selectedValue, setSelectedValue] = useState<string>('');
+
+  const [disabled, setDisabled] = useState<boolean>(isDisabled);
 
   const { dispatchError } = useError();
-  const { templateParams, setTemplateParams } = usePlot();
+  const { setSelectorOptionChanged, templateParams, setTemplateParams } = usePlot();
 
   const requestInfo = userControlConfig.request_info;
 
-  useEffect(() => {
-    if (requestInfo.url_pattern) {
+  // since we're using strict mode, the useEffect is getting called twice in dev mode
+  // this is to guard against it
+  const setupStarted = useRef<boolean>(false);
 
+  useEffect(() => {
+    if (setupStarted.current) return;
+    setupStarted.current = true;
+
+    if (requestInfo.url_pattern) {
+      setDisabled(true);
       const createReference = async (url: string) => {
         const ref = await ConfigService.ERMrest.resolve(url);
 
-        setReference(ref);
+        setReference(ref.contextualize.compactSelect);
 
         const valueKey = requestInfo.value_key;
 
@@ -89,12 +83,9 @@ const FacetSearchPopupControl = ({
 
         const displayValue = ConfigService.ERMrest.renderHandlebarsTemplate(requestInfo.selected_value_pattern, selfTemplateParams);
 
-        setSelectedValue({ 
-          label: displayValue,
-          value: initialValue
-        });
-
+        setSelectedValue(displayValue);
         setShowSpinner(false);
+        setDisabled(false);
       };
 
       const getInitialValue = async (url: string) => {
@@ -151,10 +142,7 @@ const FacetSearchPopupControl = ({
 
       const displayValue = ConfigService.ERMrest.renderHandlebarsTemplate(requestInfo.selected_value_pattern, selfTemplateParams);
 
-      setSelectedValue({ 
-        label: displayValue,
-        value: selectedTuple.data[requestInfo.value_key]
-      });
+      setSelectedValue(displayValue);
 
       // }
       // TODO: mode === multiSelect 
@@ -166,14 +154,6 @@ const FacetSearchPopupControl = ({
       // }
       setTemplateParams(tempParams);
     }
-    // NOTE: set no data if control allowed to be empty
-    // else {
-    //   if (prevValues[i][j].id === 'study') {
-    //     // if there is no selected rows, we need to set the noData flag to true for violin plot, study selector
-    //     // TODO: remove this hack. Don't use noData or this condition
-    //     templateParams.noData = true;
-    //   }
-    // }
 
     console.log(selectedRows);
     hideModal();
@@ -184,39 +164,76 @@ const FacetSearchPopupControl = ({
     setRecordsetModalProps(null);
   }
 
-  return (
-    <>
-      {showSpinner && !reference &&
+  /** 
+   * if (show the spinner) 
+   *   display spinner
+   * else 
+   *   if (string and not empty)
+   *     display selected value
+   *   else 
+   *     display Select a value
+   */
+  const renderValue = () => {
+    if (showSpinner) {
+      return (
         <div className='column-cell-spinner-container'>
           <div className='column-cell-spinner-backdrop'></div>
           <Spinner animation='border' size='sm' />
         </div>
-      }
-      <SelectView label={label}>
-        <button className='select-input-button' onClick={openModal}>
-          <SelectInput
-            className='dropdown-select'
-            id={id}
-            isDisabled={isDisabled}
-            placeholder={'Select a value'}
-            onChange={onChange}
-            value={selectedValue}
-          />
-        </button>
-      </SelectView>
-      {
-        recordsetModalProps &&
-        <RecordsetModal
-          modalClassName='foreignkey-popup'
-          recordsetProps={recordsetModalProps}
-          onClose={hideModal}
-          onSubmit={(selectedRows: SelectedRow[]) => {
-            handleSubmitModal(selectedRows);
-          }}
+      )
+    }
+
+    if (isStringAndNotEmpty(selectedValue)) {
+      return (
+        <DisplayValue 
+          className='popup-select-value' 
+          value={{ value: selectedValue, isHTML: true }} 
         />
-      }
-    </>
-  );
+      )
+    }
+     
+    return (
+      <span 
+        className='chaise-input-placeholder popup-select-value' 
+        contentEditable={false}
+      >Select a value</span>
+    )
+  }
+
+return (
+  <>
+    <div className='selector-container'>
+      <label className='selector-label'>{label}: </label>
+      <div className='chaise-input-group' onClick={openModal} >
+        <div className={`chaise-input-control${disabled ? ' input-disabled' : ''}`}>
+          {renderValue()}
+        </div>
+        <div className='chaise-input-group-append'>
+          <button
+            id={`${id}-button`}
+            className='chaise-btn chaise-btn-primary modal-popup-btn'
+            role='button'
+            type='button'
+            disabled={disabled}
+          >
+            <span className='chaise-btn-icon fa-solid fa-chevron-down' />
+          </button>
+        </div>
+      </div>
+    </div>
+    {
+      recordsetModalProps &&
+      <RecordsetModal
+        modalClassName='foreignkey-popup'
+        recordsetProps={recordsetModalProps}
+        onClose={hideModal}
+        onSubmit={(selectedRows: SelectedRow[]) => {
+          handleSubmitModal(selectedRows);
+        }}
+      />
+    }
+  </>
+);
 };
 
 export default FacetSearchPopupControl;

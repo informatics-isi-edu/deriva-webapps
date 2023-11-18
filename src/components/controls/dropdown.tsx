@@ -40,7 +40,6 @@ export type DropdownProps = {
    */
   value?: any;
   userControlConfig: UserControlConfig;
-  setSelectorOptionChanged: any;
 };
 
 /**
@@ -53,41 +52,20 @@ const Dropdown = ({
   // onChange,
   value,
   // defaultOptions,
-  userControlConfig,
-  setSelectorOptionChanged
+  userControlConfig
 }: DropdownProps): JSX.Element => {
 
-  const [reference, setReference] = useState<any>();
   const [selectedValue, setSelectedValue] = useState<any>(value);
 
-  const { dispatchError } = useError();
-  const { templateParams, setTemplateParams } = usePlot();
+  // provider values
+  const { setSelectorOptionChanged, templateParams, setTemplateParams } = usePlot();
 
-  const { controlData, initialized } = useUserControl(userControlConfig)
-
-  const requestInfo = userControlConfig.request_info;
+  // hook to setup data for control
+  const { controlData, initialized } = useUserControl(userControlConfig);
 
   useEffect(() => {
     if (!initialized) return;
 
-    // TODO: move this to user control hook
-    // if (requestInfo.url_pattern) {
-
-    //   const createReference = async (url: string) => {
-    //     const ref = await ConfigService.ERMrest.resolve(url);
-
-    //     console.log(value);
-
-    //     setReference(ref);
-    //   };
-
-    //   try {
-    //     console.log(value);
-    //     createReference(requestInfo.url_pattern);
-    //   } catch (error) {
-    //     dispatchError({ error });
-    //   }
-    // } 
     if (controlData.length > 0) {
       const currUid = userControlConfig.uid;
       const currValueKey = userControlConfig.request_info.value_key;
