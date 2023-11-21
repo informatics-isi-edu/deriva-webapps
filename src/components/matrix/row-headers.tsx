@@ -84,6 +84,10 @@ const HeaderComponent = ({ index, data, style }: HeaderComponentProps): JSX.Elem
     linkClassName += ' searched-cell';
   }
 
+  if (index === 0) {
+    containerClassName += ' first-row-header';
+  }
+
   if (index >= listData.length - 1) {
     containerClassName = 'row-margin';
   }
