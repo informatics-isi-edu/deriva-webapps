@@ -169,17 +169,18 @@ const MatrixApp = (): JSX.Element => {
   const cellHeight = styles?.cellHeight ? styles?.cellHeight : 25;
   const cellWidth = styles?.cellWidth ? styles?.cellWidth : 25;
 
-  const legendHeight = styles?.legendHeight ? styles?.legendHeight : 200;
+  let legendHeight = styles?.legend?.height ? styles?.legend.height : 200;
 
   const widthBufferSpace = 50; // buffer space for keeping everything in viewport
-  const heightBufferSpace = legendHeight * 2; // buffer space for keeping everything in viewport
+  const heightBufferSpace = legendHeight; // buffer space for keeping everything in viewport
 
   const strictMinHeight = 200;
   const strictMinWidth = 400;
 
   let gridHeight = Math.min(
     cellHeight * numRows, // can't exceed total grid
-    height - colHeaderHeight - heightBufferSpace // can't exceed browser height
+    // 250 = 50 (navbar) + 20 (matrix-page: padding) + 100 (title-container) + 30 (options-container)
+    height - 250 - colHeaderHeight - heightBufferSpace // can't exceed browser height
   );
   if (maxRows) {
     // restrict by maxRows if exists
@@ -187,6 +188,9 @@ const MatrixApp = (): JSX.Element => {
   }
   gridHeight = Math.max(gridHeight, strictMinHeight);
 
+  // similar to gridHeight, legendHeight also need to dynamically change as the height of grid and viewport change
+  // 250 = 50 (navbar) + 20 (matrix-page: padding) + 100 (title-container) + 30 (options-container)
+  legendHeight = Math.min(legendHeight, height - 250 - gridHeight - colHeaderHeight);
   let gridWidth = Math.min(
     cellWidth * numColumns, // can't exceed total grid
     width - rowHeaderWidth - widthBufferSpace // can't exceed browser width
@@ -198,9 +202,31 @@ const MatrixApp = (): JSX.Element => {
   gridWidth = Math.max(gridWidth, strictMinWidth);
 
   const legendWidth = gridWidth + rowHeaderWidth;
-  const legendBarWidth = styles?.legendBarWidth ? styles?.legendBarWidth : 55;
-  const legendBarHeight = styles?.legendBarHeight ? styles?.legendBarHeight : 15;
+  const legendBarWidth = styles?.legend?.barWidth ? styles?.legend?.barWidth : 55;
+  const legendBarHeight = styles?.legend?.barHeight ? styles?.legend?.barHeight : 15;
+  const legendLineClamp = styles?.legend?.lineClamp ? styles?.legend?.lineClamp : 1;
   const searchItemHeight = 30;
+
+  /**
+   * To make the legend container be the center when there are few z values, need to adjust its width dynamically.
+   * 
+   * Variables: 
+   * legendData.length => number of z values (legend values)
+   * legendBarWidth => width of each legend bar
+   * legendHeight =>  height of the legend
+   * (legendHeight - 25) => width of each div(split-text)
+   * 0.707 => since we rotate the text 45˚, then when it is projected onto a horizontal line, needs to multiply cos45˚
+   * 
+   * Two scenarios, comparison between width of div(split-text) and div(legend-links-container):
+   * width of div(split-text) < div(legend-links-container) => div(legend-links-container) is offset to the right by half a legendBarWidth
+   * width of div(split-text) > div(legend-links-container) => start with the middle of the last div(legend-bar-div), plus text projection distance
+   */
+  let fitLegendWidth = Math.max(
+    (legendData.length + 0.5) * legendBarWidth,
+    (legendData.length - 0.5) * legendBarWidth + 0.707 * (legendHeight - 25)
+  );
+  // if fitLegendWidth is more than the sum of (gridWidth + rowHeaderWidth), then it should go with the latter one
+  fitLegendWidth = Math.min(legendWidth, fitLegendWidth);
 
   const toastStyles: CSSProperties = {
     position: 'absolute',
@@ -295,10 +321,11 @@ const MatrixApp = (): JSX.Element => {
             colorScale={colorScaleMap}
           />
           <Legend
-            width={legendWidth}
+            width={fitLegendWidth}
             height={legendHeight}
             barWidth={legendBarWidth}
             barHeight={legendBarHeight}
+            lineClamp={legendLineClamp}
             data={legendData}
             colorScale={colorScaleMap}
           />

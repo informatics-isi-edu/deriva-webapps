@@ -24,6 +24,10 @@ export type LegendProps = {
    */
   barHeight: number;
   /**
+   * Max number of lines showing the legend content
+   */
+  lineClamp: number;
+  /**
    * color scale to use where index corresponds to ordering of scale shown
    */
   colorScale: Array<string>;
@@ -37,12 +41,15 @@ const Legend = ({
   height,
   barWidth,
   barHeight,
+  lineClamp,
   data,
   colorScale,
 }: LegendProps): JSX.Element => {
   const legendStyles: CSSProperties = {
     height: height,
     width: width,
+    display: 'flex',
+    alignItems: 'flex-start',
   };
 
   return (
@@ -59,12 +66,14 @@ const Legend = ({
           />
         ))}
       </div>
-      <div className='legend-links-container'>
+      {/* Use marginLeft to keep each legend text be at the middle of the legend bar */}
+      <div className='legend-links-container' style={{marginLeft: barWidth / 2}}>
         {data.map((legendData, index) => (
           <MemoizedLegendHeader
             key={legendData.title}
             index={index}
             width={barWidth}
+            lineClamp={lineClamp}
             legendHeight={height}
             data={data}
           />
@@ -103,18 +112,24 @@ type LegendHeaderProps = {
   data: Array<LegendDatum>;
   legendHeight: number;
   width: number;
+  lineClamp: number;
 };
 
 /**
  * Each header of the Legend
  */
-const LegendHeader = ({ index, legendHeight, data, width }: LegendHeaderProps) => {
+const LegendHeader = ({ index, legendHeight, data, width, lineClamp }: LegendHeaderProps) => {
   const { link, title } = data[index];
+
+  const splitTextStyle = {
+    width: legendHeight - 25,
+    WebkitLineClamp: lineClamp, // Number of lines to show
+  };
 
   return (
     <div className='legend-link-div' style={{ width: width }}>
       <a className='legend-link' href={link} title={title}>
-        <div className='split-text' style={{ width: legendHeight - 25 }}>
+        <div className='split-text' style={splitTextStyle}>
           {title}
         </div>
       </a>

@@ -105,17 +105,9 @@ export type MatrixStyles = {
    */
   columnHeader?: ColHeaderStyles;
   /**
-   * Height of the legend
+   * Properties of the legend component
    */
-  legendHeight?: number;
-  /**
-   * Width of the legend bar
-   */
-  legendBarWidth?: number;
-  /**
-   * Height of the legend bar
-   */
-  legendBarHeight?: number;
+  legend?: LegendStyles;
 };
 
 export type RowHeaderStyles = {
@@ -146,6 +138,25 @@ export type ColHeaderStyles = {
    * The max height of the scrollable content
    */
   scrollableMaxHeight?: number;
+};
+
+export type LegendStyles = {
+  /**
+   * Height of the legend
+   */
+  height?: number;
+  /**
+   * Width of the legend bar
+   */
+  barWidth?: number;
+  /**
+   * Height of the legend bar
+   */
+  barHeight?: number;
+  /**
+   * Max number of lines showing the legend content
+   */
+  lineClamp?: number;
 };
 
 export type MatrixConfig = {
