@@ -41,7 +41,7 @@ const UserControlsGrid = ({ userControlData, width }: UserControlsGridProps): JS
   const layoutObj = Object.fromEntries(Object.entries(userControlData.layout).map(([key, val], index) => [key, mappedLayoutValues[index]]));
 
   const renderUserControls = () => {
-  return (
+    return (
       userControlData.userControlConfig?.map((config, idx) => {
         switch (config.type) {
           case 'dropdown':

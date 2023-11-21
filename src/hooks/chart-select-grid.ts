@@ -1,5 +1,5 @@
 // hooks
-import { useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import usePlot from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
 
 // models
@@ -28,8 +28,11 @@ import { getQueryParam } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 export const useChartControlsGrid = ({ setModalProps, setIsModalOpen }: any) => {
   const [selectData, setSelectData] = useState<any>(null);
   const [isFetchSelected, setIsFetchSelected] = useState<boolean>(false);
+  const [optionRemoved, setOptionRemoved] = useState<boolean>(false);
+  const [indicesForRemove, setIndicesForRemove] = useState<{row: number, column: number} | null>(null)
 
   const { templateParams, setTemplateParams, setNoData } = usePlot()
+
   /**
    * Handles closing the modal.
    */
@@ -46,48 +49,40 @@ export const useChartControlsGrid = ({ setModalProps, setIsModalOpen }: any) => 
    */
   const handleSubmitModal = (selectedRows: any[], indices: number[], cell: any) => {
     const { isMulti, urlParamKey, requestInfo } = cell;
+    const [i, j] = indices;
 
     setIsFetchSelected(true); // this action requires fetching data
-    setSelectData((prevValues: any) => {
-      const newValues = [...prevValues];
-      const [i, j] = indices;
 
-      // update selectedRows
-      newValues[i][j] = { ...prevValues[i][j], selectedRows };
+    const newSelectData = [...selectData];
+    newSelectData[i][j] = { ...selectData[i][j], selectedRows };
 
-      const tempParams = { ...templateParams };
-      if (selectedRows && selectedRows.length > 0) {
-        if (prevValues[i][j].id === 'study') {
-          // if there is selected rows, we need to set the noData flag to false for violin plot, study selector
-          // TODO: eventually remove this hack. Don't use noData or this condition
-          setNoData(false);
-        }
+    const tempParams = { ...templateParams };
+    if (selectedRows && selectedRows.length > 0) {
+      if (!isMulti) {
+        // if the cell is not multi, we update the selected row with one value
+        const selectedTuple = selectedRows[selectedRows.length - 1];
+        const value = {
+          value: selectedTuple.data[requestInfo.valueKey],
+          label: selectedTuple.data[requestInfo.labelKey],
+        };
+        newSelectData[i][j].value = value;
 
-        if (!isMulti) {
-          // if the cell is not multi, we update the selected row with one value
-          const selectedTuple = selectedRows[selectedRows.length - 1];
-          const value = {
-            value: selectedTuple.data[requestInfo.valueKey],
-            label: selectedTuple.data[requestInfo.labelKey],
-          };
-          newValues[i][j].value = value;
-          tempParams.$url_parameters[urlParamKey].data = selectedTuple.data;
-        } else {
-          // if the cell is multi, we update the selected rows with all the values
-          tempParams.$url_parameters[urlParamKey] = selectedRows.map((tuple: any) => ({
-            data: tuple.data,
-          }));
-        }
+        tempParams.$url_parameters[urlParamKey].data = selectedTuple.data;
       } else {
-        if (prevValues[i][j].id === 'study') {
-          // if there is no selected rows, we need to set the noData flag to true for violin plot, study selector
-          // TODO: remove this hack. Don't use noData or this condition
-          setNoData(true);
-        }
+        // if the cell is multi, we update the selected rows with all the values
+        tempParams.$url_parameters[urlParamKey] = selectedRows.map((tuple: any) => ({
+          data: tuple.data,
+        }));
       }
+    }
 
-      return newValues;
-    });
+    setSelectData(newSelectData);
+    setTemplateParams(tempParams);
+
+    if (selectData[i][j].id === 'study') {
+      setNoData(selectedRows.length === 0);
+    }
+
     setIsModalOpen(false);
   };
 
@@ -97,7 +92,6 @@ export const useChartControlsGrid = ({ setModalProps, setIsModalOpen }: any) => 
   const handleClickSelectAll = useCallback(
     (indices: number[], cell: any) => {
       const { urlParamKey } = cell;
-      const tempParams = { ...templateParams };
       setNoData(false); // set noData to false when select all is clicked
       setIsFetchSelected(true); // this action requires fetching data
       setSelectData((prevValues: any) => {
@@ -106,11 +100,13 @@ export const useChartControlsGrid = ({ setModalProps, setIsModalOpen }: any) => 
 
         newValues[i][j] = { ...prevValues[i][j], selectedRows: [] };
 
-        // TODO: Using empty array to represent "all values" should be changed
-        tempParams.$url_parameters[urlParamKey] = [];
-        setTemplateParams(tempParams);
         return newValues;
       });
+
+      // TODO: Using empty array to represent "all values" should be changed
+      const tempParams = { ...templateParams };
+      tempParams.$url_parameters[urlParamKey] = [];
+      setTemplateParams(tempParams);
     },
     [setIsFetchSelected, templateParams]
   );
@@ -131,24 +127,17 @@ export const useChartControlsGrid = ({ setModalProps, setIsModalOpen }: any) => 
     },
     [setIsModalOpen, setModalProps]
   );
+  
 
   const handleRemoveCallback = useCallback(
     (removed: any, indices: number[], cell: any) => {
-      const { urlParamKey } = cell;
+      const [i, j] = indices;
 
-      setIsFetchSelected(true); // this action requires fetching data
       if (removed === null) {
         // removing all records occurred
         setSelectData((prevValues: any) => {
           const newValues = [...prevValues];
-          const [i, j] = indices;
           newValues[i][j] = { ...prevValues[i][j], selectedRows: null };
-
-          const tempParams = { ...templateParams };
-          tempParams.$url_parameters[urlParamKey] = null;
-          setNoData(true);
-
-          setTemplateParams(tempParams);
 
           return newValues;
         });
@@ -156,31 +145,49 @@ export const useChartControlsGrid = ({ setModalProps, setIsModalOpen }: any) => 
         // removing one record occurred
         setSelectData((prevValues: any) => {
           const newValues = [...prevValues];
-          const [i, j] = indices;
           const prevSelectData = prevValues[i][j];
           const selectedRows = prevSelectData.selectedRows?.filter(
             (curr: any) => curr.uniqueId !== removed.uniqueId
           );
-
-          const tempParams = { ...templateParams };
+          
           // if null or empty array, no "studies" selected so show no data
-          if (!selectedRows || selectedRows.length === 0) {
-            setNoData(true);
-            newValues[i][j] = { ...prevSelectData, selectedRows: null };
-            tempParams.$url_parameters[urlParamKey] = null;
-          } else {
-            setNoData(false);
-            newValues[i][j] = { ...prevSelectData, selectedRows };
-            tempParams.$url_parameters[urlParamKey] = selectedRows;
-          }
-          setTemplateParams(tempParams)
+          newValues[i][j] = { 
+            ...prevSelectData, 
+            selectedRows: (!selectedRows || selectedRows.length === 0 ? null : selectedRows)
+          }; 
 
           return newValues;
         });
       }
+
+      setOptionRemoved(true);
+      setIndicesForRemove({ row: i, column: j});
     },
-    [templateParams, setIsFetchSelected, setSelectData]
+    [setSelectData]
   );
+
+  // update select data then trigger this useEffect if an option is removed
+  useEffect(() => {
+    if (!optionRemoved || !indicesForRemove) return;
+    setOptionRemoved(false);
+
+    const userControl = selectData[indicesForRemove.row][indicesForRemove.column];
+    const key = userControl.urlParamKey;
+    const rows = userControl.selectedRows;
+
+    // update template params and no data
+    const tempParams = { ...templateParams };
+    if (!rows || rows.length === 0) {
+      tempParams.$url_parameters[key] = null;
+      setNoData(true);
+    } else {
+      tempParams.$url_parameters[key] = rows;
+      setNoData(false);
+    }
+
+    setTemplateParams(tempParams);
+    setIsFetchSelected(true); // this action requires fetching data
+  }, [selectData, optionRemoved])
 
   /**
    * Handles the click of the select button. This function will update the templateParams and selectData state.
@@ -336,7 +343,7 @@ export const useChartControlsGrid = ({ setModalProps, setIsModalOpen }: any) => 
         }
       }
 
-      return initialData; 
+      return initialData;
 
       // Promise.all assumes all data can be fetched at the same time
       // Promise.all(

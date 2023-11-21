@@ -219,10 +219,10 @@ export const useChartData = (plot: Plot) => {
   const alertFunctions = useAlert();
   const { width = 0, height = 0 } = useWindowSize();
 
-  const { 
+  const {
     noData, setNoData,
-    selectorOptionChanged, setSelectorOptionChanged, 
-    templateParams, setTemplateParams 
+    selectorOptionChanged, setSelectorOptionChanged,
+    templateParams, setTemplateParams
   } = usePlot();
 
   const {
@@ -253,7 +253,7 @@ export const useChartData = (plot: Plot) => {
 
     const tempParams = { ...templateParams };
     plot.user_controls.forEach((config: UserControlConfig) => {
-      tempParams.$control_values[config.uid] = { 
+      tempParams.$control_values[config.uid] = {
         values: initalizeControlData(config)
       }
     });
@@ -471,7 +471,7 @@ export const useChartData = (plot: Plot) => {
         setSelectData(initialSelectData) // set the data for the select grid
       }
       setTemplateParams(tempParams);
-      
+
       const plotData = await fetchData(); // fetch the data for the plot
       setData(plotData); // set the data for the plot
       setIsInitLoading(false); // set loading to false
@@ -670,7 +670,7 @@ export const useChartData = (plot: Plot) => {
    */
   const updatePlotlyLayout = (
     result: any,
-    noData: boolean | null,
+    noDataTitle: boolean,
     additionalLayout?: any
   ): void => {
     // title
@@ -679,7 +679,7 @@ export const useChartData = (plot: Plot) => {
       // use the title_display_markdown_pattern if it exists
       title = createLink(plot.config.title_display_markdown_pattern, templateParams);
     }
-    if (noData) {
+    if (noDataTitle) {
       title = 'No Data';
     }
     if (title) result.layout.title = title;
@@ -1469,14 +1469,101 @@ export const useChartData = (plot: Plot) => {
       height: undefined, // undefined to allow for responsive layout
     };
 
+    /**
+     * 
+     * @param currTrace - the trace we are parsing data for in plots.traces[]
+     * @param plotData - a data object to go into plotly.data[]
+     * @param responseData - data from server response we are parsing for plotly
+     * @param plotlyTraceIdx - the index for the trace in the plotly chart (trace in this context is a line, bars, individual violin etc)
+     */
+    const updatePlotDataSwitch = (currTrace: Trace, plotData: any, responseData: ResponseData, plotlyTraceIdx: number) => {
+      switch (plotData.type) {
+        case 'bar':
+          updateBarResponse(currTrace, plotData);
+          break;
+        case 'scatter':
+          updateScatterResponse(currTrace, plotData, 'markers', plotlyTraceIdx);
+          break;
+        case 'line':
+          updateScatterResponse(currTrace, plotData, 'lines+markers', plotlyTraceIdx);
+          break;
+        case 'heatmap':
+          updateHeatmapResponse(currTrace, plotData);
+          // setup the layout object using some information returned from the data
+          const { plotly } = plot;
+          // Getting the longest x tick in the given data to determine margin and height values in getHeatmapLayoutParams function
+          const inputParams = {
+            width: typeof plotly?.layout.width !== 'undefined' ? plotly?.layout.width : 1200,
+            xTickAngle: typeof plotly?.layout.xaxis?.tickangle !== 'undefined' ? plotly?.layout.xaxis?.tickangle : 50,
+          }
+
+          additionalLayout = getHeatmapLayoutParams(
+            inputParams,
+            plotData.longestXTick?.length,
+            plotData.longestYTick?.length,
+            plotData.y?.length
+          );
+
+          if (plot.config.text_on_plot) {
+            result.layout.annotations = [];
+
+            const xData = plotData.x;
+            const yData = plotData.y;
+            const zData = plotData.z;
+            for (let i = 0; i < yData.length; i++) {
+              for (let j = 0; j < xData.length; j++) {
+                let zText = zData[i][j];
+
+                // zData in heatmap SHOULD be numeric type, still check and format if it is
+                if (!isNaN(parseFloat(zText))) zText = addComma(zText);
+
+                const annotation = {
+                  xref: 'x' + (plotlyTraceIdx + 1),
+                  yref: 'y' + (plotlyTraceIdx + 1),
+                  x: j,
+                  y: i,
+                  text: zText,
+                  font: {
+                    family: 'Arial',
+                    size: 12,
+                    color: 'white'
+                  },
+                  showarrow: false
+                };
+
+                result.layout.annotations.push(annotation);
+              }
+            }
+          }
+          break;
+        case 'violin':
+          updateViolinResponse(currTrace, plotData, responseData);
+
+          // add custom layout for x axis ticks
+          additionalLayout.xaxis = {
+            tickvals: plotData.x,
+            ticktext: plotData.xTicks,
+          };
+
+          break;
+        case 'pie':
+          updatePieReponse(currTrace, plotData);
+          break;
+        case 'histogram':
+        // do nothing special for now
+        default:
+          break;
+      }
+    }
+
     // array of plotly.data objects
     const plotlyData: any[] = [];
-    // This boolean is used to set if we want to show specific invalid configuration alerts (bootstrap alerts). If it's false, global error handler will be used (modal popup)
-    let showAlert = false;
+
     // multiple data objects means multiple trace objects in plot.traces
     // data is an array of response objects
     // If the plot data object has multiple objects in the traces array, multiTrace will be set to true
     const multiTrace = data.length > 1;
+
 
     // Add all plot "traces" to data array based on plot type
     // NOTE: this assumes multiple traces in plot.traces[] will produce different objects in result.data[]
@@ -1503,13 +1590,11 @@ export const useChartData = (plot: Plot) => {
           // If the given format is json but the type of file is csv then parse the data using csv parser and show an alert warning for wrong configuration
           responseData = parseCsvData(responseData?.toString());
           if (!alertFunctions.alerts.some((alert) => alert.message.includes(alertMsg + invalidJsonAlert))) {
-            showAlert = true;
             alertFunctions.addAlert(alertMsg + invalidJsonAlert, ChaiseAlertType.WARNING);
           }
         } else if ((currTrace.response_format === 'csv' && isResponseJson)) {
           // If the given format is csv but the type of file is json then use the data as is and show an alert warning for wrong configuration
           if (!alertFunctions.alerts.some((alert) => alert.message.includes(alertMsg + invalidCsvAlert))) {
-            showAlert = true;
             alertFunctions.addAlert(alertMsg + invalidCsvAlert, ChaiseAlertType.WARNING);
           }
         }
@@ -1532,101 +1617,20 @@ export const useChartData = (plot: Plot) => {
         // each object in plot data is for displaying data in separate traces in plotly (so we can have multiple bars or bar + lines etc)
         for (let k = 0; k < allPlotData.length; k++) {
           const plotData = { ...allPlotData[k] };
-          switch (plotData.type) {
-            case 'bar':
-              updateBarResponse(currTrace, plotData);
-              break;
-            case 'scatter':
-              updateScatterResponse(currTrace, plotData, 'markers', k);
-              break;
-            case 'line':
-              updateScatterResponse(currTrace, plotData, 'lines+markers', k);
-              break;
-            case 'heatmap':
-              updateHeatmapResponse(currTrace, plotData);
-              // setup the layout object using some information returned from the data
-              const { plotly } = plot;
-              // Getting the longest x tick in the given data to determine margin and height values in getHeatmapLayoutParams function
-              const inputParams = {
-                width: typeof plotly?.layout.width !== 'undefined' ? plotly?.layout.width : 1200,
-                xTickAngle: typeof plotly?.layout.xaxis?.tickangle !== 'undefined' ? plotly?.layout.xaxis?.tickangle : 50,
-              }
-
-              additionalLayout = getHeatmapLayoutParams(
-                inputParams,
-                plotData.longestXTick?.length,
-                plotData.longestYTick?.length,
-                plotData.y?.length
-              );
-
-              if (plot.config.text_on_plot) {
-                result.layout.annotations = [];
-
-                const xData = plotData.x;
-                const yData = plotData.y;
-                const zData = plotData.z;
-                for (let i = 0; i < yData.length; i++) {
-                  for (let j = 0; j < xData.length; j++) {
-                    let zText = zData[i][j];
-
-                    // zData in heatmap SHOULD be numeric type, still check and format if it is
-                    if (!isNaN(parseFloat(zText))) zText = addComma(zText);
-
-                    const annotation = {
-                      xref: 'x' + (k + 1),
-                      yref: 'y' + (k + 1),
-                      x: j,
-                      y: i,
-                      text: zText,
-                      font: {
-                        family: 'Arial',
-                        size: 12,
-                        color: 'white'
-                      },
-                      showarrow: false
-                    };
-
-                    result.layout.annotations.push(annotation);
-                  }
-                }
-              }
-              break;
-            case 'violin':
-              updateViolinResponse(currTrace, plotData, responseData);
-
-              // add custom layout for x axis ticks
-              additionalLayout.xaxis = {
-                tickvals: plotData.x,
-                ticktext: plotData.xTicks,
-              };
-
-              break;
-            case 'pie':
-              updatePieReponse(currTrace, plotData);
-              break;
-            case 'histogram':
-            // do nothing special for now
-            default:
-              break;
-          }
+          // update the plotData object for each plot type
+          updatePlotDataSwitch(currTrace, plotData, responseData, k)
 
           plotlyData.push(plotData);
         }
       } 
-      // NOTE: if data.length === 0, do nothing (don't push any data into plotlyData
-      //       plot title will be set to "No Data" after this mapping function
     });
 
     result.data = plotlyData;
-    // check each object in data to verify there are keys returned on them
-    // returns true if objects in data[] are empty or data[] is empty
-    const tempNoData = result.data?.every((obj: any) => Object.keys(obj)?.length === 0)
-    setNoData(tempNoData);
+
+    const emptyReponses = data.every((responseArray: any[]) => responseArray.length === 0);
 
     updatePlotlyConfig(result); // update the config
-    updatePlotlyLayout(result, tempNoData, additionalLayout); // update the layout
-
-    if (tempNoData) return;
+    updatePlotlyLayout(result, (data.length === 0 || emptyReponses), additionalLayout); // update the layout
 
     // If hovertemplate_display_pattern is not configured, set default hover text for plot
     if (!hovertemplate_display_pattern) {
@@ -1639,12 +1643,15 @@ export const useChartData = (plot: Plot) => {
   // Parse data on state changes to data or selectData
   useEffect(() => {
     if (data && !isDataLoading && !isInitLoading && !isFetchSelected) {
+      // data is an array of arrays of ermrest response objects [][]
+      // each array in data is for a different trace.uri_pattern
+      const emptyReponses = data.every((responseArray: any[]) => responseArray.length === 0);
+
+      if (data.length === 0 || emptyReponses) setNoData(true);
       setParsedData(parsePlotData());
       setIsParseLoading(false); // set loading to false after parsing
     }
-
-
-  }, [plot, data, isDataLoading, isFetchSelected, isInitLoading, selectData, templateParams]);
+  }, [data]);
 
 
   return {
