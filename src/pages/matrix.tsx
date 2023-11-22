@@ -169,18 +169,17 @@ const MatrixApp = (): JSX.Element => {
   const cellHeight = styles?.cellHeight ? styles?.cellHeight : 25;
   const cellWidth = styles?.cellWidth ? styles?.cellWidth : 25;
 
-  let legendHeight = styles?.legend?.height ? styles?.legend.height : 200;
+  const legendHeight = styles?.legend?.height ? styles?.legend.height : 200;
 
   const widthBufferSpace = 50; // buffer space for keeping everything in viewport
-  const heightBufferSpace = legendHeight; // buffer space for keeping everything in viewport
+  const heightBufferSpace = legendHeight * 2; // buffer space for keeping everything in viewport
 
   const strictMinHeight = 200;
   const strictMinWidth = 400;
 
   let gridHeight = Math.min(
     cellHeight * numRows, // can't exceed total grid
-    // 250 = 50 (navbar) + 20 (matrix-page: padding) + 100 (title-container) + 30 (options-container)
-    height - 250 - colHeaderHeight - heightBufferSpace // can't exceed browser height
+    height - colHeaderHeight - heightBufferSpace // can't exceed browser height
   );
   if (maxRows) {
     // restrict by maxRows if exists
@@ -188,9 +187,6 @@ const MatrixApp = (): JSX.Element => {
   }
   gridHeight = Math.max(gridHeight, strictMinHeight);
 
-  // similar to gridHeight, legendHeight also need to dynamically change as the height of grid and viewport change
-  // 250 = 50 (navbar) + 20 (matrix-page: padding) + 100 (title-container) + 30 (options-container)
-  legendHeight = Math.min(legendHeight, height - 250 - gridHeight - colHeaderHeight);
   let gridWidth = Math.min(
     cellWidth * numColumns, // can't exceed total grid
     width - rowHeaderWidth - widthBufferSpace // can't exceed browser width
