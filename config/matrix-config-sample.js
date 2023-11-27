@@ -1,4 +1,12 @@
 /**
+ * Please refer to the following for document for more information:
+ * https://github.com/informatics-isi-edu/deriva-webapps/blob/master/docs/user-docs/matrix-app.md#overal-structure
+ *
+ * You can also find the TypeScript definitions here:
+ * https://github.com/informatics-isi-edu/deriva-webapps/blob/master/src/models/matrix-config.ts
+ */
+
+/**
  * The base URI for the data API endpoint
  */
 var baseUri =
@@ -11,17 +19,9 @@ var matrixConfigs = {
      */
     xURL: baseUri + '/sort_key:=X:sort_key,id:=X:id,title:=X:name@sort(sort_key)',
     /**
-     * API for the tree data of the x axis (must return child_id and parent_id. other columns will be ignored.)
-     */
-    xTreeURL: baseUri + 'x_values_tree.json',
-    /**
      * API for the y axis data (must return id and title. other projected columns will be ignored.)
      */
     yURL: baseUri + '/id:=Y:id,title:=Y:name@sort(title)',
-    /**
-     * API for the tree data of the y axis (must return child_id and parent_id. other columns will be ignored.)
-     */
-    yTreeURL: baseUri + 'y_values_tree.json',
     /**
      * API for the z axis data (color axis) (must return id and title. other projected columns will be ignored.)
      */
@@ -98,15 +98,7 @@ var matrixConfigs = {
         /**
          * Width of the row headers
          */
-        width: 250,
-        /**
-         * Whether allow scroll
-         */
-        // scrollable: true,
-        /**
-         * The max width of the scrollable content
-         */
-        // scrollableMaxWidth: 400,
+        width: 250
       },
       /**
        * Properties of the column headers
@@ -115,15 +107,7 @@ var matrixConfigs = {
         /**
          * Height of the column headers
          */
-        height: 80,
-        /**
-         * Whether allow scroll
-         */
-        // scrollable: true,
-        /**
-         * The max height of the scrollable content
-         */
-        // scrollableMaxHeight: 120,
+        height: 80
       },
       /**
        * Properties of the legend
