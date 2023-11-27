@@ -1,4 +1,12 @@
 /**
+ * Please refer to the following for document for more information:
+ * https://github.com/informatics-isi-edu/deriva-webapps/blob/master/docs/user-docs/matrix-app.md#overal-structure
+ *
+ * You can also find the TypeScript definitions here:
+ * https://github.com/informatics-isi-edu/deriva-webapps/blob/master/src/models/matrix-config.ts
+ */
+
+/**
  * The base URI for the data API endpoint
  */
 var baseUri =
@@ -87,26 +95,41 @@ var matrixConfigs = {
        * Properties of the row headers
        */
       rowHeader: {
+        /**
+         * Width of the row headers
+         */
         width: 250
       },
       /**
        * Properties of the column headers
        */
       columnHeader: {
+        /**
+         * Height of the column headers
+         */
         height: 80
       },
       /**
-       * Height of the legend
+       * Properties of the legend
        */
-      legendHeight: 200,
-      /**
-       * Width of the legend bar
-       */
-      legendBarWidth: 55,
-      /**
-       * Height of the legend bar
-       */
-      legendBarHeight: 15,
+      legend: {
+        /**
+         * Height of the legend
+         */
+        height: 100,
+        /**
+         * Width of the legend bar
+         */
+        barWidth: 55,
+        /**
+         * Height of the legend bar
+         */
+        barHeight: 15,
+        /**
+         * Max number of lines showing the legend content
+         */
+        lineClamp: 2,
+      }
     },
   },
 };
