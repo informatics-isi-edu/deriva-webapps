@@ -155,7 +155,6 @@ const FacetSearchPopupControl = ({
       setTemplateParams(tempParams);
     }
 
-    console.log(selectedRows);
     hideModal();
     setSelectorOptionChanged(true);
   }
