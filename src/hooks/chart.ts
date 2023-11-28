@@ -1,19 +1,15 @@
 // hooks
-import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import useAlert from '@isrd-isi-edu/chaise/src/hooks/alerts';
 import useError from '@isrd-isi-edu/chaise/src/hooks/error';
 import usePlot from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
+import usePlotlyChart from '@isrd-isi-edu/deriva-webapps/src/hooks/plotly-chart';
 import { createStudyViolinSelectGrid, useChartControlsGrid, } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart-select-grid';
 import useIsFirstRender from '@isrd-isi-edu/chaise/src/hooks/is-first-render';
 import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
 
 
 // models
-import {
-  PlotData as PlotlyPlotData,
-  ViolinData as PlotlyViolinData,
-  PieData as PlotlyPieData,
-} from 'plotly.js';
 import {
   Plot, PlotConfig, PlotConfigAxis,
   DataConfig, Trace, screenWidthThreshold,
@@ -31,7 +27,7 @@ import { flatten2DArray } from '@isrd-isi-edu/deriva-webapps/src/utils/data';
 import { getQueryParam, getQueryParams } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
 import {
-  invalidCsvAlert, invalidDataAlert, invalidJsonAlert, invalidKeyAlert, invalidResponseFormatAlert,
+  invalidCsvAlert, invalidJsonAlert, invalidKeyAlert, invalidResponseFormatAlert,
   emptyDataColArrayAlert, emptyXColArrayAlert, emptyYColArrayAlert, incompatibleColArraysAlert,
   noColumnsDefinedAlert, xColOnlyAlert, yColOnlyAlert, xYColsNotAnArrayAlert
 } from '@isrd-isi-edu/deriva-webapps/src/utils/message-map';
@@ -220,10 +216,11 @@ export const useChartData = (plot: Plot) => {
   const { width = 0, height = 0 } = useWindowSize();
 
   const {
-    noData, setNoData,
     selectorOptionChanged, setSelectorOptionChanged,
     templateParams, setTemplateParams
   } = usePlot();
+
+  const { noData, setNoData } = usePlotlyChart()
 
   const {
     selectData,

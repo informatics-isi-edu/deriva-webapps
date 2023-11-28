@@ -1,18 +1,21 @@
 import { useRef } from 'react';
 
-
-import { Plot, plotAreaFraction } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
-
-import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
-import { useChartData } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
-
+// components
 // import Chart from '@isrd-isi-edu/deriva-webapps/src/components/plot/chart';
-import SelectGrid from '@isrd-isi-edu/deriva-webapps/src/components/plot/select-grid';
+import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
 import PlotlyChart from '@isrd-isi-edu/deriva-webapps/src/components/plot/plotly-chart';
 import RecordsetModal from '@isrd-isi-edu/chaise/src/components/modals/recordset-modal';
-import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
-import { SelectedRow } from '@isrd-isi-edu/chaise/src/models/recordset';
+import SelectGrid from '@isrd-isi-edu/deriva-webapps/src/components/plot/select-grid';
 import UserControlsGrid from '@isrd-isi-edu/deriva-webapps/src/components/plot/user-controls-grid';
+
+// hooks
+import { useChartData } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
+import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
+
+// models
+import { Plot, plotAreaFraction } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { SelectedRow } from '@isrd-isi-edu/chaise/src/models/recordset';
+
 
 export type ChartWithEffectProps = {
   config: Plot;
@@ -161,7 +164,7 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
           <SelectGrid selectors={selectData} width={dynamicStyles.width} />
         ) : null}
         {!selectData && userControlData && controlTemplateVariablesInitialized && Object.keys(userControlData)?.length > 0 ? (
-        // {userControlData && Object.keys(userControlData)?.length > 0 && dataOptions && dataOptions.length > 0 ? (
+          // {userControlData && Object.keys(userControlData)?.length > 0 && dataOptions && dataOptions.length > 0 ? (
           <UserControlsGrid userControlData={userControlData} width={dynamicStyles.width} />
         ) : null}
         {isParseLoading || isFetchSelected ? (

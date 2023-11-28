@@ -10,7 +10,8 @@ import ChartWithEffect from '@isrd-isi-edu/deriva-webapps/src/components/plot/ch
 import { usePlotConfig } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
 
 // provider
-import PlotProvider from '@isrd-isi-edu/deriva-webapps/src/providers/plot';
+import PlotAppProvider from '@isrd-isi-edu/deriva-webapps/src/providers/plot-app';
+import PlotlyChartProvider from '@isrd-isi-edu/deriva-webapps/src/providers/plotly-chart';
 
 // utilities
 import { ID_NAMES } from '@isrd-isi-edu/chaise/src/utils/constants';
@@ -40,11 +41,15 @@ const PlotApp = (): JSX.Element => {
 
   return (
     <div className='plot-page'>
-      <PlotProvider>
+      <PlotAppProvider>
         {config.plots.map((plotConfig, i): JSX.Element => {
-          return <ChartWithEffect key={i} config={plotConfig} />;
+          return (
+            <PlotlyChartProvider key={i}>
+              <ChartWithEffect config={plotConfig} />
+            </PlotlyChartProvider>
+          );
         })}
-      </PlotProvider>
+      </PlotAppProvider>
     </div>
   );
 };

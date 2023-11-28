@@ -1,10 +1,10 @@
 // hooks
 import { useEffect, useState, useCallback } from 'react';
 import usePlot from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
+import usePlotlyChart from '@isrd-isi-edu/deriva-webapps/src/hooks/plotly-chart';
 
 // models
 import { Plot } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
-import { PlotTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
 import {
   RecordsetDisplayMode,
   RecordsetSelectMode,
@@ -14,7 +14,7 @@ import {
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
 
 // utils
-import { createLink, extractLink, getPatternUri } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
+import { getPatternUri } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 import { getQueryParam } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 
 /**
@@ -31,7 +31,8 @@ export const useChartControlsGrid = ({ setModalProps, setIsModalOpen }: any) => 
   const [optionRemoved, setOptionRemoved] = useState<boolean>(false);
   const [indicesForRemove, setIndicesForRemove] = useState<{row: number, column: number} | null>(null)
 
-  const { templateParams, setTemplateParams, setNoData } = usePlot()
+  const { templateParams, setTemplateParams } = usePlot();
+  const { setNoData } = usePlotlyChart();
 
   /**
    * Handles closing the modal.

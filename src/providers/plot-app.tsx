@@ -1,26 +1,25 @@
 // hooks
 import { createContext, useEffect, useMemo, useRef, useState } from 'react';
+
+// models
 import { PlotTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
 
 
-export const PlotContext = createContext<{
-  noData: boolean | null;
-  setNoData: Function;
+export const PlotAppContext = createContext<{
   selectorOptionChanged: boolean;
   setSelectorOptionChanged: Function;
   templateParams: PlotTemplateParams;
   setTemplateParams: Function;
 } | null>(null);
 
-type PlotProviderProps = {
+type PlotAppProviderProps = {
   children: React.ReactNode,
 };
 
-export default function PlotProvider({
+export default function PlotAppProvider({
   children
-}: PlotProviderProps): JSX.Element {
+}: PlotAppProviderProps): JSX.Element {
 
-  const [noData, setNoData] = useState<boolean | null>(null);
   const [selectorOptionChanged, setSelectorOptionChanged] = useState<boolean>(false);
   const [templateParams, setTemplateParams] = useState<PlotTemplateParams>({
     $url_parameters: {},
@@ -40,20 +39,18 @@ export default function PlotProvider({
 
   const providerValue = useMemo(() => {
     return {
-      noData,
-      setNoData,
       selectorOptionChanged,
       setSelectorOptionChanged,
       templateParams,
       setTemplateParams
     };
   }, [
-    noData, selectorOptionChanged, templateParams
+    selectorOptionChanged, templateParams
   ]);
 
   return (
-    <PlotContext.Provider value={providerValue}>
+    <PlotAppContext.Provider value={providerValue}>
       {children}
-    </PlotContext.Provider>
+    </PlotAppContext.Provider>
   )
 }
