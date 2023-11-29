@@ -105,7 +105,7 @@ const MatrixApp = (): JSX.Element => {
    * Scrolls the grid to the given input string if found in the matrix,
    * otherwise shows a no results message
    * Edited for Treeview components
-   * 
+   *
    * @param currInput
    * @returns
    */
@@ -205,14 +205,14 @@ const MatrixApp = (): JSX.Element => {
 
   /**
    * To make the legend container be the center when there are few z values, need to adjust its width dynamically.
-   * 
-   * Variables: 
+   *
+   * Variables:
    * legendData.length => number of z values (legend values)
    * legendBarWidth => width of each legend bar
    * legendHeight =>  height of the legend
    * (legendHeight - 25) => width of each div(split-text)
    * 0.707 => since we rotate the text 45˚, then when it is projected onto a horizontal line, needs to multiply cos45˚
-   * 
+   *
    * Two scenarios, comparison between width of div(split-text) and div(legend-links-container):
    * width of div(split-text) < div(legend-links-container) => div(legend-links-container) is offset to the right by half a legendBarWidth
    * width of div(split-text) > div(legend-links-container) => start with the middle of the last div(legend-bar-div), plus text projection distance
@@ -338,7 +338,7 @@ const MatrixApp = (): JSX.Element => {
 
 const root = createRoot(document.getElementById(ID_NAMES.APP_ROOT) as HTMLElement);
 root.render(
-  <AppWrapper appSettings={matrixSettings} includeNavbar displaySpinner ignoreHashChange dontFetchSession>
+  <AppWrapper appSettings={matrixSettings} includeNavbar displaySpinner ignoreHashChange includeAlerts>
     <MatrixApp />
   </AppWrapper>
 );
