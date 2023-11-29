@@ -39,6 +39,11 @@ module.exports = (env) => {
         externalFiles: [
           `${WEBAPPS_BASE_PATH}bundles/plotly-basic.min.js`
         ]
+      },
+      {
+        appName: 'treeview',
+        appTitle: 'Treeview',
+        appConfigLocation: `${WEBAPPS_BASE_PATH}config/treeview-config.js`
       }
     ],
     mode,
