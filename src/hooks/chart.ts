@@ -5,14 +5,9 @@ import useError from '@isrd-isi-edu/chaise/src/hooks/error';
 import { createStudyViolinSelectGrid, useChartControlsGrid, } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart-select-grid';
 import useIsFirstRender from '@isrd-isi-edu/chaise/src/hooks/is-first-render';
 import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
-import { useEffect, useState, useMemo, useCallback, useRef, useContext } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 
 // models
-import {
-  PlotData as PlotlyPlotData,
-  ViolinData as PlotlyViolinData,
-  PieData as PlotlyPieData,
-} from 'plotly.js';
 import {
   Plot,
   PlotConfig,
@@ -22,7 +17,7 @@ import {
   screenWidthThreshold,
   plotAreaFraction,
   validFileTypes,
-  UserControlConfig,
+  PlotTemplateParams,
 } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 
 // services
@@ -40,12 +35,12 @@ import {
   noColumnsDefinedAlert, xColOnlyAlert, yColOnlyAlert, xYColsNotAnArrayAlert
 } from '@isrd-isi-edu/deriva-webapps/src/utils/message-map';
 import { ChaiseAlertType } from '@isrd-isi-edu/chaise/src/providers/alerts';
-import { TemplateParamsContext } from '@isrd-isi-edu/deriva-webapps/src/components/plot/template-params';
 import {
   addComma, createLink, createLinkWithContextParams,
   extractValue, extractAndFormatDate, formatPlotData,
   getPatternUri, isDataJSON, wrapText
 } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
+import useTemplateParams from '@isrd-isi-edu/deriva-webapps/src/hooks/template-params';
 
 /**
  * Data received from API request
@@ -116,31 +111,6 @@ export type PieResultData = {
    * Legend labels for the plot
    */
   labels: string[] & number[];
-};
-
-export type PlotTemplateParams = {
-  $row?: {
-    [paramKey: string]: any;
-  };
-  $self?: {
-    [paramKey: string]: any;
-  };
-  /**
-   * Parameters for URL 
-   */
-  $url_parameters: {
-    [paramKey: string]: any;
-  };
-  /**
-   * Parameters for URL
-   */
-  $control_values: {
-    [paramKey: string]: any;
-  };
-  /**
-   * No data flag
-   */
-  noData: boolean;
 };
 
 export type inputParamsType = {
@@ -238,13 +208,15 @@ export const useChartData = (plot: Plot, initialParams: PlotTemplateParams) => {
    * TODO: create functions to retrieve only the neccesary templateParams from state and pass them into a more local scope
    *    - gene and study selectors touch these params to modify values used in API requests
    */
-  const {templateParams,setTemplateParams, selectorOptionChanged, setSelectorOptionChanged} = useContext(TemplateParamsContext);
+  const {templateParams,setTemplateParams, selectorOptionChanged, setSelectorOptionChanged} = useTemplateParams();
 
   // To set the dataoptions for the dropdown controllers
   useControl({
     userControlConfig: plot?.user_controls,
     setDataOptions,
   });
+  console.log(templateParams);
+
 
   const {
     selectData,
@@ -394,7 +366,7 @@ export const useChartData = (plot: Plot, initialParams: PlotTemplateParams) => {
 
       //push query parameters into templating environment
       Object.keys(allQueryParams).forEach((key: string) => 
-        setTemplateParams((prevTemplateParams)=>{
+        setTemplateParams((prevTemplateParams:  PlotTemplateParams)=>{
           return {
             ...prevTemplateParams,
             $url_parameters: {
@@ -425,7 +397,7 @@ export const useChartData = (plot: Plot, initialParams: PlotTemplateParams) => {
                 if (!Array.isArray(templateParams.$url_parameters[selectorConfig.urlParamKey])) {
                   // probably not needed since this case SHOULD be initializing the data
                   // NOTE: the useMemo of templateParams above initalizes "Study" to an array so this case would be skipped there
-                  setTemplateParams((prevTemplateParams)=>{
+                  setTemplateParams((prevTemplateParams:PlotTemplateParams)=>{
                     return {
                     ...prevTemplateParams,
                     $url_parameters: {
@@ -436,7 +408,7 @@ export const useChartData = (plot: Plot, initialParams: PlotTemplateParams) => {
                   })
                 }
               } else {
-                setTemplateParams((prevTemplateParams)=>{
+                setTemplateParams((prevTemplateParams:PlotTemplateParams)=>{
                   return {
                   ...prevTemplateParams,
                   $url_parameters: {
@@ -449,7 +421,7 @@ export const useChartData = (plot: Plot, initialParams: PlotTemplateParams) => {
 
               if (paramValue) {
                 if (!selectorConfig.isMulti) {
-                  setTemplateParams((prevTemplateParams)=>{
+                  setTemplateParams((prevTemplateParams:PlotTemplateParams)=>{
                     return {
                     ...prevTemplateParams,
                     $url_parameters: {
@@ -467,7 +439,7 @@ export const useChartData = (plot: Plot, initialParams: PlotTemplateParams) => {
                   //    how would that look in the url?
                   //       - ?paramKey=RID1,RID2
                   //       - ?paramKey=RID1&paramKey=RID2
-                  setTemplateParams((prevTemplateParams)=>{
+                  setTemplateParams((prevTemplateParams:PlotTemplateParams)=>{
                     return {
                     ...prevTemplateParams,
                     $url_parameters: {
@@ -484,7 +456,7 @@ export const useChartData = (plot: Plot, initialParams: PlotTemplateParams) => {
                 }
               } else if (defaultValue) {
                 if (!selectorConfig.isMulti) {
-                  setTemplateParams((prevTemplateParams)=>{
+                  setTemplateParams((prevTemplateParams:PlotTemplateParams)=>{
                     return {
                     ...prevTemplateParams,
                     $url_parameters: {
@@ -498,7 +470,7 @@ export const useChartData = (plot: Plot, initialParams: PlotTemplateParams) => {
                   }
                   })
                 } else {
-                  setTemplateParams((prevTemplateParams)=>{
+                  setTemplateParams((prevTemplateParams:PlotTemplateParams)=>{
                     return {
                     ...prevTemplateParams,
                     $url_parameters: {
@@ -1672,7 +1644,7 @@ export const useChartData = (plot: Plot, initialParams: PlotTemplateParams) => {
 
     result.data = plotlyData;
     if (result.data?.every((obj: any) => Object.keys(obj)?.length === 0)) {
-      setTemplateParams((prevTemplateParams)=>{
+      setTemplateParams((prevTemplateParams:PlotTemplateParams)=>{
         return{
           ...prevTemplateParams,
           noData: true,
@@ -1719,5 +1691,4 @@ export const useChartData = (plot: Plot, initialParams: PlotTemplateParams) => {
     setSelectorOptionChanged,
   };
 };
-
 

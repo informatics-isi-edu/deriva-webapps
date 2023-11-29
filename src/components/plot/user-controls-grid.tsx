@@ -1,12 +1,12 @@
-import { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Option } from '@isrd-isi-edu/deriva-webapps/src/components/virtualized-select';
 import { Responsive, WidthProvider, ResponsiveProps as ResponsiveGridProps, Layouts } from 'react-grid-layout';
 import '/node_modules/react-resizable/css/styles.css';
 import '/node_modules/react-grid-layout/css/styles.css';
 import { UserControlConfig, LayoutConfig, defaultGridProps } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
-import { convertKeysSnakeToCamel, validateGridProps } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
+import { convertKeysSnakeToCamel, generateUid, validateGridProps } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 import UserControl from '@isrd-isi-edu/deriva-webapps/src/components/plot/user-control';
-import { TemplateParamsContext } from '@isrd-isi-edu/deriva-webapps/src/components/plot/template-params';
+import useTemplateParams from '@isrd-isi-edu/deriva-webapps/src/hooks/template-params';
 
 
 type UserControlsGridProps = {
@@ -31,10 +31,13 @@ const UserControlsGrid = ({ userControlData, selectorOptions, width }: UserContr
     const uid: string[] = [];
     const valueKey: string[] = [];
     const selectorValue: Option[] = [];
-    const {templateParams} = useContext(TemplateParamsContext);
+    const {templateParams} = useTemplateParams();
+    const defaultGridPropsConverted = convertKeysSnakeToCamel(defaultGridProps);
+
+    const controlConfig = generateUid(userControlData.userControlConfig,'local');
     //Collect uid's and valueKey's for all selectors
-    userControlData.userControlConfig?.map((currentConfig, index) => {
-        const currUid = currentConfig?.uid;
+    controlConfig?.map((currentConfig: any, index) => {
+        const currUid = currentConfig.uid;
         const currValueKey = currentConfig?.request_info.value_key;
         uid.push(currUid);
         valueKey.push(currValueKey);
@@ -58,8 +61,8 @@ const UserControlsGrid = ({ userControlData, selectorOptions, width }: UserContr
             ));
             setLayout(Object.fromEntries(Object.entries(userControlData.layout).map(([key]: any, index) => [key, mappedLayoutValues[index]])));
           } else {
-            const defaultControlUid = userControlData.userControlConfig.map((control) => {
-              return control.uid;
+            const defaultControlUid = controlConfig.map((control) => {
+              return control.uid; //Default uid for local controls will be considered as eg. local_dropdown_0 for first local control
             });
             const columnNumber = typeof userControlData.gridConfig.cols === 'number' && userControlData.gridConfig.cols;
             const defaultColumns = userControlData.gridConfig.cols && !columnNumber &&  Object.values(userControlData.gridConfig.cols) 
@@ -88,10 +91,11 @@ const UserControlsGrid = ({ userControlData, selectorOptions, width }: UserContr
         <div className='selectors-grid' style={{ display: 'flex', flex: '0 1 0%', width: gridProps.width || width }}>
             <ResponsiveGridLayout className='grid-layout layout'
                 layouts={layout}
+                {...defaultGridPropsConverted}
                 {...gridProps}
             >
-                {userControlData.userControlConfig?.map((currentConfig, index) => (
-                    <div key={currentConfig.uid} style={{zIndex: 1}}>
+                {controlConfig?.map((currentConfig, index) => (
+                    <div key={currentConfig.uid}>
                     <UserControl 
                     controlConfig={currentConfig} 
                     controlOptions={selectorOptions[index]} />

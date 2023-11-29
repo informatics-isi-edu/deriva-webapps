@@ -32,11 +32,14 @@ export type UserControlDataConfig={
 }
 
 export type UserControlConfig = {
-  uid: string;
+  uid?: string;
   label: string;
   url_param_key?: string;
+  type: string;
   request_info: UserControlRequestInfoConfig;
 }
+
+export type ControlScope = 'global' | 'local';
 
 export type UserControlRequestInfoConfig = {
   url_pattern?: string;
@@ -61,8 +64,8 @@ export type Plot = {
   gene_uri_pattern?: string;
   study_uri_pattern?: string;
   plotly?: Plotly;
-  user_controls: UserControlConfig[]; //NOTE: For now user_controls will be considered of type dropdown only
-  uid: string;
+  user_controls: UserControlConfig[]; //A control can be of any type, but only dropdowns are implemented in current version
+  uid?: string;
 };
 
 /**
@@ -207,6 +210,32 @@ export type TracePlotyData = Partial<PlotlyPlotData> &
   Partial<PlotlyViolinData> &
   Partial<PlotlyPieData>;
 
+
+  export type PlotTemplateParams = {
+    $row?: {
+      [paramKey: string]: any;
+    };
+    $self?: {
+      [paramKey: string]: any;
+    };
+    /**
+     * Parameters for URL 
+     */
+    $url_parameters: {
+      [paramKey: string]: any;
+    };
+    /**
+     * Parameters for URL
+     */
+    $control_values: {
+      [paramKey: string]: any;
+    };
+    /**
+     * No data flag
+     */
+    noData: boolean;
+  };
+
 /**
  * Trace configs
  */
@@ -226,7 +255,9 @@ export const defaultGridProps = {
   auto_size: true,
   breakpoints: { lg: 1200, md: 996, sm: 768, xs: 480 },
   cols: { lg: 12, md: 10, sm: 6, xs: 4 },
-  margin: { lg: [5, 5], md: [10, 10], sm: [9, 9], xs: [5, 5] },
-  container_padding: { lg: [12, 12], md: [10, 10], sm: [9, 9], xs: [5, 5] },
+  margin: { lg: [10, 10], md: [10, 10], sm: [5, 5], xs: [5, 5] },
+  container_padding: { lg: [12, 12], md: [10, 10], sm: [0, 0], xs: [0, 0] },
   row_height: 30,
-}
+};
+
+// export const globalGridMargin = { lg: [10, 5], md: [20, 5], sm: [5, 5], xs: [5, 5] };

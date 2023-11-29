@@ -1,10 +1,9 @@
-import { useContext } from 'react';
 import DropdownSelect from '@isrd-isi-edu/deriva-webapps/src/components/plot/dropdown-select';
 import { Option } from '@isrd-isi-edu/deriva-webapps/src/components/virtualized-select';
 import '/node_modules/react-resizable/css/styles.css';
 import '/node_modules/react-grid-layout/css/styles.css';
-import { UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
-import { TemplateParamsContext } from '@isrd-isi-edu/deriva-webapps/src/components/plot/template-params';
+import { ControlScope, UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import useTemplateParams from '@isrd-isi-edu/deriva-webapps/src/hooks/template-params';
 
 
 type UserControlsGridProps = {
@@ -13,6 +12,8 @@ type UserControlsGridProps = {
      */
     controlConfig: UserControlConfig;
     controlOptions: Option[];
+    // controlIndex: number;
+    // controlScope: ControlScope;
 };
 
 
@@ -26,16 +27,17 @@ type UserControlsGridProps = {
  * @returns 
  */
 const handleChange = (option: Option, userControlConfig: UserControlConfig, setTemplateParams: any, setSelectorOptionChanged: any) => {
+    console.log(userControlConfig);
     if (option) {
         setSelectorOptionChanged(true);
-        const uid = userControlConfig?.uid;
+        const uid = userControlConfig?.uid || '';
         const valueKey = userControlConfig?.request_info?.value_key;
-        setTemplateParams((prevTemplateParams: any)=>{
-            return{
+        setTemplateParams((prevTemplateParams: any) => {
+            return {
                 ...prevTemplateParams,
                 $control_values: {
                     ...prevTemplateParams.$control_values,
-                    [uid]:{
+                    [uid]: {
                         values: {
                             [valueKey]: option.value,
                         }
@@ -49,12 +51,15 @@ const handleChange = (option: Option, userControlConfig: UserControlConfig, setT
 
 
 const UserControl = ({ controlConfig, controlOptions }: UserControlsGridProps): JSX.Element => {
-    const {templateParams, setTemplateParams, setSelectorOptionChanged} = useContext(TemplateParamsContext);
-    const uid: string=controlConfig.uid;
-    const valueKey: string=controlConfig.request_info.value_key;
-    const selectedOption = controlOptions.find((option: Option) =>
-            option.value === templateParams?.$control_values[uid]?.values[valueKey]);
-    return (
+    const { templateParams, setTemplateParams, setSelectorOptionChanged } = useTemplateParams();
+    const controlType = controlConfig.type;
+    switch (controlType) {
+        case 'dropdown':
+            const uid = controlConfig?.uid;
+            const valueKey: string = controlConfig.request_info.value_key;
+            const selectedOption = controlOptions.find((option: Option) =>
+                uid && option.value === templateParams?.$control_values[uid]?.values[valueKey]);
+            return (
                 <DropdownSelect
                     id={controlConfig.uid}
                     defaultOptions={controlOptions}
@@ -65,7 +70,11 @@ const UserControl = ({ controlConfig, controlOptions }: UserControlsGridProps): 
                     }}
                     value={selectedOption}
                 />
-    );
+            );
+
+        default:
+            return <></>;
+    }
 
 };
 

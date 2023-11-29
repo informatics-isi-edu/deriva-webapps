@@ -1,10 +1,10 @@
-import { useRef, useState,useEffect, useContext, useCallback } from 'react';
+import { useRef, useState,useEffect, useCallback } from 'react';
 
 
-import { Plot, plotAreaFraction } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { Plot, PlotTemplateParams, plotAreaFraction } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 
 import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
-import { PlotTemplateParams, useChartData } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
+import {  useChartData } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
 
 import SelectGrid from '@isrd-isi-edu/deriva-webapps/src/components/plot/select-grid';
 import PlotlyChart from '@isrd-isi-edu/deriva-webapps/src/components/plot/plotly-chart';
@@ -12,9 +12,9 @@ import RecordsetModal from '@isrd-isi-edu/chaise/src/components/modals/recordset
 import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
 import { SelectedRow } from '@isrd-isi-edu/chaise/src/models/recordset';
 import UserControlsGrid from '@isrd-isi-edu/deriva-webapps/src/components/plot/user-controls-grid';
-import { TemplateParamsContext } from '@isrd-isi-edu/deriva-webapps/src/components/plot/template-params';
 import { getQueryParam } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
+import useTemplateParams from '@isrd-isi-edu/deriva-webapps/src/hooks/template-params';
 
 export type ChartWithEffectProps = {
   config: Plot;
@@ -39,7 +39,7 @@ const ChartWithEffect = ({ config, initialParams }: ChartWithEffectProps): JSX.E
     }
   });
 
-  const {setTemplateParams} = useContext(TemplateParamsContext);
+  const {setTemplateParams} = useTemplateParams();
 
   const ref = useCallback((node: any) => {
     if (node !== null) {

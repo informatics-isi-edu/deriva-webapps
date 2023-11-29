@@ -19,7 +19,7 @@ import { useEffect, useState } from 'react';
 import { ID_NAMES } from '@isrd-isi-edu/chaise/src/utils/constants';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
 import { DataConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
-import { TemplateParamsProvider } from '@isrd-isi-edu/deriva-webapps/src/components/plot/template-params';
+import { TemplateParamsProvider } from '@isrd-isi-edu/deriva-webapps/src/providers/template-params';
 
 import PlotControlGrid from '@isrd-isi-edu/deriva-webapps/src/components/plot/plot-control-grid';
 

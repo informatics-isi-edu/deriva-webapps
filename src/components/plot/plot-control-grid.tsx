@@ -6,8 +6,8 @@ import '/node_modules/react-resizable/css/styles.css';
 import '/node_modules/react-grid-layout/css/styles.css';
 // services
 import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
-import { DataConfig, defaultGridProps } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
-import { convertKeysSnakeToCamel, validateGridProps } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
+import { DataConfig, UserControlConfig, defaultGridProps } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { convertKeysSnakeToCamel, generateUid, validateGridProps } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 import { LayoutConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 import { setControlData, useControl } from '@isrd-isi-edu/deriva-webapps/src/hooks/control';
 import { Layouts, Responsive, WidthProvider } from 'react-grid-layout';
@@ -32,6 +32,7 @@ const PlotControlGrid = ({
   const [layout, setLayout] = useState<Layouts>({});
   const [gridProps, setGridProps] = useState({});
   const [dataOptions, setDataOptions] = useState<any>(null);
+  const [userControls, setUserControls] = useState<any>(null);
   const [userControlsExists, setUserControlExists] = useState<boolean>(false);
   const [userControlsReady, setUserControlReady] = useState<boolean>(false);
   const [initialParams, setInitialParams] = useState<any>({
@@ -62,11 +63,11 @@ const PlotControlGrid = ({
       }
       //Otherwise set the default layout to display controls and plots 
       else {
-        const defaultPlotUid = config.plots.map((plot) => {
-          return plot.uid;
+        const defaultPlotUid = config.plots.map((plot,index) => {
+          return plot.uid || plot.plot_type+'_'+index; //Default uid will be considered as eg. bar_0 for first bar plot
         });
-        const defaultControlUid = config.user_controls?.map((control) => {
-          return control.uid;
+        const defaultControlUid = config.user_controls?.map((control,index) => {
+          return control.uid || 'global_'+control.type+'_'+index; //Default uid for global controls will be considered as eg. global_dropdown_0 for first global control
         });
         
         const plotsControls = defaultControlUid ? [...defaultControlUid,...defaultPlotUid] : [...defaultPlotUid];
@@ -91,6 +92,9 @@ const PlotControlGrid = ({
 
   //Validate (Transform the keys to the correct case, adjust the values to suit ResponsiveGridLayout) and configure the grid layout props
   useEffect(()=>{
+    if(config?.user_controls?.length>0){
+      setUserControls(generateUid(config?.user_controls,'global'));
+    }
     if(config?.grid_layout_config){
       setGridProps(validateGridProps(config?.grid_layout_config));
     }
@@ -102,12 +106,12 @@ const PlotControlGrid = ({
     config.plots?.map((plotConfig) => {
       if (plotConfig?.user_controls?.length > 0) {
         userControlFlag = true;
-        setControlData(plotConfig?.user_controls, setInitialParams);
+        setControlData(plotConfig?.user_controls, setInitialParams, 'local');
       }
     });
     if(config?.user_controls?.length>0){
         userControlFlag = true;
-        setControlData(config.user_controls, setInitialParams);
+        setControlData(config.user_controls, setInitialParams, 'global');
     }
     setUserControlExists(userControlFlag);
     //If no controls are present we don't want to wait
@@ -135,7 +139,7 @@ const PlotControlGrid = ({
   const defaultGridPropsConverted = convertKeysSnakeToCamel(defaultGridProps);
 
   if (!config ||
-    (config?.user_controls && config?.user_controls?.length > 0 && !(dataOptions && dataOptions.length > 0)) ||
+    (userControls?.length>0 && !(dataOptions && dataOptions.length > 0)) ||
     !userControlsReady
     ) {
     return <ChaiseSpinner />;
@@ -146,18 +150,22 @@ const PlotControlGrid = ({
       <ResponsiveGridLayout className='global-grid-layout layout'
         layouts={layout}
         {...defaultGridPropsConverted}
+        // margin={globalGridMargin}
         {...gridProps}>
         {config.plots.map((plotConfig): JSX.Element => {
           return <div key={plotConfig.uid}>
             <ChartWithEffect config={plotConfig} initialParams={initialParams} />
           </div>;
         })}
-        {config?.user_controls && config?.user_controls?.length > 0 ?
-          dataOptions?.length > 0 && config?.user_controls?.map((currentConfig, index) => (
-            <div key={currentConfig.uid} style={{ zIndex: 1 }}>
+        {userControls?.length>0 ?
+          dataOptions?.length > 0 && userControls?.map((currentConfig:UserControlConfig, index:number) => (
+            <div key={currentConfig.uid}>
               <UserControl
                 controlConfig={currentConfig}
-                controlOptions={dataOptions[index]} />
+                controlOptions={dataOptions[index]}
+                // controlIndex={index}
+                // controlScope='global' 
+                />
             </div>
           )) : null}
       </ResponsiveGridLayout>

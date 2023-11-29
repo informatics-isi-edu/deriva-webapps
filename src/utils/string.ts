@@ -1,6 +1,6 @@
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
-import { defaultGridProps } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { ControlScope, UserControlConfig, defaultGridProps } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 
 /**
  * Appends and returns the pcid and ppid for the given link
@@ -355,4 +355,22 @@ export const validateGridProps = (gridConfigObject: any) => {
   });
   return regenObject;
   }
+}
+
+
+/**
+ * 
+ * @param controls User controls
+ * @param controlScope scope of the control either 'global' or 'local'
+ * @returns controls along with their uid
+ */
+export const generateUid = (controls: UserControlConfig[],controlScope: ControlScope) => {
+  controls?.forEach((control,index)=>{
+    const uid = controlScope+'_'+control.type+'_'+index;
+    if(!control.uid){
+      control['uid']=uid;
+    }
+    return control;
+  });
+  return controls;
 }

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-import { UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { ControlScope, UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 import { getQueryParam } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 import { windowRef } from '@isrd-isi-edu/chaise/src/utils/window-ref';
 import { Option } from '@isrd-isi-edu/deriva-webapps/src/components/virtualized-select';
@@ -81,10 +81,10 @@ const getDataOptions = async (userControlGridObject: UserControlGridProps) => {
  * @param configData Selector configuration, template params and setDataOptions state method
  * @returns modified configData.templateParams
  */
-export const setControlData = (configData: UserControlConfig[], setTemplateParams: any) => {
-    configData?.map((currentConfig: UserControlConfig) => {
+export const setControlData = (configData: UserControlConfig[], setTemplateParams: any, controlScope: ControlScope) => {
+    configData?.map((currentConfig: UserControlConfig,index) => {
         const paramKey = currentConfig?.url_param_key;
-        const uid = currentConfig?.uid;
+        const uid = currentConfig?.uid || controlScope+'_'+currentConfig.type+'_'+index;
         const valueKey = currentConfig?.request_info?.value_key;
         const defaultValue = currentConfig?.request_info?.default_value;
         if (paramKey) {
