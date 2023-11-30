@@ -8,7 +8,6 @@ import { createStudyViolinSelectGrid, useChartControlsGrid, } from '@isrd-isi-ed
 import useIsFirstRender from '@isrd-isi-edu/chaise/src/hooks/is-first-render';
 import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
 
-
 // models
 import {
   Plot, PlotConfig, PlotConfigAxis,
@@ -236,28 +235,51 @@ export const useChartData = (plot: Plot) => {
     setIsModalOpen,
   });
 
+  // since we're using strict mode, the useEffect is getting called twice in dev mode
+  // this is to guard against it
+  const setupStarted = useRef<boolean>(false);
+
   /**
    * It should be called once to initialize the configuration data for the user controls into the state variable
   */
   useEffect(() => {
-    if (!plot.user_controls) return;
+    if (setupStarted.current) return;
+    setupStarted.current = true;
 
-    setUserControlData({
-      userControlConfig: plot.user_controls,
-      gridConfig: plot?.grid_layout_config,
-      layout: plot?.layout
-    });
+    const initSelectors = async () => {
+      if (plot.user_controls?.length > 0) {
+        setUserControlData({
+          userControlConfig: plot.user_controls,
+          gridConfig: plot?.grid_layout_config,
+          layout: plot?.layout
+        });
 
-    const tempParams = { ...templateParams };
-    plot.user_controls.forEach((config: UserControlConfig) => {
-      tempParams.$control_values[config.uid] = {
-        values: initalizeControlData(config)
+        const tempParams = { ...templateParams };
+
+        for (let i = 0; i < plot.user_controls.length; i++) {
+          const config = plot.user_controls[i];
+
+          const values = await initalizeControlData(config);
+
+          tempParams.$control_values[config.uid] = {
+            values: values
+          }
+        }
+
+        setTemplateParams(tempParams);
       }
-    });
 
-    setTemplateParams(tempParams);
+      setControlTemplateVariablesInitialized(true);
+    };
 
-    setControlTemplateVariablesInitialized(true);
+    if (isFirstRender) {
+      // only run on first render
+      try {
+        initSelectors();
+      } catch (error) {
+        dispatchError({ error });
+      }
+    }
   }, []);
 
   /**
@@ -266,18 +288,29 @@ export const useChartData = (plot: Plot) => {
    * @param config User Control configuration
    * @returns values for intializing template params for control
    */
-  const initalizeControlData = (config: UserControlConfig) => {
+  const initalizeControlData = async (config: UserControlConfig) => {
     const paramKey = config.url_param_key;
     const valueKey = config.request_info?.value_key;
     const defaultValue = config.request_info?.default_value;
 
-    const values: any = {};
+    let values: any = {};
     // use url_param value if defined, fall back to default value if not
-    if (paramKey) {
-      const paramValue = getQueryParam(windowRef.location.href, paramKey);
-      if (paramValue) values[valueKey] = paramValue;
+    let paramValue;
+    if (paramKey) paramValue = getQueryParam(windowRef.location.href, paramKey);
+
+    let initValue;
+    if (paramValue) {
+      initValue = paramValue;
     } else if (defaultValue) {
-      values[valueKey] = defaultValue;
+      initValue = defaultValue;
+    }
+    values[valueKey] = initValue;
+
+    if (config.request_info.url_pattern) {
+      const initRowRequest = config.request_info.url_pattern + '/' + valueKey + '=' + initValue;
+      const response = await ConfigService.http.get(initRowRequest);
+
+      values = response.data[0];
     }
 
     return values;
@@ -377,8 +410,7 @@ export const useChartData = (plot: Plot) => {
           const pattern = trace.url_pattern || trace.queryPattern || '';
           const { uri, headers } = getPatternUri(pattern, templateParams);
           return ConfigService.http.get(uri, { headers });
-        }
-        else if (trace.uri) {
+        } else if (trace.uri) {
           return ConfigService.http.get(trace.uri);
         } else {
           return { data: [] };
@@ -389,14 +421,26 @@ export const useChartData = (plot: Plot) => {
     return plotResponses.map((response: Response) => response.data); // unpack data
   }, [plot, templateParams]);
 
-  // since we're using strict mode, the useEffect is getting called twice in dev mode
-  // this is to guard against it
-  const setupStarted = useRef<boolean>(false);
+  // if each row in response is an object with a single string value that looks like a path
+  //   assume that string is a path to a file of data (or other API) and fetch the subsequent data
+  const getDataIfFromFile = async(responseData: any) => {
+    const fileResponses: Array<Response> = await Promise.all(
+      responseData.map((responseArray: any) => {
+        // responseArray.length is 1 from condition that limits this function from being called
+        const row = responseArray[0];
+        const key = Object.keys(row)[0];
+        return ConfigService.http.get(row[key]);
+      })
+    )
+
+    return fileResponses.map((response: Response) => response.data); // unpack data
+  }
 
   // Effect to fetch initial data
   useEffect(() => {
-    if (setupStarted.current && !controlTemplateVariablesInitialized) return;
-    setupStarted.current = true;
+    // wait until control template variables are initialized before fetching inital data
+    if (!controlTemplateVariablesInitialized) return;
+
 
     const fetchInitData = async () => {
       console.log('fetch initial occurred');
@@ -469,31 +513,53 @@ export const useChartData = (plot: Plot) => {
       }
       setTemplateParams(tempParams);
 
-      const plotData = await fetchData(); // fetch the data for the plot
-      setData(plotData); // set the data for the plot
+      // array of reponse.data arrays 
+      //    responseData = [response.data]
+      //    response.data = [{...}]
+      let responseData = await fetchData(); // fetch the data for the plot
+
+      // check response format to see if we need to fetch data from string in response
+      // if each response.data is an array with 1 object
+      //   AND each object has 1 key/value pair, check if that value is a "string" that looks like a "path"
+      const oneKeyInEachResponseAndPath = responseData.every((responseArray: any[]) => {
+        if (responseArray.length === 1) {
+          const row = responseArray[0];
+          const rowKeys = Object.keys(row);
+
+          if (rowKeys.length === 1) {
+            const key = rowKeys[0];
+            const value = row[key];
+
+            const pathRegEx = /^(?:\/|[a-z]+:\/\/)/
+            // console.log(pathRegEx.test(value));      ==> true
+            // console.log(pathRegEx.test('abcxyz'));   ==> false
+            // console.log(pathRegEx.test('/abcxyz'));  ==> true
+            // console.log(pathRegEx.test('abc/xyz'));  ==> false
+            // console.log(pathRegEx.test('abcxyz/'));  ==> false
+            // console.log('https://staging.atlas-d2k.org' + value);
+            // console.log(pathRegEx.test('https://staging.atlas-d2k.org' + value));   ==> true
+            return pathRegEx.test(value);
+          }
+        }
+
+        return false;
+      });
+
+      if (oneKeyInEachResponseAndPath) {
+        responseData = await getDataIfFromFile(responseData);
+      }
+      setData(responseData); // set the data for the plot
       setIsInitLoading(false); // set loading to false
       setSelectorOptionChanged(false);
     };
 
-    if (isFirstRender) {
-      // only run on first render
-      try {
-        fetchInitData();
-      } catch (error) {
-        dispatchError({ error });
-      }
+    // only run on first render
+    try {
+      fetchInitData();
+    } catch (error) {
+      dispatchError({ error });
     }
-  }, [
-    plot,
-    isFirstRender,
-    fetchSelectData,
-    setSelectData,
-    templateParams,
-    selectorOptionChanged,
-    fetchData,
-    dispatchError,
-    controlTemplateVariablesInitialized
-  ]);
+  }, [controlTemplateVariablesInitialized]);
 
   // Effect to fetch data on subsequent changes when different selections are made (when selectData changes)
   useEffect(() => {
@@ -519,13 +585,8 @@ export const useChartData = (plot: Plot) => {
       }
     }
   }, [
-    isFirstRender,
     isFetchSelected,
-    setIsFetchSelected,
-    selectData,
     templateParams,
-    fetchData,
-    dispatchError,
     selectorOptionChanged
   ]);
 
@@ -1619,7 +1680,7 @@ export const useChartData = (plot: Plot) => {
 
           plotlyData.push(plotData);
         }
-      } 
+      }
     });
 
     result.data = plotlyData;
@@ -1640,7 +1701,8 @@ export const useChartData = (plot: Plot) => {
   // Parse data on state changes to data or selectData
   useEffect(() => {
     if (data && !isDataLoading && !isInitLoading && !isFetchSelected) {
-      // data is an array of arrays of ermrest response objects [][]
+      // data is an array of arrays of ermrest response objects 
+      //   data => [response.data] and response.data => [{}]
       // each array in data is for a different trace.uri_pattern
       const emptyReponses = data.every((responseArray: any[]) => responseArray.length === 0);
 
