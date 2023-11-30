@@ -6,7 +6,7 @@ import '/node_modules/react-resizable/css/styles.css';
 import '/node_modules/react-grid-layout/css/styles.css';
 // services
 import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
-import { DataConfig, UserControlConfig, defaultGridProps } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { DataConfig, UserControlConfig, defaultGridProps, globalGridMargin } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 import { convertKeysSnakeToCamel, generateUid, validateGridProps } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 import { LayoutConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 import { setControlData, useControl } from '@isrd-isi-edu/deriva-webapps/src/hooks/control';
@@ -150,7 +150,7 @@ const PlotControlGrid = ({
       <ResponsiveGridLayout className='global-grid-layout layout'
         layouts={layout}
         {...defaultGridPropsConverted}
-        // margin={globalGridMargin}
+        margin={globalGridMargin}
         {...gridProps}>
         {config.plots.map((plotConfig): JSX.Element => {
           return <div key={plotConfig.uid}>
@@ -163,8 +163,6 @@ const PlotControlGrid = ({
               <UserControl
                 controlConfig={currentConfig}
                 controlOptions={dataOptions[index]}
-                // controlIndex={index}
-                // controlScope='global' 
                 />
             </div>
           )) : null}

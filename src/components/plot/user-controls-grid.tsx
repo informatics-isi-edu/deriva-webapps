@@ -91,6 +91,8 @@ const UserControlsGrid = ({ userControlData, selectorOptions, width }: UserContr
         <div className='selectors-grid' style={{ display: 'flex', flex: '0 1 0%', width: gridProps.width || width }}>
             <ResponsiveGridLayout className='grid-layout layout'
                 layouts={layout}
+                //TODO: Look for another fix for overlapping issue in controls
+                useCSSTransforms={false}
                 {...defaultGridPropsConverted}
                 {...gridProps}
             >

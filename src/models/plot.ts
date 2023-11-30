@@ -260,4 +260,4 @@ export const defaultGridProps = {
   row_height: 30,
 };
 
-// export const globalGridMargin = { lg: [10, 5], md: [20, 5], sm: [5, 5], xs: [5, 5] };
+export const globalGridMargin = { lg: [15, 5], md: [15, 5], sm: [5, 5], xs: [5, 5] };
