@@ -436,6 +436,30 @@ export const useChartData = (plot: Plot) => {
     return fileResponses.map((response: Response) => response.data); // unpack data
   }
 
+  const testResponseObjectString = (responseArray: any[]) => {
+    if (responseArray.length === 1) {
+      const row = responseArray[0];
+      const rowKeys = Object.keys(row);
+
+      if (rowKeys.length === 1) {
+        const key = rowKeys[0];
+        const value = row[key];
+
+        const pathRegEx = /^(?:\/|[a-z]+:\/\/)/
+        // console.log(pathRegEx.test(value));      ==> true
+        // console.log(pathRegEx.test('abcxyz'));   ==> false
+        // console.log(pathRegEx.test('/abcxyz'));  ==> true
+        // console.log(pathRegEx.test('abc/xyz'));  ==> false
+        // console.log(pathRegEx.test('abcxyz/'));  ==> false
+        // console.log('https://staging.atlas-d2k.org' + value);
+        // console.log(pathRegEx.test('https://staging.atlas-d2k.org' + value));   ==> true
+        return pathRegEx.test(value);
+      }
+    }
+
+    return false;
+  }
+
   // Effect to fetch initial data
   useEffect(() => {
     // wait until control template variables are initialized before fetching inital data
@@ -521,33 +545,12 @@ export const useChartData = (plot: Plot) => {
       // check response format to see if we need to fetch data from string in response
       // if each response.data is an array with 1 object
       //   AND each object has 1 key/value pair, check if that value is a "string" that looks like a "path"
-      const oneKeyInEachResponseAndPath = responseData.every((responseArray: any[]) => {
-        if (responseArray.length === 1) {
-          const row = responseArray[0];
-          const rowKeys = Object.keys(row);
-
-          if (rowKeys.length === 1) {
-            const key = rowKeys[0];
-            const value = row[key];
-
-            const pathRegEx = /^(?:\/|[a-z]+:\/\/)/
-            // console.log(pathRegEx.test(value));      ==> true
-            // console.log(pathRegEx.test('abcxyz'));   ==> false
-            // console.log(pathRegEx.test('/abcxyz'));  ==> true
-            // console.log(pathRegEx.test('abc/xyz'));  ==> false
-            // console.log(pathRegEx.test('abcxyz/'));  ==> false
-            // console.log('https://staging.atlas-d2k.org' + value);
-            // console.log(pathRegEx.test('https://staging.atlas-d2k.org' + value));   ==> true
-            return pathRegEx.test(value);
-          }
-        }
-
-        return false;
-      });
+      const oneKeyInEachResponseAndPath = responseData.every((responseArray: any[]) => testResponseObjectString(responseArray));
 
       if (oneKeyInEachResponseAndPath) {
         responseData = await getDataIfFromFile(responseData);
       }
+
       setData(responseData); // set the data for the plot
       setIsInitLoading(false); // set loading to false
       setSelectorOptionChanged(false);
@@ -567,8 +570,22 @@ export const useChartData = (plot: Plot) => {
       console.log('fetch occurred');
       setIsDataLoading(true);
       setIsParseLoading(true);
-      const plotData = await fetchData();
-      setData(plotData);
+
+      // array of reponse.data arrays 
+      //    responseData = [response.data]
+      //    response.data = [{...}]
+      let responseData = await fetchData();
+
+      // check response format to see if we need to fetch data from string in response
+      // if each response.data is an array with 1 object
+      //   AND each object has 1 key/value pair, check if that value is a "string" that looks like a "path"
+      const oneKeyInEachResponseAndPath = responseData.every((responseArray: any[]) => testResponseObjectString(responseArray));
+
+      if (oneKeyInEachResponseAndPath) {
+        responseData = await getDataIfFromFile(responseData);
+      }
+
+      setData(responseData);
       setIsDataLoading(false);
       setIsFetchSelected(false);
       setSelectorOptionChanged(false);
