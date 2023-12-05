@@ -1,5 +1,6 @@
 // import '/node_modules/react-resizable/css/styles.css';
 // import '/node_modules/react-grid-layout/css/styles.css';
+import React from 'react';
 
 // components
 import Dropdown from '@isrd-isi-edu/deriva-webapps/src/components/controls/dropdown';
@@ -71,7 +72,7 @@ const UserControlsGrid = ({ userControlData, width }: UserControlsGridProps): JS
 
   return (
     <div className='selectors-grid' style={{ display: 'flex', flex: '0 1 0%', width: gridProps.width || width }}>
-      <ResponsiveGridLayout className='grid-layout layout'
+      <ResponsiveGridLayout className='grid-layout layout' style={{position: 'relative'}}
         layouts={layoutObj}
         {...gridProps}
       >
@@ -82,4 +83,5 @@ const UserControlsGrid = ({ userControlData, width }: UserControlsGridProps): JS
 
 };
 
-export default UserControlsGrid;
+// only rerender component if props change but the props should NOT change, so this component shouldn't "rerender"
+export default React.memo(UserControlsGrid);

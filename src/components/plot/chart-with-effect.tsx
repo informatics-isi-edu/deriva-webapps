@@ -33,24 +33,26 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
   const { layout } = config.plotly || {};
 
   // Add upper bounds to layout width and height for responsive
-  const minWidth = 320; // absolute min width
-  const minHeight = 600; // absolute min height
+  let minWidth = 320; // absolute min width
+  let minHeight = 600; // absolute min height
   let maxWidth = plotAreaFraction * width; // 95% of viewport, used as max width
   let maxHeight = 0.7 * height; // 70% of viewport, used as min height
 
   // max width is the min of plot width or calculated max width
   if (layout?.width && !isNaN(layout?.width as number)) {
+    minWidth = layout.width;
     maxWidth = Math.min(layout.width, maxWidth);
   }
 
   // max height is the min of plot height or calculated max height
   if (layout?.height && !isNaN(layout?.height as number)) {
+    minHeight = layout.height;
     maxHeight = Math.min(layout.height, maxHeight);
   }
 
   const dynamicStyles: { width: string | number; height: string | number } = {
     width: Math.max(minWidth, maxWidth), // set width to min of VP or given Layout
-    height: Math.max(minHeight, maxHeight), // set width to min of VP or given Layout
+    height: Math.max(minHeight, maxHeight), // set height to min of VP or given Layout
   };
 
   /**

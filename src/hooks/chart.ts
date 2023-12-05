@@ -446,13 +446,18 @@ export const useChartData = (plot: Plot) => {
         const value = row[key];
 
         const pathRegEx = /^(?:\/|[a-z]+:\/\/)/
-        // console.log(pathRegEx.test(value));      ==> true
-        // console.log(pathRegEx.test('abcxyz'));   ==> false
-        // console.log(pathRegEx.test('/abcxyz'));  ==> true
-        // console.log(pathRegEx.test('abc/xyz'));  ==> false
-        // console.log(pathRegEx.test('abcxyz/'));  ==> false
+        
+        // NOTE: html path tests
+        // console.log(pathRegEx.test('abcxyz'));   // ==> false
+        // console.log(pathRegEx.test('/abcxyz'));  // ==> true
+        // console.log(pathRegEx.test('abc/xyz'));  // ==> false
+        // console.log(pathRegEx.test('abcxyz/'));  // ==> false
         // console.log('https://staging.atlas-d2k.org' + value);
-        // console.log(pathRegEx.test('https://staging.atlas-d2k.org' + value));   ==> true
+        // console.log(pathRegEx.test('https://staging.atlas-d2k.org' + value));   // ==> true
+
+        // // NOTE: file path tests
+        // console.log(pathRegEx.test('File:/abcxyz'));  // ==> false
+        // console.log(pathRegEx.test('File:/abcxyz/path/to/file.tiff'));  // ==> false
         return pathRegEx.test(value);
       }
     }
