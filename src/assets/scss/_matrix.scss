@@ -291,7 +291,7 @@ body:not(.chaise-iframe) {
 
   .legend-container {
     flex-direction: column;
-    overflow-x: scroll;
+    overflow-x: auto;
     overflow-y: visible;
     margin-top: 25px;
   }
@@ -304,8 +304,6 @@ body:not(.chaise-iframe) {
   .legend-links-container {
     display: inline-flex;
     flex-direction: row;
-    margin-top: 10px;
-    margin-left: 15px;
   }
 
   .legend-bar {
@@ -314,22 +312,24 @@ body:not(.chaise-iframe) {
   }
 
   .legend-link-div {
+    transform-origin: top left;
     -webkit-transform: translate() rotate(45deg);
     -ms-transform: rotate(45deg);
     transform: rotate(45deg);
   }
 
   .legend-link {
-    white-space: nowrap;
-
     &:hover {
       font-weight: bold;
     }
   }
 
   .split-text {
+    text-overflow: -o-ellipsis-lastline;
     overflow: hidden;
     text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
   }
 
   .color-toggle-container {
