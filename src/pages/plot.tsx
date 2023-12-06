@@ -6,13 +6,23 @@ import { createRoot } from 'react-dom/client';
 import AppWrapper from '@isrd-isi-edu/chaise/src/components/app-wrapper';
 import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
 import ChartWithEffect from '@isrd-isi-edu/deriva-webapps/src/components/plot/chart-with-effect';
+import { Responsive, WidthProvider, ResponsiveProps as ResponsiveGridProps, Layouts } from 'react-grid-layout';
+import DropdownSelect from '@isrd-isi-edu/deriva-webapps/src/components/plot/dropdown-select';
+
+
 
 // hooks
 import { usePlotConfig } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
+import { useEffect, useState } from 'react';
 
 // utilities
 import { ID_NAMES } from '@isrd-isi-edu/chaise/src/utils/constants';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
+import { DataConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { TemplateParamsProvider } from '@isrd-isi-edu/deriva-webapps/src/providers/template-params';
+
+import PlotControlGrid from '@isrd-isi-edu/deriva-webapps/src/components/plot/plot-control-grid';
+
 
 const plotSettings = {
   appName: 'app/plot',
@@ -21,6 +31,7 @@ const plotSettings = {
   overrideDownloadClickBehavior: false,
   overrideExternalLinkBehavior: false,
 };
+//In simple cases a HOC WidthProvider can be used to automatically determine width upon initialization and window resize events.
 
 const PlotApp = (): JSX.Element => {
   /**
@@ -28,26 +39,32 @@ const PlotApp = (): JSX.Element => {
    */
   const { config, errors } = usePlotConfig(windowRef.plotConfigs);
 
-  if (!config && errors.length > 0) {
+  const [plotAppProps, setPlotAppProps] = useState<DataConfig>();
+
+  useEffect(()=>{
+    if(config){
+      setPlotAppProps(config);
+    }
+  },[config])
+
+   
+  // if there was an error during setup, hide the spinner
+  if (!plotAppProps && errors.length > 0) {
     return <></>;
   }
 
-  if (!config) {
+  if (!plotAppProps) {
     return <ChaiseSpinner />;
   }
 
-  return (
-    <div className='plot-page'>
-      {config.plots.map((plotConfig, i): JSX.Element => {
-        return <ChartWithEffect key={i} config={plotConfig} />;
-      })}
-    </div>
-  );
+  return <PlotControlGrid config={plotAppProps} />;
 };
 
 const root = createRoot(document.getElementById(ID_NAMES.APP_ROOT) as HTMLElement);
 root.render(
   <AppWrapper appSettings={plotSettings} includeNavbar displaySpinner ignoreHashChange includeAlerts>
+    <TemplateParamsProvider>
     <PlotApp />
+    </TemplateParamsProvider>
   </AppWrapper>
 );
