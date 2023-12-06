@@ -1,19 +1,16 @@
 import { useEffect } from 'react';
 
-import { UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
-import { PlotTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
+import { ControlScope, UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 import { getQueryParam } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 import { windowRef } from '@isrd-isi-edu/chaise/src/utils/window-ref';
 import { Option } from '@isrd-isi-edu/deriva-webapps/src/components/virtualized-select';
-import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
 
 type UserControlGridProps = {
-  /**
-   * selectors data to be rendered
-   */
-  userControlConfig: UserControlConfig[];
-  templateParams: PlotTemplateParams;
-  setDataOptions: any;
+    /**
+     * selectors data to be rendered
+     */
+    userControlConfig: UserControlConfig[];
+    setDataOptions: any;
 };
 
 /**
@@ -84,33 +81,46 @@ const getDataOptions = async (userControlGridObject: UserControlGridProps) => {
  * @param configData Selector configuration, template params and setDataOptions state method
  * @returns modified configData.templateParams
  */
-const setControlData = (configData: UserControlGridProps) => {
-  configData?.userControlConfig?.map((currentConfig: UserControlConfig) => {
-    const paramKey = currentConfig?.url_param_key;
-    const uid = currentConfig?.uid;
-    const valueKey = currentConfig?.request_info?.value_key;
-    const defaultValue = currentConfig?.request_info?.default_value;
-    configData.templateParams.$control_values = {
-      ...configData.templateParams.$control_values,
-      [uid]: {
-        values: {},
-      },
-    };
-    if (paramKey) {
-      const paramValue = getQueryParam(windowRef.location.href, paramKey);
-      if (paramValue) {
-        configData.templateParams.$control_values[uid].values = {
-          [valueKey]: paramValue //use url_param value
-        };
-      }
-    }
-    if (defaultValue) {
-      configData.templateParams.$control_values[uid].values = {
-        [valueKey]: defaultValue //else use default value
-      };
-    }
-  })
-  return configData.templateParams;
+export const setControlData = (configData: UserControlConfig[], setTemplateParams: any, controlScope: ControlScope) => {
+    configData?.map((currentConfig: UserControlConfig,index) => {
+        const paramKey = currentConfig?.url_param_key;
+        const uid = currentConfig?.uid || controlScope+'_'+currentConfig.type+'_'+index;
+        const valueKey = currentConfig?.request_info?.value_key;
+        const defaultValue = currentConfig?.request_info?.default_value;
+        if (paramKey) {
+            const paramValue = getQueryParam(windowRef.location.href, paramKey);
+            if (paramValue) {
+            setTemplateParams((prevTemplateParams: any)=>{
+                return{
+                    ...prevTemplateParams,
+                    $control_values: {
+                        ...prevTemplateParams.$control_values,
+                        [uid]:{
+                            values: {
+                                [valueKey]: paramValue,
+                            }
+                        }
+                    }
+                }
+            });
+            }
+        }
+        if (defaultValue) {
+            setTemplateParams((prevTemplateParams: any)=>{
+                return{
+                    ...prevTemplateParams,
+                    $control_values: {
+                        ...prevTemplateParams.$control_values,
+                        [uid]:{
+                            values: {
+                                [valueKey]: defaultValue,
+                            }
+                        }
+                    }
+                }
+            });
+        } 
+    })
 }
 
 /**
@@ -119,11 +129,12 @@ const setControlData = (configData: UserControlGridProps) => {
  * @param configData Selector configuration, template params and setDataOptions state method
  */
 export const useControl = (configData: UserControlGridProps) => {
-  useEffect(() => {
-    setControlData(configData);
-    getDataOptions(configData).then((allDataOptions) => {
-      configData.setDataOptions(allDataOptions);
-    });
-  }, []);
+    useEffect(() => {
+        if(Object.values(configData).length>0){
+        getDataOptions(configData).then((allDataOptions) => {
+            configData.setDataOptions(allDataOptions);
+        });
+    }
+    }, []);
 };
 

@@ -1,26 +1,52 @@
-import { useRef } from 'react';
+import { useRef, useState,useEffect, useCallback } from 'react';
 
 
-import { Plot, plotAreaFraction } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { Plot, PlotTemplateParams, plotAreaFraction } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 
 import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
-import { useChartData } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
+import {  useChartData } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
 
-// import Chart from '@isrd-isi-edu/deriva-webapps/src/components/plot/chart';
 import SelectGrid from '@isrd-isi-edu/deriva-webapps/src/components/plot/select-grid';
 import PlotlyChart from '@isrd-isi-edu/deriva-webapps/src/components/plot/plotly-chart';
 import RecordsetModal from '@isrd-isi-edu/chaise/src/components/modals/recordset-modal';
 import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
 import { SelectedRow } from '@isrd-isi-edu/chaise/src/models/recordset';
 import UserControlsGrid from '@isrd-isi-edu/deriva-webapps/src/components/plot/user-controls-grid';
+import { getQueryParam } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
+import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
+import useTemplateParams from '@isrd-isi-edu/deriva-webapps/src/hooks/template-params';
 
 export type ChartWithEffectProps = {
   config: Plot;
+  initialParams: PlotTemplateParams;
 };
 
 // NOTE: Currently only used for violin plots
-const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
+const ChartWithEffect = ({ config, initialParams }: ChartWithEffectProps): JSX.Element => {
   const plotlyRef = useRef<any>(null);
+  const [parentWidth, setParentWidth] = useState(0);
+  //Setting initial template params
+  const [updateInitialParams] = useState({
+    ...initialParams,
+    $url_parameters: {
+      ...initialParams.$url_parameters,
+    Gene: {
+      data: {
+        NCBI_GeneID: getQueryParam(windowRef.location.href, 'NCBI_GeneID') || 1, // TODO: deal with default value
+      },
+    },
+    Study: [],
+    }
+  });
+
+  const {setTemplateParams} = useTemplateParams();
+
+  const ref = useCallback((node: any) => {
+    if (node !== null) {
+      setParentWidth(node.getBoundingClientRect().width);
+    }
+  }, []);  
+
 
   /**
    * Window size of component
@@ -46,10 +72,15 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
     maxHeight = Math.min(layout.height, maxHeight);
   }
 
-  const dynamicStyles: { width: string | number; height: string | number } = {
+  const dynamicStyles: { width: number; height: number } = {
     width: Math.max(minWidth, maxWidth), // set width to min of VP or given Layout
     height: Math.max(minHeight, maxHeight), // set width to min of VP or given Layout
   };
+
+  //setting initial params in context object
+  useEffect(()=>{
+    setTemplateParams(updateInitialParams);
+  },[]);
 
   /**
    * Data that goes into building the chart
@@ -66,12 +97,11 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
     isInitLoading,
     handleCloseModal,
     handleSubmitModal,
-    setSelectorOptionChanged,
-  } = useChartData(config);
+  } = useChartData(config,updateInitialParams);
 
   if (!parsedData || isInitLoading) {
     return <ChaiseSpinner />;
-  }
+  } 
 
 
 
@@ -160,20 +190,22 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
   }
   return (
     <div className='chart-container'>
-      <div className='chart'>
+      <div className='chart' ref={ref}>
         {selectData && selectData.length > 0 ? (
           <SelectGrid selectors={selectData} width={dynamicStyles.width} />
         ) : null}
         {userControlData && Object.keys(userControlData)?.length > 0 && dataOptions && dataOptions.length > 0 ? (
-          <UserControlsGrid userControlData={userControlData} selectorOptions={dataOptions}
-            setSelectorOptionChanged={setSelectorOptionChanged} width={dynamicStyles.width} />
+          <UserControlsGrid userControlData={userControlData} selectorOptions={dataOptions} width={'100%'} />
         ) : null}
-        {isParseLoading || isFetchSelected ? (
+        {isParseLoading || isFetchSelected  ? (
           <ChaiseSpinner />
         ) : (
           <PlotlyChart
             className='plotly-chart'
-            style={dynamicStyles}
+            style={{
+              width: parentWidth && parentWidth < dynamicStyles.width ? parentWidth : dynamicStyles.width,
+              height: dynamicStyles.height,
+            }}
             ref={plotlyRef}
             {...parsedData}
             useResizeHandler
@@ -194,3 +226,4 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
 };
 
 export default ChartWithEffect;
+
