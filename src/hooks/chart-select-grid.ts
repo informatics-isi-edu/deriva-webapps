@@ -1,15 +1,21 @@
-import { useState, useCallback } from 'react';
+// hooks
+import { useEffect, useState, useCallback } from 'react';
+import usePlot from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
+import usePlotlyChart from '@isrd-isi-edu/deriva-webapps/src/hooks/plotly-chart';
+
+// models
 import { Plot } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
-import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
-import { createLink, extractLink, getPatternUri } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
-
-import { PlotTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
-import { getQueryParam } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
-
 import {
   RecordsetDisplayMode,
   RecordsetSelectMode,
 } from '@isrd-isi-edu/chaise/src/models/recordset';
+
+// services
+import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
+
+// utils
+import { getPatternUri } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
+import { getQueryParam } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 
 /**
  * This hook is used to handle the effects and state of the select grid in the chart.
@@ -19,9 +25,15 @@ import {
  *
  * @returns
  */
-export const useChartControlsGrid = ({ templateParams, setModalProps, setIsModalOpen }: any) => {
+export const useChartControlsGrid = ({ setModalProps, setIsModalOpen }: any) => {
   const [selectData, setSelectData] = useState<any>(null);
   const [isFetchSelected, setIsFetchSelected] = useState<boolean>(false);
+  const [optionRemoved, setOptionRemoved] = useState<boolean>(false);
+  const [indicesForRemove, setIndicesForRemove] = useState<{row: number, column: number} | null>(null)
+
+  const { templateParams, setTemplateParams } = usePlot();
+  const { setNoData } = usePlotlyChart();
+
   /**
    * Handles closing the modal.
    */
@@ -38,47 +50,40 @@ export const useChartControlsGrid = ({ templateParams, setModalProps, setIsModal
    */
   const handleSubmitModal = (selectedRows: any[], indices: number[], cell: any) => {
     const { isMulti, urlParamKey, requestInfo } = cell;
+    const [i, j] = indices;
 
     setIsFetchSelected(true); // this action requires fetching data
-    setSelectData((prevValues: any) => {
-      const newValues = [...prevValues];
-      const [i, j] = indices;
 
-      // update selectedRows
-      newValues[i][j] = { ...prevValues[i][j], selectedRows };
+    const newSelectData = [...selectData];
+    newSelectData[i][j] = { ...selectData[i][j], selectedRows };
 
-      if (selectedRows && selectedRows.length > 0) {
-        if (prevValues[i][j].id === 'study') {
-          // if there is selected rows, we need to set the noData flag to false for violin plot, study selector
-          // TODO: eventually remove this hack. Don't use noData or this condition
-          templateParams.noData = false;
-        }
+    const tempParams = { ...templateParams };
+    if (selectedRows && selectedRows.length > 0) {
+      if (!isMulti) {
+        // if the cell is not multi, we update the selected row with one value
+        const selectedTuple = selectedRows[selectedRows.length - 1];
+        const value = {
+          value: selectedTuple.data[requestInfo.valueKey],
+          label: selectedTuple.data[requestInfo.labelKey],
+        };
+        newSelectData[i][j].value = value;
 
-        if (!isMulti) {
-          // if the cell is not multi, we update the selected row with one value
-          const selectedTuple = selectedRows[selectedRows.length - 1];
-          const value = {
-            value: selectedTuple.data[requestInfo.valueKey],
-            label: selectedTuple.data[requestInfo.labelKey],
-          };
-          newValues[i][j].value = value;
-          templateParams.$url_parameters[urlParamKey].data = selectedTuple.data;
-        } else {
-          // if the cell is multi, we update the selected rows with all the values
-          templateParams.$url_parameters[urlParamKey] = selectedRows.map((tuple: any) => ({
-            data: tuple.data,
-          }));
-        }
+        tempParams.$url_parameters[urlParamKey].data = selectedTuple.data;
       } else {
-        if (prevValues[i][j].id === 'study') {
-          // if there is no selected rows, we need to set the noData flag to true for violin plot, study selector
-          // TODO: remove this hack. Don't use noData or this condition
-          templateParams.noData = true;
-        }
+        // if the cell is multi, we update the selected rows with all the values
+        tempParams.$url_parameters[urlParamKey] = selectedRows.map((tuple: any) => ({
+          data: tuple.data,
+        }));
       }
+    }
 
-      return newValues;
-    });
+    setSelectData(newSelectData);
+    setTemplateParams(tempParams);
+
+    if (selectData[i][j].id === 'study') {
+      setNoData(selectedRows.length === 0);
+    }
+
     setIsModalOpen(false);
   };
 
@@ -88,7 +93,7 @@ export const useChartControlsGrid = ({ templateParams, setModalProps, setIsModal
   const handleClickSelectAll = useCallback(
     (indices: number[], cell: any) => {
       const { urlParamKey } = cell;
-      templateParams.noData = false; // set noData to false when select all is clicked
+      setNoData(false); // set noData to false when select all is clicked
       setIsFetchSelected(true); // this action requires fetching data
       setSelectData((prevValues: any) => {
         const newValues = [...prevValues];
@@ -96,11 +101,13 @@ export const useChartControlsGrid = ({ templateParams, setModalProps, setIsModal
 
         newValues[i][j] = { ...prevValues[i][j], selectedRows: [] };
 
-        // TODO: Using empty array to represent "all values" should be changed
-        templateParams.$url_parameters[urlParamKey] = [];
-
         return newValues;
       });
+
+      // TODO: Using empty array to represent "all values" should be changed
+      const tempParams = { ...templateParams };
+      tempParams.$url_parameters[urlParamKey] = [];
+      setTemplateParams(tempParams);
     },
     [setIsFetchSelected, templateParams]
   );
@@ -121,20 +128,17 @@ export const useChartControlsGrid = ({ templateParams, setModalProps, setIsModal
     },
     [setIsModalOpen, setModalProps]
   );
+  
 
   const handleRemoveCallback = useCallback(
     (removed: any, indices: number[], cell: any) => {
-      const { urlParamKey } = cell;
+      const [i, j] = indices;
 
-      setIsFetchSelected(true); // this action requires fetching data
       if (removed === null) {
         // removing all records occurred
         setSelectData((prevValues: any) => {
           const newValues = [...prevValues];
-          const [i, j] = indices;
           newValues[i][j] = { ...prevValues[i][j], selectedRows: null };
-          templateParams.$url_parameters[urlParamKey] = null;
-          templateParams.noData = true;
 
           return newValues;
         });
@@ -142,29 +146,49 @@ export const useChartControlsGrid = ({ templateParams, setModalProps, setIsModal
         // removing one record occurred
         setSelectData((prevValues: any) => {
           const newValues = [...prevValues];
-          const [i, j] = indices;
           const prevSelectData = prevValues[i][j];
           const selectedRows = prevSelectData.selectedRows?.filter(
             (curr: any) => curr.uniqueId !== removed.uniqueId
           );
-
+          
           // if null or empty array, no "studies" selected so show no data
-          if (!selectedRows || selectedRows.length === 0) {
-            templateParams.noData = true;
-            newValues[i][j] = { ...prevSelectData, selectedRows: null };
-            templateParams.$url_parameters[urlParamKey] = null;
-          } else {
-            templateParams.noData = false;
-            newValues[i][j] = { ...prevSelectData, selectedRows };
-            templateParams.$url_parameters[urlParamKey] = selectedRows;
-          }
+          newValues[i][j] = { 
+            ...prevSelectData, 
+            selectedRows: (!selectedRows || selectedRows.length === 0 ? null : selectedRows)
+          }; 
 
           return newValues;
         });
       }
+
+      setOptionRemoved(true);
+      setIndicesForRemove({ row: i, column: j});
     },
-    [templateParams, setIsFetchSelected, setSelectData]
+    [setSelectData]
   );
+
+  // update select data then trigger this useEffect if an option is removed
+  useEffect(() => {
+    if (!optionRemoved || !indicesForRemove) return;
+    setOptionRemoved(false);
+
+    const userControl = selectData[indicesForRemove.row][indicesForRemove.column];
+    const key = userControl.urlParamKey;
+    const rows = userControl.selectedRows;
+
+    // update template params and no data
+    const tempParams = { ...templateParams };
+    if (!rows || rows.length === 0) {
+      tempParams.$url_parameters[key] = null;
+      setNoData(true);
+    } else {
+      tempParams.$url_parameters[key] = rows;
+      setNoData(false);
+    }
+
+    setTemplateParams(tempParams);
+    setIsFetchSelected(true); // this action requires fetching data
+  }, [selectData, optionRemoved])
 
   /**
    * Handles the click of the select button. This function will update the templateParams and selectData state.
@@ -212,10 +236,9 @@ export const useChartControlsGrid = ({ templateParams, setModalProps, setIsModal
     // console.log('fetchselectgridcell occurred', uri);
     const resolvedRef = await ConfigService.ERMrest.resolve(uri, { headers });
     const ref = resolvedRef.contextualize.compactSelect;
-    const initialReference = resolvedRef.contextualize.compactSelect;
     const page = await ref.read(1);
     const tupleData = page.tuples;
-    return { initialReference, tupleData };
+    return { initialReference: ref, tupleData };
   };
 
   /**
@@ -227,7 +250,7 @@ export const useChartControlsGrid = ({ templateParams, setModalProps, setIsModal
    * @returns object containing a single data cell for the selection grid
    */
   const parseSelectGridCell = useCallback(
-    async (cell: any, templateParams: PlotTemplateParams) => {
+    async (cell: any) => {
       const { type, isMulti, urlParamKey, requestInfo } = cell;
       const selectResult: any = { ...cell };
 
@@ -248,19 +271,21 @@ export const useChartControlsGrid = ({ templateParams, setModalProps, setIsModal
           uri += `/${valueKey}=` + hrefQueryParam;
         }
 
+        const tempParams = { ...templateParams };
         // only fetch data if the uri is valid
         if (uri) {
           const { initialReference, tupleData } = await fetchSelectGridCellData(
             uri,
             headers
           ); // perform the data fetch
+
           recordsetProps.initialReference = initialReference; // set initial ref
           selectResult.selectedRows = tupleData; // set initial selected rows
           if (hrefQueryParam) {
             if (!isMulti) {
-              templateParams.$url_parameters[urlParamKey].data = hrefQueryParam;
+              tempParams.$url_parameters[urlParamKey].data = hrefQueryParam;
             } else {
-              templateParams.$url_parameters[urlParamKey] = [
+              tempParams.$url_parameters[urlParamKey] = [
                 { data: { [valueKey]: hrefQueryParam } },
               ];
             }
@@ -275,12 +300,14 @@ export const useChartControlsGrid = ({ templateParams, setModalProps, setIsModal
           };
 
           if (!isMulti) {
-            templateParams.$url_parameters[urlParamKey].data = firstTuple.data;
+            tempParams.$url_parameters[urlParamKey].data = firstTuple.data;
           } else {
-            templateParams.$url_parameters[urlParamKey] = tupleData.map((tuple: any) => ({
+            tempParams.$url_parameters[urlParamKey] = tupleData.map((tuple: any) => ({
               data: tuple.data,
             }));
           }
+
+          setTemplateParams(tempParams);
         }
 
         if (selectResult.action === 'modal') {
@@ -313,11 +340,11 @@ export const useChartControlsGrid = ({ templateParams, setModalProps, setIsModal
         for (let j = 0; j < row.length; j++) {
           const cell = row[j];
 
-          initialData[i][j] = await parseSelectGridCell(cell, templateParams);
+          initialData[i][j] = await parseSelectGridCell(cell);
         }
       }
 
-      return initialData; 
+      return initialData;
 
       // Promise.all assumes all data can be fetched at the same time
       // Promise.all(

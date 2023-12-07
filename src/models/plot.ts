@@ -32,10 +32,10 @@ export type UserControlDataConfig={
 }
 
 export type UserControlConfig = {
-  uid?: string;
+  uid: string;
   label: string;
-  url_param_key?: string;
   type: string;
+  url_param_key?: string;
   request_info: UserControlRequestInfoConfig;
 }
 
@@ -230,10 +230,6 @@ export type TracePlotyData = Partial<PlotlyPlotData> &
     $control_values: {
       [paramKey: string]: any;
     };
-    /**
-     * No data flag
-     */
-    noData: boolean;
   };
 
 /**

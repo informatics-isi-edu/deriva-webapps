@@ -1,6 +1,11 @@
+// models
+import { ControlScope, defaultGridProps, PlotTemplateParams, UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+
+// services
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
+
+// utils
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
-import { ControlScope, UserControlConfig, defaultGridProps } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 
 /**
  * Appends and returns the pcid and ppid for the given link
@@ -152,7 +157,7 @@ export const createLinkWithContextParams = (
  * @param templateParams 
  * @returns 
  */
-export const getPatternUri = (queryPattern: string, templateParams: any) => {
+export const getPatternUri = (queryPattern: string, templateParams: PlotTemplateParams) => {
   const { contextHeaderName } = ConfigService.ERMrest;
   const defaultHeaders = ConfigService.contextHeaderParams;
   const uri = ConfigService.ERMrest.renderHandlebarsTemplate(queryPattern, templateParams);
@@ -359,18 +364,14 @@ export const validateGridProps = (gridConfigObject: any) => {
 
 
 /**
+ * Generates a unique id based on scope, type, and index in the set of user_controls/plots
+ * One item is a user_control or plot object
  * 
- * @param controls User controls
- * @param controlScope scope of the control either 'global' or 'local'
- * @returns controls along with their uid
+ * @param scope scope of the item either 'global' or 'local'
+ * @param type type of the item
+ * @param index index for itemin the user_controls[] or plots[]
+ * @returns uid for the item
  */
-export const generateUid = (controls: UserControlConfig[],controlScope: ControlScope) => {
-  controls?.forEach((control,index)=>{
-    const uid = controlScope+'_'+control.type+'_'+index;
-    if(!control.uid){
-      control['uid']=uid;
-    }
-    return control;
-  });
-  return controls;
+export const generateUid = (scope: ControlScope, type: string, index: number) => {
+  return scope + '_' + type + '_' + index;
 }

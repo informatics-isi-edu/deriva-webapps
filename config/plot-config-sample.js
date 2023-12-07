@@ -715,6 +715,94 @@ var plotConfigs = {
             },
           },
         },
+        config: {
+          title_display_markdown_pattern:
+            '[Number of GUDMAP resources released to date (log scale)](https://example.com){target=_blank}',
+          format_data_x: true, // defualt : false - to use hack or not
+          xaxis: {
+            title_display_markdown_pattern:
+              '[Number of Records](https://example.com){target=_blank}',
+          },
+          yaxis: {
+            tick_display_markdown_pattern:
+              '[{{$self.data.Data_Type}}](/chaise/recordset/#2/{{{$self.data.Schema_Table}}}){target=_blank}',
+            title_display_markdown_pattern: '[Data Types](/chaise/recordset/#2/Gene_Expression:Specimen){target=_blank}'
+          },
+          disable_default_legend_click: true,
+        },
+        traces: [
+          {
+            // The request url that has to be used to fetch the data.
+            //Fetch the file from testing user's directory
+            // url_pattern: '/~kenyshah/gudmap.json',
+            url_pattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium={{{$control_values.consortium.values.Name}}}/!(Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
+            // url_pattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
+            //Determine the type of file in url_pattern if applicable            
+            response_format: 'json',
+            hovertemplate_display_pattern: "Released Horizontal: {{#if true}}{{{$row.Released}}}{{/if}}",
+            legend: ['Released'], // name of traces in legend
+            legend_markdown_pattern: [
+              '[#Released](/chaise/recordset/#2/Antibody:Antibody_Tests/){target=_blank}',
+            ],
+            graphic_link_pattern:
+              '/chaise/recordset/#2/{{{$self.data.Schema_Table}}}/*::facets::{{#encodeFacet}}{{{$self.data.Data_Type_Filter}}}{{/encodeFacet}}',
+            x_col: ['Released'], // column name to use for x values
+            y_col: ['Data_Type'], // array of column names to use for y values
+            orientation: 'h', // Optional parameter for displaying the bar chart horizontally
+            textfont: {
+              size: 10, // It will work till the bar size can accomodate the font size
+            },
+          },
+        ],
+        user_controls: [{
+          uid: 'consortium',
+          label: 'Consortium',
+          request_info: {
+            data: [{
+              Name: 'ALL',
+              Display: 'All'
+            }, {
+              Name: 'GUDMAP',
+              Display: 'Gudmap'
+            }, {
+              Name: 'RBK',
+              Display: 'RBK'
+            }],
+            default_value: 'ALL',
+            value_key: 'Name',
+            selected_value_pattern: '{{{$self.values.Display}}}'
+          }
+        },
+        {
+          uid: 'consortiumS2',
+          label: 'S2 Consortium',
+          request_info: {
+            data: [{
+              Name: 'ALL',
+              Display: 'S2 All'
+            }, {
+              Name: 'GUDMAP',
+              Display: 'S2 Gudmap'
+            }, {
+              Name: 'RBK',
+              Display: 'S2 RBK'
+            }],
+            default_value: 'ALL',
+            value_key: 'Name',
+            selected_value_pattern: '{{{$self.values.Display}}}'
+          }
+        }],
+        grid_layout_config: {
+          // This allows setting the initial width on the server side.
+          // width: 1200,
+          auto_size: true,
+          breakpoints: { lg: 1100, md: 996, sm: 768, xs: 480 },
+          position: 'top',
+          cols: { lg: 12, md: 10, sm: 6, xs: 4 },
+          margin: { lg: [12, 12], md: [10, 10], sm: [9, 9], xs: [5, 5] },
+          // container_padding: { lg: [12, 12], md: [10, 10], sm: [9, 9], xs: [5, 5] },
+          row_height: 30,
+        },
         layout: {
           lg: [{
             source_uid: 'consortium',
@@ -776,98 +864,9 @@ var plotConfigs = {
             h: 1,
             static: true,
           }],
-        },
-        grid_layout_config: {
-          // This allows setting the initial width on the server side.
-          // width: 1200,
-          auto_size: true,
-          breakpoints: { lg: 1100, md: 996, sm: 768, xs: 480 },
-          position: 'top',
-          cols: { lg: 12, md: 10, sm: 6, xs: 4 },
-          margin: { lg: [12, 12], md: [10, 10], sm: [9, 9], xs: [5, 5] },
-          // container_padding: { lg: [12, 12], md: [10, 10], sm: [9, 9], xs: [5, 5] },
-          row_height: 30,
-        },
-        user_controls: [{
-          uid: 'consortium',
-          label: 'Consortium',
-          request_info: {
-            data: [{
-              Name: 'ALL',
-              Display: 'All'
-            }, {
-              Name: 'GUDMAP',
-              Display: 'Gudmap'
-            }, {
-              Name: 'RBK',
-              Display: 'RBK'
-            }],
-            default_value: 'ALL',
-            value_key: 'Name',
-            selected_value_pattern: '{{{$self.values.Display}}}'
-          }
-        },
-        {
-          uid: 'consortiumS2',
-          label: 'S2 Consortium',
-          request_info: {
-            data: [{
-              Name: 'ALL',
-              Display: 'S2 All'
-            }, {
-              Name: 'GUDMAP',
-              Display: 'S2 Gudmap'
-            }, {
-              Name: 'RBK',
-              Display: 'S2 RBK'
-            }],
-            default_value: 'ALL',
-            value_key: 'Name',
-            selected_value_pattern: '{{{$self.values.Display}}}'
-          }
-        }],
-        config: {
-          title_display_markdown_pattern:
-            '[Number of GUDMAP resources released to date (log scale)](https://example.com){target=_blank}',
-          format_data_x: true, // defualt : false - to use hack or not
-          xaxis: {
-            title_display_markdown_pattern:
-              '[Number of Records](https://example.com){target=_blank}',
-          },
-          yaxis: {
-            tick_display_markdown_pattern:
-              '[{{$self.data.Data_Type}}](/chaise/recordset/#2/{{{$self.data.Schema_Table}}}){target=_blank}',
-            title_display_markdown_pattern: '[Data Types](/chaise/recordset/#2/Gene_Expression:Specimen){target=_blank}'
-          },
-          disable_default_legend_click: true,
-        },
-        traces: [
-          {
-            // The request url that has to be used to fetch the data.
-            //Fetch the file from testing user's directory
-            // url_pattern: '/~kenyshah/gudmap.json',
-            url_pattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium={{{$control_values.consortium.values.Name}}}/!(Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
-            // url_pattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
-            //Determine the type of file in url_pattern if applicable            
-            response_format: 'json',
-            hovertemplate_display_pattern: "Released Horizontal: {{#if true}}{{{$row.Released}}}{{/if}}",
-            legend: ['Released'], // name of traces in legend
-            legend_markdown_pattern: [
-              '[#Released](/chaise/recordset/#2/Antibody:Antibody_Tests/){target=_blank}',
-            ],
-            graphic_link_pattern:
-              '/chaise/recordset/#2/{{{$self.data.Schema_Table}}}/*::facets::{{#encodeFacet}}{{{$self.data.Data_Type_Filter}}}{{/encodeFacet}}',
-            x_col: ['Released'], // column name to use for x values
-            y_col: ['Data_Type'], // array of column names to use for y values
-            orientation: 'h', // Optional parameter for displaying the bar chart horizontally
-            textfont: {
-              size: 10, // It will work till the bar size can accomodate the font size
-            },
-          },
-        ],
-      },
-    ],
-
+        }
+      }
+    ]
   },
 
   'gudmap-todate-bar-global': {
