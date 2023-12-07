@@ -85,7 +85,11 @@ const PlotControlGrid = ({
         })))
       ));
 
-      setLayout(Object.fromEntries(Object.entries(config.layout).map(([key]: any, index) => [key, mappedLayoutValues[index]])));
+      const tempLayout = Object.fromEntries(Object.entries(config.layout).map(
+        ([key]: any, index) => [key, mappedLayoutValues[index]]
+      ))
+
+      setLayout(tempLayout);
     } else {
       // Otherwise set the default layout to display controls and plots 
       const gridConfig = config.grid_layout_config;
@@ -128,7 +132,7 @@ const PlotControlGrid = ({
 
   const defaultGridPropsConverted = convertKeysSnakeToCamel(defaultGridProps);
 
-  if (!config || !userControlsReady) {
+  if (!config || !userControlsReady || !layout) {
     return <ChaiseSpinner />;
   }
 
