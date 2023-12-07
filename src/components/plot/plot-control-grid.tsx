@@ -40,7 +40,6 @@ const PlotControlGrid = ({
   const [userControlsExists, setUserControlExists] = useState<boolean>(false);
   const [userControlsReady, setUserControlReady] = useState<boolean>(false);
 
-
   const { globalControlsInitialized, globalUserControlData, setConfig, templateParams } = usePlot();
 
   // set the controls data into the template params with the setControlData function
@@ -146,7 +145,7 @@ const PlotControlGrid = ({
           {...gridProps}
         >
           {config.plots.map((plotConfig, i): JSX.Element => (
-              <PlotlyChartProvider key={i}>
+              <PlotlyChartProvider key={plotConfig.uid}>
                 <ChartWithEffect config={plotConfig} />
               </PlotlyChartProvider>
             )
