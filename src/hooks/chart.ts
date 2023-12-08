@@ -730,6 +730,8 @@ export const useChartData = (plot: Plot, initialParams: PlotTemplateParams) => {
     result.layout.xaxis.automargin = true; // always set automargin to true
     result.layout.xaxis.tickformat = plot.config.x_axis_thousands_separator ? ',d' : ''; // set tickformat based on the config
     result.layout.xaxis.ticksuffix = '  '; // add a space to the end of the tick for spacing
+    result.layout.plot_bgcolor='#d3d3d3';
+    result.layout.paper_bgcolor='#d3d3d3';
 
     // y axis
     if (!result.layout.yaxis) {

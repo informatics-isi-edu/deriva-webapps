@@ -1,13 +1,16 @@
 .plot-page {
+  height: 100%;
 
   .chart-container {
+    background-color: lightgray;
+    padding: 20px;
     display: flex;
     flex: 1;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     width: 100%;
-    height: 100%;
+    // height: 100%;
   }
 
   .chart {
@@ -23,7 +26,6 @@
   .plotly-chart {
     width: 100%;
     height: 70vh;
-    margin-inline: 20px;
   }
 
   .dropdown-select {
@@ -92,7 +94,7 @@
     overflow: auto;
     align-items: center;
     width: 100%;
-    height: 90vh;
+    height: 90vh !important;
   }
   .grid-layout {
     margin-bottom: 12px;
@@ -100,6 +102,6 @@
 
   .grid-container {
     overflow: auto;
-    height: 90vh;
+    height: 100%;
   }
 }

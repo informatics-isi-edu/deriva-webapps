@@ -255,9 +255,9 @@ export const defaultGridProps = {
   auto_size: true,
   breakpoints: { lg: 1200, md: 996, sm: 768, xs: 480 },
   cols: { lg: 12, md: 10, sm: 6, xs: 4 },
-  margin: { lg: [10, 10], md: [10, 10], sm: [5, 5], xs: [5, 5] },
+  margin: { lg: [15, 15], md: [10, 10], sm: [8, 8], xs: [5, 5] },
   container_padding: { lg: [12, 12], md: [10, 10], sm: [0, 0], xs: [0, 0] },
   row_height: 30,
 };
 
-export const globalGridMargin = { lg: [15, 5], md: [15, 5], sm: [5, 5], xs: [5, 5] };
+export const gridItemPlotPadding = 20;
