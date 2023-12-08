@@ -203,7 +203,7 @@ const ChartWithEffect = ({ config, initialParams }: ChartWithEffectProps): JSX.E
           <PlotlyChart
             className='plotly-chart'
             style={{
-              width: parentWidth && parentWidth < dynamicStyles.width ? parentWidth : dynamicStyles.width,
+              width: parentWidth && parentWidth < dynamicStyles.width ? parentWidth-20 : dynamicStyles.width,
               height: dynamicStyles.height,
             }}
             ref={plotlyRef}
