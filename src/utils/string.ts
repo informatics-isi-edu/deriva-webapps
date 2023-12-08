@@ -320,40 +320,48 @@ export const convertKeysSnakeToCamel = (configObject: any) => {
 export const validateGridProps = (gridConfigObject: any) => {
   const convertedKeyProps = convertKeysSnakeToCamel(gridConfigObject);
   const breakpoints = convertedKeyProps?.breakpoints || defaultGridProps.breakpoints;
-  const regenObject:any={};
+  const regenObject: any = {};
   if (typeof convertedKeyProps === 'object') {
-  Object.entries(convertedKeyProps).map(([key, val]) => {
-    switch (key) {
-      case 'cols':
-        if (typeof val === 'number') {
-          const colObj = Object.fromEntries(
-            Object.entries(breakpoints).map(([key]) => [key, val])
-          );
-          regenObject[key]=colObj;
-        }
-        break;
-      case 'margin':
-        if (Array.isArray(val)) {
-          const marginObj = Object.fromEntries(
-            Object.entries(breakpoints).map(([key]) => [key, val])
-          );
-          regenObject[key]=marginObj;
-        }
-        break;
-      case 'containerPadding':
+    Object.entries(convertedKeyProps).map(([key, val]) => {
+      switch (key) {
+        case 'cols':
+          if (typeof val === 'number') {
+            const colObj = Object.fromEntries(
+              Object.entries(breakpoints).map(([key]) => [key, val])
+            );
+            regenObject[key] = colObj;
+          } else {
+            regenObject[key] = val;
+          }
+          break;
+        case 'margin':
           if (Array.isArray(val)) {
             const marginObj = Object.fromEntries(
               Object.entries(breakpoints).map(([key]) => [key, val])
             );
-            regenObject[key]=marginObj;
+            regenObject[key] = marginObj;
+          }
+          else {
+            regenObject[key] = val;
           }
           break;
-      default:
-        regenObject[key]=val;
-        break;
-    }
-  });
-  return regenObject;
+        case 'containerPadding':
+          if (Array.isArray(val)) {
+            const marginObj = Object.fromEntries(
+              Object.entries(breakpoints).map(([key]) => [key, val])
+            );
+            regenObject[key] = marginObj;
+          }
+          else {
+            regenObject[key] = val;
+          }
+          break;
+        default:
+          regenObject[key] = val;
+          break;
+      }
+    });
+    return regenObject;
   }
 }
 
@@ -364,11 +372,11 @@ export const validateGridProps = (gridConfigObject: any) => {
  * @param controlScope scope of the control either 'global' or 'local'
  * @returns controls along with their uid
  */
-export const generateUid = (controls: UserControlConfig[],controlScope: ControlScope) => {
-  controls?.forEach((control,index)=>{
-    const uid = controlScope+'_'+control.type+'_'+index;
-    if(!control.uid){
-      control['uid']=uid;
+export const generateUid = (controls: UserControlConfig[], controlScope: ControlScope) => {
+  controls?.forEach((control, index) => {
+    const uid = controlScope + '_' + control.type + '_' + index;
+    if (!control.uid) {
+      control['uid'] = uid;
     }
     return control;
   });

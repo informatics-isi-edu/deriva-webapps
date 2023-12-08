@@ -6,7 +6,7 @@ import '/node_modules/react-resizable/css/styles.css';
 import '/node_modules/react-grid-layout/css/styles.css';
 // services
 import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
-import { DataConfig, UserControlConfig, defaultGridProps, globalGridMargin } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { DataConfig, UserControlConfig, defaultGridProps } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 import { convertKeysSnakeToCamel, generateUid, validateGridProps } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 import { LayoutConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 import { setControlData, useControl } from '@isrd-isi-edu/deriva-webapps/src/hooks/control';
@@ -135,6 +135,7 @@ const PlotControlGrid = ({
     userControlConfig: config?.user_controls,
     setDataOptions,
   });
+  console.log(gridProps);
 
   const defaultGridPropsConverted = convertKeysSnakeToCamel(defaultGridProps);
 
@@ -150,10 +151,11 @@ const PlotControlGrid = ({
       <ResponsiveGridLayout className='global-grid-layout layout'
         layouts={layout}
         {...defaultGridPropsConverted}
-        margin={globalGridMargin}
+        // margin={globalGridMargin}
         {...gridProps}>
-        {config.plots.map((plotConfig): JSX.Element => {
-          return <div key={plotConfig.uid}>
+        {config.plots.map((plotConfig,index): JSX.Element => {
+          // return <div className={config.plots.length-1!==index ? 'plotWBorder' : 'plot'} key={plotConfig?.uid || plotConfig.plot_type+'_'+index}>
+          return <div key={plotConfig?.uid || plotConfig.plot_type+'_'+index}>
             <ChartWithEffect config={plotConfig} initialParams={initialParams} />
           </div>;
         })}
