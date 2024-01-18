@@ -1,11 +1,13 @@
 import { createRoot } from 'react-dom/client';
+import React from 'react';
 
 // components
 import AppWrapper from '@isrd-isi-edu/chaise/src/components/app-wrapper';
-import ChaiseTreeview from '@isrd-isi-edu/deriva-webapps/src/components/treeview/chaise-treeview';
+import LegacyTreeViewApp from '@isrd-isi-edu/deriva-webapps/src/components/treeview/legacy-treeview';
 
 // utilities
 import { ID_NAMES } from '@isrd-isi-edu/chaise/src/utils/constants';
+
 
 const treeviewSettings = {
   appName: 'app/treeview',
@@ -17,13 +19,14 @@ const treeviewSettings = {
 
 const TreeviewApp = (): JSX.Element => {
   return (
-    <ChaiseTreeview />
+    <LegacyTreeViewApp />
   );
 };
 
 const root = createRoot(document.getElementById(ID_NAMES.APP_ROOT) as HTMLElement);
 root.render(
-  <AppWrapper appSettings={treeviewSettings} includeNavbar displaySpinner ignoreHashChange includeAlerts>
+  // TODO includeAlerts should be added when treeview is fully migrated
+  <AppWrapper appSettings={treeviewSettings} includeNavbar displaySpinner ignoreHashChange>
     <TreeviewApp />
   </AppWrapper>
 );

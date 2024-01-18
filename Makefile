@@ -176,6 +176,7 @@ deploy-plot-w-config: dont_deploy_in_root print-variables deploy-plot deploy-con
 .PHONY: deploy-treeview
 deploy-treeview: dont_deploy_in_root print-variables deploy-bundles
 	$(info - deploying treeview)
+	@rsync -avz --exclude='/treeview/treeview-config*' treeview $(WEBAPPSDIR)
 	@rsync -avz $(DIST_REACT)/treeview/ $(WEBAPPSDIR)/treeview/
 
 .PHONY: deploy-treeview-w-config
