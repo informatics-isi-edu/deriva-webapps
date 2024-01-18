@@ -422,8 +422,11 @@ export const TreeViewLegacyCode = () => {
                   if (data.nodes.length) {
                       e.preventDefault()
                       setTimeout(function() {
-                          var nodeToScrollTo = $('#jstree').jstree(true).get_node(data.nodes[0].id, true).children('.jstree-anchor').get(0);
-                          document.querySelector('.main-container').scrollTo({top:  nodeToScrollTo.offsetTop, behavior: 'smooth'});
+                          var scrollOffset = $('#jstree').jstree(true).get_node(data.nodes[0].id, true).children('.jstree-anchor').get(0).offsetTop;
+                          document.querySelector('.main-container').scrollTo({
+                            top:  scrollOffset > 10 ? scrollOffset - 10 : scrollOffset,
+                            behavior: 'smooth'
+                          });
                       }, 100);
                   }
               })
@@ -534,10 +537,9 @@ export const TreeViewLegacyCode = () => {
                           }
                       });
                       setTimeout(function () {
-                          // need to know the height of search content area because offsetTop is relative to it's offsetParent (#jstree and it's parent .jstree-grid-wrapper which is sibling of #parent)
-                          var searchAreaHeight = $('#parent')[0].offsetHeight;
+                          var scrollOffset = tree.get_node(firstTermId, true).children('.jstree-anchor').get(0).offsetTop;
                           document.querySelector('.main-container').scrollTo({
-                            top:  tree.get_node(firstTermId, true).children('.jstree-anchor').get(0).offsetTop + searchAreaHeight,
+                            top:  scrollOffset > 10 ? scrollOffset - 10 : scrollOffset,
                             behavior: 'smooth'
                           });
                       }, 0)
