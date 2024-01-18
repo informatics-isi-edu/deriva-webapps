@@ -39,6 +39,10 @@
   overflow-y: auto;
 }
 
+.main-body {
+  padding-bottom: 20px;
+}
+
 @media screen and (max-width: 830px){
     #filterDropDown {
         float: none;
@@ -1568,7 +1572,12 @@ input {
 }
 
 .panel-collapse .list-group-item {
-    border-radius: 0;
+    /* make sure the image and text are displayed on the same line */
+    display: inline-flex;
+}
+
+.list-group-item:first-child {
+  border-top: 0;
 }
 
 .panel-collapse .list-group .list-group {
@@ -1630,12 +1639,15 @@ input {
 }
 
 .list-group-item {
-    border: none;
-    margin-bottom: -10px !important;
+  /* change default bootstrap 5 styles to be similar as before */
+  border-radius: 0 !important;
+  border-left: 0 !important;
+  border-right: 0 !important;
 }
 
 .panel {
-    border: 1px solid #ddd !important;
+    border-left: 1px solid #ddd !important;
+    border-right: 1px solid #ddd !important;
 }
 
 .vsplitbar {
@@ -2039,18 +2051,29 @@ input {
   }
 }
 
-/* MISSING FROM BOOTSTRAP 5: */
+.panel-group {
+  border-top: 1px solid #ddd;
+}
+
 .panel-heading {
   padding: 10px 15px;
-  border-bottom: 1px solid transparent;
   border-top-left-radius: 3px;
   border-top-right-radius: 3px;
+}
+
+.panel-title {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.panel-title a {
+  
 }
 
 .panel-default > .panel-heading {
   color: #333;
   background-color: #f5f5f5;
-  border-color: #ddd;
+  border-bottom: 1px solid #ddd;
 }
 
 .btn.btn-primary.btn-inverted[disabled] {

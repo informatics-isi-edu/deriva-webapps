@@ -1,4 +1,3 @@
-import '@isrd-isi-edu/deriva-webapps/src/assets/scss/_treeview.scss';
 import React from 'react';
 
 // hooks
@@ -7,6 +6,7 @@ import { useLayoutEffect, useEffect, useRef } from 'react';
 // utils
 import { TreeViewLegacyCode } from '@isrd-isi-edu/deriva-webapps/src/utils/legacy-treeview';
 import { attachContainerHeightSensors } from '@isrd-isi-edu/chaise/src/utils/ui-utils';
+import Modal from 'bootstrap/js/dist/Modal';
 
 const LegacyTreeViewApp = (): JSX.Element => {
   /**
@@ -14,6 +14,7 @@ const LegacyTreeViewApp = (): JSX.Element => {
    */
   const setupStarted = useRef<boolean>(false);
 
+  // using layoutEffect to make sure the DOM is available for the jQuery code
   useLayoutEffect(() => {
     // run this setup only once
     if (setupStarted.current) return;
@@ -31,7 +32,7 @@ const LegacyTreeViewApp = (): JSX.Element => {
   }, []);
 
   return (
-    <div className='app-content-container'>
+    <div className='treeview-container app-content-container'>
       <div className='row' style={{ display: 'block', paddingTop: '20px' }}>
         <div className='tree-panel' style={{ height: '100%', overflow: 'auto' }}>
           <div className='top-panel-container'>
@@ -77,7 +78,7 @@ const LegacyTreeViewApp = (): JSX.Element => {
               <div className='side-panel-container'>
                 <div id='look-up'>
                   <div className='panel-group'>
-                    <div className='panel b'>
+                    <div className='panel panel-default'>
                       <div className='panel-heading'>
                         <h4 className='panel-title'>
                           <a id='facets-1-heading' className='facet-heading-link'><span className='pull-left fa-solid fa-chevron-down'></span> Strength</a>
@@ -221,6 +222,24 @@ const LegacyTreeViewApp = (): JSX.Element => {
                   <i className='fa-solid fa-caret-up'></i>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id='schematic-modal' className='modal fade' tabIndex={-1} role='dialog' aria-hidden='true'>
+        <div className='modal-dialog' role='document'>
+          <div className='modal-content'>
+            <div className='center-aligned-title modal-header'>
+              <h3 id='schematic-title' className='modal-title'>Some image</h3>
+              <button
+                className='chaise-btn chaise-btn-secondary modal-close modal-close-absolute'
+                id='schematic-modal-close-btn' type='button' data-dismiss='modal' aria-label='Close'
+              >
+                <strong className='chaise-btn-icon'>X</strong><span>Close</span>
+              </button>
+            </div>
+            <div className='modal-body'>
+              <img width='500px'></img>
             </div>
           </div>
         </div>

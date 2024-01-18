@@ -17,29 +17,29 @@ module.exports = (env) => {
   const WEBAPPS_BASE_PATH = env.BUILD_VARIABLES.WEBAPPS_BASE_PATH;
   return getWebPackConfig(
     [
-      // {
-      //   appName: 'boolean-search',
-      //   appTitle: 'Boolean Search',
-      //   appConfigLocation: `${WEBAPPS_BASE_PATH}config/boolean-search-config.js`,
-      // },
-      // {
-      //   appName: 'heatmap',
-      //   appTitle: 'Heatmap',
-      //   appConfigLocation: `${WEBAPPS_BASE_PATH}config/heatmap-config.js`,
-      // },
-      // {
-      //   appName: 'matrix',
-      //   appTitle: 'Matrix',
-      //   appConfigLocation: `${WEBAPPS_BASE_PATH}config/matrix-config.js`
-      // },
-      // {
-      //   appName: 'plot',
-      //   appTitle: 'Plot',
-      //   appConfigLocation: `${WEBAPPS_BASE_PATH}config/plot-config.js`,
-      //   externalFiles: [
-      //     `${WEBAPPS_BASE_PATH}bundles/plotly-basic.min.js`
-      //   ]
-      // },
+      {
+        appName: 'boolean-search',
+        appTitle: 'Boolean Search',
+        appConfigLocation: `${WEBAPPS_BASE_PATH}config/boolean-search-config.js`,
+      },
+      {
+        appName: 'heatmap',
+        appTitle: 'Heatmap',
+        appConfigLocation: `${WEBAPPS_BASE_PATH}config/heatmap-config.js`,
+      },
+      {
+        appName: 'matrix',
+        appTitle: 'Matrix',
+        appConfigLocation: `${WEBAPPS_BASE_PATH}config/matrix-config.js`
+      },
+      {
+        appName: 'plot',
+        appTitle: 'Plot',
+        appConfigLocation: `${WEBAPPS_BASE_PATH}config/plot-config.js`,
+        externalFiles: [
+          `${WEBAPPS_BASE_PATH}bundles/plotly-basic.min.js`
+        ]
+      },
       {
         appName: 'treeview',
         appTitle: 'Treeview',
@@ -50,7 +50,6 @@ module.exports = (env) => {
           `${WEBAPPS_BASE_PATH}treeview/util/jstree.js`,
           `${WEBAPPS_BASE_PATH}treeview/util/jstreegrid.js`
         ],
-        // TODO this requies a chaise extension
         externalStyleFiles: [
           /**
            * TODO this is copied from the old implementation.

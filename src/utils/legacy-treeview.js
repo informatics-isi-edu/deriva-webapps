@@ -1,3 +1,5 @@
+import Modal from 'bootstrap/js/dist/Modal';
+
 export const TreeViewLegacyCode = () => {
   $(document).ready(function() {
       // jstree, jquery, ermrestJS, q (promise library) each expose a module that's available in the execution environment
@@ -380,7 +382,14 @@ export const TreeViewLegacyCode = () => {
 
               $('.modal-body > img')[0].src = image_path;
               $('#schematic-title')[0].innerHTML = text;
-              $('#schematic-modal').modal('show');
+
+              const modal = new Modal('#schematic-modal');
+
+              // show the modal
+              modal.show();
+
+              // add a close callback
+              $('#schematic-modal-close-btn').off('click').on('click', () => modal.hide());
           }
 
           function buildTreeAndAssignEvents(presentationData) {
@@ -393,9 +402,7 @@ export const TreeViewLegacyCode = () => {
                       }
                   },
                   grid: {
-                      columns: [{
-                          width: 1000
-                      }]
+                      columns: [{}]
                   },
                   search: {
                       show_only_matches: false,
@@ -429,7 +436,8 @@ export const TreeViewLegacyCode = () => {
 
                   // defined here because nodes are destroyed when closed, so need to be reattached on each node being opened
                   // show image preview only on click
-                  $('.schematic-popup-icon').click(function(event) {
+                  // the off is needed to ensure we're not calling this click handler multiple times
+                  $('.schematic-popup-icon').off('click').on('click', function(event) {
                       // n_id of the parent node
                       var node = tree.get_node($(this).closest('li')[0].id);
                       showImageModal(node.original.image_path, node.original.base_text, event);
