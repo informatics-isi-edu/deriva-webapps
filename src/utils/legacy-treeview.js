@@ -186,7 +186,7 @@ export const TreeViewLegacyCode = () => {
                                   document.getElementsByClassName('loader')[0].style.display = 'block';
                                   document.getElementById('jstree').style.visibility = 'hidden';
                                   $('#number').prop('disabled', true);
-                                  $('#plugins4_q').prop('disabled', true);
+                                  $('#main-search-input').prop('disabled', true);
                                   $('#search_btn').prop('disabled', true);
                                   $('#expand_all_btn').prop('disabled', true);
                                   $('#collapse_all_btn').prop('disabled', true);
@@ -283,12 +283,12 @@ export const TreeViewLegacyCode = () => {
 
               // clear search box text
               $('#reset_text').click(function() {
-                  document.getElementById('plugins4_q').value = '';
+                  document.getElementById('main-search-input').value = '';
                   $('#jstree').jstree('clear_search');
               });
 
               $('#search_btn').click(function() {
-                  var v = $('#plugins4_q').val();
+                  var v = $('#main-search-input').val();
                   $('#jstree').jstree(true).search(v);
               });
 
@@ -319,12 +319,12 @@ export const TreeViewLegacyCode = () => {
                       'plugins': ['search']
                   });
                   var to = false;
-                  $('#plugins4_q').keyup(function() {
+                  $('#main-search-input').keyup(function() {
                       if (to) {
                           clearTimeout(to);
                       }
                       to = setTimeout(function() {
-                          var v = $('#plugins4_q').val();
+                          var v = $('#main-search-input').val();
                           $('#jstree').jstree(true).search(v);
                       }, 1400);
                   });
@@ -332,8 +332,8 @@ export const TreeViewLegacyCode = () => {
           }
 
           function checkIfSearchItemExists() {
-              if ($('#plugins4_q').val() !== '') {
-                  var v = $('#plugins4_q').val();
+              if ($('#main-search-input').val() !== '') {
+                  var v = $('#main-search-input').val();
                   $('#jstree').jstree(true).search(v);
               }
           }
@@ -355,7 +355,7 @@ export const TreeViewLegacyCode = () => {
               document.getElementsByClassName('loader')[0].style.display = 'visible';
               document.getElementById('jstree').style.visibility = 'none';
               $('#number').prop('disabled', true);
-              $('#plugins4_q').prop('disabled', true);
+              $('#main-search-input').prop('disabled', true);
               $('#search_btn').prop('disabled', true);
               $('#expand_all_btn').prop('disabled', true);
               $('#collapse_all_btn').prop('disabled', true);
@@ -365,7 +365,7 @@ export const TreeViewLegacyCode = () => {
           // hide loading spinner and show the tree, enable the rest of the controls
           function enableControls() {
               $('#number').prop('disabled', false);
-              $('#plugins4_q').prop('disabled', false);
+              $('#main-search-input').prop('disabled', false);
               $('#search_btn').prop('disabled', false);
               $('#expand_all_btn').prop('disabled', false);
               $('#collapse_all_btn').prop('disabled', false);

@@ -47,7 +47,7 @@ const LegacyTreeViewApp = (): JSX.Element => {
                     <select name='number' id='number'></select>
                   </div>
                   <div id='searchDiv' className='input-group' style={{ visibility: 'hidden', width: 'auto' }}>
-                    <input type='text' id='plugins4_q' className='input' placeholder='Search'></input>
+                    <input type='text' id='main-search-input' className='input' placeholder='Search'></input>
                     <button type='button' id='reset_text' className='btn btn-primary btn-inverted input-btn'>
                       <span className='fa-solid fa-xmark' ></span>
                     </button>

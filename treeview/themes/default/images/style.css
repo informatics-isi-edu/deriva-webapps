@@ -22,10 +22,6 @@
   float:left;
 }
 
-#searchDiv {
-    overflow: hidden;
-}
-
 #anatomyHeading {
   display: 'none';
   margin-left: 6px;
@@ -39,8 +35,19 @@
   overflow-y: auto;
 }
 
+.top-panel-container {
+  padding-bottom: 10px;
+}
+
 .main-body {
   padding-bottom: 20px;
+}
+
+.chaise-body .treeview-container .top-panel-container .top-flex-panel .top-left-panel.open-panel,
+.chaise-body .treeview-container .bottom-panel-container .side-panel-resizable.open-panel {
+  flex: 0;
+  flex-basis: 240px;
+  min-width: none;
 }
 
 @media screen and (max-width: 830px){
@@ -50,7 +57,7 @@
         margin-bottom: 5px;
         width:auto;
     }
-    #plugins4_q {
+    #main-search-input {
         width: 15em !important;
     }
 }
@@ -73,7 +80,7 @@
     margin-left: 5px;
 }
 
-#plugins4_q {
+#main-search-input {
     display: inline;
     margin: 0em 0em 0em 0.5em;
     padding: 4px;
@@ -1573,7 +1580,13 @@ input {
 
 .panel-collapse .list-group-item {
     /* make sure the image and text are displayed on the same line */
-    display: inline-flex;
+    display: flex;
+}
+
+.panel-collapse .list-group-item img {
+  width: 20px;
+  height: 20px;
+  margin-right: 3px;
 }
 
 .list-group-item:first-child {
@@ -2067,7 +2080,7 @@ input {
 }
 
 .panel-title a {
-  
+
 }
 
 .panel-default > .panel-heading {
