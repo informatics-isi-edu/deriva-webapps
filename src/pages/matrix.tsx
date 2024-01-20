@@ -169,10 +169,10 @@ const MatrixApp = (): JSX.Element => {
   const cellHeight = styles?.cellHeight ? styles?.cellHeight : 25;
   const cellWidth = styles?.cellWidth ? styles?.cellWidth : 25;
 
-  const legendHeight = styles?.legend?.height ? styles?.legend.height : 200;
+  const legendHeight = (styles?.legend?.height || styles?.legend?.height === 0) ? styles?.legend.height : 200;
 
   const widthBufferSpace = 50; // buffer space for keeping everything in viewport
-  const heightBufferSpace = legendHeight * 2; // buffer space for keeping everything in viewport
+  const heightBufferSpace = legendHeight + 200; // buffer space for keeping everything in viewport
 
   const strictMinHeight = 200;
   const strictMinWidth = 400;
@@ -279,18 +279,20 @@ const MatrixApp = (): JSX.Element => {
               {...searchBarSelectProps}
             />
           </div>
-          <div className='color-theme-container'>
-            <label className='color-theme-label'>Color Theme</label>
-            <VirtualizedSelect
-              className='color-theme-select'
-              value={colorThemeOption}
-              onChange={handleChangeTheme}
-              options={colorOptions}
-              defaultOptions={colorOptions}
-              itemHeight={30}
-              isSearchable={false}
-            />
-          </div>
+          {matrixData.hasColor &&
+            <div className='color-theme-container'>
+              <label className='color-theme-label'>Color Theme</label>
+              <VirtualizedSelect
+                className='color-theme-select'
+                value={colorThemeOption}
+                onChange={handleChangeTheme}
+                options={colorOptions}
+                defaultOptions={colorOptions}
+                itemHeight={30}
+                isSearchable={false}
+              />
+            </div>
+          }
         </div>
         <div className='matrix-container'>
           <VirtualizedGrid
@@ -316,15 +318,17 @@ const MatrixApp = (): JSX.Element => {
             xDataMaxLength={xDataMaxLength}
             colorScale={colorScaleMap}
           />
-          <Legend
-            width={fitLegendWidth}
-            height={legendHeight}
-            barWidth={legendBarWidth}
-            barHeight={legendBarHeight}
-            lineClamp={legendLineClamp}
-            data={legendData}
-            colorScale={colorScaleMap}
-          />
+          {legendHeight > 0 && legendData.length > 0 &&
+            <Legend
+              width={fitLegendWidth}
+              height={legendHeight}
+              barWidth={legendBarWidth}
+              barHeight={legendBarHeight}
+              lineClamp={legendLineClamp}
+              data={legendData}
+              colorScale={colorScaleMap}
+            />
+          }
         </div>
       </div>
       {toastMessage ? (

@@ -12,6 +12,9 @@ body:not(.chaise-iframe) {
   height: 100vh;
 
   a {
+    &:not(:hover).cell-link, &.cell-link:hover {
+      color: white !important;
+    }
     &:not(:hover) {
       color: black !important;
     }
@@ -229,7 +232,8 @@ body:not(.chaise-iframe) {
     -webkit-transform: rotate(315deg);
     -ms-transform: rotate(315deg);
     transform: rotate(315deg);
-    padding-left: 10px; // :(
+    padding-left: 50%;
+    white-space: nowrap;
   }
 
   .row-header {
@@ -244,7 +248,7 @@ body:not(.chaise-iframe) {
     text-overflow: ellipsis;
     overflow: hidden;
     width: 100%;
-    padding-right: 4px;
+    padding-right: 10px;
   }
 
   .hovered-header {
@@ -262,6 +266,16 @@ body:not(.chaise-iframe) {
       display: flex;
       flex: 1;
       flex-direction: row;
+    }
+
+    .cell-display-value {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      margin: auto;
+      text-align: center;
     }
 
     .color-part {

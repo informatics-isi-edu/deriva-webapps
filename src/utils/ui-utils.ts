@@ -7,7 +7,7 @@ import ResizeSensor from 'css-element-queries/src/ResizeSensor';
  * the original function in Chaise does not configure this. This happens when we set the scrollable width as AUTO.
  * If we do not change the dummy scrollbar width, the scrollbar can not work well when the width of the content is larger than its initial width.
  * In this case, the user can not drag the scrollbar to the area exceeding the initial width.
- * 
+ *
  * Some of the tables can be very long and the horizontal scroll only sits at the very bottom by default
  * A fixed horizontal scroll is added here that sticks to the top as we scroll vertically and horizontally
  * @param {DOMElement} content - the Grid Container element
@@ -123,7 +123,7 @@ export function addBottomHorizontalScroll(content: HTMLElement, treeviewAuto: bo
  * To handle this senario, there is a need to add new code
  * 3.This element is focus on vertical scroll, so it is different from the original one (horizontal scroll)
  * In this function, 'height' is used to substitute 'width' everywhere
- * 
+ *
  * A fixed vertical scroll is added here that sticks to the top as we scroll vertically and horizontally
  * @param {DOMElement} content - the Grid Container element
  * @param {boolean} treeviewAuto - whether column header is treeview with auto scrollable size
@@ -230,4 +230,22 @@ export function addRightVerticalScroll(content: HTMLElement, treeviewAuto: boole
   }
 
   return sensors;
+}
+
+/**
+ * find whether the given element has a scrollbar or not and return its size in pixels
+ * (will return 0 if the element is invalid)
+ *
+ * @param element the HTML element or the string selector for it
+ * @param horziontal by default we're checking for vertical scrollbar. pass `true` for this to check for horizontal.
+ */
+export function getScrollSize(element: HTMLElement | string, horziontal=false) : number {
+  const el = typeof element === 'string' ? document.querySelector(element) as HTMLElement : element;
+
+  if (!el) return 0;
+
+  if (horziontal) {
+    return el.offsetHeight - el.clientHeight;
+  }
+  return el.offsetWidth - el.clientWidth;
 }

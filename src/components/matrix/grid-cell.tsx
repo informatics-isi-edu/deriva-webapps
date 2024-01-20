@@ -1,6 +1,8 @@
 import { memo, CSSProperties } from 'react';
 import { areEqual } from 'react-window';
 
+import DisplayValue from '@isrd-isi-edu/chaise/src/components/display-value';
+
 export type GridCellProps = {
   /**
    * Column index position of the grid cell
@@ -32,7 +34,7 @@ const GridCell = ({ columnIndex, rowIndex, data, style }: GridCellProps): JSX.El
     colorScale,
   } = data;
 
-  const { colors, row, column, link, title } = gridData[rowIndex][columnIndex];
+  const { colors, row, column, link, title, displayValue } = gridData[rowIndex][columnIndex];
 
   // get id for current row, use it to check hover and search states
   const { id: rowId } = row;
@@ -70,6 +72,15 @@ const GridCell = ({ columnIndex, rowIndex, data, style }: GridCellProps): JSX.El
     }
   }
 
+  const displayedCell = [];
+
+  if (displayValue) {
+    displayedCell.push(<DisplayValue key={0} className='cell-display-value' value={displayValue} />);
+  }
+  if (Array.isArray(colors) && colors.length > 0) {
+    displayedCell.push(<MemoizedColorParts key={1} colorScale={colorScale} colors={colors} />);
+  }
+
   return (
     <div>
       <div
@@ -81,11 +92,9 @@ const GridCell = ({ columnIndex, rowIndex, data, style }: GridCellProps): JSX.El
         }}
       >
         {link ? (
-          <a role='button' className='cell-link' href={link} title={title ? title : 'unknown'}>
-            <MemoizedColorParts colorScale={colorScale} colors={colors} />
-          </a>
+          <a role='button' className='cell-link' href={link} title={title ? title : 'unknown'}>{displayedCell}</a>
         ) : (
-          <MemoizedColorParts colorScale={colorScale} colors={colors} />
+          displayedCell
         )}
       </div>
     </div>

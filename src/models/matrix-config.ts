@@ -1,23 +1,34 @@
 export type MatrixDefaultConfig = {
   /**
-   * API for the x axis data (must return id and title. other projected columns will be ignored.)
+   * returns the x axis data
+   * - must at least `id` and `title`. `id` must be unique and `title is displayed to the users.
+   * - can contain other projected columns
    */
   xURL: string;
   /**
-   * API for the tree data of the x axis (must return child_id and parent_id. other columns will be ignored.)
+   * returns the tree data of the x axis
+   * - must return child_id and parent_id.
+   * - can contain other projected columns.
    */
   xTreeURL?: string;
   /**
-   * API for the y axis data (must return id and title. other projected columns will be ignored.)
+   * returns the y axis data
+   * - must at least `id` and `title`. `id` must be unique and `title is displayed to the users.
+   * - can contain other projected columns
    */
   yURL: string;
   /**
-   * API for the tree data of the y axis (must return child_id and parent_id. other columns will be ignored.)
+   * returns the tree data of the y axis
+   * - must return child_id and parent_id.
+   * - can contain other projected columns.
    */
   yTreeURL?: string;
   /**
-   * API for the z axis data (color axis)
-   * (must return id and title. other projected columns will be ignored.)
+   * returns the z axis data
+   * - must at least `id` and `title`. `id` must be unique and `title is displayed to the users.
+   * - can contain other projected columns
+   *
+   * if undefined, we will not show the legend or colors
    */
   zURL: string;
   /**
@@ -25,42 +36,50 @@ export type MatrixDefaultConfig = {
    * (must return xid, yid, zid: group by `xid` and `yid` and return array aggregate of `zid`s.)
    */
   xysURL: string;
+
+  x_link_pattern?: string;
+  y_link_pattern?: string;
+  z_link_pattern?: string;
+  xys_link_pattern?: string;
+
+  xys_markdown_pattern?: string;
+
   /**
    * key name of data from the x axis API response
    */
-  xFacetColumn: string;
+  xFacetColumn?: string;
   /**
    * key name of data from the y axis API response
    */
-  yFacetColumn: string;
+  yFacetColumn?: string;
   /**
    * key name of data from the z axis API response
    */
-  zFacetColumn: string;
+  zFacetColumn?: string;
   /**
    * The source path of y. used for generating the facet blob
    */
-  xSource: AxisSource;
+  xSource?: AxisSource;
   /**
    * The source path of y. used for generating the facet blob
    */
-  ySource: AxisSource;
+  ySource?: AxisSource;
   /**
    * The source path of z. used for generating the facet blob
    */
-  zSource: AxisSource;
+  zSource?: AxisSource;
   /**
    * the catalog name. used for generating the links
    */
-  catalogId: string;
+  catalogId?: string;
   /**
    * the schema name. used for generating the links
    */
-  schemaName: string;
+  schemaName?: string;
   /**
    * the table name. used for generating the links
    */
-  tableName: string;
+  tableName?: string;
   /**
    * Defines the title shown for the matrix
    */
@@ -160,5 +179,12 @@ export type LegendStyles = {
 };
 
 export type MatrixConfig = {
-  '*': MatrixDefaultConfig;
+  [name: '*' | string]: MatrixDefaultConfig;
 };
+
+
+export enum MatrixThemes {
+  RAINBOW = 'rainbow',
+  PARULA = 'parula',
+  VIRIDIS = 'viridis'
+}

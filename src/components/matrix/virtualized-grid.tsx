@@ -29,6 +29,8 @@ import {
   addRightVerticalScroll,
 } from '@isrd-isi-edu/deriva-webapps/src/utils/ui-utils';
 
+import { getScrollSize } from '@isrd-isi-edu/deriva-webapps/src/utils/ui-utils';
+
 export type VirtualizedGridProps = {
   /**
    * height of the entire grid
@@ -532,7 +534,7 @@ const VirtualizedGrid = (
 
   // Move down 15px more to hide the horizontal scrollbar area
   const columnHeaderScrollBarWrapper: CSSProperties = {
-    height: columnHeaderHeight + 15,
+    height: columnHeaderHeight + getScrollSize('.grid', true),
   }
 
   // Align the vertical scrollbar with the grid vertical scrollbar

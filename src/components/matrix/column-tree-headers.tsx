@@ -16,6 +16,8 @@ import { MemoizedMinusSquare, MemoizedPlusSquare, MemoizedCloseSquare, MemoizedR
 // MUI tree components
 import TreeView from '@mui/lab/TreeView';
 
+import { getScrollSize } from '@isrd-isi-edu/deriva-webapps/src/utils/ui-utils';
+
 
 type ColumnHeadersProps = SharedColumnHeadersProps & {
   /**
@@ -177,8 +179,8 @@ const ColumnHeaders = (props: ColumnHeadersProps, ref: ForwardedRef<any>): JSX.E
               position: 'absolute',
               /**
                * For vertical scrolling function of the horizontal tree, we only want to scroll up. But after using
-               * transform, there is a blank space at the bottom of the tree. To eliminate the space, we set 
-               * transformOrigin to 'top left'. Then the initial y position of the tree does not focus on the tree 
+               * transform, there is a blank space at the bottom of the tree. To eliminate the space, we set
+               * transformOrigin to 'top left'. Then the initial y position of the tree does not focus on the tree
                * entries but blanks. So we set 'left' attribute to it and use a variable to memorize the position
                * of the tree entries, then update it whenever scroll the tree vertically.
                */
@@ -187,9 +189,9 @@ const ColumnHeaders = (props: ColumnHeadersProps, ref: ForwardedRef<any>): JSX.E
               /**
                * For the highlight alignment issue, we're adding empty cells and headers in the falt column headers.
                * But Mui is ignoring the empty tree elements, and we use 'transform' for the tree in column header.
-               * So we add a paddingBottom attribute as the style of the tree manually. 
+               * So we add a paddingBottom attribute as the style of the tree manually.
                */
-              paddingBottom: props.cellWidth + 15,
+              paddingBottom: props.cellWidth + getScrollSize('.grid'),
             }}
             sx={{ overflow: 'clip' }}
           >
