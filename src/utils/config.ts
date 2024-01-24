@@ -15,7 +15,7 @@ const throwCustomError = (header: string, message: string) => {
  *
  * Will throw an error if the config was missing or had issues.
  */
-export const getConfigObject = (configObj: PlotConfig): DataConfig => {
+export function getConfigObject<ReturnType>(configObj: any): ReturnType {
   const errorHeader = 'Invalid Config';
   const defaultConfig = '*';
 
@@ -33,14 +33,14 @@ export const getConfigObject = (configObj: PlotConfig): DataConfig => {
     throwCustomError(errorHeader, 'Invalid config parameter in the url');
   }
 
-  /** 
+  /**
    * This will recursively go through "aliases" trying to fetch a config object
    * will continue to look for an object if one alias points to another alias
    * if config name ends in an invalid or undefined config, the default config is used
    *   - default config would be named '*' in the document
    */
   const recursiveConfigName = (name: string): string => {
-    const plotConfig = configObj[name];  
+    const plotConfig = configObj[name];
     if (typeof plotConfig === 'string') {
       return recursiveConfigName(plotConfig);
     } else if (name !== defaultConfig && !isObjectAndNotNull(configObj[name])){
@@ -67,7 +67,7 @@ export const getConfigObject = (configObj: PlotConfig): DataConfig => {
  * @param size - Width of the row headers or Height of the column headers
  * @param scrollable - Whether allow the headers scroll
  * @param scrollableMaxSize - The max Width / Height of the scrollable content
- * @returns 
+ * @returns
  */
 export const processMatrixHeaderStyles = (size: number, scrollable?: boolean, scrollableMaxSize?: number) => {
   // Check whether user config the scrollableMaxSize, if not and scrollable is true, this will be used to config scrollableMaxSize as auto
