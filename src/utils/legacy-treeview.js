@@ -1,4 +1,5 @@
-import Modal from 'bootstrap/js/dist/Modal';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const Modal = require('bootstrap').Modal;
 
 export const TreeViewLegacyCode = () => {
   $(document).ready(function() {
