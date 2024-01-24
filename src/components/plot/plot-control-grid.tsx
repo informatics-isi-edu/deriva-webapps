@@ -39,6 +39,7 @@ const PlotControlGrid = ({
   const [gridProps, setGridProps] = useState({});
   const [userControlsExists, setUserControlExists] = useState<boolean>(false);
   const [userControlsReady, setUserControlReady] = useState<boolean>(false);
+  const [userControls, setUserControls] = useState<any[]>([]);
 
   const { globalControlsInitialized, globalUserControlData, setConfig, templateParams } = usePlot();
 
@@ -67,8 +68,10 @@ const PlotControlGrid = ({
 
   useEffect(() => {
     if (!globalControlsInitialized) return;
-
+    
     if (userControlsExists && templateParams?.$control_values) {
+      // userControlConfig should exist if userControlsExists === true
+      if (globalUserControlData.userControlConfig) setUserControls(globalUserControlData.userControlConfig);
       if (Object.keys(templateParams?.$control_values).length > 0) {
         setUserControlReady(true);
       }
@@ -104,6 +107,8 @@ const PlotControlGrid = ({
       const defaultColumns = gridConfig?.cols && !columnNumber && Object.values(gridConfig?.cols) || Object.values(defaultGridProps.cols);
       const breakpointsApplied = gridConfig?.breakpoints || defaultGridProps.breakpoints;
 
+
+      // TODO: uid's not getting set properly
       const tempLayout = Object.fromEntries(Object.entries(breakpointsApplied).map(
         ([key]: any, index) => [key, plotsControls.map((id, ind: number) => {
           return {
@@ -135,6 +140,10 @@ const PlotControlGrid = ({
     return <ChaiseSpinner />;
   }
 
+  console.log(userControls);
+  console.log(layout)
+  console.log('pause');
+
   return (
     <div className='plot-page'>
       <div className='grid-container'>
@@ -144,20 +153,23 @@ const PlotControlGrid = ({
           margin={globalGridMargin}
           {...gridProps}
         >
-          {config.plots.map((plotConfig, i): JSX.Element => (
+          {config.plots.map((plotConfig): JSX.Element => {
+            return (
               <PlotlyChartProvider key={plotConfig.uid}>
                 <ChartWithEffect config={plotConfig} />
               </PlotlyChartProvider>
             )
-          )}
-          {globalUserControlData?.userControlConfig?.length > 0 ?
-            globalUserControlData?.userControlConfig?.map((currentConfig: UserControlConfig, index: number) => (
-              <div key={currentConfig.uid}>
-                <UserControl
-                  controlConfig={currentConfig}
-                />
-              </div>
-            )) : null}
+          })}
+          {userControls.length > 0 ?
+            userControls.map((currentConfig: UserControlConfig) => {
+              return (
+                <div key={currentConfig.uid}>
+                  <UserControl
+                    controlConfig={currentConfig}
+                  />
+                </div>
+              )
+            }) : null}
         </ResponsiveGridLayout>
       </div>
     </div>

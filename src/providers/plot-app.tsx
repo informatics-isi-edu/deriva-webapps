@@ -55,7 +55,6 @@ export default function PlotAppProvider({
     setupStarted.current = true;
 
     const initGlobalControls = async () => {
-      console.log('inside init global controls')
       if (config.user_controls?.length > 0) {
         const tempParams = { ...templateParams };
 
@@ -87,7 +86,6 @@ export default function PlotAppProvider({
     };
 
     try {
-      console.log('init global controls called')
       initGlobalControls();
     } catch (error) {
       dispatchError({ error });

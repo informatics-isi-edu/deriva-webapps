@@ -102,17 +102,15 @@ const Dropdown = ({
   };
 
   return (
-    <>
-      <DropdownSelect
-        id={userControlConfig.uid}
-        defaultOptions={controlData}
-        label={userControlConfig.label}
-        // Using any for option type instead of 'Option' to avoid the lint error
-        onChange={(option: any) => handleChange(option)}
-        value={selectedValue}
-      />
+    <DropdownSelect
+      id={userControlConfig.uid}
+      defaultOptions={controlData}
+      label={userControlConfig.label}
+      // Using any for option type instead of 'Option' to avoid the lint error
+      onChange={(option: any) => handleChange(option)}
+      value={selectedValue}
+    />
 
-    </>
   );
 };
 

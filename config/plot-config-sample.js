@@ -967,6 +967,7 @@ var plotConfigs = {
         {
             uid: 'consortium',
             label: 'Consortium Common',
+            type: 'dropdown',
             request_info: {
                 data: [{
                     Name: 'ALL',
@@ -999,6 +1000,7 @@ var plotConfigs = {
         {
             uid: 'bar_1',
             plot_type: 'bar',
+            type: 'dropdown',
             plotly: {
                 config: {
                     modeBarButtonsToRemove: [
@@ -1047,6 +1049,7 @@ var plotConfigs = {
             user_controls: [{
                 uid: 'consortium',
                 label: 'Consortium',
+                type: 'dropdown',
                 request_info: {
                     data: [{
                         Name: 'ALL',
@@ -1066,6 +1069,7 @@ var plotConfigs = {
             {
                 uid: 'consortiumS2',
                 label: 'S2 Consortium',
+                type: 'dropdown',
                 request_info: {
                     data: [{
                         Name: 'ALL',
@@ -1085,6 +1089,7 @@ var plotConfigs = {
             {
                 uid: 'consortium3',
                 label: 'Consortium3',
+                type: 'dropdown',
                 request_info: {
                     data: [{
                         Name: 'ALL',
@@ -1250,6 +1255,7 @@ var plotConfigs = {
             user_controls: [{
                 uid: 'consortium',
                 label: 'Consortium',
+                type: 'dropdown',
                 request_info: {
                     data: [{
                         Name: 'ALL',
@@ -1269,6 +1275,7 @@ var plotConfigs = {
             {
                 uid: 'consortiumS2',
                 label: 'S2 Consortium',
+                type: 'dropdown',
                 request_info: {
                     data: [{
                         Name: 'ALL',
