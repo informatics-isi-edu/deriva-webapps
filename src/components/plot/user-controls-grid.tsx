@@ -27,13 +27,13 @@ type UserControlsGridProps = {
 // In simple cases a HOC WidthProvider can be used to automatically determine width upon initialization and window resize events.
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
-const UserControlsGrid = ({ 
-  userControlData, 
-  width 
+const UserControlsGrid = ({
+  userControlData,
+  width
 }: UserControlsGridProps): JSX.Element => {
   const [layout, setLayout] = useState<Layouts>({});
   const [gridProps, setGridProps] = useState<ResponsiveGridProps>({});
-  
+
   const controlConfig = userControlData.userControlConfig;
 
   const defaultGridPropsConverted = convertKeysSnakeToCamel(defaultGridProps);
@@ -88,12 +88,11 @@ const UserControlsGrid = ({
 
   const renderUserControls = () => {
     return (
-      controlConfig?.map((config: UserControlConfig) => {
-        return (<UserControl
-          key={config.uid}
-          controlConfig={config}
-        ></UserControl>)
-      })
+      controlConfig?.map((config: UserControlConfig) => (
+        <div key={config.uid}>
+          <UserControl controlConfig={config} />
+        </div>
+      ))
     )
   }
 

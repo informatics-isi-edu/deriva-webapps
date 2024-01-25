@@ -59,7 +59,7 @@ const PlotControlGrid = ({
 
   useEffect(() => {
     if (!globalControlsInitialized) return;
-    
+
     if (userControlsExists && templateParams?.$control_values) {
       // userControlConfig should exist if userControlsExists === true
       if (globalUserControlData.userControlConfig) setUserControls(globalUserControlData.userControlConfig);
@@ -69,6 +69,7 @@ const PlotControlGrid = ({
     }
 
     // If layout is configured use the given layout
+    // TODO: config.layout should be grid_layout_config.layouts
     if (config.layout && Object.values(config.layout).length > 0) {
       const mappedLayoutValues = Object.values(config.layout)?.map((resLayout: any) => (
         resLayout.map((item: LayoutConfig) => convertKeysSnakeToCamel(({
@@ -102,13 +103,13 @@ const PlotControlGrid = ({
             x: 0,
             y: ind === 0 || controlUids?.includes(componentUids[ind - 1]) ? ind : ind + 14,
             w: columnNumber ? (controlUids?.includes(id) ? columnNumber / 2 : columnNumber) :
-            controlUids?.includes(id) ? defaultColumns[index] / 2 : defaultColumns[index],
+              controlUids?.includes(id) ? defaultColumns[index] / 2 : defaultColumns[index],
             h: controlUids?.includes(id) ? 1 : 15,
             static: true,
           }
         })]
       ))
-      
+
       setLayout(tempLayout);
     }
   }, [globalControlsInitialized]);
@@ -122,7 +123,7 @@ const PlotControlGrid = ({
 
   const defaultGridPropsConverted = convertKeysSnakeToCamel(defaultGridProps);
 
-  if (!config || !userControlsReady || Object.keys(layout).length === 0 ) {
+  if (!config || !userControlsReady || Object.keys(layout).length === 0) {
     return <ChaiseSpinner />;
   }
 
@@ -135,23 +136,20 @@ const PlotControlGrid = ({
           margin={globalGridMargin}
           {...gridProps}
         >
-          {config.plots.map((plotConfig): JSX.Element => {
-            return (
-              <PlotlyChartProvider key={plotConfig.uid}>
+          {config.plots.map((plotConfig: Plot): JSX.Element => (
+            <div key={plotConfig.uid}>
+              <PlotlyChartProvider>
                 <ChartWithEffect config={plotConfig} />
               </PlotlyChartProvider>
-            )
-          })}
+            </div>
+          ))}
           {userControls.length > 0 ?
-            userControls.map((currentConfig: UserControlConfig) => {
-              return (
-                <div key={currentConfig.uid}>
-                  <UserControl
-                    controlConfig={currentConfig}
-                  />
-                </div>
-              )
-            }) : null}
+            userControls.map((currentConfig: UserControlConfig): JSX.Element => (
+              <div key={currentConfig.uid}>
+                <UserControl controlConfig={currentConfig} />
+              </div>
+            )) 
+          : null}
         </ResponsiveGridLayout>
       </div>
     </div>
