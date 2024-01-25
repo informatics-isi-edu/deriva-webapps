@@ -239,7 +239,7 @@ export function addRightVerticalScroll(content: HTMLElement, treeviewAuto: boole
  * @param element the HTML element or the string selector for it
  * @param horziontal by default we're checking for vertical scrollbar. pass `true` for this to check for horizontal.
  */
-export function getScrollSize(element: HTMLElement | string, horziontal=false) : number {
+export function getScrollbarSize(element: HTMLElement | string, horziontal=false) : number {
   const el = typeof element === 'string' ? document.querySelector(element) as HTMLElement : element;
 
   if (!el) return 0;

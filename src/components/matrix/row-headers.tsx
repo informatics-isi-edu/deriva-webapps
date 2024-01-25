@@ -3,7 +3,7 @@ import { VariableSizeList as List, ListOnScrollProps } from 'react-window';
 
 // Shared common props for row header
 import SharedRowHeaders, { SharedRowHeadersProps } from '@isrd-isi-edu/deriva-webapps/src/components/matrix//shared-row-headers';
-import { getScrollSize } from '@isrd-isi-edu/deriva-webapps/src/utils/ui-utils';
+import { getScrollbarSize } from '@isrd-isi-edu/deriva-webapps/src/utils/ui-utils';
 
 type RowHeadersProps = SharedRowHeadersProps & {
   /**
@@ -29,7 +29,7 @@ const RowHeaders = (props: RowHeadersProps, ref: ForwardedRef<any>): JSX.Element
    * @param {number} index
    * @returns {number} item size
    */
-  const itemSize = (index: number) => (index < listData.length - 1 ? props.cellHeight : props.cellHeight + getScrollSize('.grid'));
+  const itemSize = (index: number) => (index < listData.length - 1 ? props.cellHeight : props.cellHeight + getScrollbarSize('.grid'));
 
   const rowHeadersStyles: CSSProperties = {
     position: 'relative',

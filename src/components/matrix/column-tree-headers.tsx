@@ -16,7 +16,7 @@ import { MemoizedMinusSquare, MemoizedPlusSquare, MemoizedCloseSquare, MemoizedR
 // MUI tree components
 import TreeView from '@mui/lab/TreeView';
 
-import { getScrollSize } from '@isrd-isi-edu/deriva-webapps/src/utils/ui-utils';
+import { getScrollbarSize } from '@isrd-isi-edu/deriva-webapps/src/utils/ui-utils';
 
 
 type ColumnHeadersProps = SharedColumnHeadersProps & {
@@ -191,7 +191,7 @@ const ColumnHeaders = (props: ColumnHeadersProps, ref: ForwardedRef<any>): JSX.E
                * But Mui is ignoring the empty tree elements, and we use 'transform' for the tree in column header.
                * So we add a paddingBottom attribute as the style of the tree manually.
                */
-              paddingBottom: props.cellWidth + getScrollSize('.grid'),
+              paddingBottom: props.cellWidth + getScrollbarSize('.grid'),
             }}
             sx={{ overflow: 'clip' }}
           >

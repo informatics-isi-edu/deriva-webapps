@@ -16,7 +16,7 @@ import { MemoizedMinusSquare, MemoizedPlusSquare, MemoizedCloseSquare, MemoizedR
 // MUI tree components
 import TreeView from '@mui/lab/TreeView';
 
-import { getScrollSize } from '@isrd-isi-edu/deriva-webapps/src/utils/ui-utils';
+import { getScrollbarSize } from '@isrd-isi-edu/deriva-webapps/src/utils/ui-utils';
 
 
 type RowHeadersProps = SharedRowHeadersProps & {
@@ -186,7 +186,7 @@ const RowTreeHeaders = (props: RowHeadersProps, ref: ForwardedRef<any>): JSX.Ele
           </TreeView>
           {/* For the highlight alignment issue, we're adding empty cells and headers in the falt row headers.
             But Mui is ignoring the empty tree elements. So we add an element after trees manually */}
-          <div style={{ height: props.cellHeight + getScrollSize('.grid', true) }}></div>
+          <div style={{ height: props.cellHeight + getScrollbarSize('.grid', true) }}></div>
       </div>
     </SharedRowHeaders>
   );
