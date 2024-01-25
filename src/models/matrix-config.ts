@@ -4,25 +4,25 @@ export type MatrixDefaultConfig = {
    * - must at least `id` and `title`. `id` must be unique and `title is displayed to the users.
    * - can contain other projected columns
    */
-  xURL: string;
+  x_url: string;
   /**
    * returns the tree data of the x axis
    * - must return child_id and parent_id.
    * - can contain other projected columns.
    */
-  xTreeURL?: string;
+  x_tree_url?: string;
   /**
    * returns the y axis data
    * - must at least `id` and `title`. `id` must be unique and `title is displayed to the users.
    * - can contain other projected columns
    */
-  yURL: string;
+  y_url: string;
   /**
    * returns the tree data of the y axis
    * - must return child_id and parent_id.
    * - can contain other projected columns.
    */
-  yTreeURL?: string;
+  y_tree_url?: string;
   /**
    * returns the z axis data
    * - must at least `id` and `title`. `id` must be unique and `title is displayed to the users.
@@ -30,56 +30,69 @@ export type MatrixDefaultConfig = {
    *
    * if undefined, we will not show the legend or colors
    */
-  zURL: string;
+  z_url: string;
   /**
    * API for xyz axis
    * (must return xid, yid, zid: group by `xid` and `yid` and return array aggregate of `zid`s.)
    */
-  xysURL: string;
-
+  xys_url: string;
+  /**
+   * the pattern that should be used for x link
+   */
   x_link_pattern?: string;
+  /**
+   * the pattern that should be used for y link
+   */
   y_link_pattern?: string;
+  /**
+   * the pattern that should be used for z link
+   */
   z_link_pattern?: string;
+  /**
+   * the pattern that should be used for cell link
+   */
   xys_link_pattern?: string;
-
+  /**
+   * the displayed value in the cell
+   */
   xys_markdown_pattern?: string;
 
   /**
    * key name of data from the x axis API response
    */
-  xFacetColumn?: string;
+  x_facet_column?: string;
   /**
    * key name of data from the y axis API response
    */
-  yFacetColumn?: string;
+  y_facet_column?: string;
   /**
    * key name of data from the z axis API response
    */
-  zFacetColumn?: string;
+  z_facet_column?: string;
   /**
    * The source path of y. used for generating the facet blob
    */
-  xSource?: AxisSource;
+  x_source?: AxisSource;
   /**
    * The source path of y. used for generating the facet blob
    */
-  ySource?: AxisSource;
+  y_source?: AxisSource;
   /**
    * The source path of z. used for generating the facet blob
    */
-  zSource?: AxisSource;
+  z_source?: AxisSource;
   /**
    * the catalog name. used for generating the links
    */
-  catalogId?: string;
+  catalog_id?: string;
   /**
    * the schema name. used for generating the links
    */
-  schemaName?: string;
+  schema_name?: string;
   /**
    * the table name. used for generating the links
    */
-  tableName?: string;
+  table_name?: string;
   /**
    * Defines the title shown for the matrix
    */
@@ -92,7 +105,18 @@ export type MatrixDefaultConfig = {
    * Optional properties to override the default parameters for displaying the matrix.
    */
   styles?: MatrixStyles;
+
+  color_palette?: {
+    default_option?: MatrixColorPalletes,
+    options?: MatrixColorPalletes[]
+  }
 };
+
+export enum MatrixColorPalletes {
+  RAINBOW = 'rainbow',
+  PARULA = 'parula',
+  VIRDIDIS = 'viridis'
+}
 
 export type AxisSource = any;
 
@@ -101,28 +125,28 @@ export type MatrixStyles = {
    * Restricts the grid size to the given number of max columns. If not specified the grid grows infinitely
    * until it hits the viewport / window size that is defined by the iframe.
    */
-  maxCols?: number;
+  max_displayed_columns?: number;
   /**
    * Restricts the grid size to the given number of max rows, If not specified the grid grows infinitely
    * until it hits the viewport / window size that is defined by the iframe.
    */
-  maxRows?: number;
+  max_displayed_rows?: number;
   /**
    * Width of each cell within the grid
    */
-  cellWidth?: number;
+  cell_width?: number;
   /**
    * Height of each cell within the grid
    */
-  cellHeight?: number;
+  cell_height?: number;
   /**
    * Properties of the row headers
    */
-  rowHeader?: RowHeaderStyles;
+  row_header?: RowHeaderStyles;
   /**
    * Properties of the column headers
    */
-  columnHeader?: ColHeaderStyles;
+  column_header?: ColHeaderStyles;
   /**
    * Properties of the legend component
    */
@@ -141,7 +165,7 @@ export type RowHeaderStyles = {
   /**
    * The max width of the scrollable content
    */
-  scrollableMaxWidth?: number;
+  scrollable_max_width?: number;
 };
 
 export type ColHeaderStyles = {
@@ -156,7 +180,7 @@ export type ColHeaderStyles = {
   /**
    * The max height of the scrollable content
    */
-  scrollableMaxHeight?: number;
+  scrollable_max_height?: number;
 };
 
 export type LegendStyles = {
@@ -167,24 +191,17 @@ export type LegendStyles = {
   /**
    * Width of the legend bar
    */
-  barWidth?: number;
+  bar_width?: number;
   /**
    * Height of the legend bar
    */
-  barHeight?: number;
+  bar_height?: number;
   /**
    * Max number of lines showing the legend content
    */
-  lineClamp?: number;
+  line_clamp?: number;
 };
 
 export type MatrixConfig = {
   [name: '*' | string]: MatrixDefaultConfig;
 };
-
-
-export enum MatrixThemes {
-  RAINBOW = 'rainbow',
-  PARULA = 'parula',
-  VIRIDIS = 'viridis'
-}

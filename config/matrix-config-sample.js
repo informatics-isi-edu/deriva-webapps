@@ -22,7 +22,6 @@ let speciesUri = getAtlasURL('!(Species=ALL)/id:=Species,title:=Species@sort(id)
 let dataTypeUri = getAtlasURL('Species=ALL/ID,id:=Data_Type,title:=Data_Type;Data_Type_Filter,Schema_Table@sort(ID)');
 
 let speciesDataTypeUri = getAtlasURL('Released::gt::0/xid:=Species,yid:=Data_Type;zid:=array(Species),num:=Released,Data_Type_Filter,Schema_Table')
-// let speciesDataTypeUri = getAtlasURL('Released::gt::0/xid:=Species,yid:=Data_Type;num:=Released,Data_Type_Filter,Schema_Table')
 
 /**
  * The base URI for the data API endpoint for the facebase example
@@ -30,7 +29,7 @@ let speciesDataTypeUri = getAtlasURL('Released::gt::0/xid:=Species,yid:=Data_Typ
 const fasebaseBaseURI = [
   '/ermrest/catalog/1/attributegroup/M:=isa:dataset/isa:dataset_species/vocab:species/name=Mus%20musculus/$M/isa:dataset_anatomy/',
   'Y:=vocab:anatomy/$M/isa:dataset_stage/X:=vocab:stage/sort_key::geq::0/sort_key::lt::10000/$M/isa:dataset_experiment_type/Z:=vocab:experiment_type'
-].join(',')
+].join('')
 
 var matrixConfigs = {
   '*': 'atlas',
@@ -40,7 +39,7 @@ var matrixConfigs = {
      * - must at least `id` and `title`. `id` must be unique and `title is displayed to the users.
      * - can contain other projected columns
      */
-    xURL: speciesUri,
+    x_url: speciesUri,
 
     /**
      * the pattern for x axis links
@@ -52,7 +51,7 @@ var matrixConfigs = {
      * - must at least `id` and `title`. `id` must be unique and `title is displayed to the users.
      * - can contain other projected columns
      */
-    yURL: dataTypeUri,
+    y_url: dataTypeUri,
 
     /**
      * the pattern for y axis links
@@ -62,12 +61,12 @@ var matrixConfigs = {
     /**
      * this is added for coloring
      */
-    zURL: speciesUri,
+    z_url: speciesUri,
 
     /**
      * API for fetching the values of the cell
      */
-    xysURL: speciesDataTypeUri,
+    xys_url: speciesDataTypeUri,
 
     /**
      * the value that should be displayed on cell
@@ -87,35 +86,30 @@ var matrixConfigs = {
      * Defines the subtitle shown for the matrix
      */
     subtitle_markdown: ' Click a cell or labels along the axes to navigate to the corresponding datasets.',
+
+    color_palette: {
+      default_option: 'viridis'
+    },
+
     /**
      * Optional properties to override the default parameters for displaying the matrix.
      */
     styles: {
       /**
-       * Restricts the grid size to the given number of max columns. If not specified the grid grows infinitely
-       * until it hits the viewport / window size that is defined by the iframe.
-       */
-      // maxCols: 30,
-      /**
-       * Restricts the grid size to the given number of max rows, If not specified the grid grows infinitely
-       * until it hits the viewport / window size that is defined by the iframe.
-       */
-      // maxRows: 5,
-      /**
        * Width of each cell within the grid
        */
-      cellWidth: 75,
+      cell_width: 75,
       /**
        * Height of each cell within the grid
        */
-      cellHeight: 25,
+      cell_height: 25,
       /**
        * Width of the row headers
        */
-      rowHeader: {
+      row_header: {
         width: 300,
       },
-      columnHeader: {
+      column_header: {
         height: 110
       },
       legend: {
@@ -127,49 +121,49 @@ var matrixConfigs = {
     /**
      * API for the x axis data (must return id and title. other projected columns will be ignored.)
      */
-    xURL: fasebaseBaseURI + '/sort_key:=X:sort_key,id:=X:id,title:=X:name@sort(sort_key)',
+    x_url: fasebaseBaseURI + '/sort_key:=X:sort_key,id:=X:id,title:=X:name@sort(sort_key)',
     /**
      * API for the y axis data (must return id and title. other projected columns will be ignored.)
      */
-    yURL: fasebaseBaseURI + '/id:=Y:id,title:=Y:name@sort(title)',
+    y_url: fasebaseBaseURI + '/id:=Y:id,title:=Y:name@sort(title)',
     /**
      * API for the z axis data (color axis) (must return id and title. other projected columns will be ignored.)
      */
-    zURL: fasebaseBaseURI + '/id:=Z:id,title:=Z:name@sort(title)',
+    z_url: fasebaseBaseURI + '/id:=Z:id,title:=Z:name@sort(title)',
     /**
      * API for xyz axis (must return xid, yid, and zid. other projected columns will be ignored.)
      */
-    xysURL: fasebaseBaseURI + '/xid:=X:id,yid:=Y:id;zid:=array(Z:name)',
+    xys_url: fasebaseBaseURI + '/xid:=X:id,yid:=Y:id;zid:=array(Z:name)',
     /**
      * The source path of x. used for generating the facet blob
      */
-    xSource: [{ 'inbound': ['isa', 'dataset_stage_dataset_id_fkey'] }, { 'outbound': ['isa', 'dataset_stage_stage_fkey'] }, 'id'],
+    x_source: [{ 'inbound': ['isa', 'dataset_stage_dataset_id_fkey'] }, { 'outbound': ['isa', 'dataset_stage_stage_fkey'] }, 'id'],
     /**
      * key name of data from the x axis API response
      */
-    xFacetColumn: 'id',
+    x_facet_column: 'id',
     /**
      * The source path of y. used for generating the facet blob
      */
-    ySource: [{ 'inbound': ['isa', 'dataset_anatomy_dataset_id_fkey'] }, { 'outbound': ['isa', 'dataset_anatomy_anatomy_fkey'] }, 'id'],
+    y_source: [{ 'inbound': ['isa', 'dataset_anatomy_dataset_id_fkey'] }, { 'outbound': ['isa', 'dataset_anatomy_anatomy_fkey'] }, 'id'],
     /**
      * key name of data from the y axis API response
      */
-    yFacetColumn: 'id',
+    y_facet_column: 'id',
     /**
      * The source path of z. used for generating the facet blob
      */
-    zSource: [{ 'inbound': ['isa', 'dataset_experiment_type_dataset_id_fkey'] }, { 'outbound': ['isa', 'dataset_experiment_type_experiment_type_fkey'] }, 'id'],
+    z_source: [{ 'inbound': ['isa', 'dataset_experiment_type_dataset_id_fkey'] }, { 'outbound': ['isa', 'dataset_experiment_type_experiment_type_fkey'] }, 'id'],
     /**
      * key name of data from the z axis API response
      */
-    zFacetColumn: 'id',
+    z_facet_column: 'id',
     /**
      * the catalog, schema, and table information. used for generating the links
      */
-    catalogId: '1',
-    schemaName: 'isa',
-    tableName: 'dataset',
+    catalog_id: '1',
+    schema_name: 'isa',
+    table_name: 'dataset',
     /**
      * Defining the title shown for the matrix
      */
@@ -187,24 +181,24 @@ var matrixConfigs = {
        * Restricts the grid size to the given number of max columns. If not specified the grid grows infinitely
        * until it hits the viewport / window size that is defined by the iframe.
        */
-      maxCols: 30,
+      max_cols: 30,
       /**
        * Restricts the grid size to the given number of max rows, If not specified the grid grows infinitely
        * until it hits the viewport / window size that is defined by the iframe.
        */
-      maxRows: 100,
+      max_rows: 100,
       /**
        * Width of each cell within the grid
        */
-      cellWidth: 25,
+      cell_width: 25,
       /**
        * Height of each cell within the grid
        */
-      cellHeight: 25,
+      cell_height: 25,
       /**
        * Properties of the row headers
        */
-      rowHeader: {
+      row_header: {
         /**
          * Width of the row headers
          */
@@ -213,7 +207,7 @@ var matrixConfigs = {
       /**
        * Properties of the column headers
        */
-      columnHeader: {
+      column_header: {
         /**
          * Height of the column headers
          */
@@ -226,19 +220,19 @@ var matrixConfigs = {
         /**
          * Height of the legend
          */
-        height: 100,
+        height: 250,
         /**
          * Width of the legend bar
          */
-        barWidth: 55,
+        bar_width: 55,
         /**
          * Height of the legend bar
          */
-        barHeight: 15,
+        bar_height: 15,
         /**
          * Max number of lines showing the legend content
          */
-        lineClamp: 2,
+        line_clamp: 2,
       }
     },
   },

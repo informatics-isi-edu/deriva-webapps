@@ -150,24 +150,24 @@ const MatrixApp = (): JSX.Element => {
 
   // Calculate Layout of the Grid:
   const { styles } = config;
-  const maxCols = styles?.maxCols;
-  const maxRows = styles?.maxRows;
+  const maxCols = styles?.max_displayed_columns;
+  const maxRows = styles?.max_displayed_rows;
 
-  const rowHeaderWidth = styles?.rowHeader?.width ? styles?.rowHeader?.width : 250;
-  const colHeaderHeight = styles?.columnHeader?.height ? styles?.columnHeader?.height : 50;
+  const rowHeaderWidth = styles?.row_header?.width ? styles?.row_header?.width : 250;
+  const colHeaderHeight = styles?.column_header?.height ? styles?.column_header?.height : 50;
 
   const {
     scrollable: rowHeaderScrollable,
     scrollableMaxSize: rowHeaderScrollableMaxWidth
-  } = processMatrixHeaderStyles(rowHeaderWidth, styles?.rowHeader?.scrollable, styles?.rowHeader?.scrollableMaxWidth);
+  } = processMatrixHeaderStyles(rowHeaderWidth, styles?.row_header?.scrollable, styles?.row_header?.scrollable_max_width);
 
   const {
     scrollable: colHeaderScrollable,
     scrollableMaxSize: colHeaderScrollableMaxHeight
-  } = processMatrixHeaderStyles(colHeaderHeight, styles?.columnHeader?.scrollable, styles?.columnHeader?.scrollableMaxHeight);
+  } = processMatrixHeaderStyles(colHeaderHeight, styles?.column_header?.scrollable, styles?.column_header?.scrollable_max_height);
 
-  const cellHeight = styles?.cellHeight ? styles?.cellHeight : 25;
-  const cellWidth = styles?.cellWidth ? styles?.cellWidth : 25;
+  const cellHeight = styles?.cell_height ? styles?.cell_height : 25;
+  const cellWidth = styles?.cell_width ? styles?.cell_width : 25;
 
   const legendHeight = (styles?.legend?.height || styles?.legend?.height === 0) ? styles?.legend.height : 200;
 
@@ -198,9 +198,9 @@ const MatrixApp = (): JSX.Element => {
   gridWidth = Math.max(gridWidth, strictMinWidth);
 
   const legendWidth = gridWidth + rowHeaderWidth;
-  const legendBarWidth = styles?.legend?.barWidth ? styles?.legend?.barWidth : 55;
-  const legendBarHeight = styles?.legend?.barHeight ? styles?.legend?.barHeight : 15;
-  const legendLineClamp = styles?.legend?.lineClamp ? styles?.legend?.lineClamp : 1;
+  const legendBarWidth = styles?.legend?.bar_width ? styles?.legend?.bar_width : 55;
+  const legendBarHeight = styles?.legend?.bar_height ? styles?.legend?.bar_height : 15;
+  const legendLineClamp = styles?.legend?.line_clamp ? styles?.legend?.line_clamp : 1;
   const searchItemHeight = 30;
 
   /**
@@ -279,7 +279,7 @@ const MatrixApp = (): JSX.Element => {
               {...searchBarSelectProps}
             />
           </div>
-          {matrixData.hasColor &&
+          {matrixData.hasColor && colorOptions.length > 1 &&
             <div className='color-theme-container'>
               <label className='color-theme-label'>Color Theme</label>
               <VirtualizedSelect

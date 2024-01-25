@@ -16,7 +16,7 @@ import useError from '@isrd-isi-edu/chaise/src/hooks/error';
 
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
 
-import { MatrixConfig, MatrixDefaultConfig } from '@isrd-isi-edu/deriva-webapps/src/models/matrix-config';
+import { MatrixColorPalletes, MatrixConfig, MatrixDefaultConfig } from '@isrd-isi-edu/deriva-webapps/src/models/matrix-config';
 import { Displayname } from '@isrd-isi-edu/chaise/src/models/displayname';
 
 /**
@@ -212,10 +212,10 @@ type MatrixData = {
 /**
  * Selectable color options for the matrix
  */
-const colorOptions: Array<Option> = [
-  { value: 'rainbow', label: 'Rainbow' },
-  { value: 'parula', label: 'Parula' },
-  { value: 'viridis', label: 'Viridis' },
+const defaultColorOptions: Array<Option> = [
+  { value: MatrixColorPalletes.RAINBOW, label: MatrixColorPalletes.RAINBOW },
+  { value: MatrixColorPalletes.PARULA, label: MatrixColorPalletes.PARULA },
+  { value: MatrixColorPalletes.VIRDIDIS, label: MatrixColorPalletes.VIRDIDIS }
 ];
 
 /**
@@ -245,7 +245,9 @@ export const useMatrixData = (matrixConfigs: MatrixConfig): MatrixData => {
   /**
    * selected color theme of grid
    */
-  const [colorThemeOption, setColorThemeOption] = useState<Option>(colorOptions[0]);
+  const [colorThemeOption, setColorThemeOption] = useState<Option>(defaultColorOptions[0]);
+
+  const [colorOptions, setColorOptions] = useState<Option[]>(defaultColorOptions);
 
   const setupStarted = useRef<boolean>(false);
 
@@ -257,9 +259,9 @@ export const useMatrixData = (matrixConfigs: MatrixConfig): MatrixData => {
       // choose theme color based on state provided
       const [, , { data: zData }] = data;
       let colorScale: Array<Array<number>>;
-      if (colorThemeOption.value === 'parula') {
+      if (colorThemeOption.value === MatrixColorPalletes.PARULA) {
         colorScale = generateScale(parula);
-      } else if (colorThemeOption.value === 'viridis') {
+      } else if (colorThemeOption.value === MatrixColorPalletes.VIRDIDIS) {
         colorScale = generateScale(viridis);
       } else {
         colorScale = [];
@@ -281,29 +283,52 @@ export const useMatrixData = (matrixConfigs: MatrixConfig): MatrixData => {
   // Side Effect for Updating Data
   useEffect(() => {
     const fetchMatrixData = async (config: MatrixDefaultConfig) => {
-      const xPromise = ConfigService.http.get(config.xURL);
-      const yPromise = ConfigService.http.get(config.yURL);
+      const xPromise = ConfigService.http.get(config.x_url);
+      const yPromise = ConfigService.http.get(config.y_url);
 
       let yTreePromise;
-      if (config.yTreeURL) {
-        yTreePromise = ConfigService.http.get(config.yTreeURL);
+      if (config.y_tree_url) {
+        yTreePromise = ConfigService.http.get(config.y_tree_url);
       } else {
         yTreePromise = new Promise((resolve) => resolve({ data: {} }));
       }
 
       let xTreePromise;
-      if (config.xTreeURL) {
-        xTreePromise = ConfigService.http.get(config.xTreeURL);
+      if (config.x_tree_url) {
+        xTreePromise = ConfigService.http.get(config.x_tree_url);
       } else {
         xTreePromise = new Promise((resolve) => resolve({ data: {} }));
       }
 
-      const zPromise = config.zURL ? ConfigService.http.get(config.zURL) : new Promise((resolve) => resolve({ data: [] }));
-      const xyzPromise = ConfigService.http.get(config.xysURL);
+      const zPromise = config.z_url ? ConfigService.http.get(config.z_url) : new Promise((resolve) => resolve({ data: [] }));
+      const xyzPromise = ConfigService.http.get(config.xys_url);
 
       // Batch the requests in Promise.all so they can run in parallel:
       const data = await Promise.all([xPromise, yPromise, zPromise, xyzPromise, yTreePromise, xTreePromise]);
       const parsedData = parseMatrixData(config, data);
+
+      // modify color palette state variables
+      if (config.color_palette) {
+        let defaultOption = defaultColorOptions[0].value;
+        if (config.color_palette.default_option && colorPalleteIsValid(config.color_palette.default_option)) {
+          defaultOption = config.color_palette.default_option;
+          setColorThemeOption({ value: config.color_palette.default_option, label: config.color_palette.default_option });
+        }
+
+        if (Array.isArray(config.color_palette.options)) {
+          let hasDefaultOption = false;
+          const validColors = config.color_palette.options.filter(v => colorPalleteIsValid(v)).map(v => {
+            if (v === defaultOption) hasDefaultOption = true;
+            return { value: v, label: v };
+          });
+
+          // if the default option is not one of the options, add it.
+          if (!hasDefaultOption) {
+            validColors.unshift({ value: defaultOption as MatrixColorPalletes, label: defaultOption as MatrixColorPalletes });
+          }
+          setColorOptions(validColors);
+        }
+      }
 
       // Set state after the request completes
       setData(data);
@@ -414,7 +439,7 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
 
     let link = '';
     if (canGenerateLink(config, false, false, true, false)) {
-      link = config.z_link_pattern ?  generateLinkWithPattern(config.z_link_pattern, z) : generateLinkWithFacets(config, null, null, z);
+      link = config.z_link_pattern ? generateLinkWithPattern(config.z_link_pattern, z) : generateLinkWithFacets(config, null, null, z);
     }
 
     legendData.push({
@@ -430,7 +455,7 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
   yData.forEach((y: MatrixDatum, row: number) => {
     let link = '';
     if (canGenerateLink(config, false, true, false, false)) {
-      link = config.y_link_pattern ?  generateLinkWithPattern(config.y_link_pattern, y) : generateLinkWithFacets(config, null, y);
+      link = config.y_link_pattern ? generateLinkWithPattern(config.y_link_pattern, y) : generateLinkWithFacets(config, null, y);
     }
 
     // Parse Rows
@@ -445,7 +470,7 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
       // add link for x axis
       let link = '';
       if (canGenerateLink(config, false, true, false, false)) {
-        link = config.x_link_pattern ?  generateLinkWithPattern(config.x_link_pattern, x) : generateLinkWithFacets(config, x);
+        link = config.x_link_pattern ? generateLinkWithPattern(config.x_link_pattern, x) : generateLinkWithFacets(config, x);
       }
 
       // Parse Columns
@@ -457,7 +482,7 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
 
       let cellLink = '';
       const cellColors: Array<number> = [];
-      let cellValue : Displayname | undefined;
+      let cellValue: Displayname | undefined;
       if (xyzMap[x.id] && xyzMap[x.id][y.id]) {
         const currZ = xyzMap[x.id][y.id];
 
@@ -472,7 +497,7 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
         }
 
         // find the colors for cell
-        if (Array.isArray(currZ.zs) && currZ.zs.length > 0){
+        if (Array.isArray(currZ.zs) && currZ.zs.length > 0) {
           hasColor = true;
           currZ.zs.forEach((zTitle: string) => {
             cellColors.push(colorMap[zTitle]);
@@ -631,7 +656,7 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
     // Parse Columns
     const referenceNode = {
       title: x.title,
-      link: config.x_link_pattern ?  generateLinkWithPattern(config.x_link_pattern, x) : generateLinkWithFacets(config, x)
+      link: config.x_link_pattern ? generateLinkWithPattern(config.x_link_pattern, x) : generateLinkWithFacets(config, x)
     }
     xReferenceNodesMap[x.id] = referenceNode;
   });
@@ -730,22 +755,22 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
  * @param isCell whether we're doing this for cell
  * @returns
  */
-const canGenerateLink = (config: MatrixDefaultConfig, isX: boolean, isY: boolean, isZ: boolean, isCell: boolean) : boolean => {
-  const hasTable = config.catalogId && config.schemaName && config.tableName;
+const canGenerateLink = (config: MatrixDefaultConfig, isX: boolean, isY: boolean, isZ: boolean, isCell: boolean): boolean => {
+  const hasTable = config.catalog_id && config.schema_name && config.table_name;
   if (isX) {
-    return !!config.x_link_pattern || !!(hasTable && config.xSource && config.xFacetColumn);
+    return !!config.x_link_pattern || !!(hasTable && config.x_source && config.x_facet_column);
   }
 
   if (isY) {
-    return !!config.y_link_pattern || !!(hasTable && config.ySource && config.yFacetColumn);
+    return !!config.y_link_pattern || !!(hasTable && config.y_source && config.y_facet_column);
   }
 
   if (isZ) {
-    return !!config.z_link_pattern || !!(hasTable && config.zSource && config.zFacetColumn);
+    return !!config.z_link_pattern || !!(hasTable && config.z_source && config.z_facet_column);
   }
 
   if (isCell) {
-    return !!config.xys_link_pattern || !!(hasTable && config.ySource && config.yFacetColumn && config.xSource && config.xFacetColumn);
+    return !!config.xys_link_pattern || !!(hasTable && config.y_source && config.y_facet_column && config.x_source && config.x_facet_column);
   }
 
   return false;
@@ -760,19 +785,19 @@ const canGenerateLink = (config: MatrixDefaultConfig, isX: boolean, isY: boolean
 const generateLinkWithFacets = (config: MatrixDefaultConfig, x?: any, y?: any, z?: any) => {
   const facetList = [];
   if (x) {
-    facetList.push({ source: config.xSource, choices: [x[config.xFacetColumn!]] });
+    facetList.push({ source: config.x_source, choices: [x[config.x_facet_column!]] });
   }
   if (y) {
-    facetList.push({ source: config.ySource, choices: [y[config.yFacetColumn!]] });
+    facetList.push({ source: config.y_source, choices: [y[config.y_facet_column!]] });
   }
   if (z) {
-    facetList.push({ source: config.zSource, choices: [z[config.zFacetColumn!]] });
+    facetList.push({ source: config.z_source, choices: [z[config.z_facet_column!]] });
   }
   // creat a path that chaise understands
   const path = ConfigService.ERMrest.createPath(
-    config.catalogId,
-    config.schemaName,
-    config.tableName,
+    config.catalog_id,
+    config.schema_name,
+    config.table_name,
     {
       and: facetList,
     }
@@ -796,8 +821,15 @@ const generateCellDisplayValue = (pattern: string, data: any) => {
   const res = ConfigService.ERMrest.renderHandlebarsTemplate(pattern, data);
 
   if (res === null || res.trim() === '') {
-      return {isHTML: false, value: '', unformatted: res};
+    return { isHTML: false, value: '', unformatted: res };
   }
 
-  return {isHTML: true, value: ConfigService.ERMrest.renderMarkdown(res, true), unformatted: res};
+  return { isHTML: true, value: ConfigService.ERMrest.renderMarkdown(res, true), unformatted: res };
+}
+
+/**
+ * whether a given string is a valid color palette name
+ */
+const colorPalleteIsValid = (value: string) => {
+  return Object.values(MatrixColorPalletes).includes(value as MatrixColorPalletes)
 }
