@@ -38,7 +38,15 @@ const PlotApp = (): JSX.Element => {
   const [plotAppProps, setPlotAppProps] = useState<DataConfig>();
 
   useEffect(() => {
-    if (config) setPlotAppProps(config);
+    if (config) {
+      // intiialize uids for plots if not defined
+      const tempConfig = {...config}
+      tempConfig.plots.forEach((plotConfig, index) => {
+        // Default uid will be considered as eg. bar_0 for first bar plot
+        if (!plotConfig.uid) plotConfig.uid = plotConfig.plot_type + '_' + index;
+      });
+      setPlotAppProps(tempConfig);
+    }
   }, [config])
 
    

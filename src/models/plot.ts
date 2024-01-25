@@ -65,7 +65,7 @@ export type Plot = {
   study_uri_pattern?: string;
   plotly?: Plotly;
   user_controls: UserControlConfig[]; //A control can be of any type, but only dropdowns are implemented in current version
-  uid?: string;
+  uid: string;
 };
 
 /**

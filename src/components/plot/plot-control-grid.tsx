@@ -43,19 +43,10 @@ const PlotControlGrid = ({
 
   const { globalControlsInitialized, globalUserControlData, setConfig, templateParams } = usePlot();
 
-  // set the controls data into the template params with the setControlData function
   useEffect(() => {
     setConfig(config);
 
     let userControlFlag = false;
-    // TODO:
-    // config.plots?.map((plotConfig) => {
-    //   if (plotConfig?.user_controls?.length > 0) {
-    //     userControlFlag = true;
-    //     setControlData(plotConfig?.user_controls, setInitialParams, 'local');
-    //   }
-    // });
-
     if (config.user_controls?.length > 0) userControlFlag = true;
 
     setUserControlExists(userControlFlag);
@@ -95,34 +86,29 @@ const PlotControlGrid = ({
     } else {
       // Otherwise set the default layout to display controls and plots 
       const gridConfig = config.grid_layout_config;
-      const defaultPlotUid: string[] = config.plots.map((plot: Plot, index: number) => {
-        // Default uid will be considered as eg. bar_0 for first bar plot
-        return plot.uid || plot.plot_type + '_' + index;
-      });
-      const defaultControlUid: string[] = config.user_controls?.map((control: UserControlConfig) => control.uid);
-      const plotsControls = defaultControlUid ? [...defaultControlUid, ...defaultPlotUid] : [...defaultPlotUid];
+      const plotUids: string[] = config.plots.map((plot: Plot) => plot.uid);
+      const controlUids: string[] = globalUserControlData?.userControlConfig?.map((control: UserControlConfig) => control.uid);
+      const componentUids = controlUids ? [...controlUids, ...plotUids] : [...plotUids];
       // if `cols` is a number, use that number
       const columnNumber = typeof gridConfig?.cols === 'number' && gridConfig?.cols;
       // cols is an object, defaultColumns is an array containing key value pairs (breakpointKey, value)
       const defaultColumns = gridConfig?.cols && !columnNumber && Object.values(gridConfig?.cols) || Object.values(defaultGridProps.cols);
       const breakpointsApplied = gridConfig?.breakpoints || defaultGridProps.breakpoints;
 
-
-      // TODO: uid's not getting set properly
       const tempLayout = Object.fromEntries(Object.entries(breakpointsApplied).map(
-        ([key]: any, index) => [key, plotsControls.map((id, ind: number) => {
+        ([key]: any, index) => [key, componentUids.map((id, ind: number) => {
           return {
             i: id,
             x: 0,
-            y: ind === 0 || defaultControlUid?.includes(plotsControls[ind - 1]) ? ind : ind + 14,
-            w: columnNumber ? (defaultControlUid?.includes(id) ? columnNumber / 2 : columnNumber) :
-              defaultControlUid?.includes(id) ? defaultColumns[index] / 2 : defaultColumns[index],
-            h: defaultControlUid?.includes(id) ? 1 : 15,
+            y: ind === 0 || controlUids?.includes(componentUids[ind - 1]) ? ind : ind + 14,
+            w: columnNumber ? (controlUids?.includes(id) ? columnNumber / 2 : columnNumber) :
+            controlUids?.includes(id) ? defaultColumns[index] / 2 : defaultColumns[index],
+            h: controlUids?.includes(id) ? 1 : 15,
             static: true,
           }
         })]
       ))
-
+      
       setLayout(tempLayout);
     }
   }, [globalControlsInitialized]);
@@ -136,13 +122,9 @@ const PlotControlGrid = ({
 
   const defaultGridPropsConverted = convertKeysSnakeToCamel(defaultGridProps);
 
-  if (!config || !userControlsReady || !layout) {
+  if (!config || !userControlsReady || Object.keys(layout).length === 0 ) {
     return <ChaiseSpinner />;
   }
-
-  console.log(userControls);
-  console.log(layout)
-  console.log('pause');
 
   return (
     <div className='plot-page'>
