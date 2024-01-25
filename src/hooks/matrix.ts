@@ -16,7 +16,8 @@ import useError from '@isrd-isi-edu/chaise/src/hooks/error';
 
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
 
-import { MatrixConfig, MatrixDefaultConfig } from '@isrd-isi-edu/deriva-webapps/src/models/matrix-config';
+import { MatrixColorPalletes, MatrixConfig, MatrixDefaultConfig } from '@isrd-isi-edu/deriva-webapps/src/models/matrix-config';
+import { Displayname } from '@isrd-isi-edu/chaise/src/models/displayname';
 
 /**
  * The x, y, or z axis datum to be parsed
@@ -151,7 +152,11 @@ export type ParsedGridCell = ParsedGridDatum & {
   /**
    * array of color indices that correspond to a colormap
    */
-  colors: Array<number>;
+  colors?: Array<number>;
+  /**
+   * if defined, we will show it in the cell
+   */
+  displayValue?: Displayname
 };
 
 /**
@@ -207,10 +212,10 @@ type MatrixData = {
 /**
  * Selectable color options for the matrix
  */
-const colorOptions: Array<Option> = [
-  { value: 'default', label: 'Default' },
-  { value: 'parula', label: 'Parula' },
-  { value: 'viridis', label: 'Viridis' },
+const defaultColorOptions: Array<Option> = [
+  { value: MatrixColorPalletes.RAINBOW, label: MatrixColorPalletes.RAINBOW },
+  { value: MatrixColorPalletes.PARULA, label: MatrixColorPalletes.PARULA },
+  { value: MatrixColorPalletes.VIRDIDIS, label: MatrixColorPalletes.VIRDIDIS }
 ];
 
 /**
@@ -240,7 +245,9 @@ export const useMatrixData = (matrixConfigs: MatrixConfig): MatrixData => {
   /**
    * selected color theme of grid
    */
-  const [colorThemeOption, setColorThemeOption] = useState<Option>(colorOptions[0]);
+  const [colorThemeOption, setColorThemeOption] = useState<Option>(defaultColorOptions[0]);
+
+  const [colorOptions, setColorOptions] = useState<Option[]>(defaultColorOptions);
 
   const setupStarted = useRef<boolean>(false);
 
@@ -252,9 +259,9 @@ export const useMatrixData = (matrixConfigs: MatrixConfig): MatrixData => {
       // choose theme color based on state provided
       const [, , { data: zData }] = data;
       let colorScale: Array<Array<number>>;
-      if (colorThemeOption.value === 'parula') {
+      if (colorThemeOption.value === MatrixColorPalletes.PARULA) {
         colorScale = generateScale(parula);
-      } else if (colorThemeOption.value === 'viridis') {
+      } else if (colorThemeOption.value === MatrixColorPalletes.VIRDIDIS) {
         colorScale = generateScale(viridis);
       } else {
         colorScale = [];
@@ -276,29 +283,52 @@ export const useMatrixData = (matrixConfigs: MatrixConfig): MatrixData => {
   // Side Effect for Updating Data
   useEffect(() => {
     const fetchMatrixData = async (config: MatrixDefaultConfig) => {
-      const xPromise = ConfigService.http.get(config.xURL);
-      const yPromise = ConfigService.http.get(config.yURL);
+      const xPromise = ConfigService.http.get(config.x_url);
+      const yPromise = ConfigService.http.get(config.y_url);
 
       let yTreePromise;
-      if (config.yTreeURL) {
-        yTreePromise = ConfigService.http.get(config.yTreeURL);
+      if (config.y_tree_url) {
+        yTreePromise = ConfigService.http.get(config.y_tree_url);
       } else {
         yTreePromise = new Promise((resolve) => resolve({ data: {} }));
       }
 
       let xTreePromise;
-      if (config.xTreeURL) {
-        xTreePromise = ConfigService.http.get(config.xTreeURL);
+      if (config.x_tree_url) {
+        xTreePromise = ConfigService.http.get(config.x_tree_url);
       } else {
         xTreePromise = new Promise((resolve) => resolve({ data: {} }));
       }
 
-      const zPromise = ConfigService.http.get(config.zURL);
-      const xyzPromise = ConfigService.http.get(config.xysURL);
+      const zPromise = config.z_url ? ConfigService.http.get(config.z_url) : new Promise((resolve) => resolve({ data: [] }));
+      const xyzPromise = ConfigService.http.get(config.xys_url);
 
       // Batch the requests in Promise.all so they can run in parallel:
       const data = await Promise.all([xPromise, yPromise, zPromise, xyzPromise, yTreePromise, xTreePromise]);
       const parsedData = parseMatrixData(config, data);
+
+      // modify color palette state variables
+      if (config.color_palette) {
+        let defaultOption = defaultColorOptions[0].value;
+        if (config.color_palette.default_option && colorPalleteIsValid(config.color_palette.default_option)) {
+          defaultOption = config.color_palette.default_option;
+          setColorThemeOption({ value: config.color_palette.default_option, label: config.color_palette.default_option });
+        }
+
+        if (Array.isArray(config.color_palette.options)) {
+          let hasDefaultOption = false;
+          const validColors = config.color_palette.options.filter(v => colorPalleteIsValid(v)).map(v => {
+            if (v === defaultOption) hasDefaultOption = true;
+            return { value: v, label: v };
+          });
+
+          // if the default option is not one of the options, add it.
+          if (!hasDefaultOption) {
+            validColors.unshift({ value: defaultOption as MatrixColorPalletes, label: defaultOption as MatrixColorPalletes });
+          }
+          setColorOptions(validColors);
+        }
+      }
 
       // Set state after the request completes
       setData(data);
@@ -310,7 +340,8 @@ export const useMatrixData = (matrixConfigs: MatrixConfig): MatrixData => {
     setupStarted.current = true;
 
     try {
-      const config = getConfigObject(matrixConfigs);
+      // TODO proper type for config object
+      const config = getConfigObject(matrixConfigs as any) as any;
       fetchMatrixData(config);
     } catch (error) {
       dispatchError({ error });
@@ -350,6 +381,7 @@ export type ParsedMatrixData = {
   legendData: Array<LegendDatum>;
   gridDataMap: GridDataMap;
   options: Array<Option>;
+  hasColor: boolean;
   yDataMaxLength: number;
   xDataMaxLength: number;
 };
@@ -383,6 +415,8 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
    * Corresponding component will switch to the existing behavior when 'xTreeData' or 'yTreeData' is not available.
    */
 
+  let hasColor = false;
+
   // Create XYZ Map
   const xyzMap: any = {};
   xyzData.forEach((xyz: MatrixXYZDatum) => {
@@ -390,9 +424,11 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
       xyzMap[xyz.xid] = {};
     }
     const zSet = new Set(xyz.zid);
-    xyzMap[xyz.xid][xyz.yid] = Array.from(zSet)
-      .map((str) => str.toLowerCase())
-      .sort();
+    xyzMap[xyz.xid][xyz.yid] = {
+      zs: Array.from(zSet).map((str) => str.toLowerCase()).sort(),
+      // used for the patterns that might be defined for the url or the cell value
+      values: { ...xyz }
+    }
   });
 
   // Create Color Map and Create Legend Data
@@ -401,41 +437,72 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
   zData.forEach((z: MatrixDatum, i: number) => {
     colorMap[z.title.toLowerCase()] = i;
 
+    let link = '';
+    if (canGenerateLink(config, false, false, true, false)) {
+      link = config.z_link_pattern ? generateLinkWithPattern(config.z_link_pattern, z) : generateLinkWithFacets(config, null, null, z);
+    }
+
     legendData.push({
       id: z.id,
       colorIndex: i,
       title: z.title,
-      link: generateLink(config, null, null, z),
+      link,
     });
   });
 
   // Create Parsed Grid Data
   const gridData: Array<Array<ParsedGridCell>> = [];
   yData.forEach((y: MatrixDatum, row: number) => {
+    let link = '';
+    if (canGenerateLink(config, false, true, false, false)) {
+      link = config.y_link_pattern ? generateLinkWithPattern(config.y_link_pattern, y) : generateLinkWithFacets(config, null, y);
+    }
+
     // Parse Rows
     const yParse: ParsedGridDatum = {
       id: y.id,
       title: y.title,
-      link: generateLink(config, null, y),
+      link,
     };
 
     const gridRow: Array<ParsedGridCell> = [];
     xData.forEach((x: MatrixDatum) => {
+      // add link for x axis
+      let link = '';
+      if (canGenerateLink(config, false, true, false, false)) {
+        link = config.x_link_pattern ? generateLinkWithPattern(config.x_link_pattern, x) : generateLinkWithFacets(config, x);
+      }
+
       // Parse Columns
       const xParse: ParsedGridDatum = {
         id: x.id,
         title: x.title,
-        link: generateLink(config, x),
+        link,
       };
 
       let cellLink = '';
       const cellColors: Array<number> = [];
+      let cellValue: Displayname | undefined;
       if (xyzMap[x.id] && xyzMap[x.id][y.id]) {
         const currZ = xyzMap[x.id][y.id];
-        cellLink = generateLink(config, x, y);
-        currZ.forEach((zTitle: string) => {
-          cellColors.push(colorMap[zTitle]);
-        });
+
+        // generate the link for cells
+        if (canGenerateLink(config, false, false, false, true)) {
+          cellLink = config.xys_link_pattern ? generateLinkWithPattern(config.xys_link_pattern, currZ.values) : generateLinkWithFacets(config, x, y);
+        }
+
+        // generate the cell value
+        if (config.xys_markdown_pattern) {
+          cellValue = generateCellDisplayValue(config.xys_markdown_pattern, currZ.values);
+        }
+
+        // find the colors for cell
+        if (Array.isArray(currZ.zs) && currZ.zs.length > 0) {
+          hasColor = true;
+          currZ.zs.forEach((zTitle: string) => {
+            cellColors.push(colorMap[zTitle]);
+          });
+        }
       }
 
       const cellId = `${x.id} + ${y.id}`;
@@ -448,6 +515,7 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
         title: cellTitle,
         link: cellLink,
         colors: cellColors,
+        displayValue: cellValue
       });
     });
 
@@ -484,14 +552,14 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
 
   /**
    * TODO
-   * Only for non-tree headers, for the condition that we expect its scrollable max width or height to be auto. 
+   * Only for non-tree headers, for the condition that we expect its scrollable max width or height to be auto.
    * Current solution is that, the component width or height is calculated by font size and characters.
    * In the future, improve the solution or try other solutions.
    */
   // Find the max length of titles for both y-axis and x-axis
   let yDataMaxLength = 0;
   let xDataMaxLength = 0;
-  
+
   // Create the options and datamap used for the matrix search feature
   const options: Array<Option> = [];
   const gridDataMap: GridDataMap = {};
@@ -522,6 +590,7 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
   const yTreeNodesMap: { [key: string]: TreeNode } = {};
   const yReferenceNodesMap: { [key: string]: { title: string, link?: string } } = {};
 
+  // TODO this could be part of the code above
   gridData.forEach((element: ParsedGridCell[]) => {
     if (element[0]['row']['id']) {
       const referenceNode = {
@@ -582,11 +651,12 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
   const xTreeNodesMap: { [key: string]: TreeNode } = {};
   const xReferenceNodesMap: { [key: string]: { title: string, link: string } } = {};
 
+  // TODO this could be part of the code above
   xData.forEach((x: MatrixDatum) => {
     // Parse Columns
     const referenceNode = {
       title: x.title,
-      link: generateLink(config, x),
+      link: config.x_link_pattern ? generateLinkWithPattern(config.x_link_pattern, x) : generateLinkWithFacets(config, x)
     }
     xReferenceNodesMap[x.id] = referenceNode;
   });
@@ -669,6 +739,7 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
     legendData,
     gridDataMap,
     options,
+    hasColor,
     yDataMaxLength,
     xDataMaxLength,
   };
@@ -676,27 +747,57 @@ const parseMatrixData = (config: MatrixDefaultConfig, response: MatrixResponse):
 };
 
 /**
+ * whether the proper combiniation of properties are available to generate a link or not.
+ * @param config the config object
+ * @param isX whether we're doing this for x axis
+ * @param isY whether we're doing this for y axis
+ * @param isZ whether we're doing this for z axis
+ * @param isCell whether we're doing this for cell
+ * @returns
+ */
+const canGenerateLink = (config: MatrixDefaultConfig, isX: boolean, isY: boolean, isZ: boolean, isCell: boolean): boolean => {
+  const hasTable = config.catalog_id && config.schema_name && config.table_name;
+  if (isX) {
+    return !!config.x_link_pattern || !!(hasTable && config.x_source && config.x_facet_column);
+  }
+
+  if (isY) {
+    return !!config.y_link_pattern || !!(hasTable && config.y_source && config.y_facet_column);
+  }
+
+  if (isZ) {
+    return !!config.z_link_pattern || !!(hasTable && config.z_source && config.z_facet_column);
+  }
+
+  if (isCell) {
+    return !!config.xys_link_pattern || !!(hasTable && config.y_source && config.y_facet_column && config.x_source && config.x_facet_column);
+  }
+
+  return false;
+}
+
+/**
  * Generate a link for combination of x and y filter on the main table
  * @param  {object} x the x object, must have .title and .id
  * @param  {object} y the y object, must have .title and .id
  * @return {string} returns the url string to be used
  */
-const generateLink = (config: MatrixDefaultConfig, x?: any, y?: any, z?: any) => {
+const generateLinkWithFacets = (config: MatrixDefaultConfig, x?: any, y?: any, z?: any) => {
   const facetList = [];
   if (x) {
-    facetList.push({ source: config.xSource, choices: [x[config.xFacetColumn]] });
+    facetList.push({ source: config.x_source, choices: [x[config.x_facet_column!]] });
   }
   if (y) {
-    facetList.push({ source: config.ySource, choices: [y[config.yFacetColumn]] });
+    facetList.push({ source: config.y_source, choices: [y[config.y_facet_column!]] });
   }
   if (z) {
-    facetList.push({ source: config.zSource, choices: [z[config.zFacetColumn]] });
+    facetList.push({ source: config.z_source, choices: [z[config.z_facet_column!]] });
   }
   // creat a path that chaise understands
   const path = ConfigService.ERMrest.createPath(
-    config.catalogId,
-    config.schemaName,
-    config.tableName,
+    config.catalog_id,
+    config.schema_name,
+    config.table_name,
     {
       and: facetList,
     }
@@ -705,3 +806,30 @@ const generateLink = (config: MatrixDefaultConfig, x?: any, y?: any, z?: any) =>
   // create the url to open
   return '/' + ['chaise', 'recordset', path].join('/');
 };
+
+/**
+ * process a given handlebars pattern
+ */
+const generateLinkWithPattern = (pattern: string, data: any) => {
+  return ConfigService.ERMrest.renderHandlebarsTemplate(pattern, data);
+}
+
+/**
+ * process a given handlebars markdown_pattern
+ */
+const generateCellDisplayValue = (pattern: string, data: any) => {
+  const res = ConfigService.ERMrest.renderHandlebarsTemplate(pattern, data);
+
+  if (res === null || res.trim() === '') {
+    return { isHTML: false, value: '', unformatted: res };
+  }
+
+  return { isHTML: true, value: ConfigService.ERMrest.renderMarkdown(res, true), unformatted: res };
+}
+
+/**
+ * whether a given string is a valid color palette name
+ */
+const colorPalleteIsValid = (value: string) => {
+  return Object.values(MatrixColorPalletes).includes(value as MatrixColorPalletes)
+}

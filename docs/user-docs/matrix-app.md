@@ -32,26 +32,26 @@ You could also use the special `*` configuration key to be used when `config` qu
 ### Required properties
 The following are the properties that you must have:
 
-- `xURL`: Used for fetching the possible values of the `x` label. The URL should return `id` and `title` columns, where `title` is displayed to the users, and `id` is used for creating the facet.
-- `yURL`: The same as above but for the `y` label.
-- `zURL`: The same as above but for the `z` label (displayed at the bottom of the matrix).
-- `xSource`:  Used for generating the facet blobs. The source path from the `dataset` table to the `xid` column.
-- `xFacetColumn`: Used for generating facet blobs. The column that the facet filter should be applied to (for `x` table).
-- `ySource`:  Used for generating the facet blobs. The source path from the `dataset` table to the `yid` column.
-- `yFacetColumn`: Used for generating facet blobs. The column that the facet filter should be applied to (for `y` table).
-- `zSource`:  Used for generating the facet blobs. The source path from the `dataset` table to the `zid` column.
-- `zFacetColumn`: Used for generating facet blobs. The column that the facet filter should be applied to (for `z` table).
-- `xysURL`: Used for creating the cell data. The URL must return an array of `zid`s for each combination of `xid` and `yid`s. In other words, group by `xid` and `yid` and return array aggregate of `zid`s.
-- `catalogId`: The `dataset` table catalog (used for creating the recordset links).
-- `schemaName`: The `dataset` table schema (used for creating the recordset links).
-- `tableName`: The `dataset` table name (used for creating the recordset links)
+- `x_url`: Used for fetching the possible values of the `x` label. The URL should return `id` and `title` columns, where `title` is displayed to the users, and `id` is used for creating the facet.
+- `y_url`: The same as above but for the `y` label.
+- `z_url`: The same as above but for the `z` label (displayed at the bottom of the matrix).
+- `x_source`:  Used for generating the facet blobs. The source path from the `dataset` table to the `xid` column.
+- `x_facet_column`: Used for generating facet blobs. The column that the facet filter should be applied to (for `x` table).
+- `y_source`:  Used for generating the facet blobs. The source path from the `dataset` table to the `yid` column.
+- `y_facet_column`: Used for generating facet blobs. The column that the facet filter should be applied to (for `y` table).
+- `z_source`:  Used for generating the facet blobs. The source path from the `dataset` table to the `zid` column.
+- `z_facet_column`: Used for generating facet blobs. The column that the facet filter should be applied to (for `z` table).
+- `xys_url`: Used for creating the cell data. The URL must return an array of `zid`s for each combination of `xid` and `yid`s. In other words, group by `xid` and `yid` and return array aggregate of `zid`s.
+- `catalog_id`: The `dataset` table catalog (used for creating the recordset links).
+- `schema_name`: The `dataset` table schema (used for creating the recordset links).
+- `table_name`: The `dataset` table name (used for creating the recordset links)
 
 ### Optional data properties
 
 The following are optional properties that if defined will change how we're displaying the data:
 
-- `xTreeURL`: If you want to display the `x` labels in a tree structure, use this property. The URL should return rows with `child_id` and `parent_id` that summarize the relationship between different `id`s that are returned by the `xURL`.
-- `yTreeURL`: If you want to display the `y` labels in a tree structure, use this property. The URL should return rows with `child_id` and `parent_id` that summarize the relationship between different `id`s that are returned by the `yURL`.
+- `x_tree_url`: If you want to display the `x` labels in a tree structure, use this property. The URL should return rows with `child_id` and `parent_id` that summarize the relationship between different `id`s that are returned by the `x_url`.
+- `y_tree_url`: If you want to display the `y` labels in a tree structure, use this property. The URL should return rows with `child_id` and `parent_id` that summarize the relationship between different `id`s that are returned by the `y_url`.
 
 ### Optional display properties
 The following properties can be used to customize the display settings:
@@ -85,19 +85,19 @@ Please refer to the [`matrix-config-sample.js`](../../config/matrix-config-sampl
 ```js
 var matrixConfigs = {
   "*": {
-    "catalogId": "1",
-    "schemaName": "schema",
-    "tableName": "dataset",
-    "xURL": "/ermrest/catalog/1/attribute/schema:dataset/id:=x,title:=x",
-    "yURL": "/ermrest/catalog/1/attribute/schema:dataset/id:=y,title:=y",
-    "zURL": "/ermrest/catalog/1/attribute/schema:dataset/id:=z,title:=z",
+    "catalog_id": "1",
+    "schema_name": "schema",
+    "table_name": "dataset",
+    "x_url": "/ermrest/catalog/1/attribute/schema:dataset/id:=x,title:=x",
+    "y_url": "/ermrest/catalog/1/attribute/schema:dataset/id:=y,title:=y",
+    "z_url": "/ermrest/catalog/1/attribute/schema:dataset/id:=z,title:=z",
     "xyzsURL": "/ermrest/catalog/1/attributegroup/schema:dataset/xid:=x,yid:=y;zid:=array(z)",
-    "xSource": ["x"],
-    "xFacetColumn": "x",
-    "ySource": ["y"],
-    "yFacetColumn": "y",
-    "zSource": ["z"],
-    "zFacetColumn": "z"
+    "x_source": ["x"],
+    "x_facet_column": "x",
+    "y_source": ["y"],
+    "y_facet_column": "y",
+    "z_source": ["z"],
+    "z_facet_column": "z"
   }
 }
 ```
@@ -111,21 +111,21 @@ const baseUri = 'https://example.com/path/to/files/';
 
 var matrixConfigs = {
   '*': {
-    xURL: baseUri + 'x_values.json',
-    xTreeURL: baseUri + 'x_values_tree.json',
-    yURL: baseUri + 'y_values.json',
-    yTreeURL: baseUri + 'y_values_tree.json',
-    zURL: baseUri + 'z_values.json',
-    xysURL: baseUri + 'x_y_z_values.json',
-    xSource: [{ 'inbound': ['isa', 'dataset_stage_dataset_id_fkey'] }, { 'outbound': ['isa', 'dataset_stage_stage_fkey'] }, 'id'],
-    xFacetColumn: 'id',
-    ySource: [{ 'inbound': ['isa', 'dataset_anatomy_dataset_id_fkey'] }, { 'outbound': ['isa', 'dataset_anatomy_anatomy_fkey'] }, 'id'],
-    yFacetColumn: 'id',
-    zSource: [{ 'inbound': ['isa', 'dataset_experiment_type_dataset_id_fkey'] }, { 'outbound': ['isa', 'dataset_experiment_type_experiment_type_fkey'] }, 'id'],
-    zFacetColumn: 'id',
-    catalogId: '1',
-    schemaName: 'isa',
-    tableName: 'dataset',
+    x_url: baseUri + 'x_values.json',
+    x_tree_url: baseUri + 'x_values_tree.json',
+    y_url: baseUri + 'y_values.json',
+    y_tree_url: baseUri + 'y_values_tree.json',
+    z_url: baseUri + 'z_values.json',
+    xys_url: baseUri + 'x_y_z_values.json',
+    x_source: [{ 'inbound': ['isa', 'dataset_stage_dataset_id_fkey'] }, { 'outbound': ['isa', 'dataset_stage_stage_fkey'] }, 'id'],
+    x_facet_column: 'id',
+    y_source: [{ 'inbound': ['isa', 'dataset_anatomy_dataset_id_fkey'] }, { 'outbound': ['isa', 'dataset_anatomy_anatomy_fkey'] }, 'id'],
+    y_facet_column: 'id',
+    z_source: [{ 'inbound': ['isa', 'dataset_experiment_type_dataset_id_fkey'] }, { 'outbound': ['isa', 'dataset_experiment_type_experiment_type_fkey'] }, 'id'],
+    z_facet_column: 'id',
+    catalog_id: '1',
+    schema_name: 'isa',
+    table_name: 'dataset',
     title_markdown: 'Sample Data',
     styles: {
       maxCols: 30,
