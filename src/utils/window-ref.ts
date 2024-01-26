@@ -5,12 +5,14 @@ import { BooleanSearchConfig } from '@isrd-isi-edu/deriva-webapps/src/models/boo
 import { HeatmapConfig } from '@isrd-isi-edu/deriva-webapps/src/models/heatmap-config';
 import { MatrixConfig } from '@isrd-isi-edu/deriva-webapps/src/models/matrix-config';
 import { PlotConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { TreeviewConfig } from '@isrd-isi-edu/deriva-webapps/src/models/treeview';
 
 interface WebAppCustomWindow extends ICustomWindow {
   booleanSearchConfig: BooleanSearchConfig
   heatmapConfig: HeatmapConfig;
   matrixConfigs: MatrixConfig;
   plotConfigs: PlotConfig;
+  treeviewConfigs: TreeviewConfig;
   setSourceForFilter: any
 }
 

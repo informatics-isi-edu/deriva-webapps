@@ -1,6 +1,4 @@
-## Regression Testing
-
-### Plot App
+### Plot App Regression Testing
 
 #### Violin Plot
 Go to [this page](https://dev.gudmap.org/deriva-webapps/plot/?config=study-violin) on gudmap-dev and do the following:

@@ -161,7 +161,7 @@ export const usePlotConfig = (plotConfigs: PlotConfig) => {
 
   useEffect(() => {
     try {
-      const config = getConfigObject(plotConfigs);
+      const config = getConfigObject<DataConfig>(plotConfigs);
       setTypeConfig(config);
     } catch (error) {
       dispatchError({ error });
