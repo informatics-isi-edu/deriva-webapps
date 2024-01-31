@@ -1693,7 +1693,7 @@ export const useChartData = (plot: Plot) => {
     const emptyReponses = data.every((responseArray: any[]) => responseArray.length === 0);
 
     updatePlotlyConfig(result); // update the config
-    updatePlotlyLayout(result, (data.length === 0 || emptyReponses || noData), additionalLayout); // update the layout
+    updatePlotlyLayout(result, (data.length === 0 || emptyReponses), additionalLayout); // update the layout
 
     // If hovertemplate_display_pattern is not configured, set default hover text for plot
     if (!hovertemplate_display_pattern) {
@@ -1711,7 +1711,7 @@ export const useChartData = (plot: Plot) => {
       // each array in data is for a different trace.uri_pattern
       const emptyReponses = data.every((responseArray: any[]) => responseArray.length === 0);
 
-      if (data.length === 0 || emptyReponses) setNoData(true);
+      setNoData((data.length === 0 || emptyReponses));
       setParsedData(parsePlotData());
       setIsParseLoading(false); // set loading to false after parsing
     }
