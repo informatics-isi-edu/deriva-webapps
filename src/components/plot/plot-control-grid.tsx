@@ -88,7 +88,7 @@ const PlotControlGrid = ({
         ([key]: any, index) => [key, mappedLayoutValues[index]]
       ))
 
-      
+
     } else {
       // Otherwise set the default layout to display controls and plots 
       const gridConfig = config.grid_layout_config;
@@ -103,12 +103,14 @@ const PlotControlGrid = ({
 
       // There's only a plot with no layout defined
       let onlyPlot = false;
-      if (componentUids.length === 1 && plotUids.length === 1) 
+      if (componentUids.length === 1 && plotUids.length === 1) {
         // set this flag to communicate only component in ReactGridLayout will be 1 row with rowHeight = height of gridContainer
         onlyPlot = true;
         // update row height to the height of the container
         if (gridContainer.current?.clientHeight) defaultGridPropsRef.current.rowHeight = gridContainer.current?.clientHeight;
-      
+        // no padding needed when there are no other components
+        defaultGridPropsRef.current.containerPadding = { lg: [0, 0], md: [0, 0], sm: [0, 0], xs: [0, 0] };
+      }
 
       tempLayout = Object.fromEntries(Object.entries(breakpointsApplied).map(
         ([key]: any, index) => [key, componentUids.map((id, ind: number) => {
