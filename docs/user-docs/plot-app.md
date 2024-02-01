@@ -137,7 +137,7 @@ Below is the structure of the template parameters object that the `ermrestJS` te
 
 For `violin` type plots, 2 url parameters can be provided to initialize the app's content, `Study` and `NCBI_GeneID`. Using these supplied parameters, Study and Gene information is fetched and added to the templating environment as `$url_parameters.Study` and `$url_parameters.Gene`. This is specific to the data in RBK/Gudmap. When setting the `tick_display_markdown_pattern`, `legend_markdown_pattern`, and `graphic_link_pattern`, the current row of data is added to the template environment as `$row`.
 
-For all other plot types, the data returned from the `uri` in the `trace` object is added to the template environment as `$traces`. When setting the `tick_display_markdown_pattern`, `legend_markdown_pattern`, and `graphic_link_pattern`, the current row of data is added to the template environment as `$self`. Note, this is the same concept as violin plots but has a different name.
+For all other plot types, the data for each user control is added into `$control_values` for each selected value. When setting the `tick_display_markdown_pattern`, `legend_markdown_pattern`, and `graphic_link_pattern`, the current row of data is added to the template environment as `$self`. Note, this is the same concept as violin plots but has a different name. Currently when templating per row from traces, `$self.data` is used. When templating for each row for a user control, `$self.values` is used. Avoid using `$self.data` since this will be deprecated in the near future.
 
 violin template parameters:
 ```
@@ -154,9 +154,22 @@ violin template parameters:
 default template parameters:
 ```
 {
-    $traces: data, // array of data returned from trace.uri fetch (response.data)
+    $url_parameters: {
+        config: '<config-name>',
+        <param_name>: <value>
+    },
+    $control_values: {
+        <userControl.uid>: {
+            values: {...}
+        },
+        ...
+    },
     // each row of data for graph added before templating each time
-    $self: response.data[index]
+    // OR each row of data for a user control added
+    $self: {
+        data: response.data[index],
+        values: response.data[index]
+    }
 }
 ```
 

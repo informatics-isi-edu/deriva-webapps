@@ -939,7 +939,12 @@ export const useChartData = (plot: Plot) => {
   ): string | number => {
     let value = item[colName];
     if (axis && axis?.tick_display_markdown_pattern) {
-      value = createLink(axis.tick_display_markdown_pattern, { $self: { data: item } });
+      value = createLink(axis.tick_display_markdown_pattern, { 
+        $self: { 
+          data: item, // TODO: to be deprecated
+          values: item
+        } 
+      });
     }
     return formatPlotData(value, formatData, plot.plot_type);
   };
@@ -980,7 +985,13 @@ export const useChartData = (plot: Plot) => {
       const extractedLinkPattern = createLinkWithContextParams(legendPattern);
 
       if (extractedLinkPattern) {
-        const link = createLink(extractedLinkPattern, { $self: { data: item }, $row: item });
+        const link = createLink(extractedLinkPattern, { 
+          $self: { 
+            data: item, // TODO: to be deprecated
+            values: item
+          },
+          $row: item 
+        });
         if (link) result.legend_clickable_links.push(link);
       }
     }
@@ -995,7 +1006,13 @@ export const useChartData = (plot: Plot) => {
         : graphic_link_pattern;
 
       if (graphClickPattern) {
-        const link = createLink(graphClickPattern, { $self: { data: item }, $row: item });
+        const link = createLink(graphClickPattern, {
+          $self: { 
+            data: item, // TODO: to be deprecated
+            values: item
+          },
+          $row: item 
+        });
         if (link) result.graphic_clickable_links.push(link);
       }
     }
@@ -1020,7 +1037,10 @@ export const useChartData = (plot: Plot) => {
     const hovertemplate_display_pattern = trace.hovertemplate_display_pattern; // use trace info
     if (hovertemplate_display_pattern) {
       const validLink = ConfigService.ERMrest.renderHandlebarsTemplate(hovertemplate_display_pattern, {
-        $self: { data: item },
+        $self: { 
+          data: item, // TODO: to be deprecated
+          values: item
+        },
         $row: item,
         $url_parameters: templateParams.$url_parameters
       });
@@ -1035,7 +1055,10 @@ export const useChartData = (plot: Plot) => {
       }
 
       link = ConfigService.ERMrest.renderHandlebarsTemplate(hovertemplate_display_pattern, {
-        $self: { data: item },
+        $self: { 
+          data: item, // TODO: to be deprecated
+          values: item
+        },
         $row: item,
         $url_parameters: templateParams.$url_parameters
       }, null, { avoidValidation: true });
@@ -1314,11 +1337,21 @@ export const useChartData = (plot: Plot) => {
             if (trace.legend_col) {
               const legendCol = Array.isArray(trace.legend_col) ? trace.legend_col[plotTraceIdx] || trace.legend_col[0] : trace.legend_col;
 
-              const textValue = createLink(item[legendCol], { $self: { data: item } });
+              const textValue = createLink(item[legendCol], {
+                $self: {
+                  data: item, // TODO: to be deprecated
+                  values: item
+                } 
+              });
               let labelValue = textValue;
               if (Array.isArray(trace.legend_markdown_pattern)) {
                 const legendPattern = trace.legend_markdown_pattern[plotTraceIdx] || trace.legend_markdown_pattern[0]
-                labelValue = createLink(legendPattern, { $self: { data: item } });
+                labelValue = createLink(legendPattern, {
+                  $self: {
+                    data: item, // TODO: to be deprecated
+                    values: item
+                  }
+                });
               }
 
               plotlyDataObject.text.push(textValue);
