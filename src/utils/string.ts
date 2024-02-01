@@ -1,4 +1,10 @@
+// models
+import { ControlScope, defaultGridProps, PlotTemplateParams, UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+
+// services
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
+
+// utils
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
 
 /**
@@ -151,7 +157,7 @@ export const createLinkWithContextParams = (
  * @param templateParams 
  * @returns 
  */
-export const getPatternUri = (queryPattern: string, templateParams: any) => {
+export const getPatternUri = (queryPattern: string, templateParams: PlotTemplateParams) => {
   const { contextHeaderName } = ConfigService.ERMrest;
   const defaultHeaders = ConfigService.contextHeaderParams;
   const uri = ConfigService.ERMrest.renderHandlebarsTemplate(queryPattern, templateParams);
@@ -308,4 +314,64 @@ export const convertKeysSnakeToCamel = (configObject: any) => {
     }
     return newObj;
   }
+}
+
+
+/**
+ * This function validates the grid props wrt the ResponsiveGridLayout component's layout object and creates a valid grid layout object
+ * @param gridConfigObject an object with snake case keys (original grid config object)
+ * @returns object with the camel case keys
+ */
+export const validateGridProps = (gridConfigObject: any) => {
+  const convertedKeyProps = convertKeysSnakeToCamel(gridConfigObject);
+  const breakpoints = convertedKeyProps?.breakpoints || defaultGridProps.breakpoints;
+  const regenObject:any={};
+  if (typeof convertedKeyProps === 'object') {
+  Object.entries(convertedKeyProps).map(([key, val]) => {
+    switch (key) {
+      case 'cols':
+        if (typeof val === 'number') {
+          const colObj = Object.fromEntries(
+            Object.entries(breakpoints).map(([key]) => [key, val])
+          );
+          regenObject[key]=colObj;
+        }
+        break;
+      case 'margin':
+        if (Array.isArray(val)) {
+          const marginObj = Object.fromEntries(
+            Object.entries(breakpoints).map(([key]) => [key, val])
+          );
+          regenObject[key]=marginObj;
+        }
+        break;
+      case 'containerPadding':
+          if (Array.isArray(val)) {
+            const marginObj = Object.fromEntries(
+              Object.entries(breakpoints).map(([key]) => [key, val])
+            );
+            regenObject[key]=marginObj;
+          }
+          break;
+      default:
+        regenObject[key]=val;
+        break;
+    }
+  });
+  return regenObject;
+  }
+}
+
+
+/**
+ * Generates a unique id based on scope, type, and index in the set of user_controls/plots
+ * One item is a user_control or plot object
+ * 
+ * @param scope scope of the item either 'global' or 'local'
+ * @param type type of the item
+ * @param index index for itemin the user_controls[] or plots[]
+ * @returns uid for the item
+ */
+export const generateUid = (scope: ControlScope, type: string, index: number) => {
+  return scope + '_' + type + '_' + index;
 }

@@ -6,6 +6,13 @@ This document aims to describe the functionality available for each plot type in
    * [Markdown Links](#markdown-links)
    * [Legend](#legend)
    * [Graph Click](#graph-click)
+ * [Configurable User Controls](#configurable-user-controls)
+   * [User Control Types](#user-control-types)
+     * [Dropdown](#dropdown)
+     * [Facet Search Popup](#facet-search-popup)
+   * [Grid Layout Configuration](#grid-layout-configuration)
+     * [Breakpoints](#breakpoints)
+   * [Layout](#layout)
  * [Violin Plot](#violin-plot)
    * [Url Parameters](#url-parameters)
    * [Selectors](#selectors)
@@ -15,6 +22,7 @@ This document aims to describe the functionality available for each plot type in
  * [Other Plot Features](#other-plot-features)
    * [Plot Responsiveness](#plot-responsiveness)
    * [Plot data from a file](#plot-data-from-a-file)
+   * [Plot data from path in response](#plot-data-from-path-in-response)
 
 
 ### General Configuration
@@ -39,6 +47,82 @@ By default, hovering on a part of the graph will show the x/y axis values. For i
     - For the `violin` plot, the hover_template_displaypattern will only get applied to the scatter plot inside the violin plot(i.e. on hovering the datapoints) and not on the violin plot and the box plot. 
     - If one value or all values mentioned in the  `hovertemplate_display_pattern` is missing then also it will show the custom hover text the values that are available. For instance, if the `hovertemplate_display_pattern` is `Gene ID: {{{$url_parameters.Gene.data.NCBI_Ge}}}` where `NCBI_Ge` is not a valid key then it will just display `Gene ID` on hover.
 `
+
+### Configurable User Controls
+User Controls can be configured and added in a grid like layout above each plot. To use this feature, 3 properties need to be defined in the `plot` object (more details in [Plot App Readme](/docs/user-docs/plot-app.md)). These 3 properties are `user_controls`, `grid_layout_config`, and `layout`. For an example of these properties defined, see `gudmap-todate-bar-selector` configuration in the [plot config sample](/config/plot-config-sample.js) document.
+
+#### User Control Types
+The different user control types we support are as follows:
+
+##### Dropdown
+Simple dropdown control that lists the data defined in the configuration (`request_info.data`) or fetched from the server (`request_info.url_pattern`). If both `request_info.url_pattern` and `request_info.data` are defined, data from the query is used if the response is non empty.
+
+Example used in atlas-d2k deployment for filtering data based on consortium value:
+```js
+{
+  uid: 'consortium',
+  label: 'Consortium',
+  request_info: {
+    data: [{
+      Name: 'ALL',
+      Display: 'All'
+    }, {
+      Name: 'GUDMAP',
+      Display: 'Gudmap'
+    }, {
+      Name: 'RBK',
+      Display: 'RBK'
+    }],
+    default_value: 'ALL',
+    value_key: 'Name',
+    selected_value_pattern: '{{{$self.values.Display}}}'
+  }
+}
+```
+
+##### Facet Search Popup
+This control "looks" like a dropdown but clicking on the input (or button) opens a recordset single select modal (similar functionality to the foreignkey input in recordedit app in Chaise).
+
+Example using data in atlas-d2k deployment for filtering data based on the selected Gene:
+```js
+{
+  uid: 'gene',
+  label: 'Gene',
+  type: 'facet-search-popup',
+  request_info: {
+    url_pattern: '/ermrest/catalog/2/entity/RNASeq:Replicate_Expression/(NCBI_GeneID)=(Common:Gene:NCBI_GeneID)',
+    default_value: '11669',
+    value_key: 'NCBI_GeneID',
+    selected_value_pattern: '{{{$self.values.NCBI_Symbol}}}'
+  }
+}
+```
+
+#### Grid Layout Configuration
+The grid layout component uses [React Grid Layout](https://github.com/react-grid-layout/react-grid-layout) library for positioning the user controls. This library supports 2 grid layouts, a set grid and a responsive grid. In our case, we are always using the responsive gridwith the following defaults defined. Most properties use the same name as the property from React Grid Layout, just in a different format to match our configuration language.
+
+Default grid layout configuration properties:
+```js
+{
+  auto_size: true,
+  breakpoints: { lg: 1200, md: 996, sm: 768, xs: 480 },
+  cols: { lg: 12, md: 10, sm: 6, xs: 4 },
+  margin: { lg: [10, 10], md: [10, 10], sm: [5, 5], xs: [5, 5] },
+  container_padding: { lg: [12, 12], md: [10, 10], sm: [0, 0], xs: [0, 0] },
+  row_height: 30,
+}
+```
+
+##### Breakpoints
+Breakpoints are a property used directly from React Grid Layout. This allows for different configuration properties to be defined for different screen sizes. The `breakpoints` property is an object where each `key` becomes the key in each of the subsequent propeties, `cols`, `margin`, and `container_padding`. These `key` names are also used in the `layout` property (more info in the next section).
+
+From the default grid properties above, there are 4 `breakpoint` keys defined, `lg`, `md`, `sm`, and `xs`. In the subsequent properties, those same keys are used to define the number of `cols` in the grid, the `margin` size in pixels, and `container_padding` size in pixels.
+
+#### Layout
+With `user_controls` and `grid_layout_config` defined, `layout` can be set by defining an array of layout objects. The `layout` is for arranging the user controls in the actual grid based on the defined `breakpoints` and `cols` from `grid_layout_config`.
+
+When defining one layout object, the total number of `grid units` is the number of `cols` for the current breakpoint. For example, if we are using the default configuration properties and looking at the app fullscreen (1920 x 1080), we are using the `lg` breakpoint key. This means there are 12 columns in the grid. For the layout object properties `x` and `y`, we would have indices 0-11. For the `w` property, the values would be 1-12 for how many "column" the control should span. In the case of height, the `row_height` property is used for the "height" of 1 `grid unit`. A control with `h = 2` with the default `row_height` value would have a height of 60 pixels.
+
 
 ### Violin plot
 The following behaviors are currently only available when using plot_type "violin".
@@ -94,3 +178,10 @@ If no `response_format` is provided and the file type in `url_pattern` is other 
 If any values other than `csv` or `json` is configured for `response_format` then following will be shown:
  - Alert warning saying that `Invalid value for “response_format”, expected “csv” or “json”`
  - Plot should have no data shown and title "No Data".
+
+#### Plot data from path in response
+In some cases the data to load for the plot app comes from a file defined in hatrac, and this file information is linked to the record by having it's path stored in a column in the database. An example of this is in the Cell Viability table on smite-dev, where the Processed File URL is a path that points to the file location with the data for the plot.
+
+If `url_pattern` returns 1 row of data, that row has 1 key/value pair, and the value is a `path`, the plot app will make another `http.get` request assuming this `path` will return the data for the plot.
+
+[Example](https://smite-dev.eitm.org/~jchudy/deriva-webapps/plot/?config=cv_heatmap_query) of fetching data from a path returned in the url_pattern response on smite-dev server (requires login).

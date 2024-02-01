@@ -104,15 +104,15 @@ Each object in the `plots` array can have the following parameters:
         5. `selected_value_pattern`: A pattern string to show in the user control for each selected option
 14. `grid_layout_config`: Properties for responsive grid
     1. `width`: Width in pixels, not needed if using responsive grid layout component
-    2. `auto_size`: Height grows/shrinks to fit content
-    3. `breakpoints`: Map to identify when a different layout configuration should be used based on grid size
+    2. `auto_size`: Whether the height and width grows/shrinks to fit content in it's parent container
+    3. `breakpoints`: Map to identify when a different layout configuration should be used based on grid size. More details in the [Plot Funcitonality Document](/docs/user-docs/plot-functionality.md).
     4. `cols`: Number of columns to show, object used for breakpoints
     5. `margin`: Margin between grid components in pixels
     6. `container_padding`: Padding inside of each grid component in pixels
     7. `row_height`: Height of each row in pixels
     8. `is_draggable`: Controls ability to move all components
     9. `is_resizable`: Controls ability to resize all components
-15. `layout`: Layout for each item that will be placed inside the grid
+15. `layout`: Array of layout objects for each item that will be placed inside the grid. The number of `cols` defined in `grid_layout_config` is the total number of `grid units`.
     1. `source_uid`: Corresponds to the component key (`uid`) from user_controls (or plots if global layouts),
     2. `x`: Grid index in grid units for the x position, 
     3. `y`: Grid index in grid units for the y position,

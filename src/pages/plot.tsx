@@ -1,18 +1,24 @@
 import '@isrd-isi-edu/deriva-webapps/src/assets/scss/_plot.scss';
-
 import { createRoot } from 'react-dom/client';
 
 // components
 import AppWrapper from '@isrd-isi-edu/chaise/src/components/app-wrapper';
 import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
-import ChartWithEffect from '@isrd-isi-edu/deriva-webapps/src/components/plot/chart-with-effect';
 
 // hooks
 import { usePlotConfig } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
+import { useEffect, useState } from 'react';
+
+// provider
+import PlotAppProvider from '@isrd-isi-edu/deriva-webapps/src/providers/plot-app';
 
 // utilities
 import { ID_NAMES } from '@isrd-isi-edu/chaise/src/utils/constants';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
+import { DataConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+
+import PlotControlGrid from '@isrd-isi-edu/deriva-webapps/src/components/plot/plot-control-grid';
+
 
 const plotSettings = {
   appName: 'app/plot',
@@ -21,6 +27,7 @@ const plotSettings = {
   overrideDownloadClickBehavior: false,
   overrideExternalLinkBehavior: false,
 };
+//In simple cases a HOC WidthProvider can be used to automatically determine width upon initialization and window resize events.
 
 const PlotApp = (): JSX.Element => {
   /**
@@ -28,20 +35,34 @@ const PlotApp = (): JSX.Element => {
    */
   const { config, errors } = usePlotConfig(windowRef.plotConfigs);
 
-  if (!config && errors.length > 0) {
+  const [plotAppProps, setPlotAppProps] = useState<DataConfig>();
+
+  useEffect(() => {
+    if (config) {
+      // intiialize uids for plots if not defined
+      const tempConfig = {...config}
+      tempConfig.plots.forEach((plotConfig, index) => {
+        // Default uid will be considered as eg. bar_0 for first bar plot
+        if (!plotConfig.uid) plotConfig.uid = plotConfig.plot_type + '_' + index;
+      });
+      setPlotAppProps(tempConfig);
+    }
+  }, [config])
+
+   
+  // if there was an error during setup, hide the spinner
+  if (!plotAppProps && errors.length > 0) {
     return <></>;
   }
 
-  if (!config) {
+  if (!plotAppProps) {
     return <ChaiseSpinner />;
   }
 
   return (
-    <div className='plot-page'>
-      {config.plots.map((plotConfig, i): JSX.Element => {
-        return <ChartWithEffect key={i} config={plotConfig} />;
-      })}
-    </div>
+    <PlotAppProvider>
+      <PlotControlGrid config={plotAppProps} />
+    </PlotAppProvider>
   );
 };
 

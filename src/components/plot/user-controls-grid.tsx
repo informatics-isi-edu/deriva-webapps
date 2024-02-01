@@ -1,104 +1,116 @@
-import DropdownSelect from '@isrd-isi-edu/deriva-webapps/src/components/plot/dropdown-select';
-import { Option } from '@isrd-isi-edu/deriva-webapps/src/components/virtualized-select';
-import { Responsive, WidthProvider, ResponsiveProps as ResponsiveGridProps } from 'react-grid-layout';
-import '/node_modules/react-resizable/css/styles.css';
-import '/node_modules/react-grid-layout/css/styles.css';
-import { UserControlConfig, LayoutConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
-import { PlotTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
-import { convertKeysSnakeToCamel } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
+// import '/node_modules/react-resizable/css/styles.css';
+// import '/node_modules/react-grid-layout/css/styles.css';
+import { memo, useEffect, useState } from 'react';
 
+// components
+import UserControl from '@isrd-isi-edu/deriva-webapps/src/components/controls/user-control';
+
+// models
+import { Responsive, WidthProvider, ResponsiveProps as ResponsiveGridProps, Layouts } from 'react-grid-layout';
+import { UserControlConfig, LayoutConfig, defaultGridProps } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+
+// utils
+import { convertKeysSnakeToCamel, generateUid, validateGridProps } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 
 type UserControlsGridProps = {
-    /**
-     * selectors data to be rendered
-     */
-    userControlData: {
-        gridConfig: ResponsiveGridProps,
-        layout: LayoutConfig[],
-        userControlConfig: UserControlConfig[],
-        templateParams: PlotTemplateParams,
-    };
-    selectorOptions: Option[][];
-    setSelectorOptionChanged: any;
-    width: number | string;
+  /**
+   * selectors data to be rendered
+   */
+  userControlData: {
+    gridConfig: ResponsiveGridProps,
+    layout: Layouts,
+    userControlConfig: UserControlConfig[]
+  };
+  width: number | string;
 };
 
-//In simple cases a HOC WidthProvider can be used to automatically determine width upon initialization and window resize events.
+// In simple cases a HOC WidthProvider can be used to automatically determine width upon initialization and window resize events.
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
+const UserControlsGrid = ({
+  userControlData,
+  width
+}: UserControlsGridProps): JSX.Element => {
+  const [layout, setLayout] = useState<Layouts>({});
+  const [gridProps, setGridProps] = useState<ResponsiveGridProps>({});
 
-/**
- * It sets a new value in templateParams.$control_values based on selector, 
- * triggers the setSelectorOptionChanged function, and returns the option
- * @param option changed option
- * @param userControlConfig configuration of the given selector
- * @param templateParams 
- * @param setSelectorOptionChanged setState method to indicate the change
- * @returns 
- */
-const handleChange = (option: Option, userControlConfig: UserControlConfig, templateParams: PlotTemplateParams, setSelectorOptionChanged: any) => {
-    if (option) {
-        setSelectorOptionChanged(true);
-        const uid = userControlConfig?.uid;
-        const valueKey = userControlConfig?.request_info?.value_key;
-        templateParams.$control_values[uid].values = {
-            [valueKey]: option.value, //else use default value
-        };
-        return option;
-    }
-};
+  const controlConfig = userControlData.userControlConfig;
 
+  const defaultGridPropsConverted = convertKeysSnakeToCamel(defaultGridProps);
 
-const UserControlsGrid = ({ userControlData, selectorOptions, setSelectorOptionChanged, width }: UserControlsGridProps): JSX.Element => {
-    const uid: string[] = [];
-    const valueKey: string[] = [];
-    const selectorValue: Option[] = [];
-    //Collect uid's and valueKey's for all selectors
-    userControlData.userControlConfig?.map((currentConfig, index) => {
-        const currUid = currentConfig?.uid;
-        const currValueKey = currentConfig?.request_info.value_key;
-        uid.push(currUid);
-        valueKey.push(currValueKey);
-        const selectedOption = selectorOptions[index].find((option: Option) =>
-            option.value === userControlData.templateParams?.$control_values[currUid].values[currValueKey]);
-        if (selectedOption) {
-            selectorValue.push(selectedOption);
-        }
-    });
-    const gridProps = convertKeysSnakeToCamel(userControlData.gridConfig);
-    //Convert snake_case keys inside different selector's layout to camel case
-    const mappedLayoutValues = Object.values(userControlData.layout)?.map((resLayout: any) => (
+  // set layout and grid props for local react grid
+  useEffect(() => {
+    if (userControlData?.layout && Object.values(userControlData.layout).length > 0) {
+      const mappedLayoutValues = Object.values(userControlData.layout)?.map((resLayout: any) => (
         resLayout.map((item: LayoutConfig) => convertKeysSnakeToCamel(({
-            //i defines the item on which the given layout will be applied
-            i: item?.source_uid,
-            ...item,
+          // i defines the item on which the given layout will be applied
+          i: item?.source_uid,
+          ...item,
         })))
-    ));
-    const layoutObj = Object.fromEntries(Object.entries(userControlData.layout).map(([key, val], index) => [key, mappedLayoutValues[index]]));
+      ));
+
+      setLayout(Object.fromEntries(Object.entries(userControlData.layout).map(([key]: any, index) => [key, mappedLayoutValues[index]])));
+    } else {
+      const gridConfig = userControlData.gridConfig;
+      // Default uid for local controls will be considered as eg. local_dropdown_0 for first local control
+      const defaultControlUid: string[] = controlConfig.map((control: UserControlConfig) => control.uid);
+      // if `cols` is a number, use that number
+      const columnNumber = typeof gridConfig.cols === 'number' && gridConfig.cols;
+      // cols is an object, defaultColumns is an array containing key value pairs (breakpointKey, value)
+      const defaultColumns = gridConfig.cols && !columnNumber && Object.values(gridConfig.cols) || Object.values(defaultGridProps.cols);
+      const breakpointsApplied = gridConfig.breakpoints || defaultGridProps.breakpoints;
+
+      const tempLayout = Object.fromEntries(Object.entries(breakpointsApplied).map(
+        ([key]: any, index: number) => {
+          return [key, defaultControlUid.map((id: string, ind: number) => {
+            return {
+              i: id,
+              x: ind % 2 === 0 ? 0 : ind + (columnNumber ? columnNumber / 2 : defaultColumns[index] / 2),
+              y: Math.floor(ind / 2),
+              w: columnNumber ? columnNumber / 2 : defaultColumns[index] / 2,
+              h: 1,
+              static: true
+            }
+          })]
+        }
+      ))
+
+      setLayout(tempLayout);
+    }
+  }, []);
+
+  // Validate (Transform the keys to the correct case, adjust the values to suit ResponsiveGridLayout) and configure the grid layout props
+  useEffect(() => {
+    if (userControlData.gridConfig) {
+      setGridProps(validateGridProps(userControlData.gridConfig));
+    }
+  }, [userControlData.gridConfig])
+
+  const renderUserControls = () => {
     return (
-        <div className='selectors-grid' style={{ display: 'flex', flex: '0 1 0%', width: gridProps.width || width }}>
-            <ResponsiveGridLayout className='grid-layout layout'
-                layouts={layoutObj}
-                {...gridProps}
-            >
-                {userControlData.userControlConfig?.map((currentConfig, index) => (
-                    <div key={currentConfig.uid}>
-                        <DropdownSelect
-                            id={uid[index]}
-                            defaultOptions={selectorOptions[index]}
-                            label={currentConfig?.label}
-                            //Using any for option type instead of 'Option' to avoid the lint error
-                            onChange={(option: any) => {
-                                handleChange(option, currentConfig, userControlData.templateParams, setSelectorOptionChanged);
-                            }}
-                            value={selectorValue[index]}
-                        />
-                    </div>
-                ))}
-            </ResponsiveGridLayout>
+      controlConfig?.map((config: UserControlConfig) => (
+        <div key={config.uid}>
+          <UserControl controlConfig={config} />
         </div>
-    );
+      ))
+    )
+  }
+
+  return (
+    <div className='selectors-grid' style={{ display: 'flex', flex: '0 1 0%', width: gridProps.width || width }}>
+      <ResponsiveGridLayout className='grid-layout layout' style={{ position: 'relative' }}
+        layouts={layout}
+        // TODO: Look for another fix for overlapping issue in controls
+        useCSSTransforms={false}
+        {...defaultGridPropsConverted}
+        {...gridProps}
+      >
+        {renderUserControls()}
+      </ResponsiveGridLayout>
+    </div>
+  );
 
 };
 
-export default UserControlsGrid;
+// only rerender component if props change but the props should NOT change, so this component shouldn't "rerender"
+export default memo(UserControlsGrid);

@@ -1,26 +1,36 @@
-import { useRef } from 'react';
+import { useRef, useState,useEffect, useCallback } from 'react';
 
-
-import { Plot, plotAreaFraction } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
-
-import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
-import { useChartData } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
-
+// components
 // import Chart from '@isrd-isi-edu/deriva-webapps/src/components/plot/chart';
-import SelectGrid from '@isrd-isi-edu/deriva-webapps/src/components/plot/select-grid';
+import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
 import PlotlyChart from '@isrd-isi-edu/deriva-webapps/src/components/plot/plotly-chart';
 import RecordsetModal from '@isrd-isi-edu/chaise/src/components/modals/recordset-modal';
-import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
-import { SelectedRow } from '@isrd-isi-edu/chaise/src/models/recordset';
+import SelectGrid from '@isrd-isi-edu/deriva-webapps/src/components/plot/select-grid';
 import UserControlsGrid from '@isrd-isi-edu/deriva-webapps/src/components/plot/user-controls-grid';
+
+// hooks
+import { useChartData } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
+import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
+
+// models
+import { Plot, plotAreaFraction } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { SelectedRow } from '@isrd-isi-edu/chaise/src/models/recordset';
+
 
 export type ChartWithEffectProps = {
   config: Plot;
 };
 
-// NOTE: Currently only used for violin plots
 const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
   const plotlyRef = useRef<any>(null);
+  const [parentWidth, setParentWidth] = useState(0);
+
+  const ref = useCallback((node: any) => {
+    if (node !== null) {
+      setParentWidth(node.getBoundingClientRect().width);
+    }
+  }, []);  
+
 
   /**
    * Window size of component
@@ -31,31 +41,32 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
   const { layout } = config.plotly || {};
 
   // Add upper bounds to layout width and height for responsive
-  const minWidth = 320; // absolute min width
-  const minHeight = 600; // absolute min height
+  let minWidth = 320; // absolute min width
+  let minHeight = 600; // absolute min height
   let maxWidth = plotAreaFraction * width; // 95% of viewport, used as max width
   let maxHeight = 0.7 * height; // 70% of viewport, used as min height
 
   // max width is the min of plot width or calculated max width
   if (layout?.width && !isNaN(layout?.width as number)) {
+    minWidth = layout.width;
     maxWidth = Math.min(layout.width, maxWidth);
   }
 
   // max height is the min of plot height or calculated max height
   if (layout?.height && !isNaN(layout?.height as number)) {
+    minHeight = layout.height;
     maxHeight = Math.min(layout.height, maxHeight);
   }
 
-  const dynamicStyles: { width: string | number; height: string | number } = {
+  const dynamicStyles: { width: number; height: number } = {
     width: Math.max(minWidth, maxWidth), // set width to min of VP or given Layout
-    height: Math.max(minHeight, maxHeight), // set width to min of VP or given Layout
+    height: Math.max(minHeight, maxHeight), // set height to min of VP or given Layout
   };
 
   /**
    * Data that goes into building the chart
    */
   const {
-    dataOptions,
     parsedData,
     selectData,
     userControlData,
@@ -66,14 +77,12 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
     isInitLoading,
     handleCloseModal,
     handleSubmitModal,
-    setSelectorOptionChanged,
+    controlTemplateVariablesInitialized
   } = useChartData(config);
 
   if (!parsedData || isInitLoading) {
     return <ChaiseSpinner />;
-  }
-
-
+  } 
 
   /**
    * Handles the behavior when a graphic is clicked
@@ -160,20 +169,22 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
   }
   return (
     <div className='chart-container'>
-      <div className='chart'>
+      <div className='chart' ref={ref}>
         {selectData && selectData.length > 0 ? (
           <SelectGrid selectors={selectData} width={dynamicStyles.width} />
         ) : null}
-        {userControlData && Object.keys(userControlData)?.length > 0 && dataOptions && dataOptions.length > 0 ? (
-          <UserControlsGrid userControlData={userControlData} selectorOptions={dataOptions}
-            setSelectorOptionChanged={setSelectorOptionChanged} width={dynamicStyles.width} />
+        {!selectData && userControlData && controlTemplateVariablesInitialized && Object.keys(userControlData)?.length > 0 ? (
+          <UserControlsGrid userControlData={userControlData} width={dynamicStyles.width} />
         ) : null}
-        {isParseLoading || isFetchSelected ? (
+        {isParseLoading || isFetchSelected  ? (
           <ChaiseSpinner />
         ) : (
           <PlotlyChart
             className='plotly-chart'
-            style={dynamicStyles}
+            style={{
+              width: parentWidth && parentWidth < dynamicStyles.width ? parentWidth : dynamicStyles.width,
+              height: dynamicStyles.height,
+            }}
             ref={plotlyRef}
             {...parsedData}
             useResizeHandler
@@ -194,3 +205,4 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
 };
 
 export default ChartWithEffect;
+

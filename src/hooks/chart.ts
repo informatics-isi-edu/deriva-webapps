@@ -1,24 +1,19 @@
 // hooks
+import { useEffect, useState, useCallback, useRef } from 'react';
 import useAlert from '@isrd-isi-edu/chaise/src/hooks/alerts';
-import { useControl } from '@isrd-isi-edu/deriva-webapps/src/hooks/control';
 import useError from '@isrd-isi-edu/chaise/src/hooks/error';
+import usePlot from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
+import usePlotlyChart from '@isrd-isi-edu/deriva-webapps/src/hooks/plotly-chart';
 import { createStudyViolinSelectGrid, useChartControlsGrid, } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart-select-grid';
 import useIsFirstRender from '@isrd-isi-edu/chaise/src/hooks/is-first-render';
 import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
-import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 
 // models
 import {
-  PlotData as PlotlyPlotData,
-  ViolinData as PlotlyViolinData,
-  PieData as PlotlyPieData,
-} from 'plotly.js';
-import {
   Plot, PlotConfig, PlotConfigAxis,
   DataConfig, Trace, screenWidthThreshold,
-  plotAreaFraction, validFileTypes
+  plotAreaFraction, validFileTypes, UserControlConfig
 } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
-import { ChaiseAlertType } from '@isrd-isi-edu/chaise/src/providers/alerts';
 
 // services
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
@@ -30,14 +25,15 @@ import { flatten2DArray } from '@isrd-isi-edu/deriva-webapps/src/utils/data';
 import { getQueryParam, getQueryParams } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
 import {
-  invalidCsvAlert, invalidDataAlert, invalidJsonAlert, invalidKeyAlert, invalidResponseFormatAlert,
+  invalidCsvAlert, invalidJsonAlert, invalidKeyAlert, invalidResponseFormatAlert,
   emptyDataColArrayAlert, emptyXColArrayAlert, emptyYColArrayAlert, incompatibleColArraysAlert,
   noColumnsDefinedAlert, xColOnlyAlert, yColOnlyAlert, xYColsNotAnArrayAlert
 } from '@isrd-isi-edu/deriva-webapps/src/utils/message-map';
+import { ChaiseAlertType } from '@isrd-isi-edu/chaise/src/providers/alerts';
 import {
   addComma, createLink, createLinkWithContextParams,
   extractValue, extractAndFormatDate, formatPlotData,
-  getPatternUri, isDataJSON, wrapText
+  getPatternUri, generateUid, isDataJSON, wrapText
 } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 
 /**
@@ -109,31 +105,6 @@ export type PieResultData = {
    * Legend labels for the plot
    */
   labels: string[] & number[];
-};
-
-export type PlotTemplateParams = {
-  $row?: {
-    [paramKey: string]: any;
-  };
-  $self?: {
-    [paramKey: string]: any;
-  };
-  /**
-   * Parameters for URL 
-   */
-  $url_parameters: {
-    [paramKey: string]: any;
-  };
-  /**
-   * Parameters for URL
-   */
-  $control_values: {
-    [paramKey: string]: any;
-  };
-  /**
-   * No data flag
-   */
-  noData: boolean;
 };
 
 export type inputParamsType = {
@@ -209,7 +180,6 @@ export const usePlotConfig = (plotConfigs: PlotConfig) => {
 export const useChartData = (plot: Plot) => {
   const isFirstRender = useIsFirstRender();
   const [data, setData] = useState<any | null>(null);
-  const [dataOptions, setDataOptions] = useState<any>(null);
   const [userControlData, setUserControlData] = useState<any>(null);
   const [parsedData, setParsedData] = useState<any>(null);
   const [modalProps, setModalProps] = useState<any>(null);
@@ -217,34 +187,19 @@ export const useChartData = (plot: Plot) => {
   const [isInitLoading, setIsInitLoading] = useState<boolean>(false);
   const [isDataLoading, setIsDataLoading] = useState<boolean>(false);
   const [isParseLoading, setIsParseLoading] = useState<boolean>(false);
-  const [selectorOptionChanged, setSelectorOptionChanged] = useState<boolean>(false);
+  const [controlTemplateVariablesInitialized, setControlTemplateVariablesInitialized] = useState<boolean>(false);
 
   const { dispatchError, errors } = useError();
   const alertFunctions = useAlert();
   const { width = 0, height = 0 } = useWindowSize();
 
-  /**
-   * Template parameters for the plot
-   * TODO: eventually remove this, everything in here is already stored in state
-   *    - or could be a provider created for each plot
-   * TODO: create functions to retrieve only the neccesary templateParams from state and pass them into a more local scope
-   *    - gene and study selectors touch these params to modify values used in API requests
-   */
-  const templateParams: PlotTemplateParams = useMemo(
-    () => ({
-      $url_parameters: {
-        Gene: {
-          data: {
-            NCBI_GeneID: getQueryParam(windowRef.location.href, 'NCBI_GeneID') || 1, // TODO: deal with default value
-          },
-        },
-        Study: [],
-      },
-      $control_values: {},
-      noData: false, // TODO: remove hack when empty selectedRows are fixed
-    }),
-    []
-  );
+  const {
+    selectorOptionChanged, setSelectorOptionChanged,
+    templateParams, setTemplateParams
+  } = usePlot();
+
+  const { noData, setNoData } = usePlotlyChart()
+
   const {
     selectData,
     handleCloseModal,
@@ -255,28 +210,95 @@ export const useChartData = (plot: Plot) => {
     setIsFetchSelected,
   } = useChartControlsGrid({
     plot,
-    templateParams,
     setModalProps,
     setIsModalOpen,
   });
 
+  // since we're using strict mode, the useEffect is getting called twice in dev mode
+  // this is to guard against it
+  const setupStarted = useRef<boolean>(false);
+
   /**
-   * It should be called once to initialize the configuration data for the user controls into the state variable
+  * It should be called once to initialize the configuration data for the user controls into the state variable
   */
   useEffect(() => {
-    setUserControlData({
-      userControlConfig: plot?.user_controls,
-      gridConfig: plot?.grid_layout_config,
-      layout: plot?.layout,
-      templateParams,
-    });
+    if (setupStarted.current) return;
+    setupStarted.current = true;
+
+    const initSelectors = async () => {
+      if (plot.user_controls?.length > 0) {
+        const tempParams = { ...templateParams };
+
+        const tempUserControls = [...plot.user_controls];
+        for (let i = 0; i < plot.user_controls.length; i++) {
+          const controlConfig = plot.user_controls[i];
+          if (!controlConfig.uid) {
+            controlConfig.uid = generateUid('local', controlConfig.type, i)
+            tempUserControls[i] = controlConfig;
+          }
+
+          const values = await initalizeControlData(controlConfig);
+
+          tempParams.$control_values[controlConfig.uid] = {
+            values: values
+          }
+        }
+
+        setUserControlData({
+          userControlConfig: tempUserControls,
+          gridConfig: plot?.grid_layout_config,
+          layout: plot?.layout
+        });
+
+        setTemplateParams(tempParams);
+      }
+
+      setControlTemplateVariablesInitialized(true);
+    };
+
+    if (isFirstRender) {
+      // only run on first render
+      try {
+        initSelectors();
+      } catch (error) {
+        dispatchError({ error });
+      }
+    }
   }, []);
 
-  useControl({
-    userControlConfig: plot?.user_controls,
-    templateParams,
-    setDataOptions,
-  });
+  /**
+   * extracts values for the selector returns them for the templateParams under the selector's uid
+   * 
+   * @param config User Control configuration
+   * @returns values for intializing template params for control
+   */
+  const initalizeControlData = async (config: UserControlConfig) => {
+    const paramKey = config.url_param_key;
+    const valueKey = config.request_info?.value_key;
+    const defaultValue = config.request_info?.default_value;
+
+    let values: any = {};
+    // use url_param value if defined, fall back to default value if not
+    let paramValue;
+    if (paramKey) paramValue = getQueryParam(windowRef.location.href, paramKey);
+
+    let initValue;
+    if (paramValue) {
+      initValue = paramValue;
+    } else if (defaultValue) {
+      initValue = defaultValue;
+    }
+    values[valueKey] = initValue;
+
+    if (config.request_info.url_pattern) {
+      const initRowRequest = config.request_info.url_pattern + '/' + valueKey + '=' + initValue;
+      const response = await ConfigService.http.get(initRowRequest);
+
+      values = response.data[0];
+    }
+
+    return values;
+  }
 
   /**
    * Updates the legend text and orientation for all plots for which legend is available as per the change in screen width
@@ -372,8 +394,7 @@ export const useChartData = (plot: Plot) => {
           const pattern = trace.url_pattern || trace.queryPattern || '';
           const { uri, headers } = getPatternUri(pattern, templateParams);
           return ConfigService.http.get(uri, { headers });
-        }
-        else if (trace.uri) {
+        } else if (trace.uri) {
           return ConfigService.http.get(trace.uri);
         } else {
           return { data: [] };
@@ -382,25 +403,66 @@ export const useChartData = (plot: Plot) => {
     );
 
     return plotResponses.map((response: Response) => response.data); // unpack data
-  }, [plot, templateParams, selectorOptionChanged]);
+  }, [plot, templateParams]);
 
-  // since we're using strict mode, the useEffect is getting called twice in dev mode
-  // this is to guard against it
-  const setupStarted = useRef<boolean>(false);
+  // if each row in response is an object with a single string value that looks like a path
+  //   assume that string is a path to a file of data (or other API) and fetch the subsequent data
+  const getDataIfFromFile = async(responseData: any) => {
+    const fileResponses: Array<Response> = await Promise.all(
+      responseData.map((responseArray: any) => {
+        // responseArray.length is 1 from condition that limits this function from being called
+        const row = responseArray[0];
+        const key = Object.keys(row)[0];
+        return ConfigService.http.get(row[key]);
+      })
+    )
+
+    return fileResponses.map((response: Response) => response.data); // unpack data
+  }
+
+  const testResponseObjectString = (responseArray: any[]) => {
+    if (responseArray.length === 1) {
+      const row = responseArray[0];
+      const rowKeys = Object.keys(row);
+
+      if (rowKeys.length === 1) {
+        const key = rowKeys[0];
+        const value = row[key];
+
+        const pathRegEx = /^(?:\/|[a-z]+:\/\/)/
+        
+        // NOTE: html path tests
+        // console.log(pathRegEx.test('abcxyz'));   // ==> false
+        // console.log(pathRegEx.test('/abcxyz'));  // ==> true
+        // console.log(pathRegEx.test('abc/xyz'));  // ==> false
+        // console.log(pathRegEx.test('abcxyz/'));  // ==> false
+        // console.log('https://staging.atlas-d2k.org' + value);
+        // console.log(pathRegEx.test('https://staging.atlas-d2k.org' + value));   // ==> true
+
+        // // NOTE: file path tests
+        // console.log(pathRegEx.test('File:/abcxyz'));  // ==> false
+        // console.log(pathRegEx.test('File:/abcxyz/path/to/file.tiff'));  // ==> false
+        return pathRegEx.test(value);
+      }
+    }
+
+    return false;
+  }
 
   // Effect to fetch initial data
   useEffect(() => {
-    if (setupStarted.current) return;
-    setupStarted.current = true;
+    // wait until control template variables are initialized before fetching inital data
+    if (!controlTemplateVariablesInitialized) return;
+
 
     const fetchInitData = async () => {
-      console.log('fetch initial occurred');
       setIsInitLoading(true);
       const allQueryParams = getQueryParams(window.location.href);
 
+      const tempParams = { ...templateParams };
       // push query parameters into templating environment
       Object.keys(allQueryParams).forEach((key: string) => {
-        templateParams.$url_parameters[key] = allQueryParams[key];
+        tempParams.$url_parameters[key] = allQueryParams[key];
       });
 
       if (plot.plot_type === 'violin') {
@@ -419,18 +481,18 @@ export const useChartData = (plot: Plot) => {
 
               // check if the param key is defined yet
               if (selectorConfig.isMulti) {
-                if (!Array.isArray(templateParams.$url_parameters[selectorConfig.urlParamKey])) {
+                if (!Array.isArray(tempParams.$url_parameters[selectorConfig.urlParamKey])) {
                   // probably not needed since this case SHOULD be initializing the data
                   // NOTE: the useMemo of templateParams above initalizes "Study" to an array so this case would be skipped there
-                  templateParams.$url_parameters[selectorConfig.urlParamKey] = []
+                  tempParams.$url_parameters[selectorConfig.urlParamKey] = []
                 }
               } else {
-                templateParams.$url_parameters[selectorConfig.urlParamKey] = {}
+                tempParams.$url_parameters[selectorConfig.urlParamKey] = {}
               }
 
               if (paramValue) {
                 if (!selectorConfig.isMulti) {
-                  templateParams.$url_parameters[paramKey].data = {
+                  tempParams.$url_parameters[paramKey].data = {
                     [valueKey]: paramValue
                   }
                 } else {
@@ -438,17 +500,17 @@ export const useChartData = (plot: Plot) => {
                   //    how would that look in the url?
                   //       - ?paramKey=RID1,RID2
                   //       - ?paramKey=RID1&paramKey=RID2
-                  templateParams.$url_parameters[selectorConfig.urlParamKey].push({
+                  tempParams.$url_parameters[selectorConfig.urlParamKey].push({
                     data: { [valueKey]: paramValue }
                   });
                 }
               } else if (defaultValue) {
                 if (!selectorConfig.isMulti) {
-                  templateParams.$url_parameters[paramKey].data = {
+                  tempParams.$url_parameters[paramKey].data = {
                     [valueKey]: defaultValue
                   }
                 } else {
-                  templateParams.$url_parameters[selectorConfig.urlParamKey].push({
+                  tempParams.$url_parameters[selectorConfig.urlParamKey].push({
                     data: { [valueKey]: defaultValue }
                   });
                 }
@@ -457,32 +519,38 @@ export const useChartData = (plot: Plot) => {
           });
         });
 
+        // NOTE: might have to pass tempParams here if fetchSelectData relies on them
         const initialSelectData = await fetchSelectData(selectGrid); // fetch the data needed for the select grid
         setSelectData(initialSelectData) // set the data for the select grid
       }
-      const plotData = await fetchData(); // fetch the data for the plot
-      setData(plotData); // set the data for the plot
+      setTemplateParams(tempParams);
+
+      // array of reponse.data arrays 
+      //    responseData = [response.data]
+      //    response.data = [{...}]
+      let responseData = await fetchData(); // fetch the data for the plot
+
+      // check response format to see if we need to fetch data from string in response
+      // if each response.data is an array with 1 object
+      //   AND each object has 1 key/value pair, check if that value is a "string" that looks like a "path"
+      const oneKeyInEachResponseAndPath = responseData.every((responseArray: any[]) => testResponseObjectString(responseArray));
+
+      if (oneKeyInEachResponseAndPath) {
+        responseData = await getDataIfFromFile(responseData);
+      }
+
+      setData(responseData); // set the data for the plot
       setIsInitLoading(false); // set loading to false
+      setSelectorOptionChanged(false);
     };
 
-    if (isFirstRender) {
-      // only run on first render
-      try {
-        fetchInitData();
-      } catch (error) {
-        dispatchError({ error });
-      }
+    // only run on first render
+    try {
+      fetchInitData();
+    } catch (error) {
+      dispatchError({ error });
     }
-  }, [
-    plot,
-    isFirstRender,
-    fetchSelectData,
-    setSelectData,
-    templateParams,
-    selectorOptionChanged,
-    fetchData,
-    dispatchError,
-  ]);
+  }, [controlTemplateVariablesInitialized]);
 
   // Effect to fetch data on subsequent changes when different selections are made (when selectData changes)
   useEffect(() => {
@@ -490,8 +558,22 @@ export const useChartData = (plot: Plot) => {
       console.log('fetch occurred');
       setIsDataLoading(true);
       setIsParseLoading(true);
-      const plotData = await fetchData();
-      setData(plotData);
+
+      // array of reponse.data arrays 
+      //    responseData = [response.data]
+      //    response.data = [{...}]
+      let responseData = await fetchData();
+
+      // check response format to see if we need to fetch data from string in response
+      // if each response.data is an array with 1 object
+      //   AND each object has 1 key/value pair, check if that value is a "string" that looks like a "path"
+      const oneKeyInEachResponseAndPath = responseData.every((responseArray: any[]) => testResponseObjectString(responseArray));
+
+      if (oneKeyInEachResponseAndPath) {
+        responseData = await getDataIfFromFile(responseData);
+      }
+
+      setData(responseData);
       setIsDataLoading(false);
       setIsFetchSelected(false);
       setSelectorOptionChanged(false);
@@ -508,13 +590,8 @@ export const useChartData = (plot: Plot) => {
       }
     }
   }, [
-    isFirstRender,
     isFetchSelected,
-    setIsFetchSelected,
-    selectData,
     templateParams,
-    fetchData,
-    dispatchError,
     selectorOptionChanged
   ]);
 
@@ -656,6 +733,7 @@ export const useChartData = (plot: Plot) => {
    */
   const updatePlotlyLayout = (
     result: any,
+    noDataTitle: boolean,
     additionalLayout?: any
   ): void => {
     // title
@@ -664,8 +742,7 @@ export const useChartData = (plot: Plot) => {
       // use the title_display_markdown_pattern if it exists
       title = createLink(plot.config.title_display_markdown_pattern, templateParams);
     }
-    if (templateParams.noData) {
-      // TODO: remove this hack
+    if (noDataTitle) {
       title = 'No Data';
     }
     if (title) result.layout.title = title;
@@ -802,7 +879,7 @@ export const useChartData = (plot: Plot) => {
   const getHeatmapLayoutParams = (input: inputParamsType, longestXTick: number, longestYTick: number, lengthY: number) => {
     let height;
     let yTickAngle;
-    const tMargin = 25;
+    const tMargin = 0;
     let rMargin, bMargin, lMargin;
     if (longestXTick <= 18) {
       height = longestXTick * 9 + lengthY * 10 + 50;
@@ -945,7 +1022,7 @@ export const useChartData = (plot: Plot) => {
       const validLink = ConfigService.ERMrest.renderHandlebarsTemplate(hovertemplate_display_pattern, {
         $self: { data: item },
         $row: item,
-        $url_parameters: templateParams?.$url_parameters
+        $url_parameters: templateParams.$url_parameters
       });
 
       /**
@@ -960,7 +1037,7 @@ export const useChartData = (plot: Plot) => {
       link = ConfigService.ERMrest.renderHandlebarsTemplate(hovertemplate_display_pattern, {
         $self: { data: item },
         $row: item,
-        $url_parameters: templateParams?.$url_parameters
+        $url_parameters: templateParams.$url_parameters
       }, null, { avoidValidation: true });
     }
 
@@ -1340,7 +1417,7 @@ export const useChartData = (plot: Plot) => {
     data.meanline = { visible: true };
     data.line = { width: 1 }
 
-    if (templateParams.noData) return;
+    if (noData) return;
 
     const selectDataArray = flatten2DArray(selectData);
     let yScale: any = null;
@@ -1455,14 +1532,101 @@ export const useChartData = (plot: Plot) => {
       height: undefined, // undefined to allow for responsive layout
     };
 
+    /**
+     * 
+     * @param currTrace - the trace we are parsing data for in plots.traces[]
+     * @param plotData - a data object to go into plotly.data[]
+     * @param responseData - data from server response we are parsing for plotly
+     * @param plotlyTraceIdx - the index for the trace in the plotly chart (trace in this context is a line, bars, individual violin etc)
+     */
+    const updatePlotDataSwitch = (currTrace: Trace, plotData: any, responseData: ResponseData, plotlyTraceIdx: number) => {
+      switch (plotData.type) {
+        case 'bar':
+          updateBarResponse(currTrace, plotData);
+          break;
+        case 'scatter':
+          updateScatterResponse(currTrace, plotData, 'markers', plotlyTraceIdx);
+          break;
+        case 'line':
+          updateScatterResponse(currTrace, plotData, 'lines+markers', plotlyTraceIdx);
+          break;
+        case 'heatmap':
+          updateHeatmapResponse(currTrace, plotData);
+          // setup the layout object using some information returned from the data
+          const { plotly } = plot;
+          // Getting the longest x tick in the given data to determine margin and height values in getHeatmapLayoutParams function
+          const inputParams = {
+            width: typeof plotly?.layout.width !== 'undefined' ? plotly?.layout.width : 1200,
+            xTickAngle: typeof plotly?.layout.xaxis?.tickangle !== 'undefined' ? plotly?.layout.xaxis?.tickangle : 50,
+          }
+
+          additionalLayout = getHeatmapLayoutParams(
+            inputParams,
+            plotData.longestXTick?.length,
+            plotData.longestYTick?.length,
+            plotData.y?.length
+          );
+
+          if (plot.config.text_on_plot) {
+            result.layout.annotations = [];
+
+            const xData = plotData.x;
+            const yData = plotData.y;
+            const zData = plotData.z;
+            for (let i = 0; i < yData.length; i++) {
+              for (let j = 0; j < xData.length; j++) {
+                let zText = zData[i][j];
+
+                // zData in heatmap SHOULD be numeric type, still check and format if it is
+                if (!isNaN(parseFloat(zText))) zText = addComma(zText);
+
+                const annotation = {
+                  xref: 'x' + (plotlyTraceIdx + 1),
+                  yref: 'y' + (plotlyTraceIdx + 1),
+                  x: j,
+                  y: i,
+                  text: zText,
+                  font: {
+                    family: 'Arial',
+                    size: 12,
+                    color: 'white'
+                  },
+                  showarrow: false
+                };
+
+                result.layout.annotations.push(annotation);
+              }
+            }
+          }
+          break;
+        case 'violin':
+          updateViolinResponse(currTrace, plotData, responseData);
+
+          // add custom layout for x axis ticks
+          additionalLayout.xaxis = {
+            tickvals: plotData.x,
+            ticktext: plotData.xTicks,
+          };
+
+          break;
+        case 'pie':
+          updatePieReponse(currTrace, plotData);
+          break;
+        case 'histogram':
+        // do nothing special for now
+        default:
+          break;
+      }
+    }
+
     // array of plotly.data objects
     const plotlyData: any[] = [];
-    // This boolean is used to set if we want to show specific invalid configuration alerts (bootstrap alerts). If it's false, global error handler will be used (modal popup)
-    let showAlert = false;
+
     // multiple data objects means multiple trace objects in plot.traces
     // data is an array of response objects
     // If the plot data object has multiple objects in the traces array, multiTrace will be set to true
     const multiTrace = data.length > 1;
+
 
     // Add all plot "traces" to data array based on plot type
     // NOTE: this assumes multiple traces in plot.traces[] will produce different objects in result.data[]
@@ -1489,13 +1653,11 @@ export const useChartData = (plot: Plot) => {
           // If the given format is json but the type of file is csv then parse the data using csv parser and show an alert warning for wrong configuration
           responseData = parseCsvData(responseData?.toString());
           if (!alertFunctions.alerts.some((alert) => alert.message.includes(alertMsg + invalidJsonAlert))) {
-            showAlert = true;
             alertFunctions.addAlert(alertMsg + invalidJsonAlert, ChaiseAlertType.WARNING);
           }
         } else if ((currTrace.response_format === 'csv' && isResponseJson)) {
           // If the given format is csv but the type of file is json then use the data as is and show an alert warning for wrong configuration
           if (!alertFunctions.alerts.some((alert) => alert.message.includes(alertMsg + invalidCsvAlert))) {
-            showAlert = true;
             alertFunctions.addAlert(alertMsg + invalidCsvAlert, ChaiseAlertType.WARNING);
           }
         }
@@ -1518,104 +1680,21 @@ export const useChartData = (plot: Plot) => {
         // each object in plot data is for displaying data in separate traces in plotly (so we can have multiple bars or bar + lines etc)
         for (let k = 0; k < allPlotData.length; k++) {
           const plotData = { ...allPlotData[k] };
-          switch (plotData.type) {
-            case 'bar':
-              updateBarResponse(currTrace, plotData);
-              break;
-            case 'scatter':
-              updateScatterResponse(currTrace, plotData, 'markers', k);
-              break;
-            case 'line':
-              updateScatterResponse(currTrace, plotData, 'lines+markers', k);
-              break;
-            case 'heatmap':
-              updateHeatmapResponse(currTrace, plotData);
-              // setup the layout object using some information returned from the data
-              const { plotly } = plot;
-              // Getting the longest x tick in the given data to determine margin and height values in getHeatmapLayoutParams function
-              const inputParams = {
-                width: typeof plotly?.layout.width !== 'undefined' ? plotly?.layout.width : 1200,
-                xTickAngle: typeof plotly?.layout.xaxis?.tickangle !== 'undefined' ? plotly?.layout.xaxis?.tickangle : 50,
-              }
-
-              additionalLayout = getHeatmapLayoutParams(
-                inputParams,
-                plotData.longestXTick?.length,
-                plotData.longestYTick?.length,
-                plotData.y?.length
-              );
-
-              if (plot.config.text_on_plot) {
-                result.layout.annotations = [];
-
-                const xData = plotData.x;
-                const yData = plotData.y;
-                const zData = plotData.z;
-                for (let i = 0; i < yData.length; i++) {
-                  for (let j = 0; j < xData.length; j++) {
-                    let zText = zData[i][j];
-
-                    // zData in heatmap SHOULD be numeric type, still check and format if it is
-                    if (!isNaN(parseFloat(zText))) zText = addComma(zText);
-
-                    const annotation = {
-                      xref: 'x' + (k + 1),
-                      yref: 'y' + (k + 1),
-                      x: j,
-                      y: i,
-                      text: zText,
-                      font: {
-                        family: 'Arial',
-                        size: 12,
-                        color: 'white'
-                      },
-                      showarrow: false
-                    };
-
-                    result.layout.annotations.push(annotation);
-                  }
-                }
-              }
-              break;
-            case 'violin':
-              updateViolinResponse(currTrace, plotData, responseData);
-
-              // add custom layout for x axis ticks
-              additionalLayout.xaxis = {
-                tickvals: plotData.x,
-                ticktext: plotData.xTicks,
-              };
-
-              break;
-            case 'pie':
-              updatePieReponse(currTrace, plotData);
-              break;
-            case 'histogram':
-            // do nothing special for now
-            default:
-              break;
-          }
+          // update the plotData object for each plot type
+          updatePlotDataSwitch(currTrace, plotData, responseData, k)
 
           plotlyData.push(plotData);
         }
-      } else {
-        // Otherwise if the type of file is other than csv/json, show an alert warning
-        // If no other alerts are shown then show this alert
-        if (!showAlert && !alertFunctions.alerts.some((alert) => alert.message.includes(alertMsg + invalidDataAlert))) {
-          alertFunctions.addAlert(alertMsg + invalidDataAlert, ChaiseAlertType.WARNING);
-        }
-        // return empty data
-        return {};
       }
     });
 
     result.data = plotlyData;
-    if (result.data?.every((obj: any) => Object.keys(obj)?.length === 0)) {
-      templateParams.noData = true;
-    }
+
+    const emptyReponses = data.every((responseArray: any[]) => responseArray.length === 0);
 
     updatePlotlyConfig(result); // update the config
-    updatePlotlyLayout(result, additionalLayout); // update the layout
+    updatePlotlyLayout(result, (data.length === 0 || emptyReponses), additionalLayout); // update the layout
+
     // If hovertemplate_display_pattern is not configured, set default hover text for plot
     if (!hovertemplate_display_pattern) {
       defaultHoverTemplateDisplay(result); // default hover template
@@ -1627,16 +1706,19 @@ export const useChartData = (plot: Plot) => {
   // Parse data on state changes to data or selectData
   useEffect(() => {
     if (data && !isDataLoading && !isInitLoading && !isFetchSelected) {
+      // data is an array of arrays of ermrest response objects 
+      //   data => [response.data] and response.data => [{}]
+      // each array in data is for a different trace.uri_pattern
+      const emptyReponses = data.every((responseArray: any[]) => responseArray.length === 0);
+
+      setNoData((data.length === 0 || emptyReponses));
       setParsedData(parsePlotData());
       setIsParseLoading(false); // set loading to false after parsing
     }
-
-
-  }, [plot, data, isDataLoading, isFetchSelected, isInitLoading, selectData, templateParams]);
+  }, [data]);
 
 
   return {
-    dataOptions,
     isInitLoading,
     isDataLoading,
     isParseLoading,
@@ -1650,8 +1732,7 @@ export const useChartData = (plot: Plot) => {
     errors,
     handleCloseModal,
     handleSubmitModal,
-    setSelectorOptionChanged,
+    controlTemplateVariablesInitialized
   };
 };
-
 

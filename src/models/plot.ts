@@ -6,7 +6,7 @@ import {
   PieData as PlotlyPieData,
   PlotData,
 } from 'plotly.js';
-import { ResponsiveProps as ResponsiveGridConfig } from 'react-grid-layout';
+import { ResponsiveProps as ResponsiveGridConfig, Layouts, ResponsiveProps } from 'react-grid-layout';
 
 
 /**
@@ -21,6 +21,9 @@ export type PlotConfig = {
  */
 export type DataConfig = {
   plots: Plot[];
+  layout: Layouts;
+  grid_layout_config?: ResponsiveGridConfig;
+  user_controls: UserControlConfig[]; //NOTE: For now user_controls will be considered of type dropdown only
 };
 
 export type UserControlDataConfig={
@@ -31,9 +34,12 @@ export type UserControlDataConfig={
 export type UserControlConfig = {
   uid: string;
   label: string;
+  type: string;
   url_param_key?: string;
   request_info: UserControlRequestInfoConfig;
 }
+
+export type ControlScope = 'global' | 'local';
 
 export type UserControlRequestInfoConfig = {
   url_pattern?: string;
@@ -52,13 +58,14 @@ export type UserControlRequestInfoConfig = {
 export type Plot = {
   plot_type: string;
   config: PlotConfigConfig;
-  layout: LayoutConfig;
+  layout: Layouts;
   grid_layout_config?: ResponsiveGridConfig;
   traces: Trace[];
   gene_uri_pattern?: string;
   study_uri_pattern?: string;
   plotly?: Plotly;
-  user_controls: UserControlConfig[]; //NOTE: For now user_controls will be considered of type dropdown only
+  user_controls: UserControlConfig[]; //A control can be of any type, but only dropdowns are implemented in current version
+  uid: string;
 };
 
 /**
@@ -157,6 +164,17 @@ export type BreakpointConfig =
 }
 
 /**
+ * Responsive Layout config
+ */
+export type ResponsiveLayoutConfig =
+{
+  lg: LayoutConfig[]; 
+  md: LayoutConfig[]; 
+  sm: LayoutConfig[]; 
+  xs: LayoutConfig[];
+}
+
+/**
  * Margin/Padding config
  */
 export type MarginPaddingConfig =
@@ -192,6 +210,28 @@ export type TracePlotyData = Partial<PlotlyPlotData> &
   Partial<PlotlyViolinData> &
   Partial<PlotlyPieData>;
 
+
+  export type PlotTemplateParams = {
+    $row?: {
+      [paramKey: string]: any;
+    };
+    $self?: {
+      [paramKey: string]: any;
+    };
+    /**
+     * Parameters for URL 
+     */
+    $url_parameters: {
+      [paramKey: string]: any;
+    };
+    /**
+     * Parameters for URL
+     */
+    $control_values: {
+      [paramKey: string]: any;
+    };
+  };
+
 /**
  * Trace configs
  */
@@ -205,3 +245,15 @@ export const screenWidthThreshold = 1000;
 
 //Valid file types for url_pattern
 export const validFileTypes = ['csv','json'];
+
+//Default grid layout object to supply to the ResponsiveGridLayout if no grid configuration is provided in the config file
+export const defaultGridProps = {
+  auto_size: true,
+  breakpoints: { lg: 1200, md: 996, sm: 768, xs: 480 },
+  cols: { lg: 12, md: 10, sm: 6, xs: 4 },
+  margin: { lg: [10, 10], md: [10, 10], sm: [5, 5], xs: [5, 5] },
+  container_padding: { lg: [12, 12], md: [10, 10], sm: [0, 0], xs: [0, 0] },
+  row_height: 30,
+};
+
+export const globalGridMargin = { lg: [15, 5], md: [15, 5], sm: [5, 5], xs: [5, 5] };
