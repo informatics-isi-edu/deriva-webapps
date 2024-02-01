@@ -3,7 +3,6 @@ import DropdownSelect from '@isrd-isi-edu/deriva-webapps/src/components/plot/dro
 
 // hooks
 import { useEffect, useState } from 'react';
-import useError from '@isrd-isi-edu/chaise/src/hooks/error';
 import usePlot from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
 
 // models
@@ -11,30 +10,12 @@ import { Option } from '@isrd-isi-edu/deriva-webapps/src/components/virtualized-
 import { UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 
 // utils
-import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
 import { useUserControl } from '@isrd-isi-edu/deriva-webapps/src/hooks/control';
 
 /**
  * DropdownSelectProps is the type of props for DropdownSelect component.
  */
 export type DropdownProps = {
-  /**
-   * id for the select input
-   */
-  // id?: string;
-  // /**
-  //  * label for the select input
-  //  */
-  // label?: string;
-  // isDisabled?: boolean;
-  // /**
-  //  * onChange callback for the select input
-  //  * 
-  //  * @param newValue 
-  //  * @param actionMeta 
-  //  * @returns 
-  //  */
-  // onChange?: (newValue: OnChangeValue<unknown, boolean>, actionMeta: ActionMeta<unknown>) => void;
   /**
    * value for the select input
    */
@@ -46,12 +27,7 @@ export type DropdownProps = {
  * DropdownSelect is a component that renders a dropdown select input.
  */
 const Dropdown = ({
-  // id,
-  // label,
-  // isDisabled,
-  // onChange,
   value,
-  // defaultOptions,
   userControlConfig
 }: DropdownProps): JSX.Element => {
 
