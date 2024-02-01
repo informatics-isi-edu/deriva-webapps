@@ -158,7 +158,7 @@ var plotConfigs = {
     headTitle: 'GUDMAP Release Status Dashboard',
     // Array of object plots to be shown on the page
     plots: [
-      {            
+      {
         uid: 'pie_plot',
         // Values can be from :  "bar", "pie", "histogram",
         plot_type: 'pie',
@@ -663,8 +663,8 @@ var plotConfigs = {
         {
           graphic_link_pattern:
             ['/chaise/recordset/#2/RNASeq:Replicate_Expression'],
-          hovertemplate_display_pattern: "Label: {{{$row.Label}}}<br>Probe Name: {{{$row.Probe_Set_Name}}}<br>Value: {{{$row.Value}}}<br>Gene ID: {{{$url_parameters.Gene.data.NCBI_GeneID}}}",
-          url_pattern: '/ermrest/catalog/2/entity/Gene_Expression:Array_Data_view/NCBI_GeneID={{{$url_parameters.Gene.data.NCBI_GeneID}}}&Section_Ordinal=3',
+          hovertemplate_display_pattern: "Label: {{{$row.Label}}}<br>Probe Name: {{{$row.Probe_Set_Name}}}<br>Value: {{{$row.Value}}}<br>Gene ID: {{{$url_parameters.NCBI_GeneID}}}",
+          url_pattern: '/ermrest/catalog/2/entity/Gene_Expression:Array_Data_view/NCBI_GeneID={{{$url_parameters.NCBI_GeneID}}}&Section_Ordinal=3',
           // url_pattern: '/~jchudy/plot-test-data/heatmap.csv',
           // response_format: 'csv',
           x_col: ["Label"],
@@ -757,6 +757,7 @@ var plotConfigs = {
         user_controls: [{
           uid: 'consortium',
           label: 'Consortium',
+          type: 'dropdown',
           request_info: {
             data: [{
               Name: 'ALL',
@@ -776,6 +777,7 @@ var plotConfigs = {
         {
           uid: 'consortiumS2',
           label: 'S2 Consortium',
+          type: 'dropdown',
           request_info: {
             data: [{
               Name: 'ALL',
@@ -872,698 +874,700 @@ var plotConfigs = {
   'gudmap-todate-bar-global': {
     headTitle: 'GUDMAP Data Status Dashboard',
     layout: {
-        lg: [{
-            source_uid: 'consortium',
-            x: 0,
-            y: 0,
-            w: 4,
-            h: 1,
-            static: true,
-        }, 
-        {
-            source_uid: 'bar_1',
-            x: 0,
-            y: 1,
-            w: 6,
-            h: 12,
-            static: true,
-        }, {
-            source_uid: 'bar_2',
-            x: 6,
-            y: 1,
-            w: 6,
-            h: 12,
-            static: true,
+      lg: [{
+        source_uid: 'consortium',
+        x: 0,
+        y: 0,
+        w: 4,
+        h: 1,
+        static: true,
+      },
+      {
+        source_uid: 'bar_1',
+        x: 0,
+        y: 1,
+        w: 6,
+        h: 12,
+        static: true,
+      }, {
+        source_uid: 'bar_2',
+        x: 6,
+        y: 1,
+        w: 6,
+        h: 12,
+        static: true,
+      }
+      ],
+      md: [{
+        source_uid: 'consortium',
+        x: 0,
+        y: 0,
+        w: 3,
+        h: 1,
+        static: true,
+      }, {
+        source_uid: 'bar_1',
+        x: 0,
+        y: 1,
+        w: 5,
+        h: 12,
+        static: true,
+      }, {
+        source_uid: 'bar_2',
+        x: 6,
+        y: 1,
+        w: 5,
+        h: 12,
+        static: true,
+      }],
+      sm: [{
+        source_uid: 'consortium',
+        x: 0,
+        y: 0,
+        w: 4,
+        h: 1,
+        static: true,
+      }, {
+        source_uid: 'bar_1',
+        x: 0,
+        y: 1,
+        w: 6,
+        h: 12,
+        static: true,
+      }, {
+        source_uid: 'bar_2',
+        x: 4,
+        y: 2,
+        w: 3,
+        h: 12,
+        static: true,
+      }],
+      xs: [{
+        source_uid: 'consortium',
+        x: 0,
+        y: 0,
+        w: 2,
+        h: 1,
+        static: true,
+      }, {
+        source_uid: 'bar_1',
+        x: 4,
+        y: 1,
+        w: 4,
+        h: 12,
+        static: true,
+      }, {
+        source_uid: 'bar_2',
+        x: 4,
+        y: 2,
+        w: 4,
+        h: 12,
+        static: true,
+      }]
+    },
+    user_controls: [
+      {
+        uid: 'consortium',
+        label: 'Consortium Common',
+        type: 'dropdown',
+        request_info: {
+          data: [{
+            Name: 'ALL',
+            Display: 'All'
+          }, {
+            Name: 'GUDMAP',
+            Display: 'Gudmap'
+          }, {
+            Name: 'RBK',
+            Display: 'RBK'
+          }],
+          default_value: 'ALL',
+          value_key: 'Name',
+          selected_value_pattern: '{{{$self.values.Display}}}'
         }
+      },
     ],
-        md: [{
+    grid_layout_config: {
+      // This allows setting the initial width on the server side.
+      // width: 1200,
+      auto_size: true,
+      breakpoints: { lg: 1200, md: 996, sm: 768, xs: 480 },
+      cols: 12,
+      margin: { lg: [5, 5], md: [10, 10], sm: [9, 9], xs: [5, 5] },
+      // container_padding: { lg: [12, 12], md: [10, 10], sm: [9, 9], xs: [5, 5] },
+      row_height: 50,
+    },
+    // Array of object plots to be shown on the page
+    plots: [
+      {
+        uid: 'bar_1',
+        plot_type: 'bar',
+        type: 'dropdown',
+        plotly: {
+          config: {
+            modeBarButtonsToRemove: [
+              'scrollZoom',
+              'zoom2d',
+              'sendDataToCloud',
+              'autoScale2d',
+              'lasso2d',
+              'select2d',
+              'hoverClosestCartesian',
+              'hoverCompareCartesian',
+              'toggleSpikelines',
+            ],
+            displaylogo: false,
+            responsive: true,
+          },
+          layout: {
+            title: 'Number of GUDMAP resources released to date (log scale)',
+            height: 500,
+            width: 1200,
+            showlegend: true,
+            xaxis: {
+              title: 'Number of Records', // plot x_axis label
+              type: 'log', // optional value: tickformat should compatible with type
+            },
+            margin: {
+              t: 30,
+              l: 280,
+            },
+            legend: {
+              traceorder: 'reversed', // order of the legend is reversed
+            },
+          },
+        },
+        //No layout provided to test the default layout
+        grid_layout_config: {
+          // This allows setting the initial width on the server side.
+          // width: 1200,
+          auto_size: true,
+          breakpoints: { lg: 1200, md: 996, sm: 768, xs: 480 },
+          cols: { lg: 12, md: 10, sm: 6, xs: 4 },
+          // margin: { lg: [12, 12], md: [10, 10], sm: [9, 9], xs: [5, 5] },
+          // container_padding: { lg: [12, 12], md: [10, 10], sm: [9, 9], xs: [5, 5] },
+          row_height: 30,
+        },
+        user_controls: [{
+          uid: 'consortium',
+          label: 'Consortium',
+          type: 'dropdown',
+          request_info: {
+            data: [{
+              Name: 'ALL',
+              Display: 'All'
+            }, {
+              Name: 'GUDMAP',
+              Display: 'Gudmap'
+            }, {
+              Name: 'RBK',
+              Display: 'RBK'
+            }],
+            default_value: 'ALL',
+            value_key: 'Name',
+            selected_value_pattern: '{{{$self.values.Display}}}'
+          }
+        },
+        {
+          uid: 'consortiumS2',
+          label: 'S2 Consortium',
+          type: 'dropdown',
+          request_info: {
+            data: [{
+              Name: 'ALL',
+              Display: 'S2 All'
+            }, {
+              Name: 'GUDMAP',
+              Display: 'S2 Gudmap'
+            }, {
+              Name: 'RBK',
+              Display: 'S2 RBK'
+            }],
+            default_value: 'ALL',
+            value_key: 'Name',
+            selected_value_pattern: '{{{$self.values.Display}}}'
+          }
+        },
+        {
+          uid: 'consortium3',
+          label: 'Consortium3',
+          type: 'dropdown',
+          request_info: {
+            data: [{
+              Name: 'ALL',
+              Display: 'All'
+            }, {
+              Name: 'GUDMAP',
+              Display: 'Gudmap'
+            }, {
+              Name: 'RBK',
+              Display: 'RBK'
+            }],
+            default_value: 'ALL',
+            value_key: 'Name',
+            selected_value_pattern: '{{{$self.values.Display}}}'
+          }
+        }],
+        config: {
+          title_display_markdown_pattern:
+            '[Number of GUDMAP resources released to date {{{$control_values.consortium.values.Name}}}](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+          format_data_x: true, // defualt : false - to use hack or not
+          xaxis: {
+            title_display_markdown_pattern:
+              '[Number of Records](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+          },
+          yaxis: {
+            tick_display_markdown_pattern:
+              '[{{$self.data.Data_Type}}](/chaise/recordset/#2/{{{$self.data.Schema_Table}}}){target=_blank}',
+            title_display_markdown_pattern: '[Data Types](/chaise/recordset/#2/Gene_Expression:Specimen){target=_blank}'
+          },
+          disable_default_legend_click: true,
+        },
+        traces: [
+          {
+            // The request url that has to be used to fetch the data.
+            //Fetch the file from testing user's directory
+            // url_pattern: '/~kenyshah/gudmap.json',
+            url_pattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium={{{$control_values.consortium.values.Name}}}/!(Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
+            // url_pattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
+            //Determine the type of file in url_pattern if applicable            
+            response_format: 'json',
+            hovertemplate_display_pattern: "Released Horizontal: {{#if true}}{{{$row.Released}}}{{/if}}",
+            legend: ['Released'], // name of traces in legend
+            legend_markdown_pattern: [
+              '[#Released](/chaise/recordset/#2/Antibody:Antibody_Tests/){target=_blank}',
+            ],
+            graphic_link_pattern:
+              '/chaise/recordset/#2/{{{$self.data.Schema_Table}}}/*::facets::{{#encodeFacet}}{{{$self.data.Data_Type_Filter}}}{{/encodeFacet}}',
+            x_col: ['Released'], // column name to use for x values
+            y_col: ['Data_Type'], // array of column names to use for y values
+            orientation: 'h', // Optional parameter for displaying the bar chart horizontally
+            textfont: {
+              size: 10, // It will work till the bar size can accomodate the font size
+            },
+          },
+        ],
+      },
+      {
+        uid: 'bar_2',
+        plot_type: 'bar',
+        plotly: {
+          config: {
+            modeBarButtonsToRemove: [
+              'scrollZoom',
+              'zoom2d',
+              'sendDataToCloud',
+              'autoScale2d',
+              'lasso2d',
+              'select2d',
+              'hoverClosestCartesian',
+              'hoverCompareCartesian',
+              'toggleSpikelines',
+            ],
+            displaylogo: false,
+            responsive: true,
+
+          },
+          layout: {
+            title: 'Number of GUDMAP resources released to date (log scale)',
+            height: 500,
+            width: 1200,
+            showlegend: true,
+            xaxis: {
+              title: 'Number of Records', // plot x_axis label
+              type: 'log', // optional value: tickformat should compatible with type
+            },
+            margin: {
+              t: 30,
+              l: 280,
+            },
+            legend: {
+              traceorder: 'reversed', // order of the legend is reversed
+            },
+          },
+        },
+        layout: {
+          lg: [{
             source_uid: 'consortium',
             x: 0,
+            y: 0,
+            w: 6,
+            h: 1,
+            static: true,
+          }, {
+            source_uid: 'consortiumS2',
+            x: 6,
+            y: 0,
+            w: 6,
+            h: 1,
+            static: true,
+          }],
+          md: [{
+            source_uid: 'consortium',
+            x: 0,
+            y: 0,
+            w: 5,
+            h: 1,
+            static: true,
+          }, {
+            source_uid: 'consortiumS2',
+            x: 5,
             y: 0,
             w: 3,
             h: 1,
             static: true,
-        }, {
-            source_uid: 'bar_1',
-            x: 0,
-            y: 1,
-            w: 5,
-            h: 12,
-            static: true,
-        }, {
-            source_uid: 'bar_2',
-            x: 6,
-            y: 1,
-            w: 5,
-            h: 12,
-            static: true,
-        }],
-        sm: [{
-            source_uid: 'consortium',
+          }],
+          sm: [{
+            source_uid: 'consortiumS2',
             x: 0,
             y: 0,
             w: 4,
             h: 1,
             static: true,
-        }, {
-            source_uid: 'bar_1',
-            x: 0,
-            y: 1,
-            w: 6,
-            h: 12,
-            static: true,
-        }, {
-            source_uid: 'bar_2',
+          }, {
+            source_uid: 'consortium',
             x: 4,
-            y: 2,
-            w: 3,
-            h: 12,
+            y: 0,
+            w: 2,
+            h: 1,
             static: true,
-        }],
-        xs: [{
+          }],
+          xs: [{
             source_uid: 'consortium',
             x: 0,
             y: 0,
             w: 2,
             h: 1,
             static: true,
-        }, {
-            source_uid: 'bar_1',
-            x: 4,
-            y: 1,
-            w: 4,
-            h: 12,
+          }, {
+            source_uid: 'consortiumS2',
+            x: 2,
+            y: 0,
+            w: 2,
+            h: 1,
             static: true,
-        }, {
-            source_uid: 'bar_2',
-            x: 4,
-            y: 2,
-            w: 4,
-            h: 12,
-            static: true,
-        }]
-    },
-    user_controls: [
-        {
-            uid: 'consortium',
-            label: 'Consortium Common',
-            type: 'dropdown',
-            request_info: {
-                data: [{
-                    Name: 'ALL',
-                    Display: 'All'
-                }, {
-                    Name: 'GUDMAP',
-                    Display: 'Gudmap'
-                }, {
-                    Name: 'RBK',
-                    Display: 'RBK'
-                }],
-                default_value: 'ALL',
-                value_key: 'Name',
-                selected_value_pattern: '{{{$self.values.Display}}}'
-            }
+          }],
         },
+        grid_layout_config: {
+          auto_size: true,
+          breakpoints: { lg: 1100, md: 996, sm: 768, xs: 480 },
+          cols: { lg: 12, md: 10, sm: 6, xs: 4 },
+          row_height: 30,
+        },
+        user_controls: [{
+          uid: 'consortium',
+          label: 'Consortium',
+          type: 'dropdown',
+          request_info: {
+            data: [{
+              Name: 'ALL',
+              Display: 'All'
+            }, {
+              Name: 'GUDMAP',
+              Display: 'Gudmap'
+            }, {
+              Name: 'RBK',
+              Display: 'RBK'
+            }],
+            default_value: 'ALL',
+            value_key: 'Name',
+            selected_value_pattern: '{{{$self.values.Display}}}'
+          }
+        },
+        {
+          uid: 'consortiumS2',
+          label: 'S2 Consortium',
+          type: 'dropdown',
+          request_info: {
+            data: [{
+              Name: 'ALL',
+              Display: 'S2 All'
+            }, {
+              Name: 'GUDMAP',
+              Display: 'S2 Gudmap'
+            }, {
+              Name: 'RBK',
+              Display: 'S2 RBK'
+            }],
+            default_value: 'ALL',
+            value_key: 'Name',
+            selected_value_pattern: '{{{$self.values.Display}}}'
+          }
+        }],
+        config: {
+          title_display_markdown_pattern:
+            '[Number of GUDMAP resources released to date (log scale)](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+          format_data_x: true, // defualt : false - to use hack or not
+          xaxis: {
+            title_display_markdown_pattern:
+              '[Number of Records](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+          },
+          yaxis: {
+            tick_display_markdown_pattern:
+              '[{{$self.data.Data_Type}}](/chaise/recordset/#2/{{{$self.data.Schema_Table}}}){target=_blank}',
+            title_display_markdown_pattern: '[Data Types](/chaise/recordset/#2/Gene_Expression:Specimen){target=_blank}'
+          },
+          disable_default_legend_click: true,
+        },
+        traces: [
+          {
+            // The request url that has to be used to fetch the data.
+            //Fetch the file from testing user's directory
+            // url_pattern: '/~kenyshah/gudmap.json',
+            url_pattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium={{{$control_values.consortium.values.Name}}}/!(Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
+            // url_pattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
+            //Determine the type of file in url_pattern if applicable            
+            response_format: 'json',
+            hovertemplate_display_pattern: "Released Horizontal: {{#if true}}{{{$row.Released}}}{{/if}}",
+            legend: ['Released'], // name of traces in legend
+            legend_markdown_pattern: [
+              '[#Released](/chaise/recordset/#2/Antibody:Antibody_Tests/){target=_blank}',
+            ],
+            graphic_link_pattern:
+              '/chaise/recordset/#2/{{{$self.data.Schema_Table}}}/*::facets::{{#encodeFacet}}{{{$self.data.Data_Type_Filter}}}{{/encodeFacet}}',
+            x_col: ['Released'], // column name to use for x values
+            y_col: ['Data_Type'], // array of column names to use for y values
+            orientation: 'h', // Optional parameter for displaying the bar chart horizontally
+            textfont: {
+              size: 10, // It will work till the bar size can accomodate the font size
+            },
+          },
+        ],
+      },
     ],
-    grid_layout_config: {
-        // This allows setting the initial width on the server side.
-        // width: 1200,
-        auto_size: true,
-        breakpoints: { lg: 1200, md: 996, sm: 768, xs: 480 },
-        cols: 12,
-        margin: { lg: [5, 5], md: [10, 10], sm: [9, 9], xs: [5, 5] },
-        // container_padding: { lg: [12, 12], md: [10, 10], sm: [9, 9], xs: [5, 5] },
-        row_height: 50,
-    },
+
+  },
+  'gudmap-todate-bar-swapped-global': {
+    headTitle: 'GUDMAP Data Status Dashboard',
     // Array of object plots to be shown on the page
     plots: [
-        {
-            uid: 'bar_1',
-            plot_type: 'bar',
-            type: 'dropdown',
-            plotly: {
-                config: {
-                    modeBarButtonsToRemove: [
-                        'scrollZoom',
-                        'zoom2d',
-                        'sendDataToCloud',
-                        'autoScale2d',
-                        'lasso2d',
-                        'select2d',
-                        'hoverClosestCartesian',
-                        'hoverCompareCartesian',
-                        'toggleSpikelines',
-                    ],
-                    displaylogo: false,
-                    responsive: true,
-                },
-                layout: {
-                    title: 'Number of GUDMAP resources released to date (log scale)',
-                    height: 500,
-                    width: 1200,
-                    showlegend: true,
-                    xaxis: {
-                        title: 'Number of Records', // plot x_axis label
-                        type: 'log', // optional value: tickformat should compatible with type
-                    },
-                    margin: {
-                        t: 30,
-                        l: 280,
-                    },
-                    legend: {
-                        traceorder: 'reversed', // order of the legend is reversed
-                    },
-                },
-            },
-            //No layout provided to test the default layout
-            grid_layout_config: {
-                // This allows setting the initial width on the server side.
-                // width: 1200,
-                auto_size: true,
-                breakpoints: { lg: 1200, md: 996, sm: 768, xs: 480 },
-                cols: { lg: 12, md: 10, sm: 6, xs: 4 },
-                // margin: { lg: [12, 12], md: [10, 10], sm: [9, 9], xs: [5, 5] },
-                // container_padding: { lg: [12, 12], md: [10, 10], sm: [9, 9], xs: [5, 5] },
-                row_height: 30,
-            },
-            user_controls: [{
-                uid: 'consortium',
-                label: 'Consortium',
-                type: 'dropdown',
-                request_info: {
-                    data: [{
-                        Name: 'ALL',
-                        Display: 'All'
-                    }, {
-                        Name: 'GUDMAP',
-                        Display: 'Gudmap'
-                    }, {
-                        Name: 'RBK',
-                        Display: 'RBK'
-                    }],
-                    default_value: 'ALL',
-                    value_key: 'Name',
-                    selected_value_pattern: '{{{$self.values.Display}}}'
-                }
-            },
-            {
-                uid: 'consortiumS2',
-                label: 'S2 Consortium',
-                type: 'dropdown',
-                request_info: {
-                    data: [{
-                        Name: 'ALL',
-                        Display: 'S2 All'
-                    }, {
-                        Name: 'GUDMAP',
-                        Display: 'S2 Gudmap'
-                    }, {
-                        Name: 'RBK',
-                        Display: 'S2 RBK'
-                    }],
-                    default_value: 'ALL',
-                    value_key: 'Name',
-                    selected_value_pattern: '{{{$self.values.Display}}}'
-                }
-            },
-            {
-                uid: 'consortium3',
-                label: 'Consortium3',
-                type: 'dropdown',
-                request_info: {
-                    data: [{
-                        Name: 'ALL',
-                        Display: 'All'
-                    }, {
-                        Name: 'GUDMAP',
-                        Display: 'Gudmap'
-                    }, {
-                        Name: 'RBK',
-                        Display: 'RBK'
-                    }],
-                    default_value: 'ALL',
-                    value_key: 'Name',
-                    selected_value_pattern: '{{{$self.values.Display}}}'
-                }
-            }],
-            config: {
-                title_display_markdown_pattern:
-                    '[Number of GUDMAP resources released to date {{{$control_values.consortium.values.Name}}}](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
-                format_data_x: true, // defualt : false - to use hack or not
-                xaxis: {
-                    title_display_markdown_pattern:
-                        '[Number of Records](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
-                },
-                yaxis: {
-                    tick_display_markdown_pattern:
-                        '[{{$self.data.Data_Type}}](/chaise/recordset/#2/{{{$self.data.Schema_Table}}}){target=_blank}',
-                    title_display_markdown_pattern: '[Data Types](/chaise/recordset/#2/Gene_Expression:Specimen){target=_blank}'
-                },
-                disable_default_legend_click: true,
-            },
-            traces: [
-                {
-                    // The request url that has to be used to fetch the data.
-                    //Fetch the file from testing user's directory
-                    // url_pattern: '/~kenyshah/gudmap.json',
-                    url_pattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium={{{$control_values.consortium.values.Name}}}/!(Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
-                    // url_pattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
-                    //Determine the type of file in url_pattern if applicable            
-                    response_format: 'json',
-                    hovertemplate_display_pattern: "Released Horizontal: {{#if true}}{{{$row.Released}}}{{/if}}",
-                    legend: ['Released'], // name of traces in legend
-                    legend_markdown_pattern: [
-                        '[#Released](/chaise/recordset/#2/Antibody:Antibody_Tests/){target=_blank}',
-                    ],
-                    graphic_link_pattern:
-                        '/chaise/recordset/#2/{{{$self.data.Schema_Table}}}/*::facets::{{#encodeFacet}}{{{$self.data.Data_Type_Filter}}}{{/encodeFacet}}',
-                    x_col: ['Released'], // column name to use for x values
-                    y_col: ['Data_Type'], // array of column names to use for y values
-                    orientation: 'h', // Optional parameter for displaying the bar chart horizontally
-                    textfont: {
-                        size: 10, // It will work till the bar size can accomodate the font size
-                    },
-                },
-            ],
-        },
-        {
-            uid: 'bar_2',
-            plot_type: 'bar',
-            plotly: {
-                config: {
-                    modeBarButtonsToRemove: [
-                        'scrollZoom',
-                        'zoom2d',
-                        'sendDataToCloud',
-                        'autoScale2d',
-                        'lasso2d',
-                        'select2d',
-                        'hoverClosestCartesian',
-                        'hoverCompareCartesian',
-                        'toggleSpikelines',
-                    ],
-                    displaylogo: false,
-                    responsive: true,
-
-                },
-                layout: {
-                    title: 'Number of GUDMAP resources released to date (log scale)',
-                    height: 500,
-                    width: 1200,
-                    showlegend: true,
-                    xaxis: {
-                        title: 'Number of Records', // plot x_axis label
-                        type: 'log', // optional value: tickformat should compatible with type
-                    },
-                    margin: {
-                        t: 30,
-                        l: 280,
-                    },
-                    legend: {
-                        traceorder: 'reversed', // order of the legend is reversed
-                    },
-                },
-            },
-            layout: {
-                lg: [{
-                    source_uid: 'consortium',
-                    x: 0,
-                    y: 0,
-                    w: 6,
-                    h: 1,
-                    static: true,
-                }, {
-                    source_uid: 'consortiumS2',
-                    x: 6,
-                    y: 0,
-                    w: 6,
-                    h: 1,
-                    static: true,
-                }],
-                md: [{
-                    source_uid: 'consortium',
-                    x: 0,
-                    y: 0,
-                    w: 5,
-                    h: 1,
-                    static: true,
-                }, {
-                    source_uid: 'consortiumS2',
-                    x: 5,
-                    y: 0,
-                    w: 3,
-                    h: 1,
-                    static: true,
-                }],
-                sm: [{
-                    source_uid: 'consortiumS2',
-                    x: 0,
-                    y: 0,
-                    w: 4,
-                    h: 1,
-                    static: true,
-                }, {
-                    source_uid: 'consortium',
-                    x: 4,
-                    y: 0,
-                    w: 2,
-                    h: 1,
-                    static: true,
-                }],
-                xs: [{
-                    source_uid: 'consortium',
-                    x: 0,
-                    y: 0,
-                    w: 2,
-                    h: 1,
-                    static: true,
-                }, {
-                    source_uid: 'consortiumS2',
-                    x: 2,
-                    y: 0,
-                    w: 2,
-                    h: 1,
-                    static: true,
-                }],
-            },
-            grid_layout_config: {
-                auto_size: true,
-                breakpoints: { lg: 1100, md: 996, sm: 768, xs: 480 },
-                cols: { lg: 12, md: 10, sm: 6, xs: 4 },
-                row_height: 30,
-            },
-            user_controls: [{
-                uid: 'consortium',
-                label: 'Consortium',
-                type: 'dropdown',
-                request_info: {
-                    data: [{
-                        Name: 'ALL',
-                        Display: 'All'
-                    }, {
-                        Name: 'GUDMAP',
-                        Display: 'Gudmap'
-                    }, {
-                        Name: 'RBK',
-                        Display: 'RBK'
-                    }],
-                    default_value: 'ALL',
-                    value_key: 'Name',
-                    selected_value_pattern: '{{{$self.values.Display}}}'
-                }
-            },
-            {
-                uid: 'consortiumS2',
-                label: 'S2 Consortium',
-                type: 'dropdown',
-                request_info: {
-                    data: [{
-                        Name: 'ALL',
-                        Display: 'S2 All'
-                    }, {
-                        Name: 'GUDMAP',
-                        Display: 'S2 Gudmap'
-                    }, {
-                        Name: 'RBK',
-                        Display: 'S2 RBK'
-                    }],
-                    default_value: 'ALL',
-                    value_key: 'Name',
-                    selected_value_pattern: '{{{$self.values.Display}}}'
-                }
-            }],
-            config: {
-                title_display_markdown_pattern:
-                    '[Number of GUDMAP resources released to date (log scale)](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
-                format_data_x: true, // defualt : false - to use hack or not
-                xaxis: {
-                    title_display_markdown_pattern:
-                        '[Number of Records](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
-                },
-                yaxis: {
-                    tick_display_markdown_pattern:
-                        '[{{$self.data.Data_Type}}](/chaise/recordset/#2/{{{$self.data.Schema_Table}}}){target=_blank}',
-                    title_display_markdown_pattern: '[Data Types](/chaise/recordset/#2/Gene_Expression:Specimen){target=_blank}'
-                },
-                disable_default_legend_click: true,
-            },
-            traces: [
-                {
-                    // The request url that has to be used to fetch the data.
-                    //Fetch the file from testing user's directory
-                    // url_pattern: '/~kenyshah/gudmap.json',
-                    url_pattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium={{{$control_values.consortium.values.Name}}}/!(Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
-                    // url_pattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
-                    //Determine the type of file in url_pattern if applicable            
-                    response_format: 'json',
-                    hovertemplate_display_pattern: "Released Horizontal: {{#if true}}{{{$row.Released}}}{{/if}}",
-                    legend: ['Released'], // name of traces in legend
-                    legend_markdown_pattern: [
-                        '[#Released](/chaise/recordset/#2/Antibody:Antibody_Tests/){target=_blank}',
-                    ],
-                    graphic_link_pattern:
-                        '/chaise/recordset/#2/{{{$self.data.Schema_Table}}}/*::facets::{{#encodeFacet}}{{{$self.data.Data_Type_Filter}}}{{/encodeFacet}}',
-                    x_col: ['Released'], // column name to use for x values
-                    y_col: ['Data_Type'], // array of column names to use for y values
-                    orientation: 'h', // Optional parameter for displaying the bar chart horizontally
-                    textfont: {
-                        size: 10, // It will work till the bar size can accomodate the font size
-                    },
-                },
-            ],
-        },
-    ],
-
-},
-'gudmap-todate-bar-swapped-global': {
-  headTitle: 'GUDMAP Data Status Dashboard',
-  // Array of object plots to be shown on the page
-  plots: [
       {
-          uid: 'bar_swapped_1',
-          plot_type: 'bar',
-          plotly: {
-              config: {
-                  modeBarButtonsToRemove: [
-                      'scrollZoom',
-                      'zoom2d',
-                      'sendDataToCloud',
-                      'autoScale2d',
-                      'lasso2d',
-                      'select2d',
-                      'hoverClosestCartesian',
-                      'hoverCompareCartesian',
-                      'toggleSpikelines',
-                  ],
-                  displaylogo: false,
-                  responsive: true,
-              },
-              layout: {
-                  title: 'Number of GUDMAP resources released to date (log scale)',
-                  height: 1000,
-                  width: 1200,
-                  showlegend: true,
-                  xaxis: {
-                      title: 'Data_Types', // plot y_axis label
-                  },
-                  yaxis: {
-                      title: 'Number of Records', // plot x_axis label
-                      type: 'log', // optional value: tickformat should compatible with type
-                  },
-                  margin: {
-                      t: 30,
-                      b: 280,
-                  },
-                  legend: {
-                      traceorder: 'reversed', // order of the legend is reversed
-                  },
-              },
-          },
-          // layout: {
-          //     lg: [{
-          //         source_uid: 'consortium',
-          //         x: 0,
-          //         y: 0,
-          //         w: 2,
-          //         h: 1,
-          //         static: true,
-          //     }],
-          // },
-          //providing just 1 cols and margin to work with the responsive grid layout
-          grid_layout_config: {
-              auto_size: true,
-              breakpoints: { lg: 1000 },
-              cols: 12,
-              margin:  [12, 12],
-              row_height: 30,
-          },
-          user_controls: [{
-              uid: 'consortium',
-              label: 'Consortium',
-              request_info: {
-                  data: [{
-                      Name: 'ALL',
-                      Display: 'All'
-                  }, {
-                      Name: 'GUDMAP',
-                      Display: 'Gudmap'
-                  }, {
-                      Name: 'RBK',
-                      Display: 'RBK'
-                  }],
-                  default_value: 'ALL',
-                  value_key: 'Name',
-                  selected_value_pattern: '{{{$self.values.Display}}}'
-              }
-          },
-          ],
+        uid: 'bar_swapped_1',
+        plot_type: 'bar',
+        plotly: {
           config: {
-              title_display_markdown_pattern:
-                  '[Number of GUDMAP resources released to date (log scale)](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
-              xaxis: {
-                  title_display_markdown_pattern:
-                      '[Data_Types](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
-                  tick_display_markdown_pattern:
-                      '[{{$self.data.Data_Type}}](/chaise/recordset/#2/{{{$self.data.Schema_Table}}}){target=_blank}',
-              },
-              yaxis: {
-                  title_display_markdown_pattern:
-                      '[Number of Records](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
-              },
-              format_data_x: true, // defualt : false - to use hack or not
+            modeBarButtonsToRemove: [
+              'scrollZoom',
+              'zoom2d',
+              'sendDataToCloud',
+              'autoScale2d',
+              'lasso2d',
+              'select2d',
+              'hoverClosestCartesian',
+              'hoverCompareCartesian',
+              'toggleSpikelines',
+            ],
+            displaylogo: false,
+            responsive: true,
           },
-          traces: [
-              {
-                  hovertemplate_display_pattern: "Released Vertical: {{#if true}}{{{$row.Released}}}{{/if}}",
-                  // The request url that has to be used to fetch the data.
-                  // url_pattern: '/~kenyshah/gudmap.json',
-                  url_pattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium={{{$control_values.consortium.values.Name}}}/!(Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
-                  // url_pattern: '/~kenyshah/gudmap-csv.csv',
-                  // response_format: 'csv',
-                  legend: ['Released'], // name of traces in legend
-                  legend_markdown_pattern: [
-                      '[#Released](/chaise/recordset/#2/Antibody:Antibody_Tests/){target=_blank}',
-                  ],
-                  graphic_link_pattern:
-                      '/chaise/recordset/#2/{{{$self.data.Schema_Table}}}/*::facets::{{#encodeFacet}}{{{$self.data.Data_Type_Filter}}}{{/encodeFacet}}',
-                  x_col: ['Data_Type'], // column name to use for x values
-                  y_col: ['Released'], // array of column names to use for y values
-                  orientation: 'v', // Optional parameter for displaying the bar chart horizontally
-                  textfont: {
-                      size: 10, // It will work till the bar size can accomodate the font size
-                  },
-              },
-          ],
+          layout: {
+            title: 'Number of GUDMAP resources released to date (log scale)',
+            height: 1000,
+            width: 1200,
+            showlegend: true,
+            xaxis: {
+              title: 'Data_Types', // plot y_axis label
+            },
+            yaxis: {
+              title: 'Number of Records', // plot x_axis label
+              type: 'log', // optional value: tickformat should compatible with type
+            },
+            margin: {
+              t: 30,
+              b: 280,
+            },
+            legend: {
+              traceorder: 'reversed', // order of the legend is reversed
+            },
+          },
+        },
+        // layout: {
+        //     lg: [{
+        //         source_uid: 'consortium',
+        //         x: 0,
+        //         y: 0,
+        //         w: 2,
+        //         h: 1,
+        //         static: true,
+        //     }],
+        // },
+        //providing just 1 cols and margin to work with the responsive grid layout
+        grid_layout_config: {
+          auto_size: true,
+          breakpoints: { lg: 1000 },
+          cols: 12,
+          margin: [12, 12],
+          row_height: 30,
+        },
+        user_controls: [{
+          uid: 'consortium',
+          label: 'Consortium',
+          type: 'dropdown',
+          request_info: {
+            data: [{
+              Name: 'ALL',
+              Display: 'All'
+            }, {
+              Name: 'GUDMAP',
+              Display: 'Gudmap'
+            }, {
+              Name: 'RBK',
+              Display: 'RBK'
+            }],
+            default_value: 'ALL',
+            value_key: 'Name',
+            selected_value_pattern: '{{{$self.values.Display}}}'
+          }
+        },
+        ],
+        config: {
+          title_display_markdown_pattern:
+            '[Number of GUDMAP resources released to date (log scale)](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+          xaxis: {
+            title_display_markdown_pattern:
+              '[Data_Types](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+            tick_display_markdown_pattern:
+              '[{{$self.data.Data_Type}}](/chaise/recordset/#2/{{{$self.data.Schema_Table}}}){target=_blank}',
+          },
+          yaxis: {
+            title_display_markdown_pattern:
+              '[Number of Records](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+          },
+          format_data_x: true, // defualt : false - to use hack or not
+        },
+        traces: [
+          {
+            hovertemplate_display_pattern: "Released Vertical: {{#if true}}{{{$row.Released}}}{{/if}}",
+            // The request url that has to be used to fetch the data.
+            // url_pattern: '/~kenyshah/gudmap.json',
+            url_pattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium={{{$control_values.consortium.values.Name}}}/!(Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
+            // url_pattern: '/~kenyshah/gudmap-csv.csv',
+            // response_format: 'csv',
+            legend: ['Released'], // name of traces in legend
+            legend_markdown_pattern: [
+              '[#Released](/chaise/recordset/#2/Antibody:Antibody_Tests/){target=_blank}',
+            ],
+            graphic_link_pattern:
+              '/chaise/recordset/#2/{{{$self.data.Schema_Table}}}/*::facets::{{#encodeFacet}}{{{$self.data.Data_Type_Filter}}}{{/encodeFacet}}',
+            x_col: ['Data_Type'], // column name to use for x values
+            y_col: ['Released'], // array of column names to use for y values
+            orientation: 'v', // Optional parameter for displaying the bar chart horizontally
+            textfont: {
+              size: 10, // It will work till the bar size can accomodate the font size
+            },
+          },
+        ],
       },
-  ],
-},
-"heatmap-global": {
-  plots: [{
+    ],
+  },
+  "heatmap-global": {
+    plots: [{
       uid: 'heatmap_1',
       plot_type: "heatmap",
       plotly: {
-          config: {
-              modeBarButtonsToRemove: ["scrollZoom", "zoom2d", "sendDataToCloud", "autoScale2d", "lasso2d", "select2d", "hoverClosestCartesian", "hoverCompareCartesian", "toggleSpikelines"],
-              displaylogo: false,
-              responsive: true
+        config: {
+          modeBarButtonsToRemove: ["scrollZoom", "zoom2d", "sendDataToCloud", "autoScale2d", "lasso2d", "select2d", "hoverClosestCartesian", "hoverCompareCartesian", "toggleSpikelines"],
+          displaylogo: false,
+          responsive: true
+        },
+        layout: {
+          title: "Plot Heatmap",
+          // height: 100,
+          width: 1200,
+          showLegend: true,
+          // margin: {
+          //     l: 100,  // left margin for lengthy data labels.
+          //     b: 300   // bottom margin for lengthy data labels.
+          // },
+          xaxis: {
+            tickangle: 90,
+            tickfont: {
+              size: 12,
+              family: "Lucida Console"
+            }
           },
-          layout: {
-              title: "Plot Heatmap",
-              // height: 100,
-              width: 1200,
-              showLegend: true,
-              // margin: {
-              //     l: 100,  // left margin for lengthy data labels.
-              //     b: 300   // bottom margin for lengthy data labels.
-              // },
-              xaxis: {
-                  tickangle: 90,
-                  tickfont: {
-                      size: 12,
-                      family: "Lucida Console"
-                  }
-              },
-              yaxis: {
-                  tickfont: {
-                      size: 12,
-                      family: "Lucida Console"
-                  }
-              }
+          yaxis: {
+            tickfont: {
+              size: 12,
+              family: "Lucida Console"
+            }
           }
+        }
       },
       layout: {
-          lg: [{
-              source_uid: 'section',
-              x: 0,
-              y: 0,
-              w: 6,
-              h: 1,
-              static: true,
-          }],
+        lg: [{
+          source_uid: 'section',
+          x: 0,
+          y: 0,
+          w: 6,
+          h: 1,
+          static: true,
+        }],
       },
       grid_layout_config: {
-          auto_size: true,
-          breakpoints: { lg: 1200 },
-          cols: 12,
-          margin:  [12, 12],
-          container_padding: [5,5],
-          row_height: 30,
+        auto_size: true,
+        breakpoints: { lg: 1200 },
+        cols: 12,
+        margin: [12, 12],
+        container_padding: [5, 5],
+        row_height: 30,
       },
       user_controls: [{
-          uid: 'section',
-          label: 'Section Ordinal',
-          request_info: {
-              data: [{
-                  Name: '3',
-                  Display: 'Three'
-              }, {
-                  Name: '5',
-                  Display: 'Five'
-              }, {
-                  Name: '7',
-                  Display: 'Seven'
-              }],
-              default_value: '3',
-              value_key: 'Name',
-              selected_value_pattern: '{{{$self.values.Display}}}'
-          }
+        uid: 'section',
+        label: 'Section Ordinal',
+        type: 'dropdown',
+        request_info: {
+          data: [{
+            Name: '3',
+            Display: 'Three'
+          }, {
+            Name: '5',
+            Display: 'Five'
+          }, {
+            Name: '7',
+            Display: 'Seven'
+          }],
+          default_value: '3',
+          value_key: 'Name',
+          selected_value_pattern: '{{{$self.values.Display}}}'
+        }
       },
       ],
       config: {
-          /**
-           * Heatmap plot has the support for following features:
-           * title_display_markdown_pattern : Custom Heatmap title, xaxis and yaxis title(clickable)
-           * tick_display_markdown_pattern : Custom tick text(clickable) for x axis and y axis
-           * */
-          title_display_markdown_pattern: '[ title ](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
-          xaxis: {
-              tick_display_markdown_pattern:
-                  '[{{$self.data.Label}}](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
-              title_display_markdown_pattern: '[ title x ](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
-          },
-          yaxis: {
-              tick_display_markdown_pattern:
-                  '[{{$self.data.Probe_Set_Name}}](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
-              // title_display_markdown_pattern: '[ title y ](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
-          },
+        /**
+         * Heatmap plot has the support for following features:
+         * title_display_markdown_pattern : Custom Heatmap title, xaxis and yaxis title(clickable)
+         * tick_display_markdown_pattern : Custom tick text(clickable) for x axis and y axis
+         * */
+        title_display_markdown_pattern: '[ title ](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
+        xaxis: {
+          tick_display_markdown_pattern:
+            '[{{$self.data.Label}}](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
+          title_display_markdown_pattern: '[ title x ](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+        },
+        yaxis: {
+          tick_display_markdown_pattern:
+            '[{{$self.data.Probe_Set_Name}}](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
+          // title_display_markdown_pattern: '[ title y ](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+        },
       },
       traces: [
-          {
-              graphic_link_pattern:
-                  ['/chaise/recordset/#2/RNASeq:Replicate_Expression'],
-              hovertemplate_display_pattern: "Label: {{{$row.Label}}}<br>Probe Name: {{{$row.Probe_Set_Name}}}<br>Value: {{{$row.Value}}}<br>Gene ID: {{{$url_parameters.Gene.data.NCBI_GeneID}}}",
-              // url_pattern: '/~kenyshah/heatmap.json',
-              url_pattern: '/ermrest/catalog/2/entity/Gene_Expression:Array_Data_view/NCBI_GeneID={{{$url_parameters.Gene.data.NCBI_GeneID}}}&Section_Ordinal={{{$control_values.section.values.Name}}}',
-              // response_format: 'csv',
-              x_col: ["Label"],
-              y_col: ["Probe_Set_Name"],
-              z_col: ["Value"],
-              legend_markdown_pattern:
-                  '[{{$row.Probe_Set_name}}](/chaise/recordset/#2/{{{$row.Schema_Table}}}/*::facets::{{#encodeFacet}}',
-          }
+        {
+          graphic_link_pattern:
+            ['/chaise/recordset/#2/RNASeq:Replicate_Expression'],
+          hovertemplate_display_pattern: "Label: {{{$row.Label}}}<br>Probe Name: {{{$row.Probe_Set_Name}}}<br>Value: {{{$row.Value}}}<br>Gene ID: {{{$url_parameters.NCBI_GeneID}}}",
+          // url_pattern: '/~kenyshah/heatmap.json',
+          url_pattern: '/ermrest/catalog/2/entity/Gene_Expression:Array_Data_view/NCBI_GeneID={{{$url_parameters.NCBI_GeneID}}}&Section_Ordinal={{{$control_values.section.values.Name}}}',
+          // response_format: 'csv',
+          x_col: ["Label"],
+          y_col: ["Probe_Set_Name"],
+          z_col: ["Value"],
+          legend_markdown_pattern:
+            '[{{$row.Probe_Set_name}}](/chaise/recordset/#2/{{{$row.Schema_Table}}}/*::facets::{{#encodeFacet}}',
+        }
       ]
-  }]
-},
+    }]
+  },
   /***** The following configurations are for old gudmap models that are going to be deprecated since Release_Status has been updated to remove '#_' *****/
   'gudmap-todate-pie': {
     headTitle: 'GUDMAP Release Status Dashboard',
