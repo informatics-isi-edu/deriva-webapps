@@ -106,10 +106,18 @@ export type MatrixDefaultConfig = {
    */
   styles?: MatrixStyles;
 
+  /**
+   * change the used color pallete and available options
+   */
   color_palette?: {
     default_option?: MatrixColorPalletes,
     options?: MatrixColorPalletes[]
-  }
+  },
+
+  /**
+   * whether we should hide the searchbox or not
+   */
+  hide_search_box?: boolean
 };
 
 export enum MatrixColorPalletes {

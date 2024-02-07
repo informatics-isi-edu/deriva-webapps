@@ -250,10 +250,13 @@ const MatrixApp = (): JSX.Element => {
     ? ConfigService.ERMrest.renderMarkdown(config.subtitle_markdown)
     : '';
 
+  const displayColorThemeContainer = matrixData.hasColor && colorOptions.length > 1;
+  const displaySearchBar = !config.hide_search_box;
+
   return (
     <div className='matrix-page'>
       <div className='content-container'>
-        {config.title_markdown && config.title_markdown ? (
+        {(title || subtitle) &&
           <div className='title-container'>
             {title && (
               <h1>
@@ -266,34 +269,36 @@ const MatrixApp = (): JSX.Element => {
               </div>
             )}
           </div>
-        ) : null}
+        }
 
-        <div className='options-container' style={{ width: legendWidth }}>
-          {/* The dummy option can be added to center align the search-box */}
-          {/* <div className='dummy-option' /> */}
-          <div style={{ width: 350 }}>
-            <SearchBar
-              className='search-bar'
-              onPressButton={handleSubmit}
-              itemHeight={searchItemHeight}
-              {...searchBarSelectProps}
-            />
-          </div>
-          {matrixData.hasColor && colorOptions.length > 1 &&
-            <div className='color-theme-container'>
-              <label className='color-theme-label'>Color Theme</label>
-              <VirtualizedSelect
-                className='color-theme-select'
-                value={colorThemeOption}
-                onChange={handleChangeTheme}
-                options={colorOptions}
-                defaultOptions={colorOptions}
-                itemHeight={30}
-                isSearchable={false}
-              />
+        {(displaySearchBar || displayColorThemeContainer) &&
+          <div className='options-container' style={{ width: legendWidth }}>
+            {/* The dummy option can be added to center align the search-box */}
+            {/* <div className='dummy-option' /> */}
+            <div style={{ width: 350 }}>
+              {displaySearchBar && <SearchBar
+                className='search-bar'
+                onPressButton={handleSubmit}
+                itemHeight={searchItemHeight}
+                {...searchBarSelectProps}
+              />}
             </div>
-          }
-        </div>
+            {displayColorThemeContainer &&
+              <div className='color-theme-container'>
+                <label className='color-theme-label'>Color Theme</label>
+                <VirtualizedSelect
+                  className='color-theme-select'
+                  value={colorThemeOption}
+                  onChange={handleChangeTheme}
+                  options={colorOptions}
+                  defaultOptions={colorOptions}
+                  itemHeight={30}
+                  isSearchable={false}
+                />
+              </div>
+            }
+          </div>
+        }
         <div className='matrix-container'>
           <VirtualizedGrid
             ref={gridRef}
