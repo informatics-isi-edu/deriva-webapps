@@ -1,5 +1,5 @@
 // models
-import { ControlScope, defaultGridProps, PlotTemplateParams, UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { ControlScope, defaultGridProps, PlotTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 
 // services
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
@@ -346,13 +346,13 @@ export const validateGridProps = (gridConfigObject: any) => {
         }
         break;
       case 'containerPadding':
-          if (Array.isArray(val)) {
-            const marginObj = Object.fromEntries(
-              Object.entries(breakpoints).map(([key]) => [key, val])
-            );
-            regenObject[key]=marginObj;
-          }
-          break;
+        if (Array.isArray(val)) {
+          const marginObj = Object.fromEntries(
+            Object.entries(breakpoints).map(([key]) => [key, val])
+          );
+          regenObject[key]=marginObj;
+        }
+        break;
       default:
         regenObject[key]=val;
         break;

@@ -607,6 +607,7 @@ var plotConfigs = {
       },
     ],
   },
+  //Sample link to test heatmap plot: deriva-webapps/plot/?config=heatmap&NCBI_GeneID=11669 (Gene Id is required)
   "heatmap": {
     plots: [{
       uid: 'heatmap_plot',
@@ -873,98 +874,6 @@ var plotConfigs = {
 
   'gudmap-todate-bar-global': {
     headTitle: 'GUDMAP Data Status Dashboard',
-    layout: {
-      lg: [{
-        source_uid: 'consortium',
-        x: 0,
-        y: 0,
-        w: 4,
-        h: 1,
-        static: true,
-      },
-      {
-        source_uid: 'bar_1',
-        x: 0,
-        y: 1,
-        w: 6,
-        h: 12,
-        static: true,
-      }, {
-        source_uid: 'bar_2',
-        x: 6,
-        y: 1,
-        w: 6,
-        h: 12,
-        static: true,
-      }
-      ],
-      md: [{
-        source_uid: 'consortium',
-        x: 0,
-        y: 0,
-        w: 3,
-        h: 1,
-        static: true,
-      }, {
-        source_uid: 'bar_1',
-        x: 0,
-        y: 1,
-        w: 5,
-        h: 12,
-        static: true,
-      }, {
-        source_uid: 'bar_2',
-        x: 6,
-        y: 1,
-        w: 5,
-        h: 12,
-        static: true,
-      }],
-      sm: [{
-        source_uid: 'consortium',
-        x: 0,
-        y: 0,
-        w: 4,
-        h: 1,
-        static: true,
-      }, {
-        source_uid: 'bar_1',
-        x: 0,
-        y: 1,
-        w: 6,
-        h: 12,
-        static: true,
-      }, {
-        source_uid: 'bar_2',
-        x: 4,
-        y: 2,
-        w: 3,
-        h: 12,
-        static: true,
-      }],
-      xs: [{
-        source_uid: 'consortium',
-        x: 0,
-        y: 0,
-        w: 2,
-        h: 1,
-        static: true,
-      }, {
-        source_uid: 'bar_1',
-        x: 4,
-        y: 1,
-        w: 4,
-        h: 12,
-        static: true,
-      }, {
-        source_uid: 'bar_2',
-        x: 4,
-        y: 2,
-        w: 4,
-        h: 12,
-        static: true,
-      }]
-    },
     user_controls: [
       {
         uid: 'consortium',
@@ -996,6 +905,98 @@ var plotConfigs = {
       margin: { lg: [5, 5], md: [10, 10], sm: [9, 9], xs: [5, 5] },
       // container_padding: { lg: [12, 12], md: [10, 10], sm: [9, 9], xs: [5, 5] },
       row_height: 50,
+      layouts: {
+        lg: [{
+          source_uid: 'consortium',
+          x: 0,
+          y: 0,
+          w: 4,
+          h: 1,
+          static: true,
+        },
+        {
+          source_uid: 'bar_1',
+          x: 0,
+          y: 1,
+          w: 6,
+          h: 12,
+          static: true,
+        }, {
+          source_uid: 'bar_2',
+          x: 6,
+          y: 1,
+          w: 6,
+          h: 12,
+          static: true,
+        }
+        ],
+        md: [{
+          source_uid: 'consortium',
+          x: 0,
+          y: 0,
+          w: 3,
+          h: 1,
+          static: true,
+        }, {
+          source_uid: 'bar_1',
+          x: 0,
+          y: 1,
+          w: 5,
+          h: 12,
+          static: true,
+        }, {
+          source_uid: 'bar_2',
+          x: 6,
+          y: 1,
+          w: 5,
+          h: 12,
+          static: true,
+        }],
+        sm: [{
+          source_uid: 'consortium',
+          x: 0,
+          y: 0,
+          w: 4,
+          h: 1,
+          static: true,
+        }, {
+          source_uid: 'bar_1',
+          x: 0,
+          y: 1,
+          w: 6,
+          h: 12,
+          static: true,
+        }, {
+          source_uid: 'bar_2',
+          x: 4,
+          y: 2,
+          w: 3,
+          h: 12,
+          static: true,
+        }],
+        xs: [{
+          source_uid: 'consortium',
+          x: 0,
+          y: 0,
+          w: 2,
+          h: 1,
+          static: true,
+        }, {
+          source_uid: 'bar_1',
+          x: 4,
+          y: 1,
+          w: 4,
+          h: 12,
+          static: true,
+        }, {
+          source_uid: 'bar_2',
+          x: 4,
+          y: 2,
+          w: 4,
+          h: 12,
+          static: true,
+        }]
+      },
     },
     // Array of object plots to be shown on the page
     plots: [
@@ -1186,73 +1187,73 @@ var plotConfigs = {
             },
           },
         },
-        layout: {
-          lg: [{
-            source_uid: 'consortium',
-            x: 0,
-            y: 0,
-            w: 6,
-            h: 1,
-            static: true,
-          }, {
-            source_uid: 'consortiumS2',
-            x: 6,
-            y: 0,
-            w: 6,
-            h: 1,
-            static: true,
-          }],
-          md: [{
-            source_uid: 'consortium',
-            x: 0,
-            y: 0,
-            w: 5,
-            h: 1,
-            static: true,
-          }, {
-            source_uid: 'consortiumS2',
-            x: 5,
-            y: 0,
-            w: 3,
-            h: 1,
-            static: true,
-          }],
-          sm: [{
-            source_uid: 'consortiumS2',
-            x: 0,
-            y: 0,
-            w: 4,
-            h: 1,
-            static: true,
-          }, {
-            source_uid: 'consortium',
-            x: 4,
-            y: 0,
-            w: 2,
-            h: 1,
-            static: true,
-          }],
-          xs: [{
-            source_uid: 'consortium',
-            x: 0,
-            y: 0,
-            w: 2,
-            h: 1,
-            static: true,
-          }, {
-            source_uid: 'consortiumS2',
-            x: 2,
-            y: 0,
-            w: 2,
-            h: 1,
-            static: true,
-          }],
-        },
         grid_layout_config: {
           auto_size: true,
           breakpoints: { lg: 1100, md: 996, sm: 768, xs: 480 },
           cols: { lg: 12, md: 10, sm: 6, xs: 4 },
           row_height: 30,
+          layout: {
+            lg: [{
+              source_uid: 'consortium',
+              x: 0,
+              y: 0,
+              w: 6,
+              h: 1,
+              static: true,
+            }, {
+              source_uid: 'consortiumS2',
+              x: 6,
+              y: 0,
+              w: 6,
+              h: 1,
+              static: true,
+            }],
+            md: [{
+              source_uid: 'consortium',
+              x: 0,
+              y: 0,
+              w: 5,
+              h: 1,
+              static: true,
+            }, {
+              source_uid: 'consortiumS2',
+              x: 5,
+              y: 0,
+              w: 3,
+              h: 1,
+              static: true,
+            }],
+            sm: [{
+              source_uid: 'consortiumS2',
+              x: 0,
+              y: 0,
+              w: 4,
+              h: 1,
+              static: true,
+            }, {
+              source_uid: 'consortium',
+              x: 4,
+              y: 0,
+              w: 2,
+              h: 1,
+              static: true,
+            }],
+            xs: [{
+              source_uid: 'consortium',
+              x: 0,
+              y: 0,
+              w: 2,
+              h: 1,
+              static: true,
+            }, {
+              source_uid: 'consortiumS2',
+              x: 2,
+              y: 0,
+              w: 2,
+              h: 1,
+              static: true,
+            }],
+          },
         },
         user_controls: [{
           uid: 'consortium',
@@ -1381,16 +1382,6 @@ var plotConfigs = {
             },
           },
         },
-        // layout: {
-        //     lg: [{
-        //         source_uid: 'consortium',
-        //         x: 0,
-        //         y: 0,
-        //         w: 2,
-        //         h: 1,
-        //         static: true,
-        //     }],
-        // },
         //providing just 1 cols and margin to work with the responsive grid layout
         grid_layout_config: {
           auto_size: true,
@@ -1398,6 +1389,16 @@ var plotConfigs = {
           cols: 12,
           margin: [12, 12],
           row_height: 30,
+          // layouts: {
+          //     lg: [{
+          //         source_uid: 'consortium',
+          //         x: 0,
+          //         y: 0,
+          //         w: 2,
+          //         h: 1,
+          //         static: true,
+          //     }],
+          // },
         },
         user_controls: [{
           uid: 'consortium',
@@ -1460,6 +1461,7 @@ var plotConfigs = {
       },
     ],
   },
+  //Sample link to test heatmap plot: deriva-webapps/plot/?config=heatmap-global&NCBI_GeneID=11669 (Gene Id is required)
   "heatmap-global": {
     plots: [{
       uid: 'heatmap_1',
@@ -1494,16 +1496,6 @@ var plotConfigs = {
           }
         }
       },
-      layout: {
-        lg: [{
-          source_uid: 'section',
-          x: 0,
-          y: 0,
-          w: 6,
-          h: 1,
-          static: true,
-        }],
-      },
       grid_layout_config: {
         auto_size: true,
         breakpoints: { lg: 1200 },
@@ -1511,6 +1503,16 @@ var plotConfigs = {
         margin: [12, 12],
         container_padding: [5, 5],
         row_height: 30,
+        layouts: {
+          lg: [{
+            source_uid: 'section',
+            x: 0,
+            y: 0,
+            w: 6,
+            h: 1,
+            static: true,
+          }],
+        },
       },
       user_controls: [{
         uid: 'section',

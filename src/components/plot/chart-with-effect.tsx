@@ -1,10 +1,10 @@
-import { useRef, useState,useEffect, useCallback } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 // components
 // import Chart from '@isrd-isi-edu/deriva-webapps/src/components/plot/chart';
+import RecordsetModal from '@isrd-isi-edu/chaise/src/components/modals/recordset-modal';
 import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
 import PlotlyChart from '@isrd-isi-edu/deriva-webapps/src/components/plot/plotly-chart';
-import RecordsetModal from '@isrd-isi-edu/chaise/src/components/modals/recordset-modal';
 import SelectGrid from '@isrd-isi-edu/deriva-webapps/src/components/plot/select-grid';
 import UserControlsGrid from '@isrd-isi-edu/deriva-webapps/src/components/plot/user-controls-grid';
 
@@ -13,8 +13,8 @@ import { useChartData } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
 import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
 
 // models
-import { Plot, plotAreaFraction } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 import { SelectedRow } from '@isrd-isi-edu/chaise/src/models/recordset';
+import { Plot, plotAreaFraction } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 
 
 export type ChartWithEffectProps = {
@@ -174,7 +174,7 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
           <SelectGrid selectors={selectData} width={dynamicStyles.width} />
         ) : null}
         {!selectData && userControlData && controlTemplateVariablesInitialized && Object.keys(userControlData)?.length > 0 ? (
-          <UserControlsGrid userControlData={userControlData} width={dynamicStyles.width} />
+          <UserControlsGrid userControlData={userControlData} width={'100%'} />
         ) : null}
         {isParseLoading || isFetchSelected  ? (
           <ChaiseSpinner />

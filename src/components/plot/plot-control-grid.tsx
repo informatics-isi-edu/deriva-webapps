@@ -1,19 +1,18 @@
 import '@isrd-isi-edu/deriva-webapps/src/assets/scss/_heatmap.scss';
-import '/node_modules/react-resizable/css/styles.css';
 import '/node_modules/react-grid-layout/css/styles.css';
+import '/node_modules/react-resizable/css/styles.css';
 
 // components
 import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
-import ChartWithEffect from '@isrd-isi-edu/deriva-webapps/src/components/plot/chart-with-effect';
 import UserControl from '@isrd-isi-edu/deriva-webapps/src/components/controls/user-control';
+import ChartWithEffect from '@isrd-isi-edu/deriva-webapps/src/components/plot/chart-with-effect';
 
 // hooks
-import { useEffect, useRef, useState } from 'react';
 import usePlot from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
+import { useEffect, useRef, useState } from 'react';
 
 // models
-import { DataConfig, Plot, UserControlConfig, defaultGridProps, globalGridMargin } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
-import { LayoutConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { DataConfig, LayoutConfig, Plot, UserControlConfig, defaultGridProps, globalGridMargin } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 import { Layouts, Responsive, WidthProvider } from 'react-grid-layout';
 
 // provider
@@ -74,9 +73,8 @@ const PlotControlGrid = ({
 
     let tempLayout;
     // If layout is configured use the given layout
-    // TODO: config.layout should be grid_layout_config.layouts
-    if (config.layout && Object.values(config.layout).length > 0) {
-      const mappedLayoutValues = Object.values(config.layout)?.map((resLayout: any) => (
+    if (config.grid_layout_config?.layouts && Object.values(config.grid_layout_config?.layouts).length > 0) {
+      const mappedLayoutValues = Object.values(config.grid_layout_config?.layouts)?.map((resLayout: any) => (
         resLayout.map((item: LayoutConfig) => convertKeysSnakeToCamel(({
           //i defines the item on which the given layout will be applied
           i: item?.source_uid,
@@ -84,7 +82,7 @@ const PlotControlGrid = ({
         })))
       ));
 
-      tempLayout = Object.fromEntries(Object.entries(config.layout).map(
+      tempLayout = Object.fromEntries(Object.entries(config.grid_layout_config?.layouts).map(
         ([key]: any, index) => [key, mappedLayoutValues[index]]
       ))
 
@@ -143,10 +141,10 @@ const PlotControlGrid = ({
         {(!config || !userControlsReady || Object.keys(layout).length === 0) ?
           <ChaiseSpinner /> :
           <ResponsiveGridLayout className='global-grid-layout layout'
-            layouts={layout}
             {...defaultGridPropsRef.current}
             margin={globalGridMargin}
             {...gridProps}
+            layouts={layout}
           >
             {config.plots.map((plotConfig: Plot): JSX.Element => (
               <div key={plotConfig.uid}>
