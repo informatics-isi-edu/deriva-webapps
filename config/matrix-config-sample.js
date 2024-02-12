@@ -81,11 +81,13 @@ var matrixConfigs = {
     /**
      * Defining the title shown for the matrix
      */
-    title_markdown: 'Available data types by species',
+    title_markdown: '',
     /**
      * Defines the subtitle shown for the matrix
      */
     subtitle_markdown: ' Click a cell or labels along the axes to navigate to the corresponding datasets.',
+
+    hide_search_box: true,
 
     color_palette: {
       default_option: 'viridis'

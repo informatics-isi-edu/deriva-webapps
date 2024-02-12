@@ -174,7 +174,7 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
           <SelectGrid selectors={selectData} width={dynamicStyles.width} />
         ) : null}
         {!selectData && userControlData && controlTemplateVariablesInitialized && Object.keys(userControlData)?.length > 0 ? (
-          <UserControlsGrid userControlData={userControlData} width={parentWidth && parentWidth < dynamicStyles.width ? '100%' : dynamicStyles.width} />
+          <UserControlsGrid userControlData={userControlData} width={'100%'} />
         ) : null}
         {isParseLoading || isFetchSelected  ? (
           <ChaiseSpinner />

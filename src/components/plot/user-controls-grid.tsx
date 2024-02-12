@@ -6,11 +6,11 @@ import { memo, useEffect, useState } from 'react';
 import UserControl from '@isrd-isi-edu/deriva-webapps/src/components/controls/user-control';
 
 // models
-import { Responsive, WidthProvider, ResponsiveProps as ResponsiveGridProps, Layouts } from 'react-grid-layout';
-import { UserControlConfig, LayoutConfig, defaultGridProps } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { LayoutConfig, UserControlConfig, defaultGridProps } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { Layouts, Responsive, ResponsiveProps as ResponsiveGridProps, WidthProvider } from 'react-grid-layout';
 
 // utils
-import { convertKeysSnakeToCamel, generateUid, validateGridProps } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
+import { convertKeysSnakeToCamel, validateGridProps } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 
 type UserControlsGridProps = {
   /**
@@ -40,8 +40,8 @@ const UserControlsGrid = ({
 
   // set layout and grid props for local react grid
   useEffect(() => {
-    if (userControlData?.layout && Object.values(userControlData.layout).length > 0) {
-      const mappedLayoutValues = Object.values(userControlData.layout)?.map((resLayout: any) => (
+    if (userControlData?.gridConfig?.layouts && Object.values(userControlData.gridConfig?.layouts).length > 0) {
+      const mappedLayoutValues = Object.values(userControlData.gridConfig?.layouts)?.map((resLayout: any) => (
         resLayout.map((item: LayoutConfig) => convertKeysSnakeToCamel(({
           // i defines the item on which the given layout will be applied
           i: item?.source_uid,
@@ -49,7 +49,7 @@ const UserControlsGrid = ({
         })))
       ));
 
-      setLayout(Object.fromEntries(Object.entries(userControlData.layout).map(([key]: any, index) => [key, mappedLayoutValues[index]])));
+      setLayout(Object.fromEntries(Object.entries(userControlData.gridConfig?.layouts).map(([key]: any, index) => [key, mappedLayoutValues[index]])));
     } else {
       const gridConfig = userControlData.gridConfig;
       // Default uid for local controls will be considered as eg. local_dropdown_0 for first local control
@@ -99,11 +99,11 @@ const UserControlsGrid = ({
   return (
     <div className='selectors-grid' style={{ display: 'flex', flex: '0 1 0%', width: gridProps.width || width }}>
       <ResponsiveGridLayout className='grid-layout layout' style={{ position: 'relative' }}
-        layouts={layout}
         // TODO: Look for another fix for overlapping issue in controls
         useCSSTransforms={false}
         {...defaultGridPropsConverted}
         {...gridProps}
+        layouts={layout}
       >
         {renderUserControls()}
       </ResponsiveGridLayout>

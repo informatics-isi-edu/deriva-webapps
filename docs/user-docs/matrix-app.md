@@ -58,23 +58,31 @@ The following properties can be used to customize the display settings:
 
 - `title_markdown`: The title that will be displayed above the matrix.
 - `subtitle_markdown`: The subtitle that will be displayed above the matrix.
+- `hide_search_box`: Set this to true to hide the displayed search-box.
+- `color_pallete`: Properties related to the color pallete. The following are available properties of it:
+  - `default_option`: Changed the default color pallete that is used.
+  - `options`: An array of color pallete options. Acceptable values are `"rainbow"`, `"parula"`, and `"viridis"`.
+    - Setting this to an empty array (`[]`) will completely hide the color pallete selector.
+    - If the default option is missing from this array, we will add it to the begining of the list.
 - `styles`: This property allows customization of the UI. The following are available properties of it:
 
-  - `maxCols`: Restricts the grid size to the maximum number of columns. If not specified, we will fit as many columns as the viewport/window size allows.
-  - `maxRows`: Restricts the grid size to the maximum number of rows. If not specified, we will fit as many rows as the viewport/window size allows.
-  - `cellWidth`: Width of each cell within the grid (default: 25).
-  - `cellHeight`: Height of each cell within the grid (default: 25).
-  - `rowHeader`: Properties related to column headers
+  - `max_displayed_columns`: Restricts the grid size to the maximum number of columns. If not specified, we will fit as many columns as the viewport/window size allows.
+  - `max_displayed_rows`: Restricts the grid size to the maximum number of rows. If not specified, we will fit as many rows as the viewport/window size allows.
+  - `cell_width`: Width of each cell within the grid (default: 25).
+  - `cell_height`: Height of each cell within the grid (default: 25).
+  - `row_header`: Properties related to column headers
     - `width`: The width that should be used for column headers (default: 250)
     - `scrollable`: A boolean to indicate whether you want the headers to have a horizontal scrollbar (default: false).
-    - `scrollableMaxSize`: Allows you to customize the maximum allowed width of the scrollable container. Only applicable if `scrollable` is set to `true`.
-  - `columnHeader`: Properties related to row headers
+    - `scrollable_max_width`: Allows you to customize the maximum allowed width of the scrollable container. Only applicable if `scrollable` is set to `true`.
+  - `column_header`: Properties related to row headers
     - `height`: The height that should be used for column headers (default: 50)
     - `scrollable`: A boolean to indicate whether you want the headers to have a vertical scrollbar (default: false).
-    - `scrollableMaxSize`: Allows you to customize the maximum allowed height of the scrollable container. Only applicable if `scrollable` is set to `true`.
-  - `legendHeight`: Height of the legend (default: 200).
-  - `legendBarWidth`: Width of the legend bar (default: 55).
-  - `legendBarHeight`: Height of the legend bar (default: 15).
+    - `scrollable_max_height`: Allows you to customize the maximum allowed height of the scrollable container. Only applicable if `scrollable` is set to `true`.
+  - `legend`: Properties related to legend
+    - `height`: Height of the legend (default: 200).
+    - `bar_width`: Width of the legend bar (default: 55).
+    - `bar_height`: Height of the legend bar (default: 15).
+    - `line_clamp`: Max number of lines showing the legend content (default: 1).
 
 ### Examples
 
