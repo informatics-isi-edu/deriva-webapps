@@ -118,7 +118,7 @@ Breakpoints are a property used directly from React Grid Layout. This allows for
 
 From the default grid properties above, there are 4 `breakpoint` keys defined, `lg`, `md`, `sm`, and `xs`. In the subsequent properties, those same keys are used to define the number of `cols` in the grid, the `margin` size in pixels, and `container_padding` size in pixels.
 
-#### Layout
+#### Layouts
 With `user_controls` and `grid_layout_config` defined, `layout` can be set by defining an array of layout objects. The `layout` is for arranging the user controls in the actual grid based on the defined `breakpoints` and `cols` from `grid_layout_config`.
 
 When defining one layout object, the total number of `grid units` is the number of `cols` for the current breakpoint. For example, if we are using the default configuration properties and looking at the app fullscreen (1920 x 1080), we are using the `lg` breakpoint key. This means there are 12 columns in the grid. For the layout object properties `x` and `y`, we would have indices 0-11. For the `w` property, the values would be 1-12 for how many "column" the control should span. In the case of height, the `row_height` property is used for the "height" of 1 `grid unit`. A control with `h = 2` with the default `row_height` value would have a height of 60 pixels.
