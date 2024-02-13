@@ -607,6 +607,7 @@ var plotConfigs = {
       },
     ],
   },
+  //Sample link to test heatmap plot: deriva-webapps/plot/?config=heatmap&NCBI_GeneID=11669 (Gene Id is required)
   "heatmap": {
     plots: [{
       uid: 'heatmap_plot',
