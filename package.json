@@ -37,8 +37,11 @@
     "@mui/material": "^5.13.6",
     "papaparse": "^5.4.1",
     "plotly.js-cartesian-dist-min": "^2.18.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "react-grid-layout": "^1.3.4",
     "react-select": "^5.7.0",
-    "react-window": "^1.8.8"
+    "react-window": "^1.8.8",
+    "vitessce": "^3.3.4"
   }
 }

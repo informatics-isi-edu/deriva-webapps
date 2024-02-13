@@ -6,6 +6,7 @@ import { HeatmapConfig } from '@isrd-isi-edu/deriva-webapps/src/models/heatmap-c
 import { MatrixConfig } from '@isrd-isi-edu/deriva-webapps/src/models/matrix-config';
 import { PlotConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 import { TreeviewConfig } from '@isrd-isi-edu/deriva-webapps/src/models/treeview';
+import { DerivaVitessceConfig } from '@isrd-isi-edu/deriva-webapps/src/models/vitessce-config';
 
 interface WebAppCustomWindow extends ICustomWindow {
   booleanSearchConfig: BooleanSearchConfig
@@ -13,6 +14,7 @@ interface WebAppCustomWindow extends ICustomWindow {
   matrixConfigs: MatrixConfig;
   plotConfigs: PlotConfig;
   treeviewConfigs: TreeviewConfig;
+  vitessceConfig: DerivaVitessceConfig;
   setSourceForFilter: any
 }
 
