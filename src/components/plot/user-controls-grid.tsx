@@ -55,10 +55,10 @@ const UserControlsGrid = ({
       // Default uid for local controls will be considered as eg. local_dropdown_0 for first local control
       const defaultControlUid: string[] = controlConfig.map((control: UserControlConfig) => control.uid);
       // if `cols` is a number, use that number
-      const columnNumber = typeof gridConfig.cols === 'number' && gridConfig.cols;
+      const columnNumber = typeof gridConfig?.cols === 'number' && gridConfig?.cols;
       // cols is an object, defaultColumns is an array containing key value pairs (breakpointKey, value)
-      const defaultColumns = gridConfig.cols && !columnNumber && Object.values(gridConfig.cols) || Object.values(defaultGridProps.cols);
-      const breakpointsApplied = gridConfig.breakpoints || defaultGridProps.breakpoints;
+      const defaultColumns = gridConfig?.cols && !columnNumber && Object.values(gridConfig?.cols) || Object.values(defaultGridProps.cols);
+      const breakpointsApplied = gridConfig?.breakpoints || defaultGridProps.breakpoints;
 
       const tempLayout = Object.fromEntries(Object.entries(breakpointsApplied).map(
         ([key]: any, index: number) => {

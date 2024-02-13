@@ -249,11 +249,11 @@ export const validFileTypes = ['csv','json'];
 //Default grid layout object to supply to the ResponsiveGridLayout if no grid configuration is provided in the config file
 export const defaultGridProps = {
   auto_size: true,
-  breakpoints: { xl: 1400, lg: 1200, md: 996, sm: 768, xs: 480 },
-  cols: { xl: 12, lg: 12, md: 10, sm: 6, xs: 4 },
-  margin: { xl: [10,10], lg: [10, 10], md: [10, 10], sm: [5, 5], xs: [5, 5] },
-  container_padding: { xl: [12,12], lg: [12, 12], md: [10, 10], sm: [0, 0], xs: [0, 0] },
+  breakpoints: { lg: 1200, md: 996, sm: 768, xs: 480 },
+  cols: { lg: 12, md: 10, sm: 6, xs: 4 },
+  margin: { lg: [10, 10], md: [10, 10], sm: [5, 5], xs: [5, 5] },
+  container_padding: { lg: [12, 12], md: [10, 10], sm: [0, 0], xs: [0, 0] },
   row_height: 30,
 };
 
-export const globalGridMargin = { xl: [15,5], lg: [15, 5], md: [15, 5], sm: [5, 5], xs: [5, 5] };
+export const globalGridMargin = { lg: [15, 5], md: [15, 5], sm: [5, 5], xs: [5, 5] };
