@@ -1389,16 +1389,16 @@ var plotConfigs = {
         //   cols: 12,
         //   margin: [12, 12],
         //   row_height: 30,
-        //   // layouts: {
-        //   //     lg: [{
-        //   //         source_uid: 'consortium',
-        //   //         x: 0,
-        //   //         y: 0,
-        //   //         w: 2,
-        //   //         h: 1,
-        //   //         static: true,
-        //   //     }],
-        //   // },
+        //   layouts: {
+        //       lg: [{
+        //           source_uid: 'consortium',
+        //           x: 0,
+        //           y: 0,
+        //           w: 2,
+        //           h: 1,
+        //           static: true,
+        //       }],
+        //   },
         // },
         user_controls: [{
           uid: 'consortium',
