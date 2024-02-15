@@ -117,7 +117,8 @@ Each object in the `plots` array can have the following parameters:
         2. `x`: Grid index in grid units for the x position, 
         3. `y`: Grid index in grid units for the y position,
         4. `w`: Number of grid units the width of the component spans, 
-        5. `h`: Number of grid units the height of the component spans,
+        5. `h`: Number of grid units the height of the component spans, 
+        NOTE: In order for the grid to have consistent heights for components, when an item spans multiple grid units, it must also span margins. So you must add the height or width of the margin you are spanning for each unit. So actual pixel height is `(rowHeight * h) + (marginH * (h - 1)`
         6. `is_draggable`(Optional): Can the component be moved around, overrides `static`,
         7. `is_resizable`(Optional): Can the component be resized, overrides `static`,
         8. `static`(Optional): If true, implies `isDraggable: false` and `isResizeable: false`,

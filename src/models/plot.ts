@@ -1,12 +1,12 @@
 import {
-  Layout as PlotlyLayout,
+  PlotData,
   Config as PlotlyConfig,
+  Layout as PlotlyLayout,
+  PieData as PlotlyPieData,
   PlotData as PlotlyPlotData,
   ViolinData as PlotlyViolinData,
-  PieData as PlotlyPieData,
-  PlotData,
 } from 'plotly.js';
-import { ResponsiveProps as ResponsiveGridConfig, Layouts, ResponsiveProps } from 'react-grid-layout';
+import { Layouts, ResponsiveProps as ResponsiveGridConfig } from 'react-grid-layout';
 
 
 /**
