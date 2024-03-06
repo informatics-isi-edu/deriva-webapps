@@ -34,9 +34,10 @@ export type UserControlDataConfig={
 export type UserControlConfig = {
   uid: string;
   label: string;
-  type: string;
+  type: 'dropdown' | 'facet-search-popup';
   url_param_key?: string;
   request_info: UserControlRequestInfoConfig;
+  visible?: boolean;
 }
 
 export type ControlScope = 'global' | 'local';
