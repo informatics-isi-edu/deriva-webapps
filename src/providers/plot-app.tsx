@@ -60,10 +60,6 @@ export default function PlotAppProvider({
         const tempUserControls = [...config.user_controls];
         for (let i = 0; i < config.user_controls.length; i++) {
           const controlConfig = { ...config.user_controls[i] };
-          // if (!controlConfig.uid) {
-          //   controlConfig.uid = generateUid('global', controlConfig.type, i);
-          //   tempUserControls[i] = controlConfig;
-          // }
 
           const values = await initalizeControlData(controlConfig);
 

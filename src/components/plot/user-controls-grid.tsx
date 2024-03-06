@@ -153,7 +153,7 @@ const UserControlsGrid = ({
 
       const gridConfig = userControlData.gridConfig;
       // Default uid for local controls will be considered as eg. local_dropdown_0 for first local control
-      const defaultControlUid: string[] = localControlData.map((control: UserControlConfig) => control.uid);
+      const defaultControlUid: string[] = validatedUserControls.map((control: UserControlConfig) => control.uid);
       // if `cols` is a number, use that number
       const columnNumber = typeof gridConfig?.cols === 'number' && gridConfig?.cols;
       // cols is an object, defaultColumns is an array containing key value pairs (breakpointKey, value)
@@ -165,8 +165,8 @@ const UserControlsGrid = ({
           return [key, defaultControlUid.map((id: string, ind: number) => {
             return {
               i: id,
-              x: ind % 2 === 0 ? 0 : ind + (columnNumber ? columnNumber / 2 : defaultColumns[index] / 2),
-              y: Math.floor(ind / 2),
+              x: 0,
+              y: ind,
               w: columnNumber ? columnNumber / 2 : defaultColumns[index] / 2,
               h: 1,
               static: true

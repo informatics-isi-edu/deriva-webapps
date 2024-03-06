@@ -237,20 +237,9 @@ export const useChartData = (plot: Plot) => {
     const initSelectors = async () => {
       if (plot.user_controls?.length > 0) {
         const tempParams = { ...templateParams };
-        // const invalidControlUid: string[] = [];
 
         const tempUserControls = [...plot.user_controls];
-        // plot.user_controls?.map((control: UserControlConfig) => {
-        //   if (!control?.uid) {
-        //     throw new ChaiseError('User Control Error', `No UID provided for given user control ${control?.label ? `with label="${control?.label}"` : ''}`);
-        //   }
-        //   if (!control?.type) {
-        //     invalidControlUid.push(control.uid);
-        //   }
-        // });
-        // if (invalidControlUid.length > 0) {
-        //   alertFunctions.addAlert(`Unable to display the control with Uid(s) '${invalidControlUid.join(', ')}' as the 'type' was not found for the control`, ChaiseAlertType.ERROR);
-        // }
+
         for (let i = 0; i < plot.user_controls.length; i++) {
           const controlConfig = plot.user_controls[i];
           const values = await initalizeControlData(controlConfig);

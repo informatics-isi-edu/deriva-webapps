@@ -41,7 +41,7 @@ const PlotControlGrid = ({
   const [gridProps, setGridProps] = useState({});
   const [userControlsExists, setUserControlExists] = useState<boolean>(false);
   const [userControlsReady, setUserControlReady] = useState<boolean>(false);
-  const [userControls, setUserControls] = useState<any[]>([]);
+  const [userControls, setUserControls] = useState<UserControlConfig[]>([]);
   const [validatedPlots, setValidatedPlots] = useState<Plot[]>(config.plots);
   const alertFunctions = useAlert();
 
@@ -172,7 +172,9 @@ const PlotControlGrid = ({
       }
     }
     setUserControls(validatedUserControls);
+  }, [globalControlsInitialized]);
 
+  useEffect(()=>{
     let tempLayout;
     // If layout is configured use the given layout
     if (config.grid_layout_config?.layouts && Object.values(config.grid_layout_config?.layouts).length > 0) {
@@ -208,7 +210,7 @@ const PlotControlGrid = ({
       }));
 
       //Revalidate to filter out controls and plots with invalid layout
-      const revalidatedUserControls = validatedUserControls?.map((control: UserControlConfig) => {
+      const revalidatedUserControls = userControls?.map((control: UserControlConfig) => {
         let isControlValid = true;
         if (invalidLayoutUid.includes(control?.uid)) {
           isControlValid = false;
@@ -222,8 +224,8 @@ const PlotControlGrid = ({
     } else {
       // Otherwise set the default layout to display controls and plots 
       const gridConfig = config.grid_layout_config;
-      const plotUids: string[] = config.plots.map((plot: Plot) => plot.uid);
-      const controlUids: string[] = globalUserControlData?.userControlConfig?.map((control: UserControlConfig) => control.uid);
+      const plotUids: string[] = validatedPlots?.map((plot: Plot) => plot.uid);
+      const controlUids: string[] = userControls?.map((control: UserControlConfig) => control.uid);
 
       const componentUids = controlUids ? [...controlUids, ...plotUids] : [...plotUids];
       // if `cols` is a number, use that number
@@ -260,7 +262,7 @@ const PlotControlGrid = ({
       ))
     }
     setLayout(tempLayout);
-  }, [globalControlsInitialized]);
+  },[userControls,validatedPlots]);
 
   // Validate (Transform the keys to the correct case, adjust the values to suit ResponsiveGridLayout) and configure the grid layout props
   useEffect(() => {
