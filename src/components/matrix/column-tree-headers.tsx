@@ -14,7 +14,7 @@ import { checkParentChainExist, getParentChain } from '@isrd-isi-edu/deriva-weba
 import { MemoizedMinusSquare, MemoizedPlusSquare, MemoizedCloseSquare, MemoizedRenderTree } from '@isrd-isi-edu/deriva-webapps/src/components/matrix/tree-button';
 
 // MUI tree components
-import TreeView from '@mui/lab/TreeView';
+import { TreeView } from '@mui/x-tree-view/TreeView';
 
 import { getScrollbarSize } from '@isrd-isi-edu/deriva-webapps/src/utils/ui-utils';
 
