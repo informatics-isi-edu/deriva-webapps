@@ -19,14 +19,15 @@ const treeviewSettings = {
 
 const TreeviewApp = (): JSX.Element => {
   return (
-    <LegacyTreeViewApp />
+    // <LegacyTreeViewApp />
+    <>This is the treeview app!</>
   );
 };
 
 const root = createRoot(document.getElementById(ID_NAMES.APP_ROOT) as HTMLElement);
 root.render(
-  // TODO includeAlerts should be added when treeview is fully migrated
-  <AppWrapper appSettings={treeviewSettings} includeNavbar displaySpinner ignoreHashChange>
+  // TODO dontFetchSession should be removed before merging with master
+  <AppWrapper appSettings={treeviewSettings} includeNavbar displaySpinner ignoreHashChange includeAlerts dontFetchSession>
     <TreeviewApp />
   </AppWrapper>
 );

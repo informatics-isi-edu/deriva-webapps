@@ -352,7 +352,8 @@ const MatrixApp = (): JSX.Element => {
 
 const root = createRoot(document.getElementById(ID_NAMES.APP_ROOT) as HTMLElement);
 root.render(
-  <AppWrapper appSettings={matrixSettings} includeNavbar displaySpinner ignoreHashChange includeAlerts>
+  // TODO dontFetchSession should be removed before merging with master
+  <AppWrapper appSettings={matrixSettings} includeNavbar displaySpinner ignoreHashChange includeAlerts dontFetchSession>
     <MatrixApp />
   </AppWrapper>
 );
