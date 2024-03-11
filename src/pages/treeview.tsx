@@ -1,9 +1,9 @@
 import { createRoot } from 'react-dom/client';
-import React from 'react';
+import { useRef } from 'react';
 
 // components
 import AppWrapper from '@isrd-isi-edu/chaise/src/components/app-wrapper';
-import LegacyTreeViewApp from '@isrd-isi-edu/deriva-webapps/src/components/treeview/legacy-treeview';
+import ChaiseTreeview from '@isrd-isi-edu/deriva-webapps/src/components/chaise-treeview';
 
 // utilities
 import { ID_NAMES } from '@isrd-isi-edu/chaise/src/utils/constants';
@@ -19,8 +19,7 @@ const treeviewSettings = {
 
 const TreeviewApp = (): JSX.Element => {
   return (
-    // <LegacyTreeViewApp />
-    <>This is the treeview app!</>
+    <ChaiseTreeview />
   );
 };
 
@@ -31,4 +30,3 @@ root.render(
     <TreeviewApp />
   </AppWrapper>
 );
-
