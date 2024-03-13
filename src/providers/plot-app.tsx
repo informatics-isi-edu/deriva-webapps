@@ -71,7 +71,7 @@ export default function PlotAppProvider({
         setGlobalUserControlData({
           userControlConfig: tempUserControls,
           gridConfig: config?.grid_layout_config,
-          layout: config?.layout
+          layout: config?.grid_layout_config?.layouts
         });
 
         setTemplateParams(tempParams);

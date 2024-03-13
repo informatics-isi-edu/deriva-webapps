@@ -16,6 +16,10 @@ export type PlotConfig = {
   [name: string]: DataConfig;
 };
 
+export type AppStyleConfig = {
+
+}
+
 /**
  * Data
  */
@@ -24,6 +28,7 @@ export type DataConfig = {
   layout: Layouts;
   grid_layout_config?: ResponsiveGridConfig;
   user_controls: UserControlConfig[]; //NOTE: For now user_controls will be considered of type dropdown only
+  app_styles?: AppStyleConfig;
 };
 
 export type UserControlDataConfig={
@@ -31,10 +36,15 @@ export type UserControlDataConfig={
   Display: string;
 }
 
+export enum UserControlTypes {
+  DROPDOWN='dropdown',
+  FACET_SEARCH_POPUP='facet-search-popup',
+}
+
 export type UserControlConfig = {
   uid: string;
   label: string;
-  type: 'dropdown' | 'facet-search-popup';
+  type: UserControlTypes;
   url_param_key?: string;
   request_info: UserControlRequestInfoConfig;
   visible?: boolean;
