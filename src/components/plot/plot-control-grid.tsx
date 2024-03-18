@@ -65,11 +65,6 @@ const PlotControlGrid = ({
   useEffect(() => {
     if (!globalControlsInitialized) return;
 
-    if (userControlsExists && templateParams?.$control_values) {
-      // userControlConfig should exist if userControlsExists === true
-      if (globalUserControlData.userControlConfig) setUserControls(globalUserControlData.userControlConfig);
-    }
-
     if (userControlsExists && globalUserControlData?.userControlConfig?.length > 0) {
       //Validate global controls for uid and type. Display error if any control doesn't have an uid or type
       validateUID(globalUserControlData?.userControlConfig, alertFunctions);
