@@ -6,13 +6,16 @@ import DerivaVitessce, { DerivaVitessceProps} from '@isrd-isi-edu/deriva-webapps
 import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
 
 // hooks
-import { useEffect, useRef, useState } from 'react';
-import useError from '@isrd-isi-edu/chaise/src/hooks/error';
+import { useEffect, useState } from 'react';
+import { useVitessceConfig } from '@isrd-isi-edu/deriva-webapps/src/hooks/vitessce';
+
+// models
+import { VitessceTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/models/vitessce';
 
 // utilities
 import { ID_NAMES } from '@isrd-isi-edu/chaise/src/utils/constants';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
-import { getConfigObject } from '@isrd-isi-edu/deriva-webapps/src/utils/config';
+import { getQueryParams } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 
 
 const derivaVitessceSettings = {
@@ -25,26 +28,28 @@ const derivaVitessceSettings = {
 
 const DerivaVitessceApp = (): JSX.Element => {
 
-  const { dispatchError, errors } = useError();
+  const { config, errors } = useVitessceConfig(windowRef.vitessceConfigs);
 
   const [vitessceProps, setVitessceProps] = useState<DerivaVitessceProps | null>(null);
-
-  // since we're using strict mode, the useEffect is getting called twice in dev mode
-  // this is to guard against it
-  const setupStarted = useRef<boolean>(false);
+  const [templateParams, setTemplateParams] = useState<VitessceTemplateParams>({
+    $url_parameters: {}
+  });
 
   useEffect(() => {
-    if (setupStarted.current) return;
-    setupStarted.current = true;
+    const allQueryParams = getQueryParams(windowRef.location.href);
 
-    try {
-      setVitessceProps({ config: windowRef.vitessceConfig });
+    const tempParams = {...templateParams};
+    // push query parameters into templating environment
+    Object.keys(allQueryParams).forEach((key: string) => {
+      tempParams.$url_parameters[key] = allQueryParams[key];
+    });
 
-    } catch (error: any) {
-      dispatchError({ error })
+    setTemplateParams(tempParams);
+
+    if (config) {
+      setVitessceProps({ config: config, templateParams: tempParams });
     }
-
-  }, []);
+  }, [config]);
 
   // if there was an error during setup, hide the spinner
   if (!vitessceProps && errors.length > 0) {

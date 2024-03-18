@@ -1,23 +1,27 @@
 import '@isrd-isi-edu/deriva-webapps/src/assets/scss/_vitessce.scss';
 
-// hooks
-import { useEffect, useRef, useState } from 'react';
-import useError from '@isrd-isi-edu/chaise/src/hooks/error';
-
-// services
-import { DerivaVitessceConfig } from '@isrd-isi-edu/deriva-webapps/src/models/vitessce-config';
+// components
 import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
 
+// hooks
+import { useEffect, useRef, useState } from 'react';
+
+// models
+import { DerivaVitessceDataConfig, VitessceTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/models/vitessce';
+
 // utilities
-import { AnnDataWrapper, Vitessce, VitessceConfig, ViewType } from 'vitessce';
+import { getPatternUri } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
+import { Vitessce } from 'vitessce';
 
 
 export type DerivaVitessceProps = {
-  config: DerivaVitessceConfig
+  config: DerivaVitessceDataConfig;
+  templateParams: VitessceTemplateParams;
 };
 
 const DerivaVitessce = ({
   config,
+  templateParams,
 }: DerivaVitessceProps): JSX.Element => {
 
   // since we're using strict mode, the useEffect is getting called twice in dev mode
@@ -26,17 +30,24 @@ const DerivaVitessce = ({
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [componentConfig, setComponentConfig] = useState<any>(null);
-  const { dispatchError } = useError();
 
   useEffect(() => {
     if (setupStarted.current) return;
     setupStarted.current = true;
 
-    // translates JSON to config language but then changes some of the objects to be inconsistent with component config prop (<Vitessce "config" />)
-    // const vc = VitessceConfig.fromJSON(config);
-    // console.log(vc);
+    // check for `url_pattern` defined for each file to use as the `url`
+    // if both are defined, `url_pattern` will replace `url`
+    const tempConfig = {...config.vitessce};
+    tempConfig.datasets.forEach((dataset) => {
+      dataset.files.forEach((file: any) => {
+        if (file.url_pattern) {
+          const { uri } = getPatternUri(file.url_pattern, templateParams);
+          file.url = uri
+        }
+      })
+    })
 
-    setComponentConfig(config);
+    setComponentConfig(tempConfig);
     setIsLoading(false);
   }, []);
 
@@ -52,8 +63,11 @@ const DerivaVitessce = ({
   return (<>
     <Vitessce
       config={componentConfig}
-      height={800}
-      theme='dark'
+      height={config.height || 800}
+      // 'dark' has black backgrounds for each component
+      // 'light' has grey backgrounds
+      // no value has white backgrounds
+      theme={config.theme || 'light'}
     />
   </>
   );

@@ -27,7 +27,7 @@ const plotSettings = {
   overrideDownloadClickBehavior: false,
   overrideExternalLinkBehavior: false,
 };
-//In simple cases a HOC WidthProvider can be used to automatically determine width upon initialization and window resize events.
+// In simple cases a HOC WidthProvider can be used to automatically determine width upon initialization and window resize events.
 
 const PlotApp = (): JSX.Element => {
   /**

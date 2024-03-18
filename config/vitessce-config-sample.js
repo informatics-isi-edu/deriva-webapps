@@ -5,7 +5,7 @@
  * mimics the vitessce component on this page:
  * https://portal.hubmapconsortium.org/browse/dataset/f47349f1e0fea69263a8d68c7dac65c5
  */
-var vitessceConfig = {
+var vitessceConfigs = {
   version: '1.0.15',
   name: 'f47349f1e0fea69263a8d68c7dac65c5',
   description: 'HBM842.SQSV.255 from hubmap consortium',
@@ -127,5 +127,5 @@ var vitessceConfig = {
 };
 
 if (typeof module === 'object' && module.exports && typeof require === 'function') {
-  exports.config = vitessceConfig;
+  exports.config = vitessceConfigs;
 }
