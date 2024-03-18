@@ -64,6 +64,7 @@ const PlotControlGrid = ({
 
   useEffect(() => {
     if (!globalControlsInitialized) return;
+
     if (userControlsExists && templateParams?.$control_values) {
       // userControlConfig should exist if userControlsExists === true
       if (globalUserControlData.userControlConfig) setUserControls(globalUserControlData.userControlConfig);
@@ -83,7 +84,7 @@ const PlotControlGrid = ({
       let validatedUserControls: UserControlConfig[] = [];
       if (userControlsExists) {
         // Validate controls for not having neither of the request_info.data nor the request_info.url_pattern and display error
-        validatedUserControls = validateControlData(Object.values(controlObject), alertFunctions);
+        validatedUserControls = validateControlData(Object.values(controlObject), alertFunctions, true);
       }
 
       if (userControlsExists && Object.keys(templateParams?.$control_values).length > 0) {
@@ -92,8 +93,9 @@ const PlotControlGrid = ({
       if (Object.values(plotObject)?.length > 0) {
         setValidatedPlots(Object.values(plotObject));
       }
-      setUserControlsReady(true);
     }
+    setUserControlsReady(true);
+
   }, [globalControlsInitialized]);
 
   useEffect(() => {

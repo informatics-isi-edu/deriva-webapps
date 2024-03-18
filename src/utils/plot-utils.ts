@@ -79,7 +79,7 @@ export const validateDuplicatePlotUID = (plots: any, controlObject: any, uniqueU
      return plotObject;
 }
 
-export const validateControlData = (userControlData: any, alertFunctions: any) => {
+export const validateControlData = (userControlData: any, alertFunctions: any, global: boolean=false) => {
      // Validate controls for not having neither of the request_info.data nor the request_info.url_pattern and display error
        const invalidControlData: string[] = [];
        const validatedUserControls = userControlData?.map((control: any) => {
@@ -88,7 +88,7 @@ export const validateControlData = (userControlData: any, alertFunctions: any) =
  
            isControlValid = false;
            if (!alertFunctions.alerts.some(
-             (alert: any) => alert.message.includes(`Unable to display the global control with UID '${control.uid}'`))) {
+             (alert: any) => alert.message.includes(`Unable to display the ${global ? 'global' : 'local'} control with UID '${control.uid}'`))) {
              invalidControlData.push(control.uid);
            }
          }
@@ -96,7 +96,7 @@ export const validateControlData = (userControlData: any, alertFunctions: any) =
        }).filter((control: any) => control.visible || control?.visible == undefined);
        //Show single error for all uids with same issue
        if (invalidControlData?.length > 0) {
-         alertFunctions.addAlert(`Unable to display the global control with UID(s): ${invalidControlData.join(', ')} because neither the request_info.data nor the request_info.url_pattern were found`, ChaiseAlertType.WARNING);
+         alertFunctions.addAlert(`Unable to display the ${global ? 'global' : 'local'} control with UID(s): ${invalidControlData.join(', ')} because neither the request_info.data nor the request_info.url_pattern were found`, ChaiseAlertType.WARNING);
        }
      return validatedUserControls;
 }
