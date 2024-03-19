@@ -16,10 +16,6 @@ export type PlotConfig = {
   [name: string]: DataConfig;
 };
 
-export type AppStyleConfig = {
-
-}
-
 /**
  * Data
  */
@@ -28,7 +24,6 @@ export type DataConfig = {
   layout: Layouts;
   grid_layout_config?: ResponsiveGridConfig;
   user_controls: UserControlConfig[]; //NOTE: For now user_controls will be considered of type dropdown only
-  app_styles?: AppStyleConfig;
 };
 
 export type UserControlDataConfig={
