@@ -208,6 +208,7 @@ export const useChartData = (plot: Plot) => {
   } = usePlot();
 
   const { noData, setNoData } = usePlotlyChart()
+  const {appStyles} = usePlot();
 
   const {
     selectData,
@@ -450,7 +451,6 @@ export const useChartData = (plot: Plot) => {
         return pathRegEx.test(value);
       }
     }
-
     return false;
   }
 
@@ -628,7 +628,7 @@ export const useChartData = (plot: Plot) => {
     document.body.appendChild(hiddenDiv);
     //calculate the width of this hidden div
     const width = hiddenDiv.offsetWidth;
-    const plotWidth = plotAreaFraction * width;
+    const plotWidth = (appStyles?.width || plotAreaFraction) * width;
     //no. of unique violins to be shown on plot
     const noOfViolins = uniqueX?.length;
     /*If screen is less than 1000px and legend is 50% of plot area then wrap the text upto 30 characters 

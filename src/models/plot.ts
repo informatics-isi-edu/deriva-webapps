@@ -16,19 +16,33 @@ export type PlotConfig = {
   [name: string]: DataConfig;
 };
 
-export type AppStyleConfig = {
+/**
+ * Allowed AppStyle
+ */
+export enum AppStyle {
+  WIDTH='width',
+  MAX_WIDTH='max_width',
+  MAX_HEIGHT='max_height',
+};
 
+/**
+ * AppStyle Config
+ */
+export type AppStyleConfig = {
+  width: number;
+  max_width: string;
+  max_height: string;
 }
 
 /**
  * Data
  */
 export type DataConfig = {
+  app_styles?: AppStyleConfig;
   plots: Plot[];
   layout: Layouts;
   grid_layout_config?: ResponsiveGridConfig;
   user_controls: UserControlConfig[]; //NOTE: For now user_controls will be considered of type dropdown only
-  app_styles?: AppStyleConfig;
 };
 
 export type UserControlDataConfig={
