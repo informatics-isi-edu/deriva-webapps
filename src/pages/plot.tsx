@@ -14,9 +14,11 @@ import PlotAppProvider from '@isrd-isi-edu/deriva-webapps/src/providers/plot-app
 
 // utilities
 import { ID_NAMES } from '@isrd-isi-edu/chaise/src/utils/constants';
-import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
 import { DataConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
 
+import useAlert from '@isrd-isi-edu/chaise/src/hooks/alerts';
+import { ChaiseAlertType } from '@isrd-isi-edu/chaise/src/providers/alerts';
 import PlotControlGrid from '@isrd-isi-edu/deriva-webapps/src/components/plot/plot-control-grid';
 
 
@@ -36,6 +38,9 @@ const PlotApp = (): JSX.Element => {
   const { config, errors } = usePlotConfig(windowRef.plotConfigs);
 
   const [plotAppProps, setPlotAppProps] = useState<DataConfig>();
+  const alertFunctions = useAlert();
+
+
 
   useEffect(() => {
     if (config) {
@@ -43,7 +48,11 @@ const PlotApp = (): JSX.Element => {
       const tempConfig = {...config}
       tempConfig.plots.forEach((plotConfig, index) => {
         // Default uid will be considered as eg. bar_0 for first bar plot
-        if (!plotConfig.uid) plotConfig.uid = plotConfig.plot_type + '_' + index;
+        if (!plotConfig.uid) {
+          const genUid = plotConfig.plot_type + '_' + index;
+          plotConfig.uid = genUid;
+          alertFunctions.addAlert(`No UID found for the given plot. Using ${genUid} as default Id`, ChaiseAlertType.WARNING);
+        }
       });
       setPlotAppProps(tempConfig);
     }

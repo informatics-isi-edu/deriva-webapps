@@ -12,13 +12,15 @@ import usePlot from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
 import { useEffect, useRef, useState } from 'react';
 
 // models
-import { DataConfig, LayoutConfig, Plot, UserControlConfig, defaultGridProps, globalGridMargin } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { DataConfig, Plot, UserControlConfig, defaultGridProps, globalGridMargin } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 import { Layouts, Responsive, WidthProvider } from 'react-grid-layout';
 
 // provider
 import PlotlyChartProvider from '@isrd-isi-edu/deriva-webapps/src/providers/plotly-chart';
 
 // utils
+import useAlert from '@isrd-isi-edu/chaise/src/hooks/alerts';
+import { validateControlData, validateDuplicateControlUID, validateLayout, validateUID } from '@isrd-isi-edu/deriva-webapps/src/utils/plot-utils';
 import { convertKeysSnakeToCamel, validateGridProps } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 
 export type PlotControlGridProps = {
@@ -37,8 +39,11 @@ const PlotControlGrid = ({
   const [layout, setLayout] = useState<Layouts>({});
   const [gridProps, setGridProps] = useState({});
   const [userControlsExists, setUserControlExists] = useState<boolean>(false);
-  const [userControlsReady, setUserControlReady] = useState<boolean>(false);
-  const [userControls, setUserControls] = useState<any[]>([]);
+  const [userControlsReady, setUserControlsReady] = useState<boolean>(false);
+  const [userControls, setUserControls] = useState<UserControlConfig[]>([]);
+  const [validatedPlots, setValidatedPlots] = useState<Plot[]>(config.plots);
+  const alertFunctions = useAlert();
+
 
   const { globalControlsInitialized, globalUserControlData, setConfig, templateParams } = usePlot();
 
@@ -50,48 +55,62 @@ const PlotControlGrid = ({
     setConfig(config);
 
     let userControlFlag = false;
-    if (config.user_controls?.length > 0) userControlFlag = true;
-
-    setUserControlExists(userControlFlag);
-
-    // If no controls are present we don't want to wait
-    if (!userControlFlag) {
-      setUserControlReady(true);
+    if (config.user_controls?.length > 0) {
+      userControlFlag = true;
     }
+    setUserControlExists(userControlFlag);
   }, []);
+
 
   useEffect(() => {
     if (!globalControlsInitialized) return;
 
-    if (userControlsExists && templateParams?.$control_values) {
-      // userControlConfig should exist if userControlsExists === true
-      if (globalUserControlData.userControlConfig) setUserControls(globalUserControlData.userControlConfig);
-      if (Object.keys(templateParams?.$control_values).length > 0) {
-        setUserControlReady(true);
+    if (userControlsExists && globalUserControlData?.userControlConfig?.length > 0) {
+      //Validate global controls for uid and type. Display error if any control doesn't have an uid or type
+      validateUID(globalUserControlData?.userControlConfig, alertFunctions, true);
+
+
+      /*Validate global controls and plots with same uid. Display error in case of same uid(s)
+       * controlObject will be of the form {key_1: val_1, key_2: val_2, ..} where key is control uid and the value will be the control data.
+       * plotObject will be of the form {key_1: val_1, key_2: val_2, ..} where key is plot uid and the value will be the plot data
+       * Example of controlObject: {consort: {uid:"consort", label:"consortium", type:"dropdown", request_info:{...}}}
+       * Example of plotObject: {bar_1: {uid: "bar_1", plot_type: "bar", plotly: {...}}}*/
+      const { controlObject, plotObject } = validateDuplicateControlUID(globalUserControlData?.userControlConfig, alertFunctions, true, config.plots);
+      let validatedUserControls: UserControlConfig[] = [];
+      if (userControlsExists) {
+        // Validate controls for not having neither of the request_info.data nor the request_info.url_pattern and display error
+        validatedUserControls = validateControlData(Object.values(controlObject), alertFunctions, true);
+      }
+
+      if (userControlsExists && Object.keys(templateParams?.$control_values).length > 0) {
+        setUserControls(validatedUserControls);
+      }
+      if (Object.values(plotObject)?.length > 0) {
+        setValidatedPlots(Object.values(plotObject));
       }
     }
+    setUserControlsReady(true);
 
+  }, [globalControlsInitialized]);
+
+  useEffect(() => {
+    if (!userControlsReady) return;
     let tempLayout;
     // If layout is configured use the given layout
     if (config.grid_layout_config?.layouts && Object.values(config.grid_layout_config?.layouts).length > 0) {
-      const mappedLayoutValues = Object.values(config.grid_layout_config?.layouts)?.map((resLayout: any) => (
-        resLayout.map((item: LayoutConfig) => convertKeysSnakeToCamel(({
-          //i defines the item on which the given layout will be applied
-          i: item?.source_uid,
-          ...item,
-        })))
-      ));
+      // Check if the layout parameter has all the necessary properties such as source_uid, h, w, x, and y. If any of these properties are missing, display a warning.
+      const validatedLayoutObject = validateLayout(config.grid_layout_config?.layouts, userControls, alertFunctions, true);
+      tempLayout = validatedLayoutObject.tempLayout;
 
-      tempLayout = Object.fromEntries(Object.entries(config.grid_layout_config?.layouts).map(
-        ([key]: any, index) => [key, mappedLayoutValues[index]]
-      ))
-
-
+      // Set the user controls and plots again if they are modified after layout validation
+      setValidatedPlots(config.plots.filter((plot: Plot) => !validatedLayoutObject?.invalidLayoutUid?.includes(plot.uid)));
+      setUserControls(validatedLayoutObject?.revalidatedUserControls);
     } else {
       // Otherwise set the default layout to display controls and plots 
       const gridConfig = config.grid_layout_config;
-      const plotUids: string[] = config.plots.map((plot: Plot) => plot.uid);
-      const controlUids: string[] = globalUserControlData?.userControlConfig?.map((control: UserControlConfig) => control.uid);
+      const plotUids: string[] = validatedPlots?.map((plot: Plot) => plot.uid);
+      const controlUids: string[] = userControls?.map((control: UserControlConfig) => control.uid);
+
       const componentUids = controlUids ? [...controlUids, ...plotUids] : [...plotUids];
       // if `cols` is a number, use that number
       const columnNumber = typeof gridConfig?.cols === 'number' && gridConfig?.cols;
@@ -126,17 +145,15 @@ const PlotControlGrid = ({
         })]
       ))
     }
-
     setLayout(tempLayout);
-  }, [globalControlsInitialized]);
+  }, [userControlsReady]);
 
   // Validate (Transform the keys to the correct case, adjust the values to suit ResponsiveGridLayout) and configure the grid layout props
   useEffect(() => {
     if (config.grid_layout_config) {
       setGridProps(validateGridProps(config.grid_layout_config));
     }
-  }, [config.grid_layout_config])
-
+  }, [config.grid_layout_config]);
   return (
     <div className='plot-page'>
       <div className='grid-container' ref={gridContainer}>
@@ -148,13 +165,13 @@ const PlotControlGrid = ({
             {...gridProps}
             layouts={layout}
           >
-            {config.plots.map((plotConfig: Plot): JSX.Element => (
+            {validatedPlots.length > 0 ? validatedPlots?.map((plotConfig: Plot): JSX.Element => (
               <div key={plotConfig.uid}>
                 <PlotlyChartProvider>
                   <ChartWithEffect config={plotConfig} />
                 </PlotlyChartProvider>
               </div>
-            ))}
+            )) : null}
             {userControls.length > 0 ?
               userControls.map((currentConfig: UserControlConfig): JSX.Element => (
                 <div key={currentConfig.uid}>
