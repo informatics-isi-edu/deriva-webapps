@@ -5,7 +5,7 @@ import { useEffect, useState, useRef, useCallback, SetStateAction, Dispatch } fr
 
 import { Option } from '@isrd-isi-edu/deriva-webapps/src/components/virtualized-select';
 
-import { getConfigObject } from '@isrd-isi-edu/deriva-webapps/src/utils/config';
+import { getConfigObject } from '@isrd-isi-edu/chaise/src/utils/config';
 import {
   generateRainbowColor,
   generateScale,

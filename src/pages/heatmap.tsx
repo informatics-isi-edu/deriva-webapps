@@ -12,7 +12,6 @@ import useError from '@isrd-isi-edu/chaise/src/hooks/error';
 // utilities
 import { ID_NAMES } from '@isrd-isi-edu/chaise/src/utils/constants';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
-import { getConfigObject } from '@isrd-isi-edu/deriva-webapps/src/utils/config';
 
 
 const heatmapSettings = {
