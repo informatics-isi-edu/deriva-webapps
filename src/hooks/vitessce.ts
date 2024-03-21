@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { DerivaVitessceConfig, DerivaVitessceDataConfig } from '@isrd-isi-edu/deriva-webapps/src/models/vitessce'
 
 // utils
-import { getConfigObject } from '@isrd-isi-edu/deriva-webapps/src/utils/config';
+import { getConfigObject } from '@isrd-isi-edu/chaise/src/utils/config';
 
 /**
  * Sets the vitessce configs
