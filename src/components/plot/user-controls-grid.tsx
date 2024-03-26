@@ -55,23 +55,23 @@ const UserControlsGrid = ({
     setupStarted.current = true;
 
     if (localControlData?.length > 0) {
-    //Validate local controls for uid and type. Display error if any control doesn't have an uid or type
-    validateUID(localControlData,alertFunctions);
+      //Validate local controls for uid and type. Display error if any control doesn't have an uid or type
+      validateUID(localControlData, alertFunctions);
     }
-    
+
     /*Validate local controls with same uid. Display error in case of same uid(s)
     * controlObject will be of the form {key_1: val_1, key_2: val_2, ..} where key is control uid and the value will be the control data.
     * Example of controlObject: {consort: {uid:"consort", label:"consortium", type:"dropdown", request_info:{...}}}*/
-    const controlObject = validateDuplicateControlUID(localControlData,alertFunctions);
+    const controlObject = validateDuplicateControlUID(localControlData, alertFunctions);
 
     // Validate controls for not having neither of the request_info.data nor the request_info.url_pattern and display error
-    const validatedUserControls = validateControlData(Object.values(controlObject),alertFunctions);
+    const validatedUserControls = validateControlData(Object.values(controlObject), alertFunctions);
 
     let tempLayout;
     let revalidatedUserControls;
     if (userControlData?.gridConfig?.layouts && Object.values(userControlData.gridConfig?.layouts)?.length > 0) {
       // Check if the layout parameter has all the necessary properties such as source_uid, h, w, x, and y. If any of these properties are missing, display a warning.
-      const validatedLayoutObject = validateLayout(userControlData?.gridConfig?.layouts,validatedUserControls,alertFunctions);
+      const validatedLayoutObject = validateLayout(userControlData?.gridConfig?.layouts, validatedUserControls, alertFunctions);
       tempLayout = validatedLayoutObject.tempLayout;
       revalidatedUserControls = validatedLayoutObject.revalidatedUserControls;
     } else {
@@ -101,9 +101,9 @@ const UserControlsGrid = ({
       ))
     }
     setLayout(tempLayout);
-    if(revalidatedUserControls && revalidatedUserControls?.length !== -1){
+    if (revalidatedUserControls && revalidatedUserControls?.length !== -1) {
       setLocalControlData(revalidatedUserControls);
-    }else{
+    } else {
       setLocalControlData(validatedUserControls);
     }
     //To avoid react-grid-layout throwing unnecessary errors related to layout or UID

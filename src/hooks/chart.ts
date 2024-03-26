@@ -24,8 +24,8 @@ import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
 
 // utils
 import { ChaiseAlertType } from '@isrd-isi-edu/chaise/src/providers/alerts';
+import { getConfigObject } from '@isrd-isi-edu/chaise/src/utils/config';
 import { getQueryParam, getQueryParams } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
-import { getConfigObject } from '@isrd-isi-edu/deriva-webapps/src/utils/config';
 import { flatten2DArray } from '@isrd-isi-edu/deriva-webapps/src/utils/data';
 import {
   emptyDataColArrayAlert, emptyXColArrayAlert, emptyYColArrayAlert, incompatibleColArraysAlert,
@@ -170,7 +170,7 @@ export const usePlotConfig = (plotConfigs: PlotConfig) => {
 
   useEffect(() => {
     try {
-      const config = getConfigObject<DataConfig>(plotConfigs);
+      const config: DataConfig = getConfigObject(plotConfigs);
       setTypeConfig(config);
     } catch (error) {
       dispatchError({ error });

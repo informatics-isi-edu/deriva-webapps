@@ -69,7 +69,7 @@ const PlotControlGrid = ({
 
     if (userControlsExists && globalUserControlData?.userControlConfig?.length > 0) {
       //Validate global controls for uid and type. Display error if any control doesn't have an uid or type
-      validateUID(globalUserControlData?.userControlConfig, alertFunctions);
+      validateUID(globalUserControlData?.userControlConfig, alertFunctions, true);
 
 
       /*Validate global controls and plots with same uid. Display error in case of same uid(s)
@@ -96,6 +96,7 @@ const PlotControlGrid = ({
   }, [globalControlsInitialized]);
 
   useEffect(() => {
+    if (!userControlsReady) return;
     let tempLayout;
     // If layout is configured use the given layout
     if (config.grid_layout_config?.layouts && Object.values(config.grid_layout_config?.layouts).length > 0) {
