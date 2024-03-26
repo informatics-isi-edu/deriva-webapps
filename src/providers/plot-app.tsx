@@ -84,9 +84,7 @@ export default function PlotAppProvider({
 
     try {
       initGlobalControls();
-      console.log(config?.app_styles);
       if(config?.app_styles){
-        console.log(AppStyle, typeof AppStyle, Object.values(AppStyle));
         const validAppStyles = Object.keys(config?.app_styles)
         .filter(key => Object.values<string>(AppStyle).includes(key))
         .reduce((obj:any, key) => {
@@ -99,7 +97,6 @@ export default function PlotAppProvider({
       dispatchError({ error });
     }
   }, [config]);
-  console.log(appStyles);
 
   /**
    * extracts values for the selector returns them for the templateParams under the selector's uid

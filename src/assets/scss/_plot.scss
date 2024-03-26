@@ -16,7 +16,6 @@
     flex: 1;
     flex-direction: column;
     align-items: center;
-    // padding-inline: 20px;
     height: 100%;
     width: 100%;
   }
@@ -91,6 +90,7 @@
 
   .grid-container {
     height: 90vh;
+    margin-inline: 10px;
     margin-bottom: 12px;
     overflow: auto;
   }

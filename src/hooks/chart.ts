@@ -628,7 +628,7 @@ export const useChartData = (plot: Plot) => {
     document.body.appendChild(hiddenDiv);
     //calculate the width of this hidden div
     const width = hiddenDiv.offsetWidth;
-    const plotWidth = (appStyles?.width || plotAreaFraction) * width;
+    const plotWidth = plotAreaFraction * width;
     //no. of unique violins to be shown on plot
     const noOfViolins = uniqueX?.length;
     /*If screen is less than 1000px and legend is 50% of plot area then wrap the text upto 30 characters 
