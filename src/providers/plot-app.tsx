@@ -3,7 +3,7 @@ import useError from '@isrd-isi-edu/chaise/src/hooks/error';
 import { createContext, useEffect, useMemo, useRef, useState } from 'react';
 
 // models
-import { PlotTemplateParams, UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { AppStyle, PlotTemplateParams, UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 
 // services
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
@@ -21,6 +21,7 @@ export const PlotAppContext = createContext<{
   setSelectorOptionChanged: Function;
   templateParams: PlotTemplateParams;
   setTemplateParams: Function;
+  appStyles: any,
 } | null>(null);
 
 type PlotAppProviderProps = {
@@ -38,6 +39,7 @@ export default function PlotAppProvider({
     $url_parameters: {},
     $control_values: {}
   });
+  const [appStyles, setAppStyles] = useState({});
   const [globalUserControlData, setGlobalUserControlData] = useState<any>(null);
 
   const { dispatchError } = useError();
@@ -82,6 +84,15 @@ export default function PlotAppProvider({
 
     try {
       initGlobalControls();
+      if(config?.app_styles){
+        const validAppStyles = Object.keys(config?.app_styles)
+        .filter(key => Object.values<string>(AppStyle).includes(key))
+        .reduce((obj:any, key) => {
+            obj[key] = config?.app_styles[key];
+            return obj;
+        }, {});
+        setAppStyles(validAppStyles);
+      }
     } catch (error) {
       dispatchError({ error });
     }
@@ -130,13 +141,15 @@ export default function PlotAppProvider({
       selectorOptionChanged,
       setSelectorOptionChanged,
       templateParams,
-      setTemplateParams
+      setTemplateParams,
+      appStyles
     };
   }, [
     globalControlsInitialized,
     globalUserControlData,
     selectorOptionChanged,
-    templateParams
+    templateParams,
+    appStyles
   ]);
 
   return (

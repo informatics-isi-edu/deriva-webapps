@@ -12,7 +12,7 @@ import usePlot from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
 import { useEffect, useRef, useState } from 'react';
 
 // models
-import { DataConfig, Plot, UserControlConfig, defaultGridProps, globalGridMargin } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { DataConfig, Plot, UserControlConfig, defaultGridProps, globalGridMargin, plotAreaFraction } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 import { Layouts, Responsive, WidthProvider } from 'react-grid-layout';
 
 // provider
@@ -22,13 +22,13 @@ import PlotlyChartProvider from '@isrd-isi-edu/deriva-webapps/src/providers/plot
 import useAlert from '@isrd-isi-edu/chaise/src/hooks/alerts';
 import { validateControlData, validateDuplicateControlUID, validateLayout, validateUID } from '@isrd-isi-edu/deriva-webapps/src/utils/plot-utils';
 import { convertKeysSnakeToCamel, validateGridProps } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
+import { useWindowSize } from '../../hooks/window-size';
 
 export type PlotControlGridProps = {
   config: DataConfig,
 };
 const ResponsiveGridLayout = WidthProvider(Responsive);
 /**
- * 
  * @param config config object for the given plot
  * @returns 
  */
@@ -43,6 +43,10 @@ const PlotControlGrid = ({
   const [userControls, setUserControls] = useState<UserControlConfig[]>([]);
   const [validatedPlots, setValidatedPlots] = useState<Plot[]>(config.plots);
   const alertFunctions = useAlert();
+  const { width = 0, height = 0 } = useWindowSize();
+  const {appStyles} = usePlot();
+
+  const containerWidth = (appStyles?.width || plotAreaFraction) * width;
 
 
   const { globalControlsInitialized, globalUserControlData, setConfig, templateParams } = usePlot();
@@ -156,7 +160,7 @@ const PlotControlGrid = ({
   }, [config.grid_layout_config]);
   return (
     <div className='plot-page'>
-      <div className='grid-container' ref={gridContainer}>
+      <div className='grid-container' ref={gridContainer} style={{width: containerWidth}}>
         {(!config || !userControlsReady || Object.keys(layout).length === 0) ?
           <ChaiseSpinner /> :
           <ResponsiveGridLayout className='global-grid-layout layout'

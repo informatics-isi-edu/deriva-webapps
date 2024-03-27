@@ -15,6 +15,7 @@ import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-siz
 // models
 import { SelectedRow } from '@isrd-isi-edu/chaise/src/models/recordset';
 import { Plot, plotAreaFraction } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import usePlot from '../../hooks/plot';
 
 
 export type ChartWithEffectProps = {
@@ -39,11 +40,12 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
 
   // set the width and height of the chart
   const { layout } = config.plotly || {};
+  const {appStyles} = usePlot();
 
   // Add upper bounds to layout width and height for responsive
   let minWidth = 320; // absolute min width
   let minHeight = 600; // absolute min height
-  let maxWidth = plotAreaFraction * width; // 95% of viewport, used as max width
+  let maxWidth = plotAreaFraction * width; // 95% of plot container, used as max width
   let maxHeight = 0.7 * height; // 70% of viewport, used as min height
 
   // max width is the min of plot width or calculated max width
@@ -168,7 +170,7 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
     }
   }
   return (
-    <div className='chart-container'>
+    <div className='chart-container' style={{maxWidth: appStyles?.max_width, maxHeight: appStyles?.max_height}}>
       <div className='chart' ref={ref}>
         {selectData && selectData.length > 0 ? (
           <SelectGrid selectors={selectData} width={dynamicStyles.width} />
