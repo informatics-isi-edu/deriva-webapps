@@ -157,7 +157,6 @@ export type layoutParamsType = {
 
 /**
  * Sets the plot configs
- *
  * @param plotConfigs
  */
 export const usePlotConfig = (plotConfigs: PlotConfig) => {
@@ -208,7 +207,6 @@ export const useChartData = (plot: Plot) => {
   } = usePlot();
 
   const { noData, setNoData } = usePlotlyChart()
-  const {appStyles} = usePlot();
 
   const {
     selectData,

@@ -12,7 +12,7 @@ import usePlot from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
 import { useEffect, useRef, useState } from 'react';
 
 // models
-import { DataConfig, Plot, UserControlConfig, defaultGridProps, plotAreaFraction } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { DataConfig, Plot, UserControlConfig, defaultGridProps, globalGridMargin, plotAreaFraction } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 import { Layouts, Responsive, WidthProvider } from 'react-grid-layout';
 
 // provider
@@ -45,6 +45,8 @@ const PlotControlGrid = ({
   const alertFunctions = useAlert();
   const { width = 0, height = 0 } = useWindowSize();
   const {appStyles} = usePlot();
+
+  const containerWidth = (appStyles?.width || plotAreaFraction) * width;
 
 
   const { globalControlsInitialized, globalUserControlData, setConfig, templateParams } = usePlot();
@@ -157,14 +159,13 @@ const PlotControlGrid = ({
     }
   }, [config.grid_layout_config]);
   return (
-    <div className='plot-page' style={{width: (appStyles?.width || plotAreaFraction) * width}}>
-      {/* Need to check if we want this width to be applied here outside the whole grid plot container */}
-      <div className='grid-container' ref={gridContainer}>
+    <div className='plot-page'>
+      <div className='grid-container' ref={gridContainer} style={{width: containerWidth}}>
         {(!config || !userControlsReady || Object.keys(layout).length === 0) ?
           <ChaiseSpinner /> :
           <ResponsiveGridLayout className='global-grid-layout layout'
             {...defaultGridPropsRef.current}
-            // margin={globalGridMargin}
+            margin={globalGridMargin}
             {...gridProps}
             layouts={layout}
           >
