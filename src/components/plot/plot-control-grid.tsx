@@ -159,7 +159,7 @@ const PlotControlGrid = ({
     }
   }, [config.grid_layout_config]);
   return (
-    <div className='plot-page'>
+    <div className='plot-page' style={{maxWidth: appStyles?.max_width, maxHeight: appStyles?.max_height}}>
       <div className='grid-container' ref={gridContainer} style={{width: containerWidth}}>
         {(!config || !userControlsReady || Object.keys(layout).length === 0) ?
           <ChaiseSpinner /> :
