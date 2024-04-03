@@ -1119,7 +1119,7 @@ export const useChartData = (plot: Plot) => {
 
   const validateDataXYCol = (trace: Trace): string | boolean => {
     // Show warning if no data_col, x_col, or y_col
-    if (!trace.data_col && ((!trace.x_col && !data?.x) || (!trace.y_col && !data?.y))) {
+    if (!trace.data_col && (!trace.x_col || !trace.y_col)) {
       let noColumnAlertMessage = noColumnsDefinedAlert;
 
       if (!trace.x_col && trace.y_col) {
