@@ -166,7 +166,6 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
       modalProps.recordsetProps.initialSelectedRows = selectData[i][j].selectedRows;
     }
   }
-  console.log(parsedData);
 
   return (
     <div className='chart-container'>

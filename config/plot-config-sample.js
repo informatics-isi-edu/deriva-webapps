@@ -2172,6 +2172,207 @@ var plotConfigs = {
       ]
     }]
   },
+  'gudmap-todate-bar-with-data': {
+    headTitle: 'GUDMAP Data Status Dashboard',
+    // Array of object plots to be shown on the page
+    plots: [
+      {
+        plot_type: 'bar',
+        plotly: {
+          config: {
+            modeBarButtonsToRemove: [
+              'scrollZoom',
+              'zoom2d',
+              'sendDataToCloud',
+              'autoScale2d',
+              'lasso2d',
+              'select2d',
+              'hoverClosestCartesian',
+              'hoverCompareCartesian',
+              'toggleSpikelines',
+            ],
+            displaylogo: false,
+            responsive: true,
+          },
+          layout: {
+            title: 'Number of GUDMAP resources released to date (log scale)',
+            // height: 500,
+            // width: 1200,
+            showlegend: true,
+            xaxis: {
+              title: 'Number of Records', // plot x_axis label
+              type: 'log', // optional value: tickformat should compatible with type
+            },
+            margin: {
+              t: 30,
+              l: 280,
+            },
+            legend: {
+              traceorder: 'reversed', // order of the legend is reversed
+            },
+          },
+          data: [{
+            type: 'bar',
+            x: [
+              "0",
+              "1",
+              "49",
+              "1",
+              "1",
+              "6",
+              "15",
+              "11023",
+              "622",
+              "63",
+              "41",
+              "99",
+              "3",
+              "1",
+              "1",
+              "9",
+              "18",
+              "22",
+              "411",
+              "356",
+              "211",
+              "13",
+              "5",
+              "193",
+              "131",
+              "108"
+          ],
+          y: [
+            "Epigenomics: ChIP-Seq",
+            "Epigenomics: ATAC-Seq",
+            "<a href=\"/chaise/recordset/#2/Microarray:Series\" target=\"_blank\">Transcriptomics: Microarray</a>",
+            "<a href=\"/chaise/recordset/#2/RNASeq:Study\" target=\"_blank\">Transcriptomics: Spatial Transcriptomics</a>",
+            "<a href=\"/chaise/recordset/#2/RNASeq:Study\" target=\"_blank\">Transcriptomics: snRNA-Seq</a>",
+            "<a href=\"/chaise/recordset/#2/RNASeq:Study\" target=\"_blank\">Transcriptomics: scRNA-Seq</a>",
+            "<a href=\"/chaise/recordset/#2/RNASeq:Study\" target=\"_blank\">Transcriptomics: mRNA-Seq</a>",
+            "<a href=\"/chaise/recordset/#2/Gene_Expression:Specimen\" target=\"_blank\">Imaging: In-situ hybridization (ISH)</a>",
+            "<a href=\"/chaise/recordset/#2/Gene_Expression:Specimen\" target=\"_blank\">Imaging: Immunohistochemistry (IHC)</a>",
+            "<a href=\"/chaise/recordset/#2/Gene_Expression:Specimen\" target=\"_blank\">Imaging: Histology</a>",
+            "<a href=\"/chaise/recordset/#2/Cell_Line:Mouse_Strain\" target=\"_blank\">Transgenic Mouse Strain</a>",
+            "<a href=\"/chaise/recordset/#2/Antibody:Antibody_Tests\" target=\"_blank\">Antibody Test</a>",
+            "<a href=\"/chaise/recordset/#2/RNASeq:Study\" target=\"_blank\">Metabolomics</a>",
+            "<a href=\"/chaise/recordset/#2/RNASeq:Study\" target=\"_blank\">Epigenomics: ChIP-Seq</a>",
+            "<a href=\"/chaise/recordset/#2/RNASeq:Study\" target=\"_blank\">Transcriptomics: snRNA-Seq</a>",
+            "<a href=\"/chaise/recordset/#2/RNASeq:Study\" target=\"_blank\">Transcriptomics: scRNA-Seq</a>",
+            "<a href=\"/chaise/recordset/#2/RNASeq:Study\" target=\"_blank\">Transcriptomics: mRNA-Seq</a>",
+            "<a href=\"/chaise/recordset/#2/Gene_Expression:Specimen\" target=\"_blank\">Imaging: nanoCT</a>",
+            "<a href=\"/chaise/recordset/#2/Gene_Expression:Specimen\" target=\"_blank\">Imaging: In-situ hybridization (ISH)</a>",
+            "<a href=\"/chaise/recordset/#2/Gene_Expression:Specimen\" target=\"_blank\">Imaging: Immunohistochemistry (IHC)</a>",
+            "<a href=\"/chaise/recordset/#2/Gene_Expression:Specimen\" target=\"_blank\">Imaging: Histology</a>",
+            "<a href=\"/chaise/recordset/#2/Cell_Line:Reporter_Cell_Line\" target=\"_blank\">Cell Line: Reporter</a>",
+            "<a href=\"/chaise/recordset/#2/Cell_Line:Parental_Cell_Line\" target=\"_blank\">Cell Line: Parental</a>",
+            "<a href=\"/chaise/recordset/#2/Antibody:Antibody_Tests\" target=\"_blank\">Antibody Test</a>",
+            "<a href=\"/chaise/recordset/#2/Gene_Expression:Specimen\" target=\"_blank\">Imaging: Immunohistochemistry (IHC)</a>",
+            "<a href=\"/chaise/recordset/#2/Gene_Expression:Specimen\" target=\"_blank\">Imaging: Histology</a>"
+        ], 
+       }],
+        },
+        user_controls: [{
+          uid: 'consortium',
+          label: 'Consortium',
+          type: 'dropdown',
+          request_info: {
+            // data: [{
+            //   Name: 'ALL',
+            //   Display: 'All'
+            // }, {
+            //   Name: 'GUDMAP',
+            //   Display: 'Gudmap'
+            // }, {
+            //   Name: 'RBK',
+            //   Display: 'RBK'
+            // }],
+            default_value: 'ALL',
+            value_key: 'Name',
+            selected_value_pattern: '{{{$self.values.Display}}}'
+          }
+        },
+        {
+          uid: 'consortiumS2',
+          label: 'S2 Consortium',
+          type: 'dropdown',
+          request_info: {
+            // data: [{
+            //   Name: 'ALL',
+            //   Display: 'S2 All'
+            // }, {
+            //   Name: 'GUDMAP',
+            //   Display: 'S2 Gudmap'
+            // }, {
+            //   Name: 'RBK',
+            //   Display: 'S2 RBK'
+            // }],
+            default_value: 'ALL',
+            value_key: 'Name',
+            selected_value_pattern: '{{{$self.values.Display}}}'
+          }
+        },
+        {
+          uid: 'consortium3',
+          label: 'Consortium3',
+          type: 'dropdown',
+          request_info: {
+            data: [{
+              Name: 'ALL',
+              Display: 'All'
+            }, {
+              Name: 'GUDMAP',
+              Display: 'Gudmap'
+            }, {
+              Name: 'RBK',
+              Display: 'RBK'
+            }],
+            default_value: 'ALL',
+            value_key: 'Name',
+            selected_value_pattern: '{{{$self.values.Display}}}'
+          }
+        }],
+        config: {
+          title_display_markdown_pattern:
+            '[Number of GUDMAP resources released to date {{{$control_values.consortium.values.Name}}}](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+          format_data_x: true, // defualt : false - to use hack or not
+          xaxis: {
+            title_display_markdown_pattern:
+              '[Number of Records](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+          },
+          yaxis: {
+            tick_display_markdown_pattern:
+              '[{{$self.data.Data_Type}}](/chaise/recordset/#2/{{{$self.data.Schema_Table}}}){target=_blank}',
+            title_display_markdown_pattern: '[Data Types](/chaise/recordset/#2/Gene_Expression:Specimen){target=_blank}'
+          },
+          disable_default_legend_click: true,
+        },
+        traces: [
+          {
+            // The request url that has to be used to fetch the data.
+            //Fetch the file from testing user's directory
+            // url_pattern: '/~kenyshah/gudmap.json',
+            // url_pattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium={{{$control_values.consortium.values.Name}}}/!(Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
+            // url_pattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
+            //Determine the type of file in url_pattern if applicable            
+            // response_format: 'json',
+            hovertemplate_display_pattern: "Released Horizontal: {{#if true}}{{{$row.Released}}}{{/if}}",
+            legend: ['Released'], // name of traces in legend
+            legend_markdown_pattern: [
+              '[#Released](/chaise/recordset/#2/Antibody:Antibody_Tests/){target=_blank}',
+            ],
+            graphic_link_pattern:
+              '/chaise/recordset/#2/{{{$self.data.Schema_Table}}}/*::facets::{{#encodeFacet}}{{{$self.data.Data_Type_Filter}}}{{/encodeFacet}}',
+            // x_col: ['Released'], // column name to use for x values
+            // y_col: ['Data_Type'], // array of column names to use for y values
+            orientation: 'h', // Optional parameter for displaying the bar chart horizontally
+            textfont: {
+              size: 10, // It will work till the bar size can accomodate the font size
+            },
+          },
+        ],
+      },
+    ],
+  },
   'gudmap-todate-bar-swapped': {
     headTitle: 'GUDMAP Data Status Dashboard',
     // Array of object plots to be shown on the page

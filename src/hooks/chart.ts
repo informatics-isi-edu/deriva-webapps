@@ -1218,7 +1218,6 @@ export const useChartData = (plot: Plot) => {
 
 
     const plotlyData: any[] = [];
-    console.log(numberPlotTraces);
     for (let plotTraceIdx = 0; plotTraceIdx < numberPlotTraces; plotTraceIdx++) {
       const plotlyDataObject = initializePlotlyDataObject(trace, plotTraceIdx);
 
@@ -1718,12 +1717,14 @@ export const useChartData = (plot: Plot) => {
           updatePlotDataSwitch(currTrace, plotData, responseData, k)
           plotlyData.push(plotData);
         }
-      }else{
-        //Otherwise means that no url pattern is provided in the config and data needs to be used from plotly.data so just pass rest of the trace params as is..
+      }
+      /** Otherwise if there's no response data which implies url pattern is not resolved in the config and 
+       data needs to be used from plotly.data so just pass rest of the trace params as is and 
+       let plotly decide whether those parameter are valid data params or not */
+      else{
         plotlyData.push(currTrace);
       }
     });
-    console.log(plotlyData);
     if(result.data && result.data.length>=1){
       result.data=result.data.map((dataTrace: any, index: number) => {
         return { ...dataTrace, ...plotlyData[index] };
@@ -1731,7 +1732,6 @@ export const useChartData = (plot: Plot) => {
     }else{
       result.data = plotlyData;
     }
-    console.log('after: ',result.data);
     const emptyReponses = data.every((responseArray: any[]) => responseArray.length === 0);
 
     updatePlotlyConfig(result); // update the config
