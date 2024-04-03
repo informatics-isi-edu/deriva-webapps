@@ -99,6 +99,7 @@ export type Plot = {
 export type Plotly = {
   config: PlotlyConfig;
   layout: PlotlyLayout;
+  data: PlotlyPlotData[];
 };
 
 /**

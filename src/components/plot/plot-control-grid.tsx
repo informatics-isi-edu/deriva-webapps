@@ -20,9 +20,9 @@ import PlotlyChartProvider from '@isrd-isi-edu/deriva-webapps/src/providers/plot
 
 // utils
 import useAlert from '@isrd-isi-edu/chaise/src/hooks/alerts';
+import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
 import { validateControlData, validateDuplicateControlUID, validateLayout, validateUID } from '@isrd-isi-edu/deriva-webapps/src/utils/plot-utils';
 import { convertKeysSnakeToCamel, validateGridProps } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
-import { useWindowSize } from '../../hooks/window-size';
 
 export type PlotControlGridProps = {
   config: DataConfig,
@@ -159,7 +159,7 @@ const PlotControlGrid = ({
     }
   }, [config.grid_layout_config]);
   return (
-    <div className='plot-page'>
+    <div className='plot-page' style={{maxWidth: appStyles?.max_width, maxHeight: appStyles?.max_height}}>
       <div className='grid-container' ref={gridContainer} style={{width: containerWidth}}>
         {(!config || !userControlsReady || Object.keys(layout).length === 0) ?
           <ChaiseSpinner /> :

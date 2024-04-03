@@ -196,7 +196,6 @@ export const useChartData = (plot: Plot) => {
   const [isDataLoading, setIsDataLoading] = useState<boolean>(false);
   const [isParseLoading, setIsParseLoading] = useState<boolean>(false);
   const [controlTemplateVariablesInitialized, setControlTemplateVariablesInitialized] = useState<boolean>(false);
-
   const { dispatchError, errors } = useError();
   const alertFunctions = useAlert();
   const { width = 0, height = 0 } = useWindowSize();
@@ -1120,7 +1119,7 @@ export const useChartData = (plot: Plot) => {
 
   const validateDataXYCol = (trace: Trace): string | boolean => {
     // Show warning if no data_col, x_col, or y_col
-    if (!trace.data_col && (!trace.x_col || !trace.y_col)) {
+    if (!trace.data_col && ((!trace.x_col && !data?.x) || (!trace.y_col && !data?.y))) {
       let noColumnAlertMessage = noColumnsDefinedAlert;
 
       if (!trace.x_col && trace.y_col) {
@@ -1130,7 +1129,6 @@ export const useChartData = (plot: Plot) => {
         // y_col error
         noColumnAlertMessage = xColOnlyAlert;
       }
-
       return noColumnAlertMessage;
     }
 
@@ -1162,6 +1160,7 @@ export const useChartData = (plot: Plot) => {
   const parseGeneralResponse = (trace: Trace, responseData: ResponseData) => {
     const { config } = plot;
     const { xaxis, yaxis, format_data_x = false, format_data_y = false, format_data = false } = config;
+
     /** 
      * NOTE: tempText can be ['a','b','c'](other plots) as well as [['a','b'],['c','d']](heatmap)
      * At a given time it can be either of those types mentioned but to avoid lint error `string[] & string[][]` is used instead of `string[] | string[][]`
@@ -1188,7 +1187,6 @@ export const useChartData = (plot: Plot) => {
     // x_col and y_col should be the same sized array
     //   - if one array is size 1 and the other size N,
     //     duplicate value in array of size 1 to be an array of size N with value N times
-
     let numberPlotTraces = (trace.y_col?.length && trace.x_col?.length === trace.y_col.length) ? trace.y_col.length : 1;
     // fix x_col and y_col to be same size
     if (trace.x_col?.length === 1 && (trace.y_col?.length && trace.y_col?.length > 1)) {
@@ -1219,7 +1217,8 @@ export const useChartData = (plot: Plot) => {
     }
 
 
-    const plotlyData: any[] = []
+    const plotlyData: any[] = [];
+    console.log(numberPlotTraces);
     for (let plotTraceIdx = 0; plotTraceIdx < numberPlotTraces; plotTraceIdx++) {
       const plotlyDataObject = initializePlotlyDataObject(trace, plotTraceIdx);
 
@@ -1235,7 +1234,7 @@ export const useChartData = (plot: Plot) => {
         const x_col = trace.x_col[plotTraceIdx];
         const y_col = trace.y_col[plotTraceIdx];
         const z_col = trace.z_col[plotTraceIdx];
-
+        
         plotlyDataObject.x = [];
         plotlyDataObject.y = [];
         plotlyDataObject.z = [];
@@ -1369,7 +1368,6 @@ export const useChartData = (plot: Plot) => {
       }
 
       setHoverText(plotlyDataObject, tempText, trace);
-
       plotlyData.push(plotlyDataObject);
     }
 
@@ -1557,6 +1555,7 @@ export const useChartData = (plot: Plot) => {
     const result: any = { data: [] };
 
     result.config = { ...plot?.plotly?.config };
+    result.data = plot?.plotly?.data;
     let hovertemplate_display_pattern;
     // used for heatmap and violin plot
     let additionalLayout: any = {};
@@ -1712,20 +1711,27 @@ export const useChartData = (plot: Plot) => {
 
         // error parsing the data
         if (!allPlotData) return;
-
         // each object in plot data is for displaying data in separate traces in plotly (so we can have multiple bars or bar + lines etc)
         for (let k = 0; k < allPlotData.length; k++) {
           const plotData = { ...allPlotData[k] };
           // update the plotData object for each plot type
           updatePlotDataSwitch(currTrace, plotData, responseData, k)
-
           plotlyData.push(plotData);
         }
+      }else{
+        //Otherwise means that no url pattern is provided in the config and data needs to be used from plotly.data so just pass rest of the trace params as is..
+        plotlyData.push(currTrace);
       }
     });
-
-    result.data = plotlyData;
-
+    console.log(plotlyData);
+    if(result.data && result.data.length>=1){
+      result.data=result.data.map((dataTrace: any, index: number) => {
+        return { ...dataTrace, ...plotlyData[index] };
+      });
+    }else{
+      result.data = plotlyData;
+    }
+    console.log('after: ',result.data);
     const emptyReponses = data.every((responseArray: any[]) => responseArray.length === 0);
 
     updatePlotlyConfig(result); // update the config

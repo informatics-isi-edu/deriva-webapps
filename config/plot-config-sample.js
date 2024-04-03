@@ -2069,6 +2069,109 @@ var plotConfigs = {
       },
     ],
   },
+  "heatmap-global-with-data": {
+    plots: [{
+      uid: 'heatmap_1',
+      plot_type: "heatmap",
+      plotly: {
+        config: {
+          modeBarButtonsToRemove: ["scrollZoom", "zoom2d", "sendDataToCloud", "autoScale2d", "lasso2d", "select2d", "hoverClosestCartesian", "hoverCompareCartesian", "toggleSpikelines"],
+          displaylogo: false,
+          responsive: true
+        },
+        layout: {
+          title: "Plot Heatmap",
+          showLegend: true,
+          xaxis: {
+            tickangle: 90,
+            tickfont: {
+              size: 12,
+              family: "Lucida Console"
+            }
+          },
+          yaxis: {
+            tickfont: {
+              size: 12,
+              family: "Lucida Console"
+            }
+          }
+        },
+        data: [
+          {
+            type: 'heatmap',
+            x: ["<a href=\"/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=app/plot&ppid=1mgp2c1k1ug51xmn1y3h1l3w\" target=\"_blank\">E11.5_MetanephMes_7102</a>",
+            "<a href=\"/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=app/plot&ppid=1mgp2c1k1ug51xmn1y3h1l3w\" target=\"_blank\">E11.5_MetanephMes_7103</a>",
+            "<a href=\"/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=app/plot&ppid=1mgp2c1k1ug51xmn1y3h1l3w\" target=\"_blank\">E11.5_MetanephMes_7104</a>",
+            "<a href=\"/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=app/plot&ppid=1mgp2c1k1ug51xmn1y3h1l3w\" target=\"_blank\">E11.5_MetanephMes_7105</a>",
+            "<a href=\"/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=app/plot&ppid=1mgp2c1k1ug51xmn1y3h1l3w\" target=\"_blank\">E11.5_MetanephMes_7106</a>",
+            "<a href=\"/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=app/plot&ppid=1mgp2c1k1ug51xmn1y3h1l3w\" target=\"_blank\">E11.5_MetanephMes_7107</a>",
+            "<a href=\"/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=app/plot&ppid=1mgp2c1k1ug51xmn1y3h1l3w\" target=\"_blank\">E11.5_MetanephMes_7108</a>",
+            "<a href=\"/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=app/plot&ppid=1mgp2c1k1ug51xmn1y3h1l3w\" target=\"_blank\">E11.5_MetanephMes_7109</a>",
+            "<a href=\"/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=app/plot&ppid=1mgp2c1k1ug51xmn1y3h1l3w\" target=\"_blank\">E11.5_UretBud_7110</a>",
+            "<a href=\"/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=app/plot&ppid=1mgp2c1k1ug51xmn1y3h1l3w\" target=\"_blank\">E11.5_UretBud_7111</a>"],
+          y:["<a href=\"/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=app/plot&ppid=1mgp2c1k1ug51xmn1y3h1l3w\" target=\"_blank\">1437410_at</a>", 
+          "<a href=\"/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=app/plot&ppid=1mgp2c1k1ug51xmn1y3h1l3w\" target=\"_blank\">1448143_at</a>",
+          "<a href=\"/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=app/plot&ppid=1mgp2c1k1ug51xmn1y3h1l3w\" target=\"_blank\">1457155_at</a>"],          
+          z: [[5.38318, 6.12603, 5.29942, 6.35751, 6.09723, 6.26966, 5.77299, 5.85451, 5.85451, 5.71681], 
+        [9.78472, 9.7933, 9.99168, 9.89913, 9.45477, 9.18651, 9.7555, 9.4609, 9.64681, 9.38224],
+        [4.22886, 4.93085, 5.6639, 5.11452, 5.52497, 5.08776, 6.12665, 5.20033, 4.90654, 5.15027]],
+          }
+        ]
+      },
+      user_controls: [{
+        uid: 'section',
+        label: 'Section Ordinal',
+        type: 'dropdown',
+        request_info: {
+          data: [{
+            Name: '3',
+            Display: 'Three'
+          }, {
+            Name: '5',
+            Display: 'Five'
+          }, {
+            Name: '7',
+            Display: 'Seven'
+          }],
+          default_value: '3',
+          value_key: 'Name',
+          selected_value_pattern: '{{{$self.values.Display}}}'
+        }
+      },
+      ],
+      config: {
+        /**
+         * Heatmap plot has the support for following features:
+         * title_display_markdown_pattern : Custom Heatmap title, xaxis and yaxis title(clickable)
+         * tick_display_markdown_pattern : Custom tick text(clickable) for x axis and y axis
+         * */
+        title_display_markdown_pattern: '[ title ](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
+        xaxis: {
+          tick_display_markdown_pattern:
+            '[{{$self.data.Label}}](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
+          title_display_markdown_pattern: '[ title x ](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+        },
+        yaxis: {
+          tick_display_markdown_pattern:
+            '[{{$self.data.Probe_Set_Name}}](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
+          // title_display_markdown_pattern: '[ title y ](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+        },
+      },
+      traces: [
+        {
+          graphic_link_pattern:
+            ['/chaise/recordset/#2/RNASeq:Replicate_Expression'],
+          hovertemplate_display_pattern: "Label: {{{$row.Label}}}<br>Probe Name: {{{$row.Probe_Set_Name}}}<br>Value: {{{$row.Value}}}<br>Gene ID: {{{$url_parameters.NCBI_GeneID}}}",
+          // url_pattern: '/ermrest/catalog/2/entity/Gene_Expression:Array_Data_view/NCBI_GeneID={{{$url_parameters.NCBI_GeneID}}}&Section_Ordinal={{{$control_values.section.values.Name}}}',
+          // x_col: ["Label"],
+          // y_col: ["Probe_Set_Name"],
+          // z_col: ["Value"],
+          legend_markdown_pattern:
+            '[{{$row.Probe_Set_name}}](/chaise/recordset/#2/{{{$row.Schema_Table}}}/*::facets::{{#encodeFacet}}',
+        }
+      ]
+    }]
+  },
   'gudmap-todate-bar-swapped': {
     headTitle: 'GUDMAP Data Status Dashboard',
     // Array of object plots to be shown on the page
