@@ -6,7 +6,7 @@ import Dropdown from '@isrd-isi-edu/deriva-webapps/src/components/controls/dropd
 import FacetSearchPopupControl from '@isrd-isi-edu/deriva-webapps/src/components/controls/facet-search-popup';
 
 // models
-import { UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/webapps-core';
 
 type UserControlProps = {
     controlConfig: UserControlConfig;

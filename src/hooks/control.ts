@@ -4,7 +4,7 @@ import usePlot from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
 
 // models
 import { Option } from '@isrd-isi-edu/deriva-webapps/src/components/virtualized-select';
-import { UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/webapps-core';
 
 // services
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';

@@ -12,8 +12,8 @@ import { useEffect, useRef, useState } from 'react';
 import usePlot from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
 
 // models
-import { DataConfig, Plot, UserControlConfig, defaultGridProps, globalGridMargin } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
-import { LayoutConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { DataConfig, Plot } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { defaultGridProps, globalGridMargin, LayoutConfig, UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/webapps-core';
 import { Layouts, Responsive, WidthProvider } from 'react-grid-layout';
 
 // provider

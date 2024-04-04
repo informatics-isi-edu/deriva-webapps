@@ -12,6 +12,9 @@ import { useVitessceConfig } from '@isrd-isi-edu/deriva-webapps/src/hooks/vitess
 // models
 import { VitessceTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/models/vitessce';
 
+// provider
+import VitessceAppProvider from '@isrd-isi-edu/deriva-webapps/src/providers/vitessce-app';
+
 // utilities
 import { ID_NAMES } from '@isrd-isi-edu/chaise/src/utils/constants';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
@@ -31,23 +34,10 @@ const DerivaVitessceApp = (): JSX.Element => {
   const { config, errors } = useVitessceConfig(windowRef.vitessceConfigs);
 
   const [vitessceProps, setVitessceProps] = useState<DerivaVitessceProps | null>(null);
-  const [templateParams, setTemplateParams] = useState<VitessceTemplateParams>({
-    $url_parameters: {}
-  });
 
   useEffect(() => {
-    const allQueryParams = getQueryParams(windowRef.location.href);
-
-    const tempParams = {...templateParams};
-    // push query parameters into templating environment
-    Object.keys(allQueryParams).forEach((key: string) => {
-      tempParams.$url_parameters[key] = allQueryParams[key];
-    });
-
-    setTemplateParams(tempParams);
-
     if (config) {
-      setVitessceProps({ config: config, templateParams: tempParams });
+      setVitessceProps({ config: config });
     }
   }, [config]);
 
@@ -60,7 +50,11 @@ const DerivaVitessceApp = (): JSX.Element => {
     return <ChaiseSpinner />;
   }
 
-  return <DerivaVitessce {...vitessceProps} />;
+  return (
+    <VitessceAppProvider>
+      <DerivaVitessce {...vitessceProps} />
+    </VitessceAppProvider>
+  );
 };
 
 const root = createRoot(document.getElementById(ID_NAMES.APP_ROOT) as HTMLElement);

@@ -6,6 +6,8 @@ import {
   PieData as PlotlyPieData,
   PlotData,
 } from 'plotly.js';
+
+import { LayoutConfig, UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/webapps-core';
 import { ResponsiveProps as ResponsiveGridConfig, Layouts, ResponsiveProps } from 'react-grid-layout';
 
 
@@ -23,34 +25,8 @@ export type DataConfig = {
   plots: Plot[];
   layout: Layouts;
   grid_layout_config?: ResponsiveGridConfig;
-  user_controls: UserControlConfig[]; //NOTE: For now user_controls will be considered of type dropdown only
+  user_controls: UserControlConfig[];
 };
-
-export type UserControlDataConfig={
-  Name: string;
-  Display: string;
-}
-
-export type UserControlConfig = {
-  uid: string;
-  label: string;
-  type: string;
-  url_param_key?: string;
-  request_info: UserControlRequestInfoConfig;
-}
-
-export type ControlScope = 'global' | 'local';
-
-export type UserControlRequestInfoConfig = {
-  url_pattern?: string;
-  data?: UserControlDataConfig[];
-  default_value?: string;
-  value_key: string;
-  selected_value_pattern?: string;
-  tick_markdown_pattern: string;
-}
-
-
 
 /**
  * Specific plot
@@ -156,52 +132,34 @@ export type Trace = {
  * Breakpoint config
  */
 export type BreakpointConfig =
-{
-  lg: number; 
-  md: number; 
-  sm: number; 
-  xs: number;
-}
+  {
+    lg: number;
+    md: number;
+    sm: number;
+    xs: number;
+  }
 
 /**
  * Responsive Layout config
  */
 export type ResponsiveLayoutConfig =
-{
-  lg: LayoutConfig[]; 
-  md: LayoutConfig[]; 
-  sm: LayoutConfig[]; 
-  xs: LayoutConfig[];
-}
+  {
+    lg: LayoutConfig[];
+    md: LayoutConfig[];
+    sm: LayoutConfig[];
+    xs: LayoutConfig[];
+  }
 
 /**
  * Margin/Padding config
  */
 export type MarginPaddingConfig =
-{
-  lg: [number, number]; 
-  md: [number, number]; 
-  sm: [number, number]; 
-  xs: [number, number];
-}
-
-/**
- * Layout config for selector
- */
-export type LayoutConfig = {
-  source_uid: any;
-  x: number;
-  y: number;
-  w: number; 
-  h: number;
-  min_w: number;
-  max_w: number;
-  min_h: number;
-  max_h: number;
-  static: boolean;
-  is_draggable: boolean;
-  is_resizable: boolean;
-}
+  {
+    lg: [number, number];
+    md: [number, number];
+    sm: [number, number];
+    xs: [number, number];
+  }
 
 /**
  * Trace data
@@ -211,26 +169,23 @@ export type TracePlotyData = Partial<PlotlyPlotData> &
   Partial<PlotlyPieData>;
 
 
-  export type PlotTemplateParams = {
-    $row?: {
-      [paramKey: string]: any;
-    };
-    $self?: {
-      [paramKey: string]: any;
-    };
-    /**
-     * Parameters for URL 
-     */
-    $url_parameters: {
-      [paramKey: string]: any;
-    };
-    /**
-     * Parameters for URL
-     */
-    $control_values: {
-      [paramKey: string]: any;
-    };
+export type PlotTemplateParams = {
+  $row?: {
+    [paramKey: string]: any;
   };
+  $self?: {
+    [paramKey: string]: any;
+  };
+  /**
+   * Parameters for URL 
+   */
+  $url_parameters: {
+    [paramKey: string]: any;
+  };
+  $control_values: {
+    [paramKey: string]: any;
+  };
+};
 
 /**
  * Trace configs
@@ -244,16 +199,4 @@ export const plotAreaFraction = 0.95;
 export const screenWidthThreshold = 1000;
 
 //Valid file types for url_pattern
-export const validFileTypes = ['csv','json'];
-
-//Default grid layout object to supply to the ResponsiveGridLayout if no grid configuration is provided in the config file
-export const defaultGridProps = {
-  auto_size: true,
-  breakpoints: { lg: 1200, md: 996, sm: 768, xs: 480 },
-  cols: { lg: 12, md: 10, sm: 6, xs: 4 },
-  margin: { lg: [10, 10], md: [10, 10], sm: [5, 5], xs: [5, 5] },
-  container_padding: { lg: [12, 12], md: [10, 10], sm: [0, 0], xs: [0, 0] },
-  row_height: 30,
-};
-
-export const globalGridMargin = { lg: [15, 5], md: [15, 5], sm: [5, 5], xs: [5, 5] };
+export const validFileTypes = ['csv', 'json'];

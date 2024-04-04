@@ -3,8 +3,8 @@ import { createContext, useEffect, useMemo, useRef, useState } from 'react';
 import useError from '@isrd-isi-edu/chaise/src/hooks/error';
 
 // models
-import { PlotTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 import { UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/webapps-core';
+import { VitessceTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/models/vitessce';
 
 // services
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
@@ -12,31 +12,31 @@ import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
 // utils
 import { getQueryParam } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 import { generateUid } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
-import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
+import { windowRef } from '@isrd-isi-edu/chaise/src/utils/window-ref';
 
 
-export const PlotAppContext = createContext<{
+export const VitessceAppContext = createContext<{
   setConfig: Function;
   globalControlsInitialized: boolean;
   globalUserControlData: any;
   selectorOptionChanged: boolean;
   setSelectorOptionChanged: Function;
-  templateParams: PlotTemplateParams;
+  templateParams: VitessceTemplateParams;
   setTemplateParams: Function;
 } | null>(null);
 
-type PlotAppProviderProps = {
+type VitessceAppProviderProps = {
   children: React.ReactNode;
 };
 
-export default function PlotAppProvider({
+export default function VitessceAppProvider({
   children,
-}: PlotAppProviderProps): JSX.Element {
+}: VitessceAppProviderProps): JSX.Element {
 
   const [config, setConfig] = useState<any>(null);
   const [globalControlsInitialized, setGlobalControlsInitialized] = useState<boolean>(false);
   const [selectorOptionChanged, setSelectorOptionChanged] = useState<boolean>(false);
-  const [templateParams, setTemplateParams] = useState<PlotTemplateParams>({
+  const [templateParams, setTemplateParams] = useState<VitessceTemplateParams>({
     $url_parameters: {},
     $control_values: {}
   });
@@ -146,8 +146,8 @@ export default function PlotAppProvider({
   ]);
 
   return (
-    <PlotAppContext.Provider value={providerValue}>
+    <VitessceAppContext.Provider value={providerValue}>
       {children}
-    </PlotAppContext.Provider>
+    </VitessceAppContext.Provider>
   )
 }

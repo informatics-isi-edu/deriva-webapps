@@ -12,8 +12,9 @@ import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-siz
 import {
   Plot, PlotConfig, PlotConfigAxis,
   DataConfig, Trace, screenWidthThreshold,
-  plotAreaFraction, validFileTypes, UserControlConfig
+  plotAreaFraction, validFileTypes
 } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/webapps-core';
 
 // services
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';

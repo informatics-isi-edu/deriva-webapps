@@ -7,7 +7,7 @@ import UserControl from '@isrd-isi-edu/deriva-webapps/src/components/controls/us
 
 // models
 import { Responsive, WidthProvider, ResponsiveProps as ResponsiveGridProps, Layouts } from 'react-grid-layout';
-import { UserControlConfig, LayoutConfig, defaultGridProps } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { defaultGridProps, LayoutConfig, UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/webapps-core';
 
 // utils
 import { convertKeysSnakeToCamel, generateUid, validateGridProps } from '@isrd-isi-edu/deriva-webapps/src/utils/string';

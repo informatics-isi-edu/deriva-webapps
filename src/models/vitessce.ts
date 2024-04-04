@@ -1,7 +1,13 @@
+import { UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/webapps-core';
+import { ResponsiveProps as ResponsiveGridConfig } from 'react-grid-layout';
+
 export type VitessceTemplateParams = {
   $url_parameters: {
     [paramKey: string]: string;
-  }
+  },
+  $control_values: {
+    [paramKey: string]: any;
+  };
 }
 
 /**
@@ -18,6 +24,7 @@ export type DerivaVitessceDataConfig = {
   height: number;
   theme: 'dark' | 'light' | null;
   vitessce: {
+    uid: string;
     version: string;
     name: string;
     description: string;
@@ -25,7 +32,9 @@ export type DerivaVitessceDataConfig = {
     initStrategy: string;
     coordinationSpace: any;
     layout: VitessceLayoutConfig[];
-  }
+  },
+  grid_layout_config?: ResponsiveGridConfig;
+  user_controls: UserControlConfig[];
 };
 
 export type VitessceLayoutConfig = {
