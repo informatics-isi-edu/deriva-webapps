@@ -1,5 +1,6 @@
 import { memo, forwardRef, ForwardedRef, CSSProperties } from 'react';
 import { VariableSizeList as List, ListOnScrollProps } from 'react-window';
+import { isStringAndNotEmpty } from '@isrd-isi-edu/chaise/src/utils/type-utils';
 
 // Shared common props for column header
 import SharedColumnHeaders, { SharedColumnHeadersProps } from '@isrd-isi-edu/deriva-webapps/src/components/matrix//shared-column-headers';
@@ -75,6 +76,11 @@ const HeaderComponent = ({ index, data, style }: HeaderComponentProps): JSX.Elem
   const linkClassName = hoveredColID === id ? 'hovered-header' : 'unhovered-header';
   const linkDivClassName = searchedColID === id ? 'searched-header' : 'unsearched-header';
 
+  let WrapperEL: React.ElementType = 'span';
+  if (isStringAndNotEmpty(link)) {
+    WrapperEL = 'a';
+  }
+
   return (
     <div
       className='column-header'
@@ -84,9 +90,9 @@ const HeaderComponent = ({ index, data, style }: HeaderComponentProps): JSX.Elem
         setHoveredColID(id);
       }}
     >
-      <a className={`column-header-link ${linkClassName}`} href={link} title={title}>
+      <WrapperEL className={`column-header-link ${linkClassName}`} title={title} {...(WrapperEL === 'a' && { href: link })}>
         <div className={linkDivClassName}>{title}</div>
-      </a>
+      </WrapperEL>
     </div>
   );
 };

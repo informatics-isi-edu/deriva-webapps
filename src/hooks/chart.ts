@@ -1,18 +1,20 @@
 // hooks
-import { useEffect, useState, useCallback, useRef } from 'react';
 import useAlert from '@isrd-isi-edu/chaise/src/hooks/alerts';
 import useError from '@isrd-isi-edu/chaise/src/hooks/error';
+import useIsFirstRender from '@isrd-isi-edu/chaise/src/hooks/is-first-render';
+import { createStudyViolinSelectGrid, useChartControlsGrid, } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart-select-grid';
 import usePlot from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
 import usePlotlyChart from '@isrd-isi-edu/deriva-webapps/src/hooks/plotly-chart';
-import { createStudyViolinSelectGrid, useChartControlsGrid, } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart-select-grid';
-import useIsFirstRender from '@isrd-isi-edu/chaise/src/hooks/is-first-render';
 import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 // models
 import {
+  DataConfig,
   Plot, PlotConfig, PlotConfigAxis,
-  DataConfig, Trace, screenWidthThreshold,
-  plotAreaFraction, validFileTypes
+  Trace, plotAreaFraction,
+  screenWidthThreshold,
+  validFileTypes
 } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 import { UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/webapps-core';
 
@@ -20,22 +22,27 @@ import { UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/webap
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
 
 // utils
-import { getConfigObject } from '@isrd-isi-edu/deriva-webapps/src/utils/config';
-import Papa from 'papaparse';
-import { flatten2DArray } from '@isrd-isi-edu/deriva-webapps/src/utils/data';
-import { getQueryParam, getQueryParams } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
-import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
-import {
-  invalidCsvAlert, invalidJsonAlert, invalidKeyAlert, invalidResponseFormatAlert,
-  emptyDataColArrayAlert, emptyXColArrayAlert, emptyYColArrayAlert, incompatibleColArraysAlert,
-  noColumnsDefinedAlert, xColOnlyAlert, yColOnlyAlert, xYColsNotAnArrayAlert
-} from '@isrd-isi-edu/deriva-webapps/src/utils/message-map';
 import { ChaiseAlertType } from '@isrd-isi-edu/chaise/src/providers/alerts';
+import { getQueryParam, getQueryParams } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
+import { getConfigObject } from '@isrd-isi-edu/chaise/src/utils/config';
+import { flatten2DArray } from '@isrd-isi-edu/deriva-webapps/src/utils/data';
+import {
+  emptyDataColArrayAlert, emptyXColArrayAlert, emptyYColArrayAlert, incompatibleColArraysAlert,
+  invalidCsvAlert, invalidJsonAlert, invalidKeyAlert, invalidResponseFormatAlert,
+  noColumnsDefinedAlert, xColOnlyAlert,
+  xYColsNotAnArrayAlert,
+  yColOnlyAlert
+} from '@isrd-isi-edu/deriva-webapps/src/utils/message-map';
 import {
   addComma, createLink, createLinkWithContextParams,
-  extractValue, extractAndFormatDate, formatPlotData,
-  getPatternUri, generateUid, isDataJSON, wrapText
+  extractAndFormatDate,
+  extractValue,
+  formatPlotData,
+  getPatternUri,
+  isDataJSON, wrapText
 } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
+import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
+import Papa from 'papaparse';
 
 /**
  * Data received from API request
@@ -162,7 +169,7 @@ export const usePlotConfig = (plotConfigs: PlotConfig) => {
 
   useEffect(() => {
     try {
-      const config = getConfigObject<DataConfig>(plotConfigs);
+      const config: DataConfig = getConfigObject(plotConfigs);
       setTypeConfig(config);
     } catch (error) {
       dispatchError({ error });
@@ -231,13 +238,9 @@ export const useChartData = (plot: Plot) => {
         const tempParams = { ...templateParams };
 
         const tempUserControls = [...plot.user_controls];
+
         for (let i = 0; i < plot.user_controls.length; i++) {
           const controlConfig = plot.user_controls[i];
-          if (!controlConfig.uid) {
-            controlConfig.uid = generateUid('local', controlConfig.type, i)
-            tempUserControls[i] = controlConfig;
-          }
-
           const values = await initalizeControlData(controlConfig);
 
           tempParams.$control_values[controlConfig.uid] = {
@@ -408,7 +411,7 @@ export const useChartData = (plot: Plot) => {
 
   // if each row in response is an object with a single string value that looks like a path
   //   assume that string is a path to a file of data (or other API) and fetch the subsequent data
-  const getDataIfFromFile = async(responseData: any) => {
+  const getDataIfFromFile = async (responseData: any) => {
     const fileResponses: Array<Response> = await Promise.all(
       responseData.map((responseArray: any) => {
         // responseArray.length is 1 from condition that limits this function from being called
@@ -431,7 +434,7 @@ export const useChartData = (plot: Plot) => {
         const value = row[key];
 
         const pathRegEx = /^(?:\/|[a-z]+:\/\/)/
-        
+
         // NOTE: html path tests
         // console.log(pathRegEx.test('abcxyz'));   // ==> false
         // console.log(pathRegEx.test('/abcxyz'));  // ==> true
@@ -940,11 +943,11 @@ export const useChartData = (plot: Plot) => {
   ): string | number => {
     let value = item[colName];
     if (axis && axis?.tick_display_markdown_pattern) {
-      value = createLink(axis.tick_display_markdown_pattern, { 
-        $self: { 
+      value = createLink(axis.tick_display_markdown_pattern, {
+        $self: {
           data: item, // TODO: to be deprecated
           values: item
-        } 
+        }
       });
     }
     return formatPlotData(value, formatData, plot.plot_type);
@@ -986,12 +989,12 @@ export const useChartData = (plot: Plot) => {
       const extractedLinkPattern = createLinkWithContextParams(legendPattern);
 
       if (extractedLinkPattern) {
-        const link = createLink(extractedLinkPattern, { 
-          $self: { 
+        const link = createLink(extractedLinkPattern, {
+          $self: {
             data: item, // TODO: to be deprecated
             values: item
           },
-          $row: item 
+          $row: item
         });
         if (link) result.legend_clickable_links.push(link);
       }
@@ -1008,11 +1011,11 @@ export const useChartData = (plot: Plot) => {
 
       if (graphClickPattern) {
         const link = createLink(graphClickPattern, {
-          $self: { 
+          $self: {
             data: item, // TODO: to be deprecated
             values: item
           },
-          $row: item 
+          $row: item
         });
         if (link) result.graphic_clickable_links.push(link);
       }
@@ -1038,7 +1041,7 @@ export const useChartData = (plot: Plot) => {
     const hovertemplate_display_pattern = trace.hovertemplate_display_pattern; // use trace info
     if (hovertemplate_display_pattern) {
       const validLink = ConfigService.ERMrest.renderHandlebarsTemplate(hovertemplate_display_pattern, {
-        $self: { 
+        $self: {
           data: item, // TODO: to be deprecated
           values: item
         },
@@ -1056,7 +1059,7 @@ export const useChartData = (plot: Plot) => {
       }
 
       link = ConfigService.ERMrest.renderHandlebarsTemplate(hovertemplate_display_pattern, {
-        $self: { 
+        $self: {
           data: item, // TODO: to be deprecated
           values: item
         },
@@ -1342,7 +1345,7 @@ export const useChartData = (plot: Plot) => {
                 $self: {
                   data: item, // TODO: to be deprecated
                   values: item
-                } 
+                }
               });
               let labelValue = textValue;
               if (Array.isArray(trace.legend_markdown_pattern)) {

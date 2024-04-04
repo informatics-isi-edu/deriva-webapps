@@ -1,10 +1,10 @@
 import {
-  Layout as PlotlyLayout,
+  PlotData,
   Config as PlotlyConfig,
+  Layout as PlotlyLayout,
+  PieData as PlotlyPieData,
   PlotData as PlotlyPlotData,
   ViolinData as PlotlyViolinData,
-  PieData as PlotlyPieData,
-  PlotData,
 } from 'plotly.js';
 
 import { LayoutConfig, UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/webapps-core';

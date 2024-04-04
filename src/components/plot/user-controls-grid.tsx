@@ -1,6 +1,6 @@
 // import '/node_modules/react-resizable/css/styles.css';
 // import '/node_modules/react-grid-layout/css/styles.css';
-import { memo, useEffect, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 
 // components
 import UserControl from '@isrd-isi-edu/deriva-webapps/src/components/controls/user-control';
@@ -10,7 +10,10 @@ import { Responsive, WidthProvider, ResponsiveProps as ResponsiveGridProps, Layo
 import { defaultGridProps, LayoutConfig, UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/webapps-core';
 
 // utils
-import { convertKeysSnakeToCamel, generateUid, validateGridProps } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
+import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
+import useAlert from '@isrd-isi-edu/chaise/src/hooks/alerts';
+import { convertKeysSnakeToCamel, validateGridProps } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
+import { validateControlData, validateDuplicateControlUID, validateLayout, validateUID } from '@isrd-isi-edu/deriva-webapps/src/utils/plot-utils';
 
 type UserControlsGridProps = {
   /**
@@ -33,40 +36,62 @@ const UserControlsGrid = ({
 }: UserControlsGridProps): JSX.Element => {
   const [layout, setLayout] = useState<Layouts>({});
   const [gridProps, setGridProps] = useState<ResponsiveGridProps>({});
+  const [localControlData, setLocalControlData] = useState<any[]>(userControlData.userControlConfig);
+  const [validationComplete, setValidationComplete] = useState<boolean>(false);
+  const [localControlsReady, setLocalControlsReady] = useState<boolean>(false);
 
-  const controlConfig = userControlData.userControlConfig;
+  const alertFunctions = useAlert();
 
   const defaultGridPropsConverted = convertKeysSnakeToCamel(defaultGridProps);
+  // since we're using strict mode, the useEffect is getting called twice in dev mode
+  // this is to guard against it
+  const setupStarted = useRef<boolean>(false);
 
-  // set layout and grid props for local react grid
+  /**
+  * It should be called once to validate the configuration data for the user controls
+  */
   useEffect(() => {
-    if (userControlData?.layout && Object.values(userControlData.layout).length > 0) {
-      const mappedLayoutValues = Object.values(userControlData.layout)?.map((resLayout: any) => (
-        resLayout.map((item: LayoutConfig) => convertKeysSnakeToCamel(({
-          // i defines the item on which the given layout will be applied
-          i: item?.source_uid,
-          ...item,
-        })))
-      ));
+    if (setupStarted.current) return;
+    setupStarted.current = true;
 
-      setLayout(Object.fromEntries(Object.entries(userControlData.layout).map(([key]: any, index) => [key, mappedLayoutValues[index]])));
+    if (localControlData?.length > 0) {
+      //Validate local controls for uid and type. Display error if any control doesn't have an uid or type
+      validateUID(localControlData, alertFunctions);
+    }
+
+    /*Validate local controls with same uid. Display error in case of same uid(s)
+    * controlObject will be of the form {key_1: val_1, key_2: val_2, ..} where key is control uid and the value will be the control data.
+    * Example of controlObject: {consort: {uid:"consort", label:"consortium", type:"dropdown", request_info:{...}}}*/
+    const controlObject = validateDuplicateControlUID(localControlData, alertFunctions);
+
+    // Validate controls for not having neither of the request_info.data nor the request_info.url_pattern and display error
+    const validatedUserControls = validateControlData(Object.values(controlObject), alertFunctions);
+
+    let tempLayout;
+    let revalidatedUserControls;
+    if (userControlData?.gridConfig?.layouts && Object.values(userControlData.gridConfig?.layouts)?.length > 0) {
+      // Check if the layout parameter has all the necessary properties such as source_uid, h, w, x, and y. If any of these properties are missing, display a warning.
+      const validatedLayoutObject = validateLayout(userControlData?.gridConfig?.layouts, validatedUserControls, alertFunctions);
+      tempLayout = validatedLayoutObject.tempLayout;
+      revalidatedUserControls = validatedLayoutObject.revalidatedUserControls;
     } else {
+
       const gridConfig = userControlData.gridConfig;
       // Default uid for local controls will be considered as eg. local_dropdown_0 for first local control
-      const defaultControlUid: string[] = controlConfig.map((control: UserControlConfig) => control.uid);
+      const defaultControlUid: string[] = validatedUserControls?.map((control: UserControlConfig) => control.uid);
       // if `cols` is a number, use that number
-      const columnNumber = typeof gridConfig.cols === 'number' && gridConfig.cols;
+      const columnNumber = typeof gridConfig?.cols === 'number' && gridConfig?.cols;
       // cols is an object, defaultColumns is an array containing key value pairs (breakpointKey, value)
-      const defaultColumns = gridConfig.cols && !columnNumber && Object.values(gridConfig.cols) || Object.values(defaultGridProps.cols);
-      const breakpointsApplied = gridConfig.breakpoints || defaultGridProps.breakpoints;
+      const defaultColumns = gridConfig?.cols && !columnNumber && Object.values(gridConfig?.cols) || Object.values(defaultGridProps.cols);
+      const breakpointsApplied = gridConfig?.breakpoints || defaultGridProps.breakpoints;
 
-      const tempLayout = Object.fromEntries(Object.entries(breakpointsApplied).map(
+      tempLayout = Object.fromEntries(Object.entries(breakpointsApplied).map(
         ([key]: any, index: number) => {
           return [key, defaultControlUid.map((id: string, ind: number) => {
             return {
               i: id,
-              x: ind % 2 === 0 ? 0 : ind + (columnNumber ? columnNumber / 2 : defaultColumns[index] / 2),
-              y: Math.floor(ind / 2),
+              x: 0,
+              y: ind,
               w: columnNumber ? columnNumber / 2 : defaultColumns[index] / 2,
               h: 1,
               static: true
@@ -74,9 +99,15 @@ const UserControlsGrid = ({
           })]
         }
       ))
-
-      setLayout(tempLayout);
     }
+    setLayout(tempLayout);
+    if (revalidatedUserControls && revalidatedUserControls?.length !== -1) {
+      setLocalControlData(revalidatedUserControls);
+    } else {
+      setLocalControlData(validatedUserControls);
+    }
+    //To avoid react-grid-layout throwing unnecessary errors related to layout or UID
+    setValidationComplete(true);
   }, []);
 
   // Validate (Transform the keys to the correct case, adjust the values to suit ResponsiveGridLayout) and configure the grid layout props
@@ -84,31 +115,31 @@ const UserControlsGrid = ({
     if (userControlData.gridConfig) {
       setGridProps(validateGridProps(userControlData.gridConfig));
     }
-  }, [userControlData.gridConfig])
+  }, [userControlData.gridConfig]);
+
 
   const renderUserControls = () => {
     return (
-      controlConfig?.map((config: UserControlConfig) => (
-        <div key={config.uid}>
-          <UserControl controlConfig={config} />
-        </div>
-      ))
-    )
+      localControlData?.map((config: UserControlConfig) => ((<div key={config.uid}>
+        <UserControl controlConfig={config} />
+      </div>
+      )))
+    );
   }
 
-  return (
+  return validationComplete ? (
     <div className='selectors-grid' style={{ display: 'flex', flex: '0 1 0%', width: gridProps.width || width }}>
       <ResponsiveGridLayout className='grid-layout layout' style={{ position: 'relative' }}
-        layouts={layout}
         // TODO: Look for another fix for overlapping issue in controls
         useCSSTransforms={false}
         {...defaultGridPropsConverted}
         {...gridProps}
+        layouts={layout}
       >
-        {renderUserControls()}
+        {localControlData?.length > 0 ? renderUserControls() : null}
       </ResponsiveGridLayout>
     </div>
-  );
+  ) : <ChaiseSpinner />;
 
 };
 

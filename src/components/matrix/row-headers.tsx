@@ -4,6 +4,7 @@ import { VariableSizeList as List, ListOnScrollProps } from 'react-window';
 // Shared common props for row header
 import SharedRowHeaders, { SharedRowHeadersProps } from '@isrd-isi-edu/deriva-webapps/src/components/matrix//shared-row-headers';
 import { getScrollbarSize } from '@isrd-isi-edu/deriva-webapps/src/utils/ui-utils';
+import { isStringAndNotEmpty } from '@isrd-isi-edu/chaise/src/utils/type-utils';
 
 type RowHeadersProps = SharedRowHeadersProps & {
   /**
@@ -71,11 +72,16 @@ const HeaderComponent = ({ index, data, style }: HeaderComponentProps): JSX.Elem
   let link = '';
   let title = '';
   let id = '';
+  let WrapperEL: React.ElementType = 'span';
   if (index < listData.length) {
     const rowData = listData[index][0];
     link = rowData.row.link;
     title = rowData.row.title;
     id = rowData.row.id;
+  }
+
+  if (isStringAndNotEmpty(link)) {
+    WrapperEL = 'a';
   }
 
   let containerClassName = hoveredRowID === id ? 'hovered-cell' : 'unhovered-cell';
@@ -102,9 +108,9 @@ const HeaderComponent = ({ index, data, style }: HeaderComponentProps): JSX.Elem
         setHoveredColID(null);
       }}
     >
-      <a className={`row-header-link ${linkClassName}`} href={link} title={title}>
+      <WrapperEL className={`row-header-link ${linkClassName}`} title={title} {...(WrapperEL === 'a' && { href: link })}>
         {title}
-      </a>
+      </WrapperEL>
     </div>
   );
 };

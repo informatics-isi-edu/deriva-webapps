@@ -6,13 +6,13 @@ import { TreeNodeMap } from '@isrd-isi-edu/deriva-webapps/src/hooks/matrix';
 
 // MUI tree components
 import { alpha, styled } from '@mui/material/styles';
-import TreeItem, { TreeItemProps, treeItemClasses, useTreeItem, TreeItemContentProps } from '@mui/lab/TreeItem';
+import { TreeItem, TreeItemProps, treeItemClasses, useTreeItem, TreeItemContentProps } from '@mui/x-tree-view/TreeItem';
 import clsx from 'clsx';
 import Typography from '@mui/material/Typography';
 
 
 /**
- * Create a component that customizes the minus square icon for tree view and then memorize it 
+ * Create a component that customizes the minus square icon for tree view and then memorize it
  */
 type MemoizedIconSquareProps = {
   isLeft: boolean; // True when the tree expands from left to right, False when right to left
@@ -80,9 +80,9 @@ export const MemoizedMinusSquare = memo(({ isLeft, cellSize, iconSize }: Memoize
 
 // Add displayName to the functional component
 MemoizedMinusSquare.displayName = 'MemoizedMinusSquare';
-  
+
 /**
- * Create a component that customizes the plus square icon for tree view and then memorize it 
+ * Create a component that customizes the plus square icon for tree view and then memorize it
  */
 export const MemoizedPlusSquare = memo(({ isLeft, cellSize, iconSize }: MemoizedIconSquareProps) => {
   const firstHalfBorderStyle = isLeft
@@ -146,7 +146,7 @@ MemoizedPlusSquare.displayName = 'MemoizedPlusSquare';
 
 
 /**
- * Create a component that customizes the close square icon for tree view and then memorize it 
+ * Create a component that customizes the close square icon for tree view and then memorize it
  */
 type MemoizedCloseSquareProps = {
   isLeft: boolean; // True when the tree expands from left to right, False when right to left
@@ -200,7 +200,7 @@ MemoizedCloseSquare.displayName = 'MemoizedCloseSquare';
 
 
 /**
- * Create a component that renders the tree (the renderTree function) and then memorize it 
+ * Create a component that renders the tree (the renderTree function) and then memorize it
  */
 type MemoizedRenderTreeProps = {
   nodes: TreeNode[]; // tree nodes data
@@ -236,11 +236,11 @@ export const MemoizedRenderTree = memo(({ nodes, data, cellSize, treeNodesMap, i
 
   /**
    * TODO
-   * 
+   *
    * Only for row tree headers, when scrollableMaxWidth is auto,
-   * the hover effect for each entry not in the top layer leaves some blank at the very left 
+   * the hover effect for each entry not in the top layer leaves some blank at the very left
    * because of the indent of the original MUI tree component.
-   * 
+   *
    * Current solution is that, when scrollableMaxWidth is not auto, we set the hover background to the very left
    * of each item, this looks normal since the scrollabel max width is fixed. However, this does not work when
    * scrollableMaxWidth is auto since the background dom will extend the left side and cause a big area of blank

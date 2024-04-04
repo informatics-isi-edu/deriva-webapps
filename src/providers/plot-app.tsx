@@ -1,6 +1,6 @@
 // hooks
-import { createContext, useEffect, useMemo, useRef, useState } from 'react';
 import useError from '@isrd-isi-edu/chaise/src/hooks/error';
+import { createContext, useEffect, useMemo, useRef, useState } from 'react';
 
 // models
 import { PlotTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
@@ -11,7 +11,6 @@ import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
 
 // utils
 import { getQueryParam } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
-import { generateUid } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
 
 
@@ -62,10 +61,6 @@ export default function PlotAppProvider({
         const tempUserControls = [...config.user_controls];
         for (let i = 0; i < config.user_controls.length; i++) {
           const controlConfig = { ...config.user_controls[i] };
-          if (!controlConfig.uid) {
-            controlConfig.uid = generateUid('global', controlConfig.type, i)
-            tempUserControls[i] = controlConfig;
-          }
 
           const values = await initalizeControlData(controlConfig);
 
@@ -77,7 +72,7 @@ export default function PlotAppProvider({
         setGlobalUserControlData({
           userControlConfig: tempUserControls,
           gridConfig: config?.grid_layout_config,
-          layout: config?.layout
+          layout: config?.grid_layout_config?.layouts
         });
 
         setTemplateParams(tempParams);

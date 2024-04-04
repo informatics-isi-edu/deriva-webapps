@@ -76,7 +76,7 @@ body:not(.chaise-iframe) {
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    margin: auto;
+    margin: 0 auto;
     margin-bottom: 15px;
 
     .dummy-option {
@@ -276,6 +276,7 @@ body:not(.chaise-iframe) {
     }
 
     .cell-display-value {
+      color: white;
       position: absolute;
       top: 0;
       right: 0;

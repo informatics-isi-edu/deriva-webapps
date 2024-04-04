@@ -171,8 +171,23 @@ const MatrixApp = (): JSX.Element => {
 
   const legendHeight = (styles?.legend?.height || styles?.legend?.height === 0) ? styles?.legend.height : 200;
 
+  const title = config.title_markdown
+    ? ConfigService.ERMrest.renderMarkdown(config.title_markdown)
+    : '';
+  const subtitle = config.subtitle_markdown
+    ? ConfigService.ERMrest.renderMarkdown(config.subtitle_markdown)
+    : '';
+
+  const displayColorThemeContainer = matrixData.hasColor && colorOptions.length > 1;
+  const displaySearchBar = !config.hide_search_box;
+
   const widthBufferSpace = 50; // buffer space for keeping everything in viewport
-  const heightBufferSpace = legendHeight + 200; // buffer space for keeping everything in viewport
+
+  // TODO is there anyway to make this dynamic?
+  let heightBufferSpace = legendHeight;
+  if (displayColorThemeContainer || displaySearchBar) heightBufferSpace += 30;
+  if (title) heightBufferSpace += 50;
+  if (subtitle) heightBufferSpace += 60;
 
   const strictMinHeight = 200;
   const strictMinWidth = 400;
@@ -243,17 +258,10 @@ const MatrixApp = (): JSX.Element => {
     openMenuOnClick: false,
   };
 
-  const title = config.title_markdown
-    ? ConfigService.ERMrest.renderMarkdown(config.title_markdown)
-    : '';
-  const subtitle = config.subtitle_markdown
-    ? ConfigService.ERMrest.renderMarkdown(config.subtitle_markdown)
-    : '';
-
   return (
     <div className='matrix-page'>
       <div className='content-container'>
-        {config.title_markdown && config.title_markdown ? (
+        {(title || subtitle) &&
           <div className='title-container'>
             {title && (
               <h1>
@@ -266,34 +274,36 @@ const MatrixApp = (): JSX.Element => {
               </div>
             )}
           </div>
-        ) : null}
+        }
 
-        <div className='options-container' style={{ width: legendWidth }}>
-          {/* The dummy option can be added to center align the search-box */}
-          {/* <div className='dummy-option' /> */}
-          <div style={{ width: 350 }}>
-            <SearchBar
-              className='search-bar'
-              onPressButton={handleSubmit}
-              itemHeight={searchItemHeight}
-              {...searchBarSelectProps}
-            />
-          </div>
-          {matrixData.hasColor && colorOptions.length > 1 &&
-            <div className='color-theme-container'>
-              <label className='color-theme-label'>Color Theme</label>
-              <VirtualizedSelect
-                className='color-theme-select'
-                value={colorThemeOption}
-                onChange={handleChangeTheme}
-                options={colorOptions}
-                defaultOptions={colorOptions}
-                itemHeight={30}
-                isSearchable={false}
-              />
+        {(displaySearchBar || displayColorThemeContainer) &&
+          <div className='options-container' style={{ width: legendWidth }}>
+            {/* The dummy option can be added to center align the search-box */}
+            {/* <div className='dummy-option' /> */}
+            <div style={{ width: 350 }}>
+              {displaySearchBar && <SearchBar
+                className='search-bar'
+                onPressButton={handleSubmit}
+                itemHeight={searchItemHeight}
+                {...searchBarSelectProps}
+              />}
             </div>
-          }
-        </div>
+            {displayColorThemeContainer &&
+              <div className='color-theme-container'>
+                <label className='color-theme-label'>Color Theme</label>
+                <VirtualizedSelect
+                  className='color-theme-select'
+                  value={colorThemeOption}
+                  onChange={handleChangeTheme}
+                  options={colorOptions}
+                  defaultOptions={colorOptions}
+                  itemHeight={30}
+                  isSearchable={false}
+                />
+              </div>
+            }
+          </div>
+        }
         <div className='matrix-container'>
           <VirtualizedGrid
             ref={gridRef}
