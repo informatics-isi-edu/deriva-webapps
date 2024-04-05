@@ -10,7 +10,6 @@ import { useEffect, useState } from 'react';
 import { useVitessceConfig } from '@isrd-isi-edu/deriva-webapps/src/hooks/vitessce';
 
 // models
-import { VitessceTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/models/vitessce';
 
 // provider
 import VitessceAppProvider from '@isrd-isi-edu/deriva-webapps/src/providers/vitessce-app';
@@ -18,7 +17,6 @@ import VitessceAppProvider from '@isrd-isi-edu/deriva-webapps/src/providers/vite
 // utilities
 import { ID_NAMES } from '@isrd-isi-edu/chaise/src/utils/constants';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
-import { getQueryParams } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 
 
 const derivaVitessceSettings = {

@@ -2,7 +2,7 @@ import '@isrd-isi-edu/deriva-webapps/src/assets/scss/_vitessce.scss';
 
 // components
 import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
-import UserControl from '@isrd-isi-edu/deriva-webapps/src/components/controls/user-control';
+// import UserControl from '@isrd-isi-edu/deriva-webapps/src/components/controls/user-control';
 import { Vitessce } from 'vitessce';
 
 // hooks
@@ -35,7 +35,6 @@ const DerivaVitessce = ({
   // this is to guard against it
   const setupStarted = useRef<boolean>(false);
 
-  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [componentConfig, setComponentConfig] = useState<any>(null);
 
   const [layout, setLayout] = useState<Layouts>({});
@@ -90,7 +89,7 @@ const DerivaVitessce = ({
       })
     })
 
-    // The following is almost the same code that is in plot app
+    // NOTE: The following is almost the same code that is in plot app
     if (userControlsExists && templateParams?.$control_values) {
       // userControlConfig should exist if userControlsExists === true
       if (globalUserControlData.userControlConfig) setUserControls(globalUserControlData.userControlConfig);
@@ -116,7 +115,7 @@ const DerivaVitessce = ({
 
 
     } else {
-      // Otherwise set the default layout to display controls and plots 
+      // Otherwise set the default layout to display controls and vitessce
       const gridConfig = config.grid_layout_config;
       const vitessceUid: string = config.vitessce.uid;
       const controlUids: string[] = globalUserControlData?.userControlConfig?.map((control: UserControlConfig) => control.uid);
@@ -127,11 +126,11 @@ const DerivaVitessce = ({
       const defaultColumns = gridConfig?.cols && !columnNumber && Object.values(gridConfig?.cols) || Object.values(defaultGridPropsRef.current.cols);
       const breakpointsApplied = gridConfig?.breakpoints || defaultGridPropsRef.current.breakpoints;
 
-      // There's only a plot with no layout defined
-      let onlyPlot = false;
+      // There's only a vitessce component with no layout defined
+      let onlyVitessce = false;
       if (componentUids.length === 1 && vitessceUid) {
         // set this flag to communicate only component in ReactGridLayout will be 1 row with rowHeight = height of gridContainer
-        onlyPlot = true;
+        onlyVitessce = true;
         // update row height to the height of the container
         if (gridContainer.current?.clientHeight) defaultGridPropsRef.current.rowHeight = gridContainer.current?.clientHeight;
         // no padding needed when there are no other components
@@ -146,7 +145,7 @@ const DerivaVitessce = ({
             y: ind === 0 || controlUids?.includes(componentUids[ind - 1]) ? ind : ind + 14,
             w: columnNumber ? (controlUids?.includes(id) ? columnNumber / 2 : columnNumber) :
               controlUids?.includes(id) ? defaultColumns[index] / 2 : defaultColumns[index],
-            h: controlUids?.includes(id) || onlyPlot ? 1 : 15,
+            h: controlUids?.includes(id) || onlyVitessce ? 1 : 15,
             static: true,
           }
         })]
@@ -156,7 +155,6 @@ const DerivaVitessce = ({
     setLayout(tempLayout);
 
     setComponentConfig(tempConfig);
-    setIsLoading(false);
   }, [globalControlsInitialized]);
 
   // Validate (Transform the keys to the correct case, adjust the values to suit ResponsiveGridLayout) and configure the grid layout props
@@ -176,21 +174,23 @@ const DerivaVitessce = ({
           margin={globalGridMargin}
           {...gridProps}
         >
-          <Vitessce
-            config={componentConfig}
-            height={config.height || 800}
-            // 'dark' has black backgrounds for each component
-            // 'light' has grey backgrounds
-            // no value has white backgrounds
-            theme={config.theme || 'light'}
-          />
-          {userControls.length > 0 ?
+          <div key={componentConfig.uid}>
+            <Vitessce
+              config={componentConfig}
+              height={config.height || 800}
+              // 'dark' has black backgrounds for each component
+              // 'light' has grey backgrounds
+              // no value has white backgrounds
+              theme={config.theme || 'light'}
+            />
+          </div>
+          {/* {userControls.length > 0 ?
             userControls.map((currentConfig: UserControlConfig): JSX.Element => (
               <div key={currentConfig.uid}>
                 <UserControl controlConfig={currentConfig} />
               </div>
             ))
-            : null}
+            : null} */}
         </ResponsiveGridLayout>
       }
     </div>
