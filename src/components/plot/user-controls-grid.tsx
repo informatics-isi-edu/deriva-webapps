@@ -13,7 +13,7 @@ import { Layouts, Responsive, ResponsiveProps as ResponsiveGridProps, WidthProvi
 import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
 import useAlert from '@isrd-isi-edu/chaise/src/hooks/alerts';
 import { convertKeysSnakeToCamel, validateGridProps } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
-import { validateControlData, validateDuplicateControlUID, validateLayout, validateUID } from '../../utils/plot-utils';
+import { validateControlData, validateDuplicateControlUID, validateLayout, validateUID } from '@isrd-isi-edu/deriva-webapps/src/utils/plot-utils';
 
 type UserControlsGridProps = {
   /**
