@@ -8,8 +8,10 @@ import UserControl from '@isrd-isi-edu/deriva-webapps/src/components/controls/us
 import ChartWithEffect from '@isrd-isi-edu/deriva-webapps/src/components/plot/chart-with-effect';
 
 // hooks
-import usePlot from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
 import { useEffect, useRef, useState } from 'react';
+import useAlert from '@isrd-isi-edu/chaise/src/hooks/alerts';
+import usePlot from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
+import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
 
 // models
 import { 
@@ -22,10 +24,8 @@ import { Layouts, Responsive, WidthProvider } from 'react-grid-layout';
 import PlotlyChartProvider from '@isrd-isi-edu/deriva-webapps/src/providers/plotly-chart';
 
 // utils
-import useAlert from '@isrd-isi-edu/chaise/src/hooks/alerts';
 import { validateControlData, validateDuplicateControlUID, validateLayout, validateUID } from '@isrd-isi-edu/deriva-webapps/src/utils/plot-utils';
 import { convertKeysSnakeToCamel, validateGridProps } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
-import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
 
 export type PlotControlGridProps = {
   config: DataConfig,
