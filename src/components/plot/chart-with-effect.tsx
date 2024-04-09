@@ -43,7 +43,7 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
   // Add upper bounds to layout width and height for responsive
   let minWidth = 320; // absolute min width
   let minHeight = 600; // absolute min height
-  let maxWidth = plotAreaFraction * width; // 95% of viewport, used as max width
+  let maxWidth = plotAreaFraction * width; // 95% of plot container, used as max width
   let maxHeight = 0.7 * height; // 70% of viewport, used as min height
 
   // max width is the min of plot width or calculated max width

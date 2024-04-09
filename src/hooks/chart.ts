@@ -24,8 +24,8 @@ import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
 
 // utils
 import { ChaiseAlertType } from '@isrd-isi-edu/chaise/src/providers/alerts';
-import { getQueryParam, getQueryParams } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 import { getConfigObject } from '@isrd-isi-edu/chaise/src/utils/config';
+import { getQueryParam, getQueryParams } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 import { flatten2DArray } from '@isrd-isi-edu/deriva-webapps/src/utils/data';
 import {
   emptyDataColArrayAlert, emptyXColArrayAlert, emptyYColArrayAlert, incompatibleColArraysAlert,
@@ -157,7 +157,6 @@ export type layoutParamsType = {
 
 /**
  * Sets the plot configs
- *
  * @param plotConfigs
  */
 export const usePlotConfig = (plotConfigs: PlotConfig) => {
@@ -450,7 +449,6 @@ export const useChartData = (plot: Plot) => {
         return pathRegEx.test(value);
       }
     }
-
     return false;
   }
 

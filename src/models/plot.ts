@@ -17,9 +17,28 @@ export type PlotConfig = {
 };
 
 /**
+ * Allowed AppStyle
+ */
+export enum AppStyle {
+  WIDTH='width',
+  MAX_WIDTH='max_width',
+  MAX_HEIGHT='max_height',
+}
+
+/**
+ * AppStyle Config
+ */
+export type AppStyleConfig = {
+  width: number;
+  max_width: string;
+  max_height: string;
+}
+
+/**
  * Data
  */
 export type DataConfig = {
+  app_styles?: AppStyleConfig;
   plots: Plot[];
   layout: Layouts;
   grid_layout_config?: ResponsiveGridConfig;
@@ -243,7 +262,7 @@ export type TracePlotyData = Partial<PlotlyPlotData> &
  */
 // export type Trace = TraceConfig & TracePlotyData;
 
-//Note: This is currently only used for plot app. Eventually this will be changed to a parameter from plot config. It could also be reused for other apps but we don't have a use case yet.
+//Note: This is used for each plot container and for the whole plot-app as default in case if 'width' is not given in the config.
 export const plotAreaFraction = 0.95;
 
 //NOTE: Consider moving this threshold to the useWindowSize hook if it will be utilized by other webapps.

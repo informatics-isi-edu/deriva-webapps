@@ -18,6 +18,10 @@ Each object in the `plots` array can have the following parameters:
 2. `x_axis_label`: Label to be displayed along the x-axis. DEPRECATED, use `plotly.layout.xaxis.title` instead
 3. `y_axis_label`: Label to be displayed along the y-axis. DEPRECATED, use `plotly.layout.yaxis.title` instead
 4. `plot_type`: The type of plot to be displayed i.e `bar`, `pie`, `scatter`, `histogram`, `violin`, and `heatmap`
+5. `app_styles`: the styles to attach to different parts of the app page
+    1. `width`: A decimal value between 0 and 1 for how much space the grid layout should fill on the plot page
+    2. `max_width`: A string value representing the width in pixels of the plot container excluding the navbar (i.e. `1500px`)
+    3. `max_height`: A string value representing the height in pixels of the plot container excluding the navbar (i.e. `1200px`)
 6. `config`: the config for the plot
     1. `bargap`: Distance between the bins in the histogram - Only valid for plot type as histogram
     2. `showlegend`: To show the legend or not. DEPRECATED, define in `plotly.layout`
