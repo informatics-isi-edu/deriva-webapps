@@ -7,12 +7,22 @@ import FacetSearchPopupControl from '@isrd-isi-edu/deriva-webapps/src/components
 
 // models
 import { UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/webapps-core';
+import { PlotTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { VitessceTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/models/vitessce';
 
 type UserControlProps = {
     controlConfig: UserControlConfig;
+    setSelectorOptionChanged: (optionChanged: boolean) => void;
+    templateParams: PlotTemplateParams | VitessceTemplateParams;
+    setTemplateParams: (templateParams: PlotTemplateParams | VitessceTemplateParams) => void;
 };
 
-const UserControl = ({ controlConfig }: UserControlProps): JSX.Element => {
+const UserControl = ({ 
+  controlConfig,
+  setSelectorOptionChanged,
+  templateParams,
+  setTemplateParams
+}: UserControlProps): JSX.Element => {
   const controlType = controlConfig.type;
   switch (controlType) {
     case 'dropdown':
@@ -20,6 +30,9 @@ const UserControl = ({ controlConfig }: UserControlProps): JSX.Element => {
         <div>
           <Dropdown
             userControlConfig={controlConfig}
+            setSelectorOptionChanged={setSelectorOptionChanged}
+            templateParams={templateParams}
+            setTemplateParams={setTemplateParams}
           />
         </div>
       )

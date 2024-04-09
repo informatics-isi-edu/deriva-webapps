@@ -2,6 +2,9 @@ import { UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/webap
 import { ResponsiveProps as ResponsiveGridConfig } from 'react-grid-layout';
 
 export type VitessceTemplateParams = {
+  $self?: {
+    [paramKey: string]: any;
+  };
   $url_parameters: {
     [paramKey: string]: string;
   },

@@ -10,7 +10,7 @@ import { VitessceTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/models/
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
 
 // utils
-import { getQueryParam } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
+import { getQueryParam, getQueryParams } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 import { generateUid } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 import { windowRef } from '@isrd-isi-edu/chaise/src/utils/window-ref';
 
@@ -20,9 +20,9 @@ export const VitessceAppContext = createContext<{
   globalControlsInitialized: boolean;
   globalUserControlData: any;
   selectorOptionChanged: boolean;
-  setSelectorOptionChanged: Function;
+  setSelectorOptionChanged: (optionChanged: boolean) => void;
   templateParams: VitessceTemplateParams;
-  setTemplateParams: Function;
+  setTemplateParams: (templateParams: VitessceTemplateParams) => void;
 } | null>(null);
 
 type VitessceAppProviderProps = {
@@ -34,13 +34,13 @@ export default function VitessceAppProvider({
 }: VitessceAppProviderProps): JSX.Element {
 
   const [config, setConfig] = useState<any>(null);
+  const [globalUserControlData, setGlobalUserControlData] = useState<any>(null);
   const [globalControlsInitialized, setGlobalControlsInitialized] = useState<boolean>(false);
   const [selectorOptionChanged, setSelectorOptionChanged] = useState<boolean>(false);
   const [templateParams, setTemplateParams] = useState<VitessceTemplateParams>({
     $url_parameters: {},
     $control_values: {}
   });
-  const [globalUserControlData, setGlobalUserControlData] = useState<any>(null);
 
   const { dispatchError } = useError();
 
@@ -55,10 +55,16 @@ export default function VitessceAppProvider({
     if (setupStarted.current || !config) return;
     setupStarted.current = true;
 
+    const tempParams = { ...templateParams };
+    const allQueryParams = getQueryParams(window.location.href);
+
+    // push query parameters into templating environment
+    Object.keys(allQueryParams).forEach((key: string) => {
+      tempParams.$url_parameters[key] = allQueryParams[key];
+    });
+
     const initGlobalControls = async () => {
       if (config.user_controls?.length > 0) {
-        const tempParams = { ...templateParams };
-
         const tempUserControls = [...config.user_controls];
         for (let i = 0; i < config.user_controls.length; i++) {
           const controlConfig = { ...config.user_controls[i] };

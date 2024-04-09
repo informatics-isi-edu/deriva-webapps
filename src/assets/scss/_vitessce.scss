@@ -1,0 +1,34 @@
+.grid-container {
+  height: 90vh;
+  margin-bottom: 12px;
+  overflow: auto;
+}
+
+.global-grid-layout {
+  // NOTE: there shouldn't be scrollbars in the grid unless the items in the grid are bigger than the grid
+  // if that's the case, the grid height should be increased with a scrollbar on the grid-container
+  overflow: hidden; 
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.selector-container {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  align-items: center;
+  margin-right: 8px;
+}
+
+.selector-label {
+  white-space: nowrap;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  margin-right: 4px;
+}
+
+.dropdown-select {
+  width: 100%;
+}

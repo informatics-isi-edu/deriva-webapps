@@ -46,7 +46,11 @@ const PlotControlGrid = ({
   const alertFunctions = useAlert();
 
 
-  const { globalControlsInitialized, globalUserControlData, setConfig, templateParams } = usePlot();
+  const { 
+    globalControlsInitialized, globalUserControlData, 
+    setConfig, setSelectorOptionChanged,
+    templateParams, setTemplateParams
+  } = usePlot();
 
   const gridContainer = useRef<HTMLDivElement | null>(null);
 
@@ -176,7 +180,12 @@ const PlotControlGrid = ({
             {userControls.length > 0 ?
               userControls.map((currentConfig: UserControlConfig): JSX.Element => (
                 <div key={currentConfig.uid}>
-                  <UserControl controlConfig={currentConfig} />
+                  <UserControl 
+                    controlConfig={currentConfig}
+                    setSelectorOptionChanged={setSelectorOptionChanged}
+                    templateParams={templateParams}
+                    setTemplateParams={setTemplateParams}
+                  />
                 </div>
               ))
               : null}

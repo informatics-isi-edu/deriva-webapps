@@ -1,9 +1,10 @@
 import '@isrd-isi-edu/deriva-webapps/src/assets/scss/_vitessce.scss';
+import { lazy, Suspense } from 'react';
 
 // components
 import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
-// import UserControl from '@isrd-isi-edu/deriva-webapps/src/components/controls/user-control';
-import { Vitessce } from 'vitessce';
+import UserControl from '@isrd-isi-edu/deriva-webapps/src/components/controls/user-control';
+const Vitessce = lazy(() => import('@isrd-isi-edu/deriva-webapps/src/components/vitessce/vitessce-wrapper'));
 
 // hooks
 import { useEffect, useRef, useState } from 'react';
@@ -16,7 +17,6 @@ import { Layouts, Responsive, WidthProvider } from 'react-grid-layout';
 
 // utilities
 import { getPatternUri } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
-import { getQueryParams } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 import { convertKeysSnakeToCamel, validateGridProps } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 
 
@@ -35,7 +35,7 @@ const DerivaVitessce = ({
   // this is to guard against it
   const setupStarted = useRef<boolean>(false);
 
-  const [componentConfig, setComponentConfig] = useState<any>(null);
+  const [componentConfig, setComponentConfig] = useState<DerivaVitessceDataConfig['vitessce'] | null>(null);
 
   const [layout, setLayout] = useState<Layouts>({});
   const [gridProps, setGridProps] = useState({});
@@ -43,7 +43,11 @@ const DerivaVitessce = ({
   const [userControlsReady, setUserControlReady] = useState<boolean>(false);
   const [userControls, setUserControls] = useState<any[]>([]);
 
-  const { globalControlsInitialized, globalUserControlData, setConfig, templateParams } = useVitessce();
+  const {
+    globalControlsInitialized, globalUserControlData,
+    setConfig, selectorOptionChanged, setSelectorOptionChanged,
+    templateParams, setTemplateParams
+  } = useVitessce();
 
   const gridContainer = useRef<HTMLDivElement | null>(null);
 
@@ -66,28 +70,28 @@ const DerivaVitessce = ({
     }
   }, []);
 
-  useEffect(() => {
-    if (!globalControlsInitialized) return;
-    const allQueryParams = getQueryParams(window.location.href);
-
-    const tempParams = { ...templateParams };
-    // push query parameters into templating environment
-    Object.keys(allQueryParams).forEach((key: string) => {
-      tempParams.$url_parameters[key] = allQueryParams[key];
-    });
-
-    // once controls are set up and templateParams are available, update the config language and set up the react grid layout and vitessce app
-    // check for `url_pattern` defined for each file to use as the `url`
-    // if both are defined, `url_pattern` will replace `url`
-    const tempConfig = { ...config.vitessce };
-    tempConfig.datasets.forEach((dataset) => {
+  // copies the given config to a tempObject to do templating
+  const _templateVitessceConfig = (config: DerivaVitessceDataConfig['vitessce']) => {
+    const tempConfig = { ...config }
+    tempConfig.datasets.forEach((dataset: any) => {
       dataset.files.forEach((file: any) => {
         if (file.url_pattern) {
           const { uri } = getPatternUri(file.url_pattern, templateParams);
           file.url = uri
         }
       })
-    })
+    });
+
+    return tempConfig;
+  }
+
+  useEffect(() => {
+    if (!globalControlsInitialized) return;
+
+    // once controls are set up and templateParams are available, update the config language and set up the react grid layout and vitessce app
+    // check for `url_pattern` defined for each file to use as the `url`
+    // if both are defined, `url_pattern` will replace `url`
+    const tempConfig = _templateVitessceConfig(config.vitessce);
 
     // NOTE: The following is almost the same code that is in plot app
     if (userControlsExists && templateParams?.$control_values) {
@@ -152,10 +156,18 @@ const DerivaVitessce = ({
       ))
     }
 
-    setLayout(tempLayout);
-
     setComponentConfig(tempConfig);
+
+    setLayout(tempLayout);
   }, [globalControlsInitialized]);
+
+  useEffect(() => {
+    if (!selectorOptionChanged) return;
+    setSelectorOptionChanged(false);
+
+    const tempConfig = _templateVitessceConfig(config.vitessce);
+    setComponentConfig(tempConfig);
+  }, [selectorOptionChanged])
 
   // Validate (Transform the keys to the correct case, adjust the values to suit ResponsiveGridLayout) and configure the grid layout props
   useEffect(() => {
@@ -166,31 +178,44 @@ const DerivaVitessce = ({
 
   return (<div className='vitessce-page'>
     <div className='grid-container' ref={gridContainer}>
-      {(!userControlsReady || Object.keys(layout).length === 0) ?
+      {(!componentConfig || !userControlsReady || Object.keys(layout).length === 0) ?
         <ChaiseSpinner /> :
         <ResponsiveGridLayout className='global-grid-layout layout'
-          layouts={layout}
           {...defaultGridPropsRef.current}
           margin={globalGridMargin}
           {...gridProps}
+          layouts={layout}
         >
           <div key={componentConfig.uid}>
-            <Vitessce
-              config={componentConfig}
-              height={config.height || 800}
-              // 'dark' has black backgrounds for each component
-              // 'light' has grey backgrounds
-              // no value has white backgrounds
-              theme={config.theme || 'light'}
-            />
+            {selectorOptionChanged ?
+              <ChaiseSpinner /> :
+              /*
+               * Changing componentConfig was not rerendering the vitessce component
+               * instead changing the rendered component while componentConfig is being updated then
+               * showing the vitessce component causes it to rerender and fetch with the new data
+               */
+              <Vitessce
+                config={componentConfig}
+                height={config.height || 800}
+                // 'dark' has black backgrounds for each component
+                // 'light' has grey backgrounds
+                // no value has white backgrounds
+                theme={config.theme || 'light'}
+              />
+            }
           </div>
-          {/* {userControls.length > 0 ?
+          {userControls.length > 0 ?
             userControls.map((currentConfig: UserControlConfig): JSX.Element => (
               <div key={currentConfig.uid}>
-                <UserControl controlConfig={currentConfig} />
+                <UserControl
+                  controlConfig={currentConfig}
+                  setSelectorOptionChanged={setSelectorOptionChanged}
+                  templateParams={templateParams}
+                  setTemplateParams={setTemplateParams}
+                />
               </div>
             ))
-            : null} */}
+            : null}
         </ResponsiveGridLayout>
       }
     </div>

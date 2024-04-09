@@ -19,9 +19,9 @@ export const PlotAppContext = createContext<{
   globalControlsInitialized: boolean;
   globalUserControlData: any;
   selectorOptionChanged: boolean;
-  setSelectorOptionChanged: Function;
+  setSelectorOptionChanged: (optionChanged: boolean) => void;
   templateParams: PlotTemplateParams;
-  setTemplateParams: Function;
+  setTemplateParams: (templateParams: PlotTemplateParams) => void;
 } | null>(null);
 
 type PlotAppProviderProps = {

@@ -62,7 +62,10 @@ module.exports = (env) => {
       {
         appName: 'vitessce',
         appTitle: 'Vitessce',
-        appConfigLocation: `${WEBAPPS_BASE_PATH}config/vitessce-config.js`
+        appConfigLocation: `${WEBAPPS_BASE_PATH}config/vitessce-config.js`,
+        externalFiles: [
+          `${WEBAPPS_BASE_PATH}bundles/plotly-basic.min.js`
+        ]
       },
     ],
     mode,

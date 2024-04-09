@@ -1,3 +1,4 @@
+import '@isrd-isi-edu/deriva-webapps/src/assets/scss/_vitessce.scss';
 import { createRoot } from 'react-dom/client';
 
 // components
