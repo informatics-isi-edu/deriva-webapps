@@ -23,7 +23,7 @@ export enum AppStyle {
   WIDTH='width',
   MAX_WIDTH='max_width',
   MAX_HEIGHT='max_height',
-};
+}
 
 /**
  * AppStyle Config

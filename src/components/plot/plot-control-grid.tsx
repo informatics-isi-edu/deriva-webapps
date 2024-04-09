@@ -22,7 +22,7 @@ import PlotlyChartProvider from '@isrd-isi-edu/deriva-webapps/src/providers/plot
 import useAlert from '@isrd-isi-edu/chaise/src/hooks/alerts';
 import { validateControlData, validateDuplicateControlUID, validateLayout, validateUID } from '@isrd-isi-edu/deriva-webapps/src/utils/plot-utils';
 import { convertKeysSnakeToCamel, validateGridProps } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
-import { useWindowSize } from '../../hooks/window-size';
+import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
 
 export type PlotControlGridProps = {
   config: DataConfig,
