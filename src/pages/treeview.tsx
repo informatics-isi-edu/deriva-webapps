@@ -1,9 +1,10 @@
+import '@isrd-isi-edu/deriva-webapps/src/assets/scss/_treeview-app.scss';
+
 import { createRoot } from 'react-dom/client';
-import { useRef } from 'react';
 
 // components
 import AppWrapper from '@isrd-isi-edu/chaise/src/components/app-wrapper';
-import ChaiseTreeview from '@isrd-isi-edu/deriva-webapps/src/components/chaise-treeview';
+import TreeviewContainer from '@isrd-isi-edu/deriva-webapps/src/components/treeview/treeview-containter';
 
 // utilities
 import { ID_NAMES } from '@isrd-isi-edu/chaise/src/utils/constants';
@@ -19,7 +20,7 @@ const treeviewSettings = {
 
 const TreeviewApp = (): JSX.Element => {
   return (
-    <ChaiseTreeview />
+    <TreeviewContainer />
   );
 };
 
