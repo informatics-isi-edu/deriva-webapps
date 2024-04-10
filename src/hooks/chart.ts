@@ -1747,6 +1747,7 @@ export const useChartData = (plot: Plot) => {
 
   // Parse data on state changes to data or selectData
   useEffect(() => {
+    // as long as we have data, and we aren't intializing or fetching more data, parse and set the data for plotly again
     if (data && !isDataLoading && !isInitLoading && !isFetchSelected) {
       // data is an array of arrays of ermrest response objects 
       //   data => [response.data] and response.data => [{}]
@@ -1757,7 +1758,7 @@ export const useChartData = (plot: Plot) => {
       setParsedData(parsePlotData());
       setIsParseLoading(false); // set loading to false after parsing
     }
-  }, [data]);
+  }, [data, isDataLoading, isInitLoading, isFetchSelected, selectData, templateParams]);
 
 
   return {
