@@ -11,15 +11,12 @@ import { TreeNodeMap } from '@isrd-isi-edu/deriva-webapps/src/hooks/matrix';
 
 // Tree functions and sub components
 import {checkParentChainExist, getParentChain} from '@isrd-isi-edu/deriva-webapps/src/utils/tree';
-import { MemoizedMinusSquare, MemoizedPlusSquare, MemoizedCloseSquare, MemoizedRenderTree } from '@isrd-isi-edu/deriva-webapps/src/components/matrix/tree-button';
-
-// MUI tree components
-import { TreeView } from '@mui/x-tree-view/TreeView';
 
 import { getScrollbarSize } from '@isrd-isi-edu/deriva-webapps/src/utils/ui-utils';
+import ChaiseTreeview from '@isrd-isi-edu/deriva-webapps/src/components/chaise-treeview';
 
 
-type RowHeadersProps = SharedRowHeadersProps & {
+export type RowHeadersProps = SharedRowHeadersProps & {
   /**
    * y hierarchical data passed to each row
    */
@@ -154,6 +151,7 @@ const RowTreeHeaders = (props: RowHeadersProps, ref: ForwardedRef<any>): JSX.Ele
     setExpanded(nodeIds);
   };
 
+  console.log(props);
   return (
     <SharedRowHeaders {...props}>
       {/* The below div is for handling the scroll behaviour in vertical direction */}
@@ -162,28 +160,16 @@ const RowTreeHeaders = (props: RowHeadersProps, ref: ForwardedRef<any>): JSX.Ele
         style={rowTreeHeadersStyles}
         ref={ref}
         onScroll={props.onScroll}>
-
-          <TreeView
-            className='grid-row-headers-treeview'
-            aria-label='rich object'
-            defaultExpanded={['root']}
-            defaultCollapseIcon={<MemoizedMinusSquare isLeft={false} cellSize={props.cellHeight} iconSize={iconSize} />}
-            defaultExpandIcon={<MemoizedPlusSquare isLeft={false} cellSize={props.cellHeight} iconSize={iconSize} />}
-            defaultEndIcon={<MemoizedCloseSquare isLeft={false} cellSize={props.cellHeight} />}
-            expanded={expanded}
-            onNodeToggle={handleToggle}
-            ref={divRef}
-          >
-            <MemoizedRenderTree
-              nodes={props.treeNodes}
-              data={props.itemData}
-              cellSize={props.cellHeight}
-              treeNodesMap={props.treeNodesMap}
-              isScrolling={isScrolling}
-              scrollableSize={scrollableWidth}
-              isColumn={false}
-            />
-          </TreeView>
+          {/* need to call chaise tree view here instead of tree view */}
+          <ChaiseTreeview
+          className='grid-row-headers-treeview'
+          expanded={expanded}
+          onNodeToggle={handleToggle}
+          ref={divRef}
+          props={props}
+          scrollableDimension={scrollableWidth}
+          isScrolling={isScrolling}>
+          </ChaiseTreeview>
           {/* For the highlight alignment issue, we're adding empty cells and headers in the falt row headers.
             But Mui is ignoring the empty tree elements. So we add an element after trees manually */}
           <div style={{ height: props.cellHeight + getScrollbarSize('.grid', true) }}></div>

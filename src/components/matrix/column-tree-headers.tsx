@@ -11,15 +11,10 @@ import { TreeNodeMap } from '@isrd-isi-edu/deriva-webapps/src/hooks/matrix';
 
 // Tree functions and sub components
 import { checkParentChainExist, getParentChain } from '@isrd-isi-edu/deriva-webapps/src/utils/tree';
-import { MemoizedMinusSquare, MemoizedPlusSquare, MemoizedCloseSquare, MemoizedRenderTree } from '@isrd-isi-edu/deriva-webapps/src/components/matrix/tree-button';
-
-// MUI tree components
-import { TreeView } from '@mui/x-tree-view/TreeView';
-
-import { getScrollbarSize } from '@isrd-isi-edu/deriva-webapps/src/utils/ui-utils';
+import ChaiseTreeview from '@isrd-isi-edu/deriva-webapps/src/components/chaise-treeview';
 
 
-type ColumnHeadersProps = SharedColumnHeadersProps & {
+export type ColumnHeadersProps = SharedColumnHeadersProps & {
   /**
    * x hierarchical data passed to each column
    */
@@ -164,47 +159,15 @@ const ColumnHeaders = (props: ColumnHeadersProps, ref: ForwardedRef<any>): JSX.E
             transformOrigin: 'top left',
             transform: 'rotate(-90deg)',
           }}>
-
-          <TreeView
-            className='grid-column-headers-treeview'
-            aria-label='rich object'
-            defaultExpanded={['root']}
-            defaultCollapseIcon={<MemoizedMinusSquare isLeft={true} cellSize={props.cellWidth} iconSize={iconSize} />}
-            defaultExpandIcon={<MemoizedPlusSquare isLeft={true} cellSize={props.cellWidth} iconSize={iconSize} />}
-            defaultEndIcon={<MemoizedCloseSquare isLeft={true} cellSize={props.cellWidth} />}
-            expanded={expanded}
-            onNodeToggle={handleToggle}
-            ref={divRef}
-            style={{
-              position: 'absolute',
-              /**
-               * For vertical scrolling function of the horizontal tree, we only want to scroll up. But after using
-               * transform, there is a blank space at the bottom of the tree. To eliminate the space, we set
-               * transformOrigin to 'top left'. Then the initial y position of the tree does not focus on the tree
-               * entries but blanks. So we set 'left' attribute to it and use a variable to memorize the position
-               * of the tree entries, then update it whenever scroll the tree vertically.
-               */
-              // Adjust the left value based on the desired position
-              left: -scrollableHeight,
-              /**
-               * For the highlight alignment issue, we're adding empty cells and headers in the falt column headers.
-               * But Mui is ignoring the empty tree elements, and we use 'transform' for the tree in column header.
-               * So we add a paddingBottom attribute as the style of the tree manually.
-               */
-              paddingBottom: props.cellWidth + getScrollbarSize('.grid'),
-            }}
-            sx={{ overflow: 'clip' }}
-          >
-            <MemoizedRenderTree
-              nodes={props.treeNodes}
-              data={props.itemData}
-              cellSize={props.cellWidth}
-              treeNodesMap={props.treeNodesMap}
-              isScrolling={isScrolling}
-              scrollableSize={scrollableHeight}
-              isColumn={true}
-            />
-          </TreeView>
+          <ChaiseTreeview
+          className='grid-column-headers-treeview'
+          expanded={expanded}
+          onNodeToggle={handleToggle}
+          ref={divRef}
+          props={props}
+          scrollableDimension={scrollableHeight}
+          isScrolling={isScrolling}>
+          </ChaiseTreeview>
         </div>
       </div>
     </SharedColumnHeaders>

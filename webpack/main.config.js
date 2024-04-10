@@ -25,6 +25,12 @@ module.exports = (env) => {
       {
         appName: 'treeview',
         appTitle: 'Treeview'
+      },
+      // remove after testing all functionalities
+      {
+        appName: 'dummy-treeview-test',
+        appTitle: 'DummyTreeviewTest',
+        appConfigLocation: `${WEBAPPS_BASE_PATH}../../local-test/matrix-config.js`
       }
     ],
     mode,

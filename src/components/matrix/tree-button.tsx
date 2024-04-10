@@ -366,7 +366,7 @@ export const MemoizedRenderTree = memo(({ nodes, data, cellSize, treeNodesMap, i
       handleSelection(event);
     };
 
-    const link = treeNodesMap[nodeId].link;
+    const link = treeNodesMap[nodeId]?.link;
 
     const hover = isColumn ? nodeId === hoveredColID : nodeId === hoveredRowID
     const linkClassName = hover ? 'hovered-header' : 'unhovered-header';

@@ -18,8 +18,10 @@ const treeviewSettings = {
 };
 
 const TreeviewApp = (): JSX.Element => {
-  return (
-    <ChaiseTreeview />
+  return (<>
+     {/* TODO -> to check the props to pass for treeview to chaisetreeview */}
+     {/* <ChaiseTreeview /> */}
+    </>
   );
 };
 
