@@ -23,8 +23,8 @@ import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
 
 // utils
 import { ChaiseAlertType } from '@isrd-isi-edu/chaise/src/providers/alerts';
-import { getQueryParam, getQueryParams } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 import { getConfigObject } from '@isrd-isi-edu/chaise/src/utils/config';
+import { getQueryParam, getQueryParams } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
 import { flatten2DArray } from '@isrd-isi-edu/deriva-webapps/src/utils/data';
 import {
   emptyDataColArrayAlert, emptyXColArrayAlert, emptyYColArrayAlert, incompatibleColArraysAlert,
@@ -156,7 +156,6 @@ export type layoutParamsType = {
 
 /**
  * Sets the plot configs
- *
  * @param plotConfigs
  */
 export const usePlotConfig = (plotConfigs: PlotConfig) => {
@@ -196,7 +195,6 @@ export const useChartData = (plot: Plot) => {
   const [isDataLoading, setIsDataLoading] = useState<boolean>(false);
   const [isParseLoading, setIsParseLoading] = useState<boolean>(false);
   const [controlTemplateVariablesInitialized, setControlTemplateVariablesInitialized] = useState<boolean>(false);
-
   const { dispatchError, errors } = useError();
   const alertFunctions = useAlert();
   const { width = 0, height = 0 } = useWindowSize();
@@ -449,7 +447,6 @@ export const useChartData = (plot: Plot) => {
         return pathRegEx.test(value);
       }
     }
-
     return false;
   }
 
@@ -1131,7 +1128,6 @@ export const useChartData = (plot: Plot) => {
         // y_col error
         noColumnAlertMessage = xColOnlyAlert;
       }
-
       return noColumnAlertMessage;
     }
 
@@ -1163,6 +1159,7 @@ export const useChartData = (plot: Plot) => {
   const parseGeneralResponse = (trace: Trace, responseData: ResponseData) => {
     const { config } = plot;
     const { xaxis, yaxis, format_data_x = false, format_data_y = false, format_data = false } = config;
+
     /** 
      * NOTE: tempText can be ['a','b','c'](other plots) as well as [['a','b'],['c','d']](heatmap)
      * At a given time it can be either of those types mentioned but to avoid lint error `string[] & string[][]` is used instead of `string[] | string[][]`
@@ -1189,7 +1186,6 @@ export const useChartData = (plot: Plot) => {
     // x_col and y_col should be the same sized array
     //   - if one array is size 1 and the other size N,
     //     duplicate value in array of size 1 to be an array of size N with value N times
-
     let numberPlotTraces = (trace.y_col?.length && trace.x_col?.length === trace.y_col.length) ? trace.y_col.length : 1;
     // fix x_col and y_col to be same size
     if (trace.x_col?.length === 1 && (trace.y_col?.length && trace.y_col?.length > 1)) {
@@ -1220,7 +1216,7 @@ export const useChartData = (plot: Plot) => {
     }
 
 
-    const plotlyData: any[] = []
+    const plotlyData: any[] = [];
     for (let plotTraceIdx = 0; plotTraceIdx < numberPlotTraces; plotTraceIdx++) {
       const plotlyDataObject = initializePlotlyDataObject(trace, plotTraceIdx);
 
@@ -1236,7 +1232,7 @@ export const useChartData = (plot: Plot) => {
         const x_col = trace.x_col[plotTraceIdx];
         const y_col = trace.y_col[plotTraceIdx];
         const z_col = trace.z_col[plotTraceIdx];
-
+        
         plotlyDataObject.x = [];
         plotlyDataObject.y = [];
         plotlyDataObject.z = [];
@@ -1370,7 +1366,6 @@ export const useChartData = (plot: Plot) => {
       }
 
       setHoverText(plotlyDataObject, tempText, trace);
-
       plotlyData.push(plotlyDataObject);
     }
 
@@ -1558,6 +1553,7 @@ export const useChartData = (plot: Plot) => {
     const result: any = { data: [] };
 
     result.config = { ...plot?.plotly?.config };
+    result.data = plot?.plotly?.data;
     let hovertemplate_display_pattern;
     // used for heatmap and violin plot
     let additionalLayout: any = {};
@@ -1713,24 +1709,41 @@ export const useChartData = (plot: Plot) => {
 
         // error parsing the data
         if (!allPlotData) return;
-
         // each object in plot data is for displaying data in separate traces in plotly (so we can have multiple bars or bar + lines etc)
         for (let k = 0; k < allPlotData.length; k++) {
           const plotData = { ...allPlotData[k] };
           // update the plotData object for each plot type
           updatePlotDataSwitch(currTrace, plotData, responseData, k)
-
           plotlyData.push(plotData);
         }
+      } else {
+        /** 
+         * Otherwise if there's no response data which implies url pattern is not resolved in the config and 
+         * data needs to be used from plotly.data so just pass rest of the trace params as is and 
+         * let plotly decide whether those parameter are valid data params or not 
+         */
+        plotlyData.push(currTrace);
       }
     });
 
-    result.data = plotlyData;
+    if (result.data && result.data.length >= 1) {
+      // add properties from traces objects to the result.data which was initialized with plotly.data object
+      result.data = result.data.map((dataTrace: any, index: number) => {
+        return { ...dataTrace, ...plotlyData[index] };
+      });
+    } else {
+      result.data = plotlyData;
+    }
 
     const emptyReponses = data.every((responseArray: any[]) => responseArray.length === 0);
+    // data is defined and nonzero and at least 1 of x, y, z, or values are defined
+    const hasPlotlyData = (plot?.plotly?.data && plot.plotly.data.length > 0) && 
+      (plot?.plotly?.data[0].x || plot?.plotly?.data[0].y || plot?.plotly?.data[0].z || plot?.plotly?.data[0].values);
+    // (data is empty or all the objects in data are empty) && plotly.data is not well defined, show "No Data"
+    const noDataTitle = ((data.length === 0 || emptyReponses) && !hasPlotlyData)
 
     updatePlotlyConfig(result); // update the config
-    updatePlotlyLayout(result, (data.length === 0 || emptyReponses), additionalLayout); // update the layout
+    updatePlotlyLayout(result, noDataTitle, additionalLayout); // update the layout
 
     // If hovertemplate_display_pattern is not configured, set default hover text for plot
     if (!hovertemplate_display_pattern) {
@@ -1742,6 +1755,7 @@ export const useChartData = (plot: Plot) => {
 
   // Parse data on state changes to data or selectData
   useEffect(() => {
+    // as long as we have data, and we aren't intializing or fetching more data, parse and set the data for plotly again
     if (data && !isDataLoading && !isInitLoading && !isFetchSelected) {
       // data is an array of arrays of ermrest response objects 
       //   data => [response.data] and response.data => [{}]
@@ -1752,7 +1766,7 @@ export const useChartData = (plot: Plot) => {
       setParsedData(parsePlotData());
       setIsParseLoading(false); // set loading to false after parsing
     }
-  }, [data]);
+  }, [data, isDataLoading, isInitLoading, isFetchSelected, selectData, templateParams]);
 
 
   return {

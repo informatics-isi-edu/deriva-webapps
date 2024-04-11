@@ -49,7 +49,7 @@ export const useUserControl = (config: UserControlConfig, templateParams: PlotTe
 
     switch (config.type) {
       case 'facet-search-popup':
-      case 'button-facet-search-popup':
+      // case 'button-facet-search-popup':
         // TODO: handle "-multi" cases unless that is a separate property
         return;
       default:

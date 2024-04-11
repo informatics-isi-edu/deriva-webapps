@@ -8,11 +8,13 @@ import UserControl from '@isrd-isi-edu/deriva-webapps/src/components/controls/us
 import ChartWithEffect from '@isrd-isi-edu/deriva-webapps/src/components/plot/chart-with-effect';
 
 // hooks
-import usePlot from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
 import { useEffect, useRef, useState } from 'react';
+import useAlert from '@isrd-isi-edu/chaise/src/hooks/alerts';
+import usePlot from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
+import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
 
 // models
-import { DataConfig, Plot } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { DataConfig, Plot, plotAreaFraction } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 import { defaultGridProps, globalGridMargin, LayoutConfig, UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/webapps-core';
 import { Layouts, Responsive, WidthProvider } from 'react-grid-layout';
 
@@ -20,7 +22,6 @@ import { Layouts, Responsive, WidthProvider } from 'react-grid-layout';
 import PlotlyChartProvider from '@isrd-isi-edu/deriva-webapps/src/providers/plotly-chart';
 
 // utils
-import useAlert from '@isrd-isi-edu/chaise/src/hooks/alerts';
 import { validateControlData, validateDuplicateControlUID, validateLayout, validateUID } from '@isrd-isi-edu/deriva-webapps/src/utils/plot-utils';
 import { convertKeysSnakeToCamel, validateGridProps } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 
@@ -29,7 +30,6 @@ export type PlotControlGridProps = {
 };
 const ResponsiveGridLayout = WidthProvider(Responsive);
 /**
- * 
  * @param config config object for the given plot
  * @returns 
  */
@@ -47,12 +47,16 @@ const PlotControlGrid = ({
 
 
   const { 
-    globalControlsInitialized, globalUserControlData, 
+    appStyles, globalControlsInitialized, globalUserControlData, 
     setConfig, setSelectorOptionChanged,
     templateParams, setTemplateParams
   } = usePlot();
 
   const gridContainer = useRef<HTMLDivElement | null>(null);
+  const plotPageContainer = useRef<HTMLDivElement | null>(null);
+
+  const { width = 0 } = useWindowSize();
+  const [gridContainerWidth, setGridContainerWidth] = useState<number>(plotAreaFraction * width);
 
   const defaultGridPropsRef = useRef(convertKeysSnakeToCamel(defaultGridProps));
 
@@ -65,6 +69,18 @@ const PlotControlGrid = ({
     }
     setUserControlExists(userControlFlag);
   }, []);
+
+  useEffect(() => {
+    if (!appStyles.width || !plotPageContainer.current) return;
+
+    if (appStyles.width) setGridContainerWidth(appStyles.width * plotPageContainer.current.offsetWidth);
+  }, [appStyles])
+
+  useEffect(() => {
+    if (width === 0) return;
+
+    setGridContainerWidth(plotAreaFraction * width);
+  }, [width])
 
 
   useEffect(() => {
@@ -160,8 +176,8 @@ const PlotControlGrid = ({
     }
   }, [config.grid_layout_config]);
   return (
-    <div className='plot-page'>
-      <div className='grid-container' ref={gridContainer}>
+    <div className='plot-page' ref={plotPageContainer} style={{maxWidth: appStyles?.max_width, maxHeight: appStyles?.max_height}}>
+      <div className='grid-container' ref={gridContainer} style={{width: gridContainerWidth}}>
         {(!config || !userControlsReady || Object.keys(layout).length === 0) ?
           <ChaiseSpinner /> :
           <ResponsiveGridLayout className='global-grid-layout layout'

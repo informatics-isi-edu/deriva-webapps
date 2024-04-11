@@ -13,8 +13,8 @@ import { PlotTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/models/plot
 // utils
 import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
 import useAlert from '@isrd-isi-edu/chaise/src/hooks/alerts';
-import { convertKeysSnakeToCamel, validateGridProps } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 import { validateControlData, validateDuplicateControlUID, validateLayout, validateUID } from '@isrd-isi-edu/deriva-webapps/src/utils/plot-utils';
+import { convertKeysSnakeToCamel, validateGridProps } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 
 type UserControlsGridProps = {
   /**
