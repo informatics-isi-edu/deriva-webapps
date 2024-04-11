@@ -79,7 +79,6 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
     handleSubmitModal,
     controlTemplateVariablesInitialized
   } = useChartData(config);
-
   if (!parsedData || isInitLoading) {
     return <ChaiseSpinner />;
   } 
@@ -167,6 +166,7 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
       modalProps.recordsetProps.initialSelectedRows = selectData[i][j].selectedRows;
     }
   }
+
   return (
     <div className='chart-container'>
       <div className='chart' ref={ref}>

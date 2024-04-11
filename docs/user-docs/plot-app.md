@@ -66,10 +66,11 @@ Each object in the `plots` array can have the following parameters:
         4. `yaxis.group_key`: similar to x-axis, this matches the `column_name` returned with the data for measuring data on the yaxis
 7. `plotly.config`: the config is ignored if plotly.config is provided. For available options, see the documentation [here](https://plotly.com/javascript/configuration-options/)
     1. avoid using `plotly_config`, this property will be DEPRECATED in the future
-8. `plotly.layout`: the `layout` object passed directly to plotly when provided. For available options, see the documentation [here](https://plotly.com/javascript/configuration-options/)
-9. `gene_uri_pattern`: For violin plot only. The url from which the gene data is fetched after applying handlebars templating. This parameter is required to fetch the data for the gene selector and initialize the plot.
-10. `study_uri_pattern`: For violin plot only. The url from which the study data is fetched after applying handlebars templating. This parameter is required to fetch the data for the study selector and display and to initialize the plot.
-11. `traces`: Contains the information about each dataset and how to map that data to plotly.
+8. `plotly.layout`: the `layout` object passed directly to plotly when provided. For available options, see the documentation [here](https://plotly.com/javascript/reference/layout/)
+9. `plotly.data`: the `data` object passed directly to plotly when provided. For available options, see the documentation [here](https://plotly.com/javascript/reference/) for the plot type trying to be displayed.
+10. `gene_uri_pattern`: For violin plot only. The url from which the gene data is fetched after applying handlebars templating. This parameter is required to fetch the data for the gene selector and initialize the plot.
+11. `study_uri_pattern`: For violin plot only. The url from which the study data is fetched after applying handlebars templating. This parameter is required to fetch the data for the study selector and display and to initialize the plot.
+12. `traces`: Contains the information about each dataset and how to map that data to plotly.
     1. Properties available to most plot types:
         1. `url_pattern`: The url from which the data has to be fetched
         2. `uri`: The url from which the data has to be fetched. DEPRECATED, use `traces.url_pattern` instead
@@ -94,8 +95,8 @@ Each object in the `plots` array can have the following parameters:
         3. `data_col`: The column name for the values
         4. `legend_col`: An array of column names for the legend to be shown for the respective values
         5. `show_percentage`: To show the percentage or not on slices
-12. `plotlyButtonsToRemove`: The button to be removed shown by plotly by defualt. DEPRECATED, use `plotly.config.modeBarButtonsToRemove` instead
-13. `user_controls`: Contains information about each user control (data for the control, default value, etc) 
+13. `plotlyButtonsToRemove`: The button to be removed shown by plotly by defualt. DEPRECATED, use `plotly.config.modeBarButtonsToRemove` instead
+14. `user_controls`: Contains information about each user control (data for the control, default value, etc) 
     1. `uid`: Key for referencing this user control; in other configuration properties
     2. `label`: Name to display next to this user control
     3. `type`:  The type of control to display, more info below about control types (NOTE: For now, only type `dropdown` is supported)
@@ -106,7 +107,7 @@ Each object in the `plots` array can have the following parameters:
         3. `default_values`: The initial value(s) to use for this user control on page load
         4. `value_key`: Column to use for templating in queries
         5. `selected_value_pattern`: A pattern string to show in the user control for each selected option
-14. `grid_layout_config`: Properties for responsive grid
+15. `grid_layout_config`: Properties for responsive grid
     1. `width`: Width in pixels, not needed if using responsive grid layout component
     2. `auto_size`: Whether the height and width grows/shrinks to fit content in it's parent container
     3. `breakpoints`: Map to identify when a different layout configuration should be used based on grid size. More details in the [Plot Funcitonality Document](/docs/user-docs/plot-functionality.md).
