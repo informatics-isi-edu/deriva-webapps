@@ -2100,45 +2100,24 @@ var plotConfigs = {
           {
             type: 'heatmap',
             x: ["<a href=\"/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=app/plot&ppid=1mgp2c1k1ug51xmn1y3h1l3w\" target=\"_blank\">E11.5_MetanephMes_7102</a>",
-            "<a href=\"/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=app/plot&ppid=1mgp2c1k1ug51xmn1y3h1l3w\" target=\"_blank\">E11.5_MetanephMes_7103</a>",
-            "<a href=\"/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=app/plot&ppid=1mgp2c1k1ug51xmn1y3h1l3w\" target=\"_blank\">E11.5_MetanephMes_7104</a>",
-            "<a href=\"/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=app/plot&ppid=1mgp2c1k1ug51xmn1y3h1l3w\" target=\"_blank\">E11.5_MetanephMes_7105</a>",
-            "<a href=\"/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=app/plot&ppid=1mgp2c1k1ug51xmn1y3h1l3w\" target=\"_blank\">E11.5_MetanephMes_7106</a>",
-            "<a href=\"/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=app/plot&ppid=1mgp2c1k1ug51xmn1y3h1l3w\" target=\"_blank\">E11.5_MetanephMes_7107</a>",
-            "<a href=\"/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=app/plot&ppid=1mgp2c1k1ug51xmn1y3h1l3w\" target=\"_blank\">E11.5_MetanephMes_7108</a>",
-            "<a href=\"/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=app/plot&ppid=1mgp2c1k1ug51xmn1y3h1l3w\" target=\"_blank\">E11.5_MetanephMes_7109</a>",
-            "<a href=\"/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=app/plot&ppid=1mgp2c1k1ug51xmn1y3h1l3w\" target=\"_blank\">E11.5_UretBud_7110</a>",
-            "<a href=\"/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=app/plot&ppid=1mgp2c1k1ug51xmn1y3h1l3w\" target=\"_blank\">E11.5_UretBud_7111</a>"],
-          y:["<a href=\"/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=app/plot&ppid=1mgp2c1k1ug51xmn1y3h1l3w\" target=\"_blank\">1437410_at</a>", 
-          "<a href=\"/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=app/plot&ppid=1mgp2c1k1ug51xmn1y3h1l3w\" target=\"_blank\">1448143_at</a>",
-          "<a href=\"/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=app/plot&ppid=1mgp2c1k1ug51xmn1y3h1l3w\" target=\"_blank\">1457155_at</a>"],          
-          z: [[5.38318, 6.12603, 5.29942, 6.35751, 6.09723, 6.26966, 5.77299, 5.85451, 5.85451, 5.71681], 
-        [9.78472, 9.7933, 9.99168, 9.89913, 9.45477, 9.18651, 9.7555, 9.4609, 9.64681, 9.38224],
-        [4.22886, 4.93085, 5.6639, 5.11452, 5.52497, 5.08776, 6.12665, 5.20033, 4.90654, 5.15027]],
+              "<a href=\"/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=app/plot&ppid=1mgp2c1k1ug51xmn1y3h1l3w\" target=\"_blank\">E11.5_MetanephMes_7103</a>",
+              "<a href=\"/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=app/plot&ppid=1mgp2c1k1ug51xmn1y3h1l3w\" target=\"_blank\">E11.5_MetanephMes_7104</a>",
+              "<a href=\"/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=app/plot&ppid=1mgp2c1k1ug51xmn1y3h1l3w\" target=\"_blank\">E11.5_MetanephMes_7105</a>",
+              "<a href=\"/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=app/plot&ppid=1mgp2c1k1ug51xmn1y3h1l3w\" target=\"_blank\">E11.5_MetanephMes_7106</a>",
+              "<a href=\"/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=app/plot&ppid=1mgp2c1k1ug51xmn1y3h1l3w\" target=\"_blank\">E11.5_MetanephMes_7107</a>",
+              "<a href=\"/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=app/plot&ppid=1mgp2c1k1ug51xmn1y3h1l3w\" target=\"_blank\">E11.5_MetanephMes_7108</a>",
+              "<a href=\"/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=app/plot&ppid=1mgp2c1k1ug51xmn1y3h1l3w\" target=\"_blank\">E11.5_MetanephMes_7109</a>",
+              "<a href=\"/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=app/plot&ppid=1mgp2c1k1ug51xmn1y3h1l3w\" target=\"_blank\">E11.5_UretBud_7110</a>",
+              "<a href=\"/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=app/plot&ppid=1mgp2c1k1ug51xmn1y3h1l3w\" target=\"_blank\">E11.5_UretBud_7111</a>"],
+            y: ["<a href=\"/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=app/plot&ppid=1mgp2c1k1ug51xmn1y3h1l3w\" target=\"_blank\">1437410_at</a>",
+              "<a href=\"/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=app/plot&ppid=1mgp2c1k1ug51xmn1y3h1l3w\" target=\"_blank\">1448143_at</a>",
+              "<a href=\"/chaise/recordset/#2/RNASeq:Replicate_Expression?pcid=app/plot&ppid=1mgp2c1k1ug51xmn1y3h1l3w\" target=\"_blank\">1457155_at</a>"],
+            z: [[5.38318, 6.12603, 5.29942, 6.35751, 6.09723, 6.26966, 5.77299, 5.85451, 5.85451, 5.71681],
+            [9.78472, 9.7933, 9.99168, 9.89913, 9.45477, 9.18651, 9.7555, 9.4609, 9.64681, 9.38224],
+            [4.22886, 4.93085, 5.6639, 5.11452, 5.52497, 5.08776, 6.12665, 5.20033, 4.90654, 5.15027]],
           }
         ]
       },
-      user_controls: [{
-        uid: 'section',
-        label: 'Section Ordinal',
-        type: 'dropdown',
-        request_info: {
-          data: [{
-            Name: '3',
-            Display: 'Three'
-          }, {
-            Name: '5',
-            Display: 'Five'
-          }, {
-            Name: '7',
-            Display: 'Seven'
-          }],
-          default_value: '3',
-          value_key: 'Name',
-          selected_value_pattern: '{{{$self.values.Display}}}'
-        }
-      },
-      ],
       config: {
         /**
          * Heatmap plot has the support for following features:
@@ -2149,12 +2128,10 @@ var plotConfigs = {
         xaxis: {
           tick_display_markdown_pattern:
             '[{{$self.data.Label}}](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
-          title_display_markdown_pattern: '[ title x ](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
         },
         yaxis: {
           tick_display_markdown_pattern:
             '[{{$self.data.Probe_Set_Name}}](/chaise/recordset/#2/RNASeq:Replicate_Expression){target=_blank}',
-          // title_display_markdown_pattern: '[ title y ](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
         },
       },
       traces: [
@@ -2162,10 +2139,6 @@ var plotConfigs = {
           graphic_link_pattern:
             ['/chaise/recordset/#2/RNASeq:Replicate_Expression'],
           hovertemplate_display_pattern: "Label: {{{$row.Label}}}<br>Probe Name: {{{$row.Probe_Set_Name}}}<br>Value: {{{$row.Value}}}<br>Gene ID: {{{$url_parameters.NCBI_GeneID}}}",
-          // url_pattern: '/ermrest/catalog/2/entity/Gene_Expression:Array_Data_view/NCBI_GeneID={{{$url_parameters.NCBI_GeneID}}}&Section_Ordinal={{{$control_values.section.values.Name}}}',
-          // x_col: ["Label"],
-          // y_col: ["Probe_Set_Name"],
-          // z_col: ["Value"],
           legend_markdown_pattern:
             '[{{$row.Probe_Set_name}}](/chaise/recordset/#2/{{{$row.Schema_Table}}}/*::facets::{{#encodeFacet}}',
         }
@@ -2214,130 +2187,44 @@ var plotConfigs = {
           data: [{
             type: 'bar',
             x: [
-              "0",
-              "1",
-              "49",
-              "1",
-              "1",
-              "6",
-              "15",
-              "11023",
-              "622",
-              "63",
-              "41",
-              "99",
-              "3",
-              "1",
-              "1",
-              "9",
-              "18",
-              "22",
-              "411",
-              "356",
-              "211",
-              "13",
-              "5",
-              "193",
-              "131",
-              "108"
-          ],
-          y: [
-            "Epigenomics: ChIP-Seq",
-            "Epigenomics: ATAC-Seq",
-            "<a href=\"/chaise/recordset/#2/Microarray:Series\" target=\"_blank\">Transcriptomics: Microarray</a>",
-            "<a href=\"/chaise/recordset/#2/RNASeq:Study\" target=\"_blank\">Transcriptomics: Spatial Transcriptomics</a>",
-            "<a href=\"/chaise/recordset/#2/RNASeq:Study\" target=\"_blank\">Transcriptomics: snRNA-Seq</a>",
-            "<a href=\"/chaise/recordset/#2/RNASeq:Study\" target=\"_blank\">Transcriptomics: scRNA-Seq</a>",
-            "<a href=\"/chaise/recordset/#2/RNASeq:Study\" target=\"_blank\">Transcriptomics: mRNA-Seq</a>",
-            "<a href=\"/chaise/recordset/#2/Gene_Expression:Specimen\" target=\"_blank\">Imaging: In-situ hybridization (ISH)</a>",
-            "<a href=\"/chaise/recordset/#2/Gene_Expression:Specimen\" target=\"_blank\">Imaging: Immunohistochemistry (IHC)</a>",
-            "<a href=\"/chaise/recordset/#2/Gene_Expression:Specimen\" target=\"_blank\">Imaging: Histology</a>",
-            "<a href=\"/chaise/recordset/#2/Cell_Line:Mouse_Strain\" target=\"_blank\">Transgenic Mouse Strain</a>",
-            "<a href=\"/chaise/recordset/#2/Antibody:Antibody_Tests\" target=\"_blank\">Antibody Test</a>",
-            "<a href=\"/chaise/recordset/#2/RNASeq:Study\" target=\"_blank\">Metabolomics</a>",
-            "<a href=\"/chaise/recordset/#2/RNASeq:Study\" target=\"_blank\">Epigenomics: ChIP-Seq</a>",
-            "<a href=\"/chaise/recordset/#2/RNASeq:Study\" target=\"_blank\">Transcriptomics: snRNA-Seq</a>",
-            "<a href=\"/chaise/recordset/#2/RNASeq:Study\" target=\"_blank\">Transcriptomics: scRNA-Seq</a>",
-            "<a href=\"/chaise/recordset/#2/RNASeq:Study\" target=\"_blank\">Transcriptomics: mRNA-Seq</a>",
-            "<a href=\"/chaise/recordset/#2/Gene_Expression:Specimen\" target=\"_blank\">Imaging: nanoCT</a>",
-            "<a href=\"/chaise/recordset/#2/Gene_Expression:Specimen\" target=\"_blank\">Imaging: In-situ hybridization (ISH)</a>",
-            "<a href=\"/chaise/recordset/#2/Gene_Expression:Specimen\" target=\"_blank\">Imaging: Immunohistochemistry (IHC)</a>",
-            "<a href=\"/chaise/recordset/#2/Gene_Expression:Specimen\" target=\"_blank\">Imaging: Histology</a>",
-            "<a href=\"/chaise/recordset/#2/Cell_Line:Reporter_Cell_Line\" target=\"_blank\">Cell Line: Reporter</a>",
-            "<a href=\"/chaise/recordset/#2/Cell_Line:Parental_Cell_Line\" target=\"_blank\">Cell Line: Parental</a>",
-            "<a href=\"/chaise/recordset/#2/Antibody:Antibody_Tests\" target=\"_blank\">Antibody Test</a>",
-            "<a href=\"/chaise/recordset/#2/Gene_Expression:Specimen\" target=\"_blank\">Imaging: Immunohistochemistry (IHC)</a>",
-            "<a href=\"/chaise/recordset/#2/Gene_Expression:Specimen\" target=\"_blank\">Imaging: Histology</a>"
-        ], 
-       }],
+              "0", "1", "49", "1", "1", "6", "15", "11023", "622", "63", "41", "99", "3",
+              "1", "1", "9", "18", "22", "411", "356", "211", "13", "5", "193", "131", "108"
+            ],
+            y: [
+              "Epigenomics: ChIP-Seq",
+              "Epigenomics: ATAC-Seq",
+              "<a href=\"/chaise/recordset/#2/Microarray:Series\" target=\"_blank\">Transcriptomics: Microarray</a>",
+              "<a href=\"/chaise/recordset/#2/RNASeq:Study\" target=\"_blank\">Transcriptomics: Spatial Transcriptomics</a>",
+              "<a href=\"/chaise/recordset/#2/RNASeq:Study\" target=\"_blank\">Transcriptomics: snRNA-Seq</a>",
+              "<a href=\"/chaise/recordset/#2/RNASeq:Study\" target=\"_blank\">Transcriptomics: scRNA-Seq</a>",
+              "<a href=\"/chaise/recordset/#2/RNASeq:Study\" target=\"_blank\">Transcriptomics: mRNA-Seq</a>",
+              "<a href=\"/chaise/recordset/#2/Gene_Expression:Specimen\" target=\"_blank\">Imaging: In-situ hybridization (ISH)</a>",
+              "<a href=\"/chaise/recordset/#2/Gene_Expression:Specimen\" target=\"_blank\">Imaging: Immunohistochemistry (IHC)</a>",
+              "<a href=\"/chaise/recordset/#2/Gene_Expression:Specimen\" target=\"_blank\">Imaging: Histology</a>",
+              "<a href=\"/chaise/recordset/#2/Cell_Line:Mouse_Strain\" target=\"_blank\">Transgenic Mouse Strain</a>",
+              "<a href=\"/chaise/recordset/#2/Antibody:Antibody_Tests\" target=\"_blank\">Antibody Test</a>",
+              "<a href=\"/chaise/recordset/#2/RNASeq:Study\" target=\"_blank\">Metabolomics</a>",
+              "<a href=\"/chaise/recordset/#2/RNASeq:Study\" target=\"_blank\">Epigenomics: ChIP-Seq</a>",
+              "<a href=\"/chaise/recordset/#2/RNASeq:Study\" target=\"_blank\">Transcriptomics: snRNA-Seq</a>",
+              "<a href=\"/chaise/recordset/#2/RNASeq:Study\" target=\"_blank\">Transcriptomics: scRNA-Seq</a>",
+              "<a href=\"/chaise/recordset/#2/RNASeq:Study\" target=\"_blank\">Transcriptomics: mRNA-Seq</a>",
+              "<a href=\"/chaise/recordset/#2/Gene_Expression:Specimen\" target=\"_blank\">Imaging: nanoCT</a>",
+              "<a href=\"/chaise/recordset/#2/Gene_Expression:Specimen\" target=\"_blank\">Imaging: In-situ hybridization (ISH)</a>",
+              "<a href=\"/chaise/recordset/#2/Gene_Expression:Specimen\" target=\"_blank\">Imaging: Immunohistochemistry (IHC)</a>",
+              "<a href=\"/chaise/recordset/#2/Gene_Expression:Specimen\" target=\"_blank\">Imaging: Histology</a>",
+              "<a href=\"/chaise/recordset/#2/Cell_Line:Reporter_Cell_Line\" target=\"_blank\">Cell Line: Reporter</a>",
+              "<a href=\"/chaise/recordset/#2/Cell_Line:Parental_Cell_Line\" target=\"_blank\">Cell Line: Parental</a>",
+              "<a href=\"/chaise/recordset/#2/Antibody:Antibody_Tests\" target=\"_blank\">Antibody Test</a>",
+              "<a href=\"/chaise/recordset/#2/Gene_Expression:Specimen\" target=\"_blank\">Imaging: Immunohistochemistry (IHC)</a>",
+              "<a href=\"/chaise/recordset/#2/Gene_Expression:Specimen\" target=\"_blank\">Imaging: Histology</a>"
+            ],
+          }],
         },
-        user_controls: [{
-          uid: 'consortium',
-          label: 'Consortium',
-          type: 'dropdown',
-          request_info: {
-            // data: [{
-            //   Name: 'ALL',
-            //   Display: 'All'
-            // }, {
-            //   Name: 'GUDMAP',
-            //   Display: 'Gudmap'
-            // }, {
-            //   Name: 'RBK',
-            //   Display: 'RBK'
-            // }],
-            default_value: 'ALL',
-            value_key: 'Name',
-            selected_value_pattern: '{{{$self.values.Display}}}'
-          }
-        },
-        {
-          uid: 'consortiumS2',
-          label: 'S2 Consortium',
-          type: 'dropdown',
-          request_info: {
-            // data: [{
-            //   Name: 'ALL',
-            //   Display: 'S2 All'
-            // }, {
-            //   Name: 'GUDMAP',
-            //   Display: 'S2 Gudmap'
-            // }, {
-            //   Name: 'RBK',
-            //   Display: 'S2 RBK'
-            // }],
-            default_value: 'ALL',
-            value_key: 'Name',
-            selected_value_pattern: '{{{$self.values.Display}}}'
-          }
-        },
-        {
-          uid: 'consortium3',
-          label: 'Consortium3',
-          type: 'dropdown',
-          request_info: {
-            data: [{
-              Name: 'ALL',
-              Display: 'All'
-            }, {
-              Name: 'GUDMAP',
-              Display: 'Gudmap'
-            }, {
-              Name: 'RBK',
-              Display: 'RBK'
-            }],
-            default_value: 'ALL',
-            value_key: 'Name',
-            selected_value_pattern: '{{{$self.values.Display}}}'
-          }
-        }],
         config: {
-          title_display_markdown_pattern:
-            '[Number of GUDMAP resources released to date {{{$control_values.consortium.values.Name}}}](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+          title_display_markdown_pattern: 'Number of GUDMAP resources released to date {{{$control_values.consortium.values.Name}}}',
           format_data_x: true, // defualt : false - to use hack or not
           xaxis: {
-            title_display_markdown_pattern:
-              '[Number of Records](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+            title_display_markdown_pattern: 'Number of Records'
           },
           yaxis: {
             tick_display_markdown_pattern:
@@ -2348,13 +2235,6 @@ var plotConfigs = {
         },
         traces: [
           {
-            // The request url that has to be used to fetch the data.
-            //Fetch the file from testing user's directory
-            // url_pattern: '/~kenyshah/gudmap.json',
-            // url_pattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium={{{$control_values.consortium.values.Name}}}/!(Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
-            // url_pattern: '/ermrest/catalog/2/entity/M:=Dashboard:Release_Status/Consortium=GUDMAP/!(Released=0)/!(Data_Type=Antibody)/!(Data_Type::regexp::Study%7CExperiment%7CFile)/$M@sort(ID::desc::)?limit=26',
-            //Determine the type of file in url_pattern if applicable            
-            // response_format: 'json',
             hovertemplate_display_pattern: "Released Horizontal: {{#if true}}{{{$row.Released}}}{{/if}}",
             legend: ['Released'], // name of traces in legend
             legend_markdown_pattern: [
@@ -2362,8 +2242,6 @@ var plotConfigs = {
             ],
             graphic_link_pattern:
               '/chaise/recordset/#2/{{{$self.data.Schema_Table}}}/*::facets::{{#encodeFacet}}{{{$self.data.Data_Type_Filter}}}{{/encodeFacet}}',
-            // x_col: ['Released'], // column name to use for x values
-            // y_col: ['Data_Type'], // array of column names to use for y values
             orientation: 'h', // Optional parameter for displaying the bar chart horizontally
             textfont: {
               size: 10, // It will work till the bar size can accomodate the font size
