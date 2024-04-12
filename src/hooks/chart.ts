@@ -12,12 +12,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   DataConfig,
   Plot, PlotConfig, PlotConfigAxis,
-  Trace,
-  UserControlConfig,
-  plotAreaFraction,
+  Trace, plotAreaFraction,
   screenWidthThreshold,
   validFileTypes
 } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/webapps-core';
 
 // services
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';

@@ -4,14 +4,14 @@ import usePlot from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
 
 // models
 import { Option } from '@isrd-isi-edu/deriva-webapps/src/components/virtualized-select';
-import { UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/webapps-core';
+import { PlotTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { VitessceTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/models/vitessce';
 
 // services
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
 
-export const useUserControl = (config: UserControlConfig) => {
-  const { templateParams } = usePlot();
-
+export const useUserControl = (config: UserControlConfig, templateParams: PlotTemplateParams | VitessceTemplateParams) => {
   const [controlData, setControlData] = useState<any>([]);
   const [initialized, setInitialized] = useState<boolean>(false);
 

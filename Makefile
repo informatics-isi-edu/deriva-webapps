@@ -66,6 +66,11 @@ $(TREEVIEW_CONFIG): $(CONFIG)/treeview-config-sample.js
 	cp -n $(CONFIG)/treeview-config-sample.js $(TREEVIEW_CONFIG) || true
 	touch $(TREEVIEW_CONFIG)
 
+VITESSCE_CONFIG=$(CONFIG)/vitessce-config.js
+$(VITESSCE_CONFIG): $(CONFIG)/vitessce-config-sample.js
+	cp -n $(CONFIG)/vitessce-config-sample.js $(VITESSCE_CONFIG) || true
+	touch $(VITESSCE_CONFIG)
+
 # vendor files that will be treated externally in webpack
 WEBPACK_EXTERNAL_VENDOR_FILES= \
 	$(MODULES)/plotly.js-basic-dist-min/plotly-basic.min.js
@@ -144,10 +149,10 @@ run-webpack: $(BUILD_VERSION)
 
 #exclude <app>-config.js to not override one on deployment
 .PHONY: deploy
-deploy: dont_deploy_in_root print-variables deploy-boolean-search deploy-heatmap deploy-plot deploy-treeview deploy-matrix
+deploy: dont_deploy_in_root print-variables deploy-boolean-search deploy-heatmap deploy-plot deploy-treeview deploy-matrix deploy-vitessce
 
 .PHONY: deploy-w-config
-deploy-w-config:dont_deploy_in_root print-variables deploy-boolean-search-w-config deploy-heatmap-w-config deploy-plot-w-config deploy-treeview-w-config deploy-matrix-w-config
+deploy-w-config:dont_deploy_in_root print-variables deploy-boolean-search-w-config deploy-heatmap-w-config deploy-plot-w-config deploy-treeview-w-config deploy-matrix-w-config deploy-vitessce-w-config
 
 .PHONY: deploy-boolean-search
 deploy-boolean-search: dont_deploy_in_root print-variables deploy-bundles
@@ -190,9 +195,17 @@ deploy-matrix: dont_deploy_in_root print-variables deploy-bundles
 .PHONY: deploy-matrix-w-config
 deploy-matrix-w-config: dont_deploy_in_root print-variables deploy-matrix deploy-config-folder
 
+.PHONY: deploy-vitessce
+deploy-vitessce: dont_deploy_in_root print-variables deploy-bundles
+	$(info - deploying vitessce)
+	@rsync -avz $(DIST_REACT)/vitessce/ $(WEBAPPSDIR)/vitessce/
+
+.PHONY: deploy-vitessce-w-config
+deploy-vitessce-w-config: dont_deploy_in_root print-variables deploy-vitessce deploy-config-folder
+
 # rsync the config files used by react apps.
 .PHONY: deploy-config-folder
-deploy-config-folder: dont_deploy_in_root $(MATRIX_CONFIG) $(PLOT_CONFIG) $(TREEVIEW_CONFIG) $(HEATMAP_CONFIG)
+deploy-config-folder: dont_deploy_in_root $(MATRIX_CONFIG) $(PLOT_CONFIG) $(TREEVIEW_CONFIG) $(HEATMAP_CONFIG) $(VITESSCE_CONFIG)
 	$(info - deploying the config folder)
 	@rsync -avz $(CONFIG) $(WEBAPPSDIR)
 

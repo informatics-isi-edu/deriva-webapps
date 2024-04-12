@@ -1,5 +1,7 @@
 // models
-import { ControlScope, defaultGridProps, PlotTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { PlotTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { ControlScope, defaultGridProps } from '@isrd-isi-edu/deriva-webapps/src/models/webapps-core';
+import { VitessceTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/models/vitessce';
 
 // services
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
@@ -157,7 +159,7 @@ export const createLinkWithContextParams = (
  * @param templateParams 
  * @returns 
  */
-export const getPatternUri = (queryPattern: string, templateParams: PlotTemplateParams) => {
+export const getPatternUri = (queryPattern: string, templateParams: PlotTemplateParams | VitessceTemplateParams) => {
   const { contextHeaderName } = ConfigService.ERMrest;
   const defaultHeaders = ConfigService.contextHeaderParams;
   const uri = ConfigService.ERMrest.renderHandlebarsTemplate(queryPattern, templateParams);

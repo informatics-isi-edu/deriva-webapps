@@ -14,10 +14,8 @@ import usePlot from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
 import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
 
 // models
-import { 
-  DataConfig, Plot, UserControlConfig, 
-  defaultGridProps, globalGridMargin, plotAreaFraction 
-} from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { DataConfig, Plot, plotAreaFraction } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { defaultGridProps, globalGridMargin, LayoutConfig, UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/webapps-core';
 import { Layouts, Responsive, WidthProvider } from 'react-grid-layout';
 
 // provider
@@ -47,7 +45,12 @@ const PlotControlGrid = ({
   const [validatedPlots, setValidatedPlots] = useState<Plot[]>(config.plots);
   const alertFunctions = useAlert();
 
-  const { appStyles, globalControlsInitialized, globalUserControlData, setConfig, templateParams } = usePlot();
+
+  const { 
+    appStyles, globalControlsInitialized, globalUserControlData, 
+    setConfig, setSelectorOptionChanged,
+    templateParams, setTemplateParams
+  } = usePlot();
 
   const gridContainer = useRef<HTMLDivElement | null>(null);
   const plotPageContainer = useRef<HTMLDivElement | null>(null);
@@ -193,7 +196,12 @@ const PlotControlGrid = ({
             {userControls.length > 0 ?
               userControls.map((currentConfig: UserControlConfig): JSX.Element => (
                 <div key={currentConfig.uid}>
-                  <UserControl controlConfig={currentConfig} />
+                  <UserControl 
+                    controlConfig={currentConfig}
+                    setSelectorOptionChanged={setSelectorOptionChanged}
+                    templateParams={templateParams}
+                    setTemplateParams={setTemplateParams}
+                  />
                 </div>
               ))
               : null}

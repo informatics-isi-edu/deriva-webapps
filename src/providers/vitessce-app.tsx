@@ -1,47 +1,46 @@
 // hooks
-import useError from '@isrd-isi-edu/chaise/src/hooks/error';
 import { createContext, useEffect, useMemo, useRef, useState } from 'react';
+import useError from '@isrd-isi-edu/chaise/src/hooks/error';
 
 // models
-import { AppStyle, PlotTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 import { UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/webapps-core';
+import { VitessceTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/models/vitessce';
 
 // services
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
 
 // utils
-import { getQueryParam } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
-import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
+import { getQueryParam, getQueryParams } from '@isrd-isi-edu/chaise/src/utils/uri-utils';
+import { generateUid } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
+import { windowRef } from '@isrd-isi-edu/chaise/src/utils/window-ref';
 
 
-export const PlotAppContext = createContext<{
+export const VitessceAppContext = createContext<{
   setConfig: Function;
   globalControlsInitialized: boolean;
   globalUserControlData: any;
   selectorOptionChanged: boolean;
   setSelectorOptionChanged: (optionChanged: boolean) => void;
-  templateParams: PlotTemplateParams;
-  setTemplateParams: (templateParams: PlotTemplateParams) => void;
-  appStyles: any;
+  templateParams: VitessceTemplateParams;
+  setTemplateParams: (templateParams: VitessceTemplateParams) => void;
 } | null>(null);
 
-type PlotAppProviderProps = {
+type VitessceAppProviderProps = {
   children: React.ReactNode;
 };
 
-export default function PlotAppProvider({
+export default function VitessceAppProvider({
   children,
-}: PlotAppProviderProps): JSX.Element {
+}: VitessceAppProviderProps): JSX.Element {
 
   const [config, setConfig] = useState<any>(null);
+  const [globalUserControlData, setGlobalUserControlData] = useState<any>(null);
   const [globalControlsInitialized, setGlobalControlsInitialized] = useState<boolean>(false);
   const [selectorOptionChanged, setSelectorOptionChanged] = useState<boolean>(false);
-  const [templateParams, setTemplateParams] = useState<PlotTemplateParams>({
+  const [templateParams, setTemplateParams] = useState<VitessceTemplateParams>({
     $url_parameters: {},
     $control_values: {}
   });
-  const [appStyles, setAppStyles] = useState({});
-  const [globalUserControlData, setGlobalUserControlData] = useState<any>(null);
 
   const { dispatchError } = useError();
 
@@ -56,13 +55,23 @@ export default function PlotAppProvider({
     if (setupStarted.current || !config) return;
     setupStarted.current = true;
 
+    const tempParams = { ...templateParams };
+    const allQueryParams = getQueryParams(window.location.href);
+
+    // push query parameters into templating environment
+    Object.keys(allQueryParams).forEach((key: string) => {
+      tempParams.$url_parameters[key] = allQueryParams[key];
+    });
+
     const initGlobalControls = async () => {
       if (config.user_controls?.length > 0) {
-        const tempParams = { ...templateParams };
-
         const tempUserControls = [...config.user_controls];
         for (let i = 0; i < config.user_controls.length; i++) {
           const controlConfig = { ...config.user_controls[i] };
+          if (!controlConfig.uid) {
+            controlConfig.uid = generateUid('global', controlConfig.type, i)
+            tempUserControls[i] = controlConfig;
+          }
 
           const values = await initalizeControlData(controlConfig);
 
@@ -74,7 +83,7 @@ export default function PlotAppProvider({
         setGlobalUserControlData({
           userControlConfig: tempUserControls,
           gridConfig: config?.grid_layout_config,
-          layout: config?.grid_layout_config?.layouts
+          layout: config?.layout
         });
 
         setTemplateParams(tempParams);
@@ -85,15 +94,6 @@ export default function PlotAppProvider({
 
     try {
       initGlobalControls();
-      if(config?.app_styles){
-        const validAppStyles = Object.keys(config?.app_styles)
-        .filter(key => Object.values<string>(AppStyle).includes(key))
-        .reduce((obj:any, key) => {
-            obj[key] = config?.app_styles[key];
-            return obj;
-        }, {});
-        setAppStyles(validAppStyles);
-      }
     } catch (error) {
       dispatchError({ error });
     }
@@ -142,20 +142,18 @@ export default function PlotAppProvider({
       selectorOptionChanged,
       setSelectorOptionChanged,
       templateParams,
-      setTemplateParams,
-      appStyles
+      setTemplateParams
     };
   }, [
     globalControlsInitialized,
     globalUserControlData,
     selectorOptionChanged,
-    templateParams,
-    appStyles
+    templateParams
   ]);
 
   return (
-    <PlotAppContext.Provider value={providerValue}>
+    <VitessceAppContext.Provider value={providerValue}>
       {children}
-    </PlotAppContext.Provider>
+    </VitessceAppContext.Provider>
   )
 }
