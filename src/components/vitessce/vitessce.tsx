@@ -35,7 +35,7 @@ const DerivaVitessce = ({
   // this is to guard against it
   const setupStarted = useRef<boolean>(false);
 
-  const [componentConfig, setComponentConfig] = useState<DerivaVitessceDataConfig['vitessce'] | null>(null);
+  const [componentConfig, setComponentConfig] = useState<DerivaVitessceDataConfig['vitessce']['config'] | null>(null);
 
   const [layout, setLayout] = useState<Layouts>({});
   const [gridProps, setGridProps] = useState({});
@@ -60,7 +60,7 @@ const DerivaVitessce = ({
     setConfig(config);
 
     let userControlFlag = false;
-    if (config.user_controls?.length > 0) userControlFlag = true;
+    if (config.user_controls && config.user_controls.length > 0) userControlFlag = true;
 
     setUserControlExists(userControlFlag);
 
@@ -71,7 +71,7 @@ const DerivaVitessce = ({
   }, []);
 
   // copies the given config to a tempObject to do templating
-  const _templateVitessceConfig = (config: DerivaVitessceDataConfig['vitessce']) => {
+  const _templateVitessceConfig = (config: DerivaVitessceDataConfig['vitessce']['config']) => {
     const tempConfig = { ...config }
     tempConfig.datasets.forEach((dataset: any) => {
       dataset.files.forEach((file: any) => {
@@ -91,7 +91,7 @@ const DerivaVitessce = ({
     // once controls are set up and templateParams are available, update the config language and set up the react grid layout and vitessce app
     // check for `url_pattern` defined for each file to use as the `url`
     // if both are defined, `url_pattern` will replace `url`
-    const tempConfig = _templateVitessceConfig(config.vitessce);
+    const tempConfig = _templateVitessceConfig(config.vitessce.config);
 
     // NOTE: The following is almost the same code that is in plot app
     if (userControlsExists && templateParams?.$control_values) {
@@ -165,7 +165,7 @@ const DerivaVitessce = ({
     if (!selectorOptionChanged) return;
     setSelectorOptionChanged(false);
 
-    const tempConfig = _templateVitessceConfig(config.vitessce);
+    const tempConfig = _templateVitessceConfig(config.vitessce.config);
     setComponentConfig(tempConfig);
   }, [selectorOptionChanged])
 
@@ -186,7 +186,7 @@ const DerivaVitessce = ({
           {...gridProps}
           layouts={layout}
         >
-          <div key={componentConfig.uid}>
+          <div key={config.vitessce.uid}>
             {selectorOptionChanged ?
               <ChaiseSpinner /> :
               /*
@@ -196,11 +196,11 @@ const DerivaVitessce = ({
                */
               <Vitessce
                 config={componentConfig}
-                height={config.height || 800}
+                height={config.vitessce.height || 800}
                 // 'dark' has black backgrounds for each component
                 // 'light' has grey backgrounds
                 // no value has white backgrounds
-                theme={config.theme || 'light'}
+                theme={config.vitessce.theme || 'light'}
               />
             }
           </div>

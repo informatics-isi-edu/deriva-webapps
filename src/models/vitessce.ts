@@ -24,29 +24,20 @@ export type DerivaVitessceConfig = {
  * each named config inside the config file for vitessce
  */
 export type DerivaVitessceDataConfig = {
-  height: number;
-  theme: 'dark' | 'light' | null;
   vitessce: {
     uid: string;
-    version: string;
-    name: string;
-    description: string;
-    datasets: any[];
-    initStrategy: string;
-    coordinationSpace: any;
-    layout: VitessceLayoutConfig[];
+    height: number;
+    theme: 'dark' | 'light' | null;
+    config: {
+      version: string;
+      name: string;
+      description: string;
+      datasets: any[];
+      initStrategy: string;
+      coordinationSpace: any;
+      layout: any[];
+    }
   },
   grid_layout_config?: ResponsiveGridConfig;
-  user_controls: UserControlConfig[];
+  user_controls?: UserControlConfig[];
 };
-
-export type VitessceLayoutConfig = {
-  component: string;
-  props: { 
-    description: string; 
-  };
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-}
