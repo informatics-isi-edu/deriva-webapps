@@ -2,8 +2,8 @@
 import DropdownSelect from '@isrd-isi-edu/deriva-webapps/src/components/plot/dropdown-select';
 
 // hooks
-import { useEffect, useState } from 'react';
 import usePlot from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
+import { useEffect, useState } from 'react';
 
 // models
 import { Option } from '@isrd-isi-edu/deriva-webapps/src/components/virtualized-select';
@@ -81,7 +81,7 @@ const Dropdown = ({
     <DropdownSelect
       id={userControlConfig.uid}
       defaultOptions={controlData}
-      label={userControlConfig.label}
+      label={userControlConfig.label.text}
       // Using any for option type instead of 'Option' to avoid the lint error
       onChange={(option: any) => handleChange(option)}
       value={selectedValue}

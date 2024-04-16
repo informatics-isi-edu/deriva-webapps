@@ -53,11 +53,22 @@ export type UserControlDataConfig={
 export enum UserControlTypes {
   DROPDOWN='dropdown',
   FACET_SEARCH_POPUP='facet-search-popup',
+  MARKDOWN='markdown',
+}
+
+export type ControlLabelConfig = {
+    text: string,
+    markdown_pattern: string,
+    styles: {
+      font_size: string,   
+      max_width: string,   
+    }
 }
 
 export type UserControlConfig = {
   uid: string;
-  label: string;
+  label: ControlLabelConfig,
+  classes: string[];
   type: UserControlTypes;
   url_param_key?: string;
   request_info: UserControlRequestInfoConfig;

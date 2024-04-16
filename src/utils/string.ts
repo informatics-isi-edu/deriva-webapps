@@ -375,3 +375,8 @@ export const validateGridProps = (gridConfigObject: any) => {
 export const generateUid = (scope: ControlScope, type: string, index: number) => {
   return scope + '_' + type + '_' + index;
 }
+
+
+export const toCSSStyle = (styleObj: any) => {
+  return Object.fromEntries(Object.entries(styleObj).map(([key,val])=>([key.replace(/_/g, '-'), val])));
+}

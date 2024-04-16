@@ -84,7 +84,7 @@ export const validateControlData = (userControlData: any, alertFunctions: any, g
   const invalidControlData: string[] = [];
   const validatedUserControls = userControlData?.map((control: any) => {
     let isControlValid = true;
-    if (!(control.request_info?.data && control.request_info?.data?.length > 0 || control.request_info.url_pattern)) {
+    if (control.type==='dropdown' && !(control.request_info?.data && control.request_info?.data?.length > 0 || control.request_info?.url_pattern)) {
 
       isControlValid = false;
       if (!alertFunctions.alerts.some(

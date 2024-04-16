@@ -293,7 +293,7 @@ export const useChartData = (plot: Plot) => {
     }
     values[valueKey] = initValue;
 
-    if (config.request_info.url_pattern) {
+    if (config.request_info?.url_pattern) {
       const initRowRequest = config.request_info.url_pattern + '/' + valueKey + '=' + initValue;
       const response = await ConfigService.http.get(initRowRequest);
 
@@ -396,6 +396,7 @@ export const useChartData = (plot: Plot) => {
           //To avoid the lint error, passing empty string if both are not present'
           const pattern = trace.url_pattern || trace.queryPattern || '';
           const { uri, headers } = getPatternUri(pattern, templateParams);
+          console.log(uri);
           return ConfigService.http.get(uri, { headers });
         } else if (trace.uri) {
           return ConfigService.http.get(trace.uri);
