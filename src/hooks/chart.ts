@@ -12,12 +12,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   DataConfig,
   Plot, PlotConfig, PlotConfigAxis,
-  Trace,
-  UserControlConfig,
-  plotAreaFraction,
+  Trace, plotAreaFraction,
   screenWidthThreshold,
   validFileTypes
 } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/webapps-core';
 
 // services
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
@@ -1718,25 +1717,34 @@ export const useChartData = (plot: Plot) => {
           updatePlotDataSwitch(currTrace, plotData, responseData, k)
           plotlyData.push(plotData);
         }
-      }
-      /** Otherwise if there's no response data which implies url pattern is not resolved in the config and 
-       data needs to be used from plotly.data so just pass rest of the trace params as is and 
-       let plotly decide whether those parameter are valid data params or not */
-      else{
+      } else {
+        /** 
+         * Otherwise if there's no response data which implies url pattern is not resolved in the config and 
+         * data needs to be used from plotly.data so just pass rest of the trace params as is and 
+         * let plotly decide whether those parameter are valid data params or not 
+         */
         plotlyData.push(currTrace);
       }
     });
-    if(result.data && result.data.length>=1){
-      result.data=result.data.map((dataTrace: any, index: number) => {
+
+    if (result.data && result.data.length >= 1) {
+      // add properties from traces objects to the result.data which was initialized with plotly.data object
+      result.data = result.data.map((dataTrace: any, index: number) => {
         return { ...dataTrace, ...plotlyData[index] };
       });
-    }else{
+    } else {
       result.data = plotlyData;
     }
+
     const emptyReponses = data.every((responseArray: any[]) => responseArray.length === 0);
+    // data is defined and nonzero and at least 1 of x, y, z, or values are defined
+    const hasPlotlyData = (plot?.plotly?.data && plot.plotly.data.length > 0) && 
+      (plot?.plotly?.data[0].x || plot?.plotly?.data[0].y || plot?.plotly?.data[0].z || plot?.plotly?.data[0].values);
+    // (data is empty or all the objects in data are empty) && plotly.data is not well defined, show "No Data"
+    const noDataTitle = ((data.length === 0 || emptyReponses) && !hasPlotlyData)
 
     updatePlotlyConfig(result); // update the config
-    updatePlotlyLayout(result, (data.length === 0 || emptyReponses), additionalLayout); // update the layout
+    updatePlotlyLayout(result, noDataTitle, additionalLayout); // update the layout
 
     // If hovertemplate_display_pattern is not configured, set default hover text for plot
     if (!hovertemplate_display_pattern) {
@@ -1748,6 +1756,7 @@ export const useChartData = (plot: Plot) => {
 
   // Parse data on state changes to data or selectData
   useEffect(() => {
+    // as long as we have data, and we aren't intializing or fetching more data, parse and set the data for plotly again
     if (data && !isDataLoading && !isInitLoading && !isFetchSelected) {
       // data is an array of arrays of ermrest response objects 
       //   data => [response.data] and response.data => [{}]
@@ -1758,7 +1767,7 @@ export const useChartData = (plot: Plot) => {
       setParsedData(parsePlotData());
       setIsParseLoading(false); // set loading to false after parsing
     }
-  }, [data]);
+  }, [data, isDataLoading, isInitLoading, isFetchSelected, selectData, templateParams]);
 
 
   return {

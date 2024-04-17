@@ -29,7 +29,7 @@ const plotSettings = {
   overrideDownloadClickBehavior: false,
   overrideExternalLinkBehavior: false,
 };
-//In simple cases a HOC WidthProvider can be used to automatically determine width upon initialization and window resize events.
+// In simple cases a HOC WidthProvider can be used to automatically determine width upon initialization and window resize events.
 
 const PlotApp = (): JSX.Element => {
   /**
@@ -38,9 +38,6 @@ const PlotApp = (): JSX.Element => {
   const { config, errors } = usePlotConfig(windowRef.plotConfigs);
 
   const [plotAppProps, setPlotAppProps] = useState<DataConfig>();
-  const alertFunctions = useAlert();
-
-
 
   useEffect(() => {
     if (config) {
@@ -51,7 +48,8 @@ const PlotApp = (): JSX.Element => {
         if (!plotConfig.uid) {
           const genUid = plotConfig.plot_type + '_' + index;
           plotConfig.uid = genUid;
-          alertFunctions.addAlert(`No UID found for the given plot. Using ${genUid} as default Id`, ChaiseAlertType.WARNING);
+          // log this message instead of showing a warning that is showing in old configs
+          console.log(`No UID found for the given plot. Using ${genUid} as default Id`)
         }
       });
       setPlotAppProps(tempConfig);

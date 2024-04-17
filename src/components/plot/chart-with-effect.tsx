@@ -10,6 +10,7 @@ import UserControlsGrid from '@isrd-isi-edu/deriva-webapps/src/components/plot/u
 
 // hooks
 import { useChartData } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
+import usePlot from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
 import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
 
 // models
@@ -79,6 +80,12 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
     handleSubmitModal,
     controlTemplateVariablesInitialized
   } = useChartData(config);
+
+  const {
+    setSelectorOptionChanged,
+    templateParams, setTemplateParams
+  } = usePlot();
+
   if (!parsedData || isInitLoading) {
     return <ChaiseSpinner />;
   } 
@@ -174,7 +181,13 @@ const ChartWithEffect = ({ config }: ChartWithEffectProps): JSX.Element => {
           <SelectGrid selectors={selectData} width={dynamicStyles.width} />
         ) : null}
         {!selectData && userControlData && controlTemplateVariablesInitialized && Object.keys(userControlData)?.length > 0 ? (
-          <UserControlsGrid userControlData={userControlData} width={'100%'} />
+          <UserControlsGrid
+            setSelectorOptionChanged={setSelectorOptionChanged}
+            templateParams={templateParams}
+            setTemplateParams={setTemplateParams}
+            userControlData={userControlData} 
+            width={'100%'} 
+          />
         ) : null}
         {isParseLoading || isFetchSelected  ? (
           <ChaiseSpinner />

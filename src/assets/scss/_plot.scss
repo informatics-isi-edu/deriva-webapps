@@ -1,5 +1,6 @@
 .plot-page {
   overflow: auto;
+  overflow: auto;
 
   .chart-container {
     display: flex;
@@ -91,6 +92,8 @@
 
   .grid-container {
     height: 90vh;
+    margin-inline: 10px;
+    margin: auto;
     margin-inline: 10px;
     margin-bottom: 12px;
     overflow: auto;

@@ -1,6 +1,6 @@
 import { createChaiseTooltips } from '@isrd-isi-edu/chaise/src/utils/ui-utils';
 import usePlot from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
-import { UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/webapps-core';
 import { createLink, toCSSStyle } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 import { useEffect, useRef } from 'react';
 

@@ -2,12 +2,13 @@
 import DropdownSelect from '@isrd-isi-edu/deriva-webapps/src/components/plot/dropdown-select';
 
 // hooks
-import usePlot from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
 import { useEffect, useState } from 'react';
 
 // models
 import { Option } from '@isrd-isi-edu/deriva-webapps/src/components/virtualized-select';
-import { UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { PlotTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { VitessceTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/models/vitessce';
+import { UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/webapps-core';
 
 // utils
 import { useUserControl } from '@isrd-isi-edu/deriva-webapps/src/hooks/control';
@@ -21,6 +22,9 @@ export type DropdownProps = {
    */
   value?: any;
   userControlConfig: UserControlConfig;
+  setSelectorOptionChanged: (optionChanged: boolean) => void;
+  templateParams: PlotTemplateParams | VitessceTemplateParams;
+  setTemplateParams: (templateParams: PlotTemplateParams | VitessceTemplateParams) => void;
 };
 
 /**
@@ -28,16 +32,16 @@ export type DropdownProps = {
  */
 const Dropdown = ({
   value,
-  userControlConfig
+  userControlConfig,
+  setSelectorOptionChanged,
+  templateParams,
+  setTemplateParams
 }: DropdownProps): JSX.Element => {
 
   const [selectedValue, setSelectedValue] = useState<any>(value);
 
-  // provider values
-  const { setSelectorOptionChanged, templateParams, setTemplateParams } = usePlot();
-
   // hook to setup data for control
-  const { controlData, initialized } = useUserControl(userControlConfig);
+  const { controlData, initialized } = useUserControl(userControlConfig, templateParams);
 
   useEffect(() => {
     if (!initialized) return;
@@ -81,7 +85,7 @@ const Dropdown = ({
     <DropdownSelect
       id={userControlConfig.uid}
       defaultOptions={controlData}
-      label={userControlConfig.label.text}
+      label={userControlConfig.label.markdown_pattern}
       // Using any for option type instead of 'Option' to avoid the lint error
       onChange={(option: any) => handleChange(option)}
       value={selectedValue}

@@ -58,7 +58,15 @@ module.exports = (env) => {
           'https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css',
           `${WEBAPPS_BASE_PATH}treeview/themes/default/images/style.css`
         ]
-      }
+      },
+      {
+        appName: 'vitessce',
+        appTitle: 'Vitessce',
+        appConfigLocation: `${WEBAPPS_BASE_PATH}config/vitessce-config.js`,
+        externalFiles: [
+          `${WEBAPPS_BASE_PATH}bundles/plotly-basic.min.js`
+        ]
+      },
     ],
     mode,
     env,

@@ -6,14 +6,24 @@ import Dropdown from '@isrd-isi-edu/deriva-webapps/src/components/controls/dropd
 import FacetSearchPopupControl from '@isrd-isi-edu/deriva-webapps/src/components/controls/facet-search-popup';
 
 // models
-import { UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
-import Markdown from './markdown';
+import Markdown from '@isrd-isi-edu/deriva-webapps/src/components/controls/markdown';
+import { PlotTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { VitessceTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/models/vitessce';
+import { UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/webapps-core';
 
 type UserControlProps = {
     controlConfig: UserControlConfig;
+    setSelectorOptionChanged: (optionChanged: boolean) => void;
+    templateParams: PlotTemplateParams | VitessceTemplateParams;
+    setTemplateParams: (templateParams: PlotTemplateParams | VitessceTemplateParams) => void;
 };
 
-const UserControl = ({ controlConfig }: UserControlProps): JSX.Element => {
+const UserControl = ({ 
+  controlConfig,
+  setSelectorOptionChanged,
+  templateParams,
+  setTemplateParams
+}: UserControlProps): JSX.Element => {
   const controlType = controlConfig.type;
   switch (controlType) {
     case 'dropdown':
@@ -21,6 +31,9 @@ const UserControl = ({ controlConfig }: UserControlProps): JSX.Element => {
         <div>
           <Dropdown
             userControlConfig={controlConfig}
+            setSelectorOptionChanged={setSelectorOptionChanged}
+            templateParams={templateParams}
+            setTemplateParams={setTemplateParams}
           />
         </div>
       )
@@ -29,7 +42,7 @@ const UserControl = ({ controlConfig }: UserControlProps): JSX.Element => {
         <div>
           <FacetSearchPopupControl
             id={controlConfig.uid}
-            label={controlConfig?.label?.text}
+            label={controlConfig?.label?.markdown_pattern}
             userControlConfig={controlConfig}
           />
         </div>
