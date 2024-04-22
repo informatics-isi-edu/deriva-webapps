@@ -133,10 +133,15 @@
 //     width: 100%;
 // }
 
-.markdown{
+.control-label{
     overflow: hidden;
     display: -webkit-box;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 1;
+    margin-right: 4px;
+}
+.control-container{
+  display: flex;
+  align-items: center;
 }
 }

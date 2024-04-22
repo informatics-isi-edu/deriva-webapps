@@ -6,10 +6,10 @@ import Dropdown from '@isrd-isi-edu/deriva-webapps/src/components/controls/dropd
 import FacetSearchPopupControl from '@isrd-isi-edu/deriva-webapps/src/components/controls/facet-search-popup';
 
 // models
-import Markdown from '@isrd-isi-edu/deriva-webapps/src/components/controls/markdown';
 import { PlotTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
 import { VitessceTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/models/vitessce';
 import { UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/webapps-core';
+import Label from '../label/label';
 
 type UserControlProps = {
     controlConfig: UserControlConfig;
@@ -28,7 +28,8 @@ const UserControl = ({
   switch (controlType) {
     case 'dropdown':
       return (
-        <div>
+        <div className="control-container">
+          <Label userControlConfig={controlConfig}/>
           <Dropdown
             userControlConfig={controlConfig}
             setSelectorOptionChanged={setSelectorOptionChanged}
@@ -39,20 +40,18 @@ const UserControl = ({
       )
     case 'facet-search-popup':
       return (
-        <div>
+        <div className="control-container">
+          <Label userControlConfig={controlConfig}/>
           <FacetSearchPopupControl
             id={controlConfig.uid}
-            label={controlConfig?.label?.markdown_pattern}
             userControlConfig={controlConfig}
           />
         </div>
       )
     case 'markdown':
       return (
-        <div>
-          <Markdown
-            userControlConfig={controlConfig}
-          />
+        <div className="control-container">
+          <Label userControlConfig={controlConfig}/>
         </div>
       )
     default:

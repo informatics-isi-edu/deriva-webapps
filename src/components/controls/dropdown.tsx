@@ -85,7 +85,7 @@ const Dropdown = ({
     <DropdownSelect
       id={userControlConfig.uid}
       defaultOptions={controlData}
-      label={userControlConfig.label.markdown_pattern}
+      // label={userControlConfig.label.markdown_pattern}
       // Using any for option type instead of 'Option' to avoid the lint error
       onChange={(option: any) => handleChange(option)}
       value={selectedValue}

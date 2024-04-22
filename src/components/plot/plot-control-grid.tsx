@@ -44,11 +44,6 @@ const PlotControlGrid = ({
   const [userControls, setUserControls] = useState<UserControlConfig[]>([]);
   const [validatedPlots, setValidatedPlots] = useState<Plot[]>(config.plots);
   const alertFunctions = useAlert();
-  const { width = 0, height = 0 } = useWindowSize();
-  const {appStyles} = usePlot();
-
-  const containerWidth = (appStyles?.width || plotAreaFraction) * width;
-
 
   const { 
     appStyles, globalControlsInitialized, globalUserControlData, 
