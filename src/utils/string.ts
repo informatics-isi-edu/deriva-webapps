@@ -1,7 +1,7 @@
 // models
 import { PlotTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
-import { ControlScope, defaultGridProps } from '@isrd-isi-edu/deriva-webapps/src/models/webapps-core';
 import { VitessceTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/models/vitessce';
+import { ControlScope, defaultGridProps } from '@isrd-isi-edu/deriva-webapps/src/models/webapps-core';
 
 // services
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
@@ -376,9 +376,4 @@ export const validateGridProps = (gridConfigObject: any) => {
  */
 export const generateUid = (scope: ControlScope, type: string, index: number) => {
   return scope + '_' + type + '_' + index;
-}
-
-
-export const toCSSStyle = (styleObj: any) => {
-  return Object.fromEntries(Object.entries(styleObj).map(([key,val])=>([key.replace(/_/g, '-'), val])));
 }

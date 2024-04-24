@@ -1,7 +1,7 @@
 import { createChaiseTooltips } from '@isrd-isi-edu/chaise/src/utils/ui-utils';
 import usePlot from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
 import { UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/webapps-core';
-import { createLink, toCSSStyle } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
+import { convertKeysSnakeToCamel, createLink } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 import { useEffect, useRef } from 'react';
 
 
@@ -24,7 +24,7 @@ const Label = ({
     console.log(templateParams,userControlConfig);
     const link = createLink(userControlConfig.label.markdown_pattern, templateParams);
     console.log(link);
-    const labelStyles = toCSSStyle(userControlConfig.label.styles); 
+    const labelStyles = convertKeysSnakeToCamel(userControlConfig.label.styles); 
     // handle tooltips that might be in the value
     const spanRef = useRef<HTMLLabelElement | null>(null);
     useEffect(() => {
