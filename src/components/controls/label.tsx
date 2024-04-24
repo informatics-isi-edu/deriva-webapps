@@ -21,9 +21,7 @@ const Label = ({
     const {
         templateParams
     } = usePlot();
-    console.log(templateParams,userControlConfig);
     const link = createLink(userControlConfig.label.markdown_pattern, templateParams);
-    console.log(link);
     const labelStyles = convertKeysSnakeToCamel(userControlConfig.label.styles); 
     // handle tooltips that might be in the value
     const spanRef = useRef<HTMLLabelElement | null>(null);

@@ -1,4 +1,4 @@
-import '@isrd-isi-edu/chaise/src/assets/app.scss';
+import '@isrd-isi-edu/chaise/src/assets/scss/app.scss';
 import '/node_modules/react-grid-layout/css/styles.css';
 import '/node_modules/react-resizable/css/styles.css';
 
@@ -34,6 +34,7 @@ const getControl = ({
           setSelectorOptionChanged={setSelectorOptionChanged}
           templateParams={templateParams}
           setTemplateParams={setTemplateParams}
+          noLabel={true}
         />
       )
     case 'facet-search-popup':

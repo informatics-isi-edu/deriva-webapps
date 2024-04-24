@@ -1,7 +1,7 @@
 import { ChaiseError } from '@isrd-isi-edu/chaise/src/models/errors';
 import { ChaiseAlertType } from '@isrd-isi-edu/chaise/src/providers/alerts';
+import { UserControlTypes } from '@isrd-isi-edu/deriva-webapps/src/models/webapps-core.ts';
 import { convertKeysSnakeToCamel } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
-// import { UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot.ts';
 
 
 export const validateUID = (userControlData: any, alertFunctions: any, global: boolean = false) => {
@@ -84,7 +84,7 @@ export const validateControlData = (userControlData: any, alertFunctions: any, g
   const invalidControlData: string[] = [];
   const validatedUserControls = userControlData?.map((control: any) => {
     let isControlValid = true;
-    if (control.type==='dropdown' && !(control.request_info?.data && control.request_info?.data?.length > 0 || control.request_info?.url_pattern)) {
+    if (control.type===UserControlTypes.DROPDOWN && !(control.request_info?.data && control.request_info?.data?.length > 0 || control.request_info?.url_pattern)) {
 
       isControlValid = false;
       if (!alertFunctions.alerts.some(

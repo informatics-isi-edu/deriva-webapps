@@ -25,6 +25,7 @@ export type DropdownProps = {
   setSelectorOptionChanged: (optionChanged: boolean) => void;
   templateParams: PlotTemplateParams | VitessceTemplateParams;
   setTemplateParams: (templateParams: PlotTemplateParams | VitessceTemplateParams) => void;
+  noLabel?: boolean;
 };
 
 /**
@@ -35,7 +36,8 @@ const Dropdown = ({
   userControlConfig,
   setSelectorOptionChanged,
   templateParams,
-  setTemplateParams
+  setTemplateParams,
+  noLabel=false
 }: DropdownProps): JSX.Element => {
 
   const [selectedValue, setSelectedValue] = useState<any>(value);
@@ -85,7 +87,7 @@ const Dropdown = ({
     <DropdownSelect
       id={userControlConfig.uid}
       defaultOptions={controlData}
-      // label={userControlConfig.label.markdown_pattern}
+      label={noLabel ? '' : userControlConfig.label.markdown_pattern}
       // Using any for option type instead of 'Option' to avoid the lint error
       onChange={(option: any) => handleChange(option)}
       value={selectedValue}
