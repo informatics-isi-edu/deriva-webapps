@@ -395,7 +395,6 @@ export const useChartData = (plot: Plot) => {
           //To avoid the lint error, passing empty string if both are not present'
           const pattern = trace.url_pattern || trace.queryPattern || '';
           const { uri, headers } = getPatternUri(pattern, templateParams);
-          console.log(uri);
           return ConfigService.http.get(uri, { headers });
         } else if (trace.uri) {
           return ConfigService.http.get(trace.uri);

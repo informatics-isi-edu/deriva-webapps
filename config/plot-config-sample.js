@@ -757,7 +757,9 @@ var plotConfigs = {
         ],
         user_controls: [{
           uid: 'consortium',
-          label: 'Consortium',
+          label: {
+            markdown_pattern:'[Consortium]'
+          },
           type: 'dropdown',
           request_info: {
             data: [{
@@ -777,7 +779,9 @@ var plotConfigs = {
         },
         {
           uid: 'consortiumS2',
-          label: 'S2 Consortium',
+          label: {
+            markdown_pattern:'[S2 Consortium]'
+          },
           type: 'dropdown',
           request_info: {
             data: [{
@@ -877,7 +881,14 @@ var plotConfigs = {
     user_controls: [
       {
         uid: 'consortium',
-        label: 'Consortium Common',
+        label: {
+          markdown_pattern:'Consortium Common',
+          styles: {
+            font_size: '20px',
+            max_width: '70px',
+          }
+        },
+        classes: ['chaise-content-left'],
         type: 'dropdown',
         request_info: {
           data: [{
@@ -1051,7 +1062,9 @@ var plotConfigs = {
         // },
         user_controls: [{
           uid: 'consortium',
-          label: 'Consortium',
+          label: {
+            markdown_pattern:'Consortium'
+          },
           type: 'dropdown',
           request_info: {
             data: [{
@@ -1071,7 +1084,9 @@ var plotConfigs = {
         },
         {
           uid: 'consortiumS2',
-          label: 'S2 Consortium',
+          label: {
+            markdown_pattern:'S2 Consortium'
+          },
           type: 'dropdown',
           request_info: {
             data: [{
@@ -1091,7 +1106,9 @@ var plotConfigs = {
         },
         {
           uid: 'consortium3',
-          label: 'Consortium3',
+          label: {
+            markdown_pattern:'Consortium3'
+          },
           type: 'dropdown',
           request_info: {
             data: [{
@@ -1257,7 +1274,9 @@ var plotConfigs = {
         // },
         user_controls: [{
           uid: 'consortium',
-          label: 'Consortium',
+          label: {
+            markdown_pattern:'Consortium'
+          },
           type: 'dropdown',
           request_info: {
             data: [{
@@ -1277,7 +1296,9 @@ var plotConfigs = {
         },
         {
           uid: 'consortiumS2',
-          label: 'S2 Consortium',
+          label: {
+            markdown_pattern:'S2 Consortium'
+          },
           type: 'dropdown',
           request_info: {
             data: [{
@@ -1402,7 +1423,9 @@ var plotConfigs = {
         // },
         user_controls: [{
           uid: 'consortium',
-          label: 'Consortium',
+          label: {
+            markdown_pattern:'Consortium'
+          },
           type: 'dropdown',
           request_info: {
             data: [{
@@ -1422,7 +1445,9 @@ var plotConfigs = {
         },
         {
           uid: 'consortium1',
-          label: 'Consortium',
+          label: {
+            markdown_pattern:'Consortium'
+          },
           type: 'dropdown',
           request_info: {
             data: [{
@@ -1442,7 +1467,9 @@ var plotConfigs = {
         },
         {
           uid: 'consortium2',
-          label: 'Consortium',
+          label: {
+            markdown_pattern:'Consortium'
+          },
           type: 'dropdown',
           request_info: {
             data: [{
@@ -1880,7 +1907,14 @@ var plotConfigs = {
       // },
       user_controls: [{
         uid: 'section',
-        label: 'Section Ordinal',
+        label: {
+          markdown_pattern: 'Section Ordinal',
+          styles: {
+            font_size: '18px',
+            max_width: '70px',
+          }
+        },
+        classes: ['chaise-content-left', 'chaise-content-top'],
         type: 'dropdown',
         request_info: {
           data: [{
@@ -1898,6 +1932,18 @@ var plotConfigs = {
           selected_value_pattern: '{{{$self.values.Display}}}'
         }
       },
+      {
+        uid: 'array_data_link',
+        label: {
+          markdown_pattern: '[View array data](https://dev.isrd.isi.edu/chaise/search){target=_blank data-chaise-tooltip="View dataset" data-chaise-tooltip-placement="right" data-chaise-tooltip-no-icon}',
+          styles: {
+            font_size: '14px',
+            max_width: '50px',
+          }
+        },
+        classes: ['chaise-content-right'],
+        type: 'markdown',
+      }
       ],
       config: {
         /**

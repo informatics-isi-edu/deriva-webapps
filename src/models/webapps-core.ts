@@ -4,9 +4,8 @@ export type UserControlDataConfig = {
 }
 
 export type ControlLabelConfig = {
-  text: string,
   markdown_pattern: string,
-  styles: {
+  styles?: {
     font_size: string,   
     max_width: string,   
   }

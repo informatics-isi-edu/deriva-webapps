@@ -1,3 +1,4 @@
+// CSS Styles
 import '@isrd-isi-edu/chaise/src/assets/scss/app.scss';
 import '/node_modules/react-grid-layout/css/styles.css';
 import '/node_modules/react-resizable/css/styles.css';
@@ -58,7 +59,7 @@ const UserControl = ({
   const styleClasses = controlConfig.classes?.join(' ');
 
   return (
-    //Append all styles classes to the control
+    //Append all chaise styles classes to the control
     <div className={`control-container ${styleClasses}`}>
       <Label userControlConfig={controlConfig} />
       {getControl({

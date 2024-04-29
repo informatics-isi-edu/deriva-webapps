@@ -1,6 +1,6 @@
 import { ChaiseError } from '@isrd-isi-edu/chaise/src/models/errors';
 import { ChaiseAlertType } from '@isrd-isi-edu/chaise/src/providers/alerts';
-import { UserControlTypes } from '@isrd-isi-edu/deriva-webapps/src/models/webapps-core.ts';
+import { UserControlTypes } from '@isrd-isi-edu/deriva-webapps/src/models/webapps-core';
 import { convertKeysSnakeToCamel } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 
 
