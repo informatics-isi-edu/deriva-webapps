@@ -8,7 +8,7 @@ export const validateUID = (userControlData: any, alertFunctions: any, global: b
   const invalidControlType: string[] = [];
   userControlData.map((control: any, index: number) => {
     if (!control?.uid) {
-      throw new ChaiseError('User Control Error', `Missing UID for the specified ${global ? 'global' : 'local'} user control ${control?.label ? `labelled as "${control?.label}"` : `at index ${index}`}.`);
+      throw new ChaiseError('User Control Error', `Missing UID for the specified ${global ? 'global' : 'local'} user control ${control?.label ? `labelled as "${control?.label?.markdown_pattern}"` : `at index ${index}`}.`);
     }
     if (!control?.type) {
       invalidControlType.push(control.uid);

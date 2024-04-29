@@ -30,6 +30,8 @@ const getControl = ({
   switch (controlType) {
     case 'dropdown':
       return (
+        <>
+        <Label userControlConfig={controlConfig} />
         <Dropdown
           userControlConfig={controlConfig}
           setSelectorOptionChanged={setSelectorOptionChanged}
@@ -37,14 +39,20 @@ const getControl = ({
           setTemplateParams={setTemplateParams}
           noLabel={true}
         />
+        </>
       )
     case 'facet-search-popup':
       return (
+        <>
+        <Label userControlConfig={controlConfig} />
         <FacetSearchPopupControl
           id={controlConfig.uid}
           userControlConfig={controlConfig}
         />
+        </>
       )
+    case 'markdown':
+      return <Label userControlConfig={controlConfig} />
     default:
       return (<></>)
   }
@@ -61,7 +69,6 @@ const UserControl = ({
   return (
     //Append all chaise styles classes to the control
     <div className={`control-container ${styleClasses}`}>
-      <Label userControlConfig={controlConfig} />
       {getControl({
         controlConfig, setSelectorOptionChanged,
         templateParams,
