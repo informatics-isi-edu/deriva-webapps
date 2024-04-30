@@ -25,7 +25,9 @@ export type DropdownProps = {
   setSelectorOptionChanged: (optionChanged: boolean) => void;
   templateParams: PlotTemplateParams | VitessceTemplateParams;
   setTemplateParams: (templateParams: PlotTemplateParams | VitessceTemplateParams) => void;
-  noLabel?: boolean;
+  /* In cases where users want to style the label separately, they can set noLabel to true (For eg. user controls in react grid layout). 
+   However, when using the dropdown normally with a label, noLabel will be false by default.*/
+  noLabel?: boolean; 
 };
 
 /**

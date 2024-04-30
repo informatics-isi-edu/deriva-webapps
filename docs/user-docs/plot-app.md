@@ -104,7 +104,7 @@ Each object in the `plots` array can have the following parameters:
             1. `font_size`: Allows same values as property in CSS
             2. `max_width`: Allows same values as property in CSS
     3. `classes`: An array of chaise classes of styles that needs to be applied on the user control
-    4. `type`:  The type of control to display, more info below about control types (NOTE: For now, only type `dropdown` is supported)
+    4. `type`:  The type of control to display, more info below about control types
     5. `url_param_key`(Optional): Parameter name or object of parameter names from url params that ire associated with this user control 
     6. `request_info`: Data for the user control
         1. `url_pattern`(Optional): String that allows for handlebars templating for fetching data for this user control
