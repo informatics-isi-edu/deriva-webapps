@@ -24,7 +24,6 @@ export type UserControlConfig = {
   type: UserControlTypes;
   url_param_key?: string;
   request_info: UserControlRequestInfoConfig;
-  visible?: boolean;
 }
 
 export type ControlScope = 'global' | 'local';
