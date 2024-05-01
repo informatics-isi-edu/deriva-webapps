@@ -4,6 +4,10 @@
   overflow: auto;
 }
 
+.chaise-iframe .grid-container {
+  height: 100vh;
+}
+
 .global-grid-layout {
   // NOTE: there shouldn't be scrollbars in the grid unless the items in the grid are bigger than the grid
   // if that's the case, the grid height should be increased with a scrollbar on the grid-container
