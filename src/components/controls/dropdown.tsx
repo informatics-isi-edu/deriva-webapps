@@ -6,9 +6,9 @@ import { useEffect, useState } from 'react';
 
 // models
 import { Option } from '@isrd-isi-edu/deriva-webapps/src/components/virtualized-select';
-import { UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/webapps-core';
-import { VitessceTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/models/vitessce';
 import { PlotTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { VitessceTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/models/vitessce';
+import { UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/webapps-core';
 
 // utils
 import { useUserControl } from '@isrd-isi-edu/deriva-webapps/src/hooks/control';
@@ -25,6 +25,9 @@ export type DropdownProps = {
   setSelectorOptionChanged: (optionChanged: boolean) => void;
   templateParams: PlotTemplateParams | VitessceTemplateParams;
   setTemplateParams: (templateParams: PlotTemplateParams | VitessceTemplateParams) => void;
+  /* In cases where users want to style the label separately, they can set noLabel to true (For eg. user controls in react grid layout). 
+   However, when using the dropdown normally with a label, noLabel will be false by default.*/
+  noLabel?: boolean; 
 };
 
 /**
@@ -35,7 +38,8 @@ const Dropdown = ({
   userControlConfig,
   setSelectorOptionChanged,
   templateParams,
-  setTemplateParams
+  setTemplateParams,
+  noLabel=false
 }: DropdownProps): JSX.Element => {
 
   const [selectedValue, setSelectedValue] = useState<any>(value);
@@ -85,7 +89,7 @@ const Dropdown = ({
     <DropdownSelect
       id={userControlConfig.uid}
       defaultOptions={controlData}
-      label={userControlConfig.label}
+      label={noLabel ? '' : userControlConfig.label.markdown_pattern}
       // Using any for option type instead of 'Option' to avoid the lint error
       onChange={(option: any) => handleChange(option)}
       value={selectedValue}

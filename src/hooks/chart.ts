@@ -292,7 +292,7 @@ export const useChartData = (plot: Plot) => {
     }
     values[valueKey] = initValue;
 
-    if (config.request_info.url_pattern) {
+    if (config.request_info?.url_pattern) {
       const initRowRequest = config.request_info.url_pattern + '/' + valueKey + '=' + initValue;
       const response = await ConfigService.http.get(initRowRequest);
 

@@ -8,7 +8,7 @@ import {
 } from 'plotly.js';
 
 import { LayoutConfig, UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/webapps-core';
-import { ResponsiveProps as ResponsiveGridConfig, Layouts, ResponsiveProps } from 'react-grid-layout';
+import { Layouts, ResponsiveProps as ResponsiveGridConfig } from 'react-grid-layout';
 
 
 /**
@@ -220,3 +220,4 @@ export const screenWidthThreshold = 1000;
 
 //Valid file types for url_pattern
 export const validFileTypes = ['csv', 'json'];
+

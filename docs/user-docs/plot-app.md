@@ -98,9 +98,14 @@ Each object in the `plots` array can have the following parameters:
 13. `plotlyButtonsToRemove`: The button to be removed shown by plotly by defualt. DEPRECATED, use `plotly.config.modeBarButtonsToRemove` instead
 14. `user_controls`: Contains information about each user control (data for the control, default value, etc) 
     1. `uid`: Key for referencing this user control; in other configuration properties
-    2. `label`: Name to display next to this user control
-    3. `type`:  The type of control to display, more info below about control types (NOTE: For now, only type `dropdown` is supported)
-    4. `url_param_key`(Optional): Parameter name or object of parameter names from url params that ire associated with this user control 
+    2. `label`: Name to display next to this user control with given styles applied. Also note that label object can be used to generate a markdown user control
+        1. `markdown_pattern`: markdown template string to be generated for the control label/markdown user control,
+        2. `styles`: CSS styles that can be applied on the label
+            1. `font_size`: Allows same values as property in CSS
+            2. `max_width`: Allows same values as property in CSS
+    3. `classes`: An array of chaise classes of styles that needs to be applied on the user control
+    4. `type`:  The type of control to display, more info below about control types
+    5. `url_param_key`(Optional): Parameter name or object of parameter names from url params that ire associated with this user control 
     6. `request_info`: Data for the user control
         1. `url_pattern`(Optional): String that allows for handlebars templating for fetching data for this user control
         2. `data`: Values to use in the user control if no query_pattern is provided 

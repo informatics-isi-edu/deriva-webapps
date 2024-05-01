@@ -8,14 +8,14 @@ import UserControl from '@isrd-isi-edu/deriva-webapps/src/components/controls/us
 import ChartWithEffect from '@isrd-isi-edu/deriva-webapps/src/components/plot/chart-with-effect';
 
 // hooks
-import { useEffect, useRef, useState } from 'react';
 import useAlert from '@isrd-isi-edu/chaise/src/hooks/alerts';
 import usePlot from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
 import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
+import { useEffect, useRef, useState } from 'react';
 
 // models
 import { DataConfig, Plot, plotAreaFraction } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
-import { defaultGridProps, globalGridMargin, LayoutConfig, UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/webapps-core';
+import { UserControlConfig, defaultGridProps, globalGridMargin } from '@isrd-isi-edu/deriva-webapps/src/models/webapps-core';
 import { Layouts, Responsive, WidthProvider } from 'react-grid-layout';
 
 // provider
@@ -44,7 +44,6 @@ const PlotControlGrid = ({
   const [userControls, setUserControls] = useState<UserControlConfig[]>([]);
   const [validatedPlots, setValidatedPlots] = useState<Plot[]>(config.plots);
   const alertFunctions = useAlert();
-
 
   const { 
     appStyles, globalControlsInitialized, globalUserControlData, 

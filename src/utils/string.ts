@@ -1,7 +1,7 @@
 // models
 import { PlotTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
-import { ControlScope, defaultGridProps } from '@isrd-isi-edu/deriva-webapps/src/models/webapps-core';
 import { VitessceTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/models/vitessce';
+import { ControlScope, defaultGridProps } from '@isrd-isi-edu/deriva-webapps/src/models/webapps-core';
 
 // services
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
