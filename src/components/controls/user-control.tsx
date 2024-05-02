@@ -30,7 +30,10 @@ const getControl = ({
     case 'dropdown':
       return (
         <>
-        <Label userControlConfig={controlConfig} />
+        <Label 
+          userControlConfig={controlConfig}
+          templateParams={templateParams}
+        />
         <Dropdown
           userControlConfig={controlConfig}
           setSelectorOptionChanged={setSelectorOptionChanged}
@@ -43,7 +46,10 @@ const getControl = ({
     case 'facet-search-popup':
       return (
         <>
-        <Label userControlConfig={controlConfig} />
+        <Label 
+          userControlConfig={controlConfig}
+          templateParams={templateParams}
+        />
         <FacetSearchPopupControl
           id={controlConfig.uid}
           userControlConfig={controlConfig}
@@ -51,7 +57,10 @@ const getControl = ({
         </>
       )
     case 'markdown':
-      return <Label userControlConfig={controlConfig} />
+      return <Label 
+        userControlConfig={controlConfig}
+        templateParams={templateParams}
+      />
     default:
       return (<></>)
   }
