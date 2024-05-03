@@ -72,10 +72,10 @@ const UserControl = ({
   templateParams,
   setTemplateParams
 }: UserControlProps): JSX.Element => {
-  const styleClasses = controlConfig.classes?.join(' ');
+  const styleClasses = controlConfig.classes ? controlConfig.classes.join(' ') : '';
 
   return (
-    //Append all chaise styles classes to the control
+    // Append all chaise styles classes to the control
     <div className={`control-container ${styleClasses}`}>
       {getControl({
         controlConfig, setSelectorOptionChanged,
