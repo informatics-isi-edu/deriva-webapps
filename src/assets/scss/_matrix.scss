@@ -385,6 +385,13 @@ body:not(.chaise-iframe) {
     left: 0;
   }
 
+  .MuiTreeItem-label{
+    margin-right: 2px!important;
+  }
+  
+  .MuiTreeItem-groupTransition {
+    margin-right: 16px!important;
+  }
   .column-header-scrollbar-container{
     position: absolute;
     right: 0;

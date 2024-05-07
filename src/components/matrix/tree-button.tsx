@@ -6,7 +6,7 @@ import { TreeNodeMap } from '@isrd-isi-edu/deriva-webapps/src/hooks/matrix';
 
 // MUI tree components
 import { alpha, styled } from '@mui/material/styles';
-import { TreeItem, TreeItemProps, treeItemClasses, useTreeItem, TreeItemContentProps } from '@mui/x-tree-view/TreeItem';
+import { TreeItem, TreeItemProps, treeItemClasses, useTreeItemState, TreeItemContentProps } from '@mui/x-tree-view/TreeItem';
 import clsx from 'clsx';
 import Typography from '@mui/material/Typography';
 
@@ -302,19 +302,19 @@ export const MemoizedRenderTree = memo(({ nodes, data, cellSize, treeNodesMap, i
   /**
    * Update id or index for when hover an item (row header)
    */
-  const updateRowId = (nodeId: string) => {
+  const updateRowId = (itemId: string) => {
     if (!isScrolling) {
       setHoveredColID(null);
-      setHoveredRowID(nodeId);
+      setHoveredRowID(itemId);
     }
   };
 
   /**
    * Update id or index for when hover an item (column header)
    */
-  const updateColId = (nodeId: string) => {
+  const updateColId = (itemId: string) => {
     if (!isScrolling) {
-      setHoveredColID(nodeId);
+      setHoveredColID(itemId);
       setHoveredRowID(null);
     }
   };
@@ -330,7 +330,7 @@ export const MemoizedRenderTree = memo(({ nodes, data, cellSize, treeNodesMap, i
       classes,
       className,
       label,
-      nodeId,
+      itemId,
       icon: iconProp,
       expansionIcon,
       displayIcon
@@ -344,7 +344,7 @@ export const MemoizedRenderTree = memo(({ nodes, data, cellSize, treeNodesMap, i
       handleExpansion,
       handleSelection,
       preventSelection
-    } = useTreeItem(nodeId);
+    } = useTreeItemState(itemId);
 
     const icon = iconProp || expansionIcon || displayIcon;
 
@@ -366,14 +366,14 @@ export const MemoizedRenderTree = memo(({ nodes, data, cellSize, treeNodesMap, i
       handleSelection(event);
     };
 
-    const link = treeNodesMap[nodeId]?.link;
+    const link = treeNodesMap[itemId]?.link;
 
-    const hover = isColumn ? nodeId === hoveredColID : nodeId === hoveredRowID
+    const hover = isColumn ? itemId === hoveredColID : itemId === hoveredRowID
     const linkClassName = hover ? 'hovered-header' : 'unhovered-header';
 
     const onMouseEnterHandler = isColumn
-      ? () => updateColId(nodeId)
-      : () => updateRowId(nodeId);
+      ? () => updateColId(itemId)
+      : () => updateRowId(itemId);
 
     return (
       <div
@@ -445,7 +445,7 @@ export const MemoizedRenderTree = memo(({ nodes, data, cellSize, treeNodesMap, i
         opacity: 0.3
       }
     },
-    [`& .${treeItemClasses.group}`]: isColumn
+    [`& .${treeItemClasses.groupTransition}`]: isColumn
     ? {
       marginLeft: 15,
       paddingLeft: 4,
@@ -482,7 +482,7 @@ export const MemoizedRenderTree = memo(({ nodes, data, cellSize, treeNodesMap, i
     return nodes.map((node) => (
       <StyledTreeItem
         key={node.link}
-        nodeId={node.key}
+        itemId={node.key}
         label={node.title}
         className='MUI-tree'
         node={node}

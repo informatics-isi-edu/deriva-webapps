@@ -1,11 +1,12 @@
 import React, { forwardRef } from 'react';
-import { TreeView } from '@mui/x-tree-view/TreeView';
+import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView';
 import { MemoizedMinusSquare, MemoizedPlusSquare, MemoizedCloseSquare, MemoizedRenderTree } from '@isrd-isi-edu/deriva-webapps/src/components/matrix/tree-button';
 import { RowHeadersProps } from '@isrd-isi-edu/deriva-webapps/src/components/matrix/row-tree-headers';
 import { RefAttributes } from 'react';
 import { ColumnHeadersProps } from '@isrd-isi-edu/deriva-webapps/src/components/matrix/column-tree-headers';
 
 import { getScrollbarSize } from '@isrd-isi-edu/deriva-webapps/src/utils/ui-utils';
+import { MemoizedSharedCloseSquare, MemoizedSharedMinusSquare, MemoizedSharedPlusSquare, MemoizedSharedRenderTree } from '@isrd-isi-edu/deriva-webapps/src/components/matrix/shared-tree-button';
 
 type ChaiseTreeviewProps = {
   className: string;
@@ -32,15 +33,15 @@ const ChaiseTreeview = forwardRef<HTMLUListElement, ChaiseTreeviewProps>(({
   const isColumn = isLeft;
 
   return (
-    <TreeView
+    <SimpleTreeView
       className= {className}
       aria-label='rich object'
-      defaultExpanded={['root']}
-      defaultCollapseIcon={<MemoizedMinusSquare isLeft={isLeft} cellSize={sizeOfCell} iconSize={iconSize} />}
-      defaultExpandIcon={<MemoizedPlusSquare isLeft={isLeft} cellSize={sizeOfCell} iconSize={iconSize} />}
-      defaultEndIcon={<MemoizedCloseSquare isLeft={isLeft} cellSize={sizeOfCell} />}
-      expanded={expanded}
-      onNodeToggle={onNodeToggle}
+      defaultExpandedItems={['root']}
+      slots={{ collapseIcon: () => <MemoizedMinusSquare isLeft={isLeft} cellSize={sizeOfCell} iconSize={iconSize} />,
+      expandIcon: () => <MemoizedPlusSquare isLeft={isLeft} cellSize={sizeOfCell} iconSize={iconSize} />, 
+      endIcon: () =>  <MemoizedCloseSquare isLeft={isLeft} cellSize={sizeOfCell} />}}
+      expandedItems={expanded}
+      onExpandedItemsChange={onNodeToggle}
       ref={ref}
       style={ className === 'grid-column-headers-treeview' ? { position: 'absolute', left: -scrollableDimension, 
       paddingBottom: props.cellWidth + getScrollbarSize('.grid'),} : {}}
@@ -56,7 +57,7 @@ const ChaiseTreeview = forwardRef<HTMLUListElement, ChaiseTreeviewProps>(({
         isScrolling={isScrolling}
         scrollableSize={scrollableDimension}
         isColumn={isColumn} />
-    </TreeView>
+    </SimpleTreeView>
   );
 });
 
