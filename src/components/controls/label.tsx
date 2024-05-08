@@ -26,6 +26,7 @@ const Label = ({
 }: LabelProps): JSX.Element => {
   return (
     <DisplayValue
+      as='label'
       value={{ isHTML: true, value: createLink(userControlConfig.label.markdown_pattern, templateParams) }}
       addClass
       className='control-label'
