@@ -33,6 +33,7 @@
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
     "@isrd-isi-edu/chaise": "^0.0.21",
+    "@mui/icons-material": "^5.15.17",
     "@mui/material": "^5.15.14",
     "@mui/x-tree-view": "^7.0.0",
     "papaparse": "^5.4.1",

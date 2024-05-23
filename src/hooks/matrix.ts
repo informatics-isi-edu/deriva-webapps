@@ -68,11 +68,17 @@ export type MatrixTreeDatum = {
 /**
  * The tree node datum to be parsed
  */
+export type properties = {
+  homogenous?: Boolean,
+  regional?: Boolean,
+  restricted?: Boolean
+}
 export type TreeNode = {
   title: string;
   key: string;
   link?: string;
   children: TreeNode[];
+  properties?: properties;
 };
 
 /**
