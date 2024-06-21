@@ -75,7 +75,14 @@ const DerivaVitessce = ({
     const tempConfig = { ...config }
     tempConfig.datasets.forEach((dataset: any) => {
       dataset.files.forEach((file: any) => {
-        if (file.url_pattern) {
+        if (file.fileType === 'raster.json') {
+          file.options.images.forEach((image: any) => {
+            if (image.url_pattern) {
+              const { uri } = getPatternUri(image.url_pattern, templateParams);
+              image.url = uri;
+            }
+          });
+        } else if (file.url_pattern) {
           const { uri } = getPatternUri(file.url_pattern, templateParams);
           file.url = uri
         }
