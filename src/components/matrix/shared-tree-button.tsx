@@ -14,7 +14,8 @@ import {
   UseTreeItem2Parameters,
 } from '@mui/x-tree-view/useTreeItem2';
 import { TreeItem2Icon } from '@mui/x-tree-view/TreeItem2Icon';
-import { treeItemClasses } from '@mui/x-tree-view';
+import { groupTransitionStyle } from '@isrd-isi-edu/deriva-webapps/src/components/chaise-treeview';
+import { TreeItem, treeItemClasses } from '@mui/x-tree-view/TreeItem';
 declare module 'react' {
   interface CSSProperties {
     '--tree-view-color'?: string;
@@ -162,3 +163,73 @@ export const CustomTreeItem = React.forwardRef(function CustomTreeItem(
     </CustomTreeItemRoot>
   );
 });
+
+ export const CustomColTreeItem = styled(TreeItem)(({ theme }) => ({
+  // transform: 'rotate(-45deg)', // Rotates the entire div by -90 degrees
+  // transformOrigin: 'center',
+  // flexDirection: 'column-reverse',
+  color:
+    theme.palette.mode === 'light'
+      ? theme.palette.grey[800]
+      : theme.palette.grey[200],
+
+  [`& .${treeItemClasses.content}`]: {
+// issue to rotate the entire node and not just the content cause that requires individual corrections?
+    // writingMode: 'vertical-lr',
+    // textOrientation: 'upright',
+    // transform: 'rotate(-90deg)',
+    // padding: theme.spacing(1),
+    // borderRadius: theme.spacing(0.5),
+    padding: theme.spacing(0.5, 1),
+    // margin: theme.spacing(0.2, 0),
+    [`& .${treeItemClasses.label}`]: {
+      fontSize: '0.8rem',
+      fontWeight: 500,
+    },
+  },
+
+  [`& .${treeItemClasses.iconContainer}`]: {
+    borderRadius: '50%',
+    backgroundColor:
+      theme.palette.mode === 'light'
+        ? alpha(theme.palette.primary.main, 0.25)
+        : theme.palette.primary.dark,
+    color: theme.palette.mode === 'dark' && theme.palette.primary.contrastText,
+    padding: theme.spacing(0, 1.2),
+  },
+  [`& .${treeItemClasses.groupTransition}`]: groupTransitionStyle(theme),
+}));
+
+export const CustomRowTreeItem = styled(TreeItem)(({ theme }) => ({
+  color:
+    theme.palette.mode === 'light'
+      ? theme.palette.grey[800]
+      : theme.palette.grey[200],
+  
+  [`& .${treeItemClasses.content}`]: {
+    borderRadius: theme.spacing(0.5),
+    padding: theme.spacing(0.5, 1),
+    margin: theme.spacing(0.2, 0),
+    display: 'flex',
+    justifyContent: 'end',
+    alignItems: 'center',
+    [`& .${treeItemClasses.label}`]: {
+      fontSize: '0.8rem',
+      fontWeight: 500,
+      order: 1,
+      width: 'fit-content',
+    },
+  },
+  [`& .${treeItemClasses.iconContainer}`]: {
+    order: 2,
+    marginRight: theme.spacing(1),
+    borderRadius: '50%',
+    backgroundColor:
+      theme.palette.mode === 'light'
+        ? alpha(theme.palette.primary.main, 0.25)
+        : theme.palette.primary.dark,
+    color: theme.palette.mode === 'dark' && theme.palette.primary.contrastText,
+    padding: theme.spacing(0, 1.2),
+  },
+  [`& .${treeItemClasses.groupTransition}`]: groupTransitionStyle(theme, true),
+}));

@@ -1,103 +1,197 @@
-/* eslint-disable max-len */
-/* eslint-disable no-restricted-imports */
-import * as React from 'react';
-import { alpha } from '@mui/material/styles';
-import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView';
 
-import IndeterminateCheckBoxRoundedIcon from '@mui/icons-material/IndeterminateCheckBoxRounded';
-import AddBoxRoundedIcon from '@mui/icons-material/AddBoxRounded';
-// path to be corrected for lint 
-import { CustomTreeItem } from './matrix/shared-tree-button';
-import icon1 from '../../treeview/resources/images/ExpressionMapping/ExpressionPatternKey/Homogeneous.png';
-import icon2 from '../../treeview/resources/images/ExpressionMapping/ExpressionPatternKey/Graded.png';
-import icon3 from '../../treeview/resources/images/ExpressionMapping/ExpressionPatternKey/Regional.png';
-import icon4 from '../../treeview/resources/images/ExpressionMapping/ExpressionPatternKey/Restricted.png';
-declare module 'react' {
-  interface CSSProperties {
-    '--tree-view-color'?: string;
-    '--tree-view-bg-color'?: string;
+import Box from '@mui/material/Box';
+import { RichTreeView } from '@mui/x-tree-view/RichTreeView';
+import AddBoxIcon from '@mui/icons-material/AddBox';
+import IndeterminateCheckBoxIcon from '@mui/icons-material/IndeterminateCheckBox';
+import { alpha, styled } from '@mui/material';
+import SearchInput from '@isrd-isi-edu/chaise/src/components/search-input';
+import { useTreeViewApiRef } from '@mui/x-tree-view/hooks/useTreeViewApiRef';
+import React, { useEffect } from 'react';
+// correct nsaming convention
+// 
+export const groupTransitionStyle = (theme: any, expandleft: boolean = false, expandRight: boolean = false) => {
+  if (expandleft) {
+    return {
+      display: 'flex',
+      flexDirection: 'row',
+      marginLeft: 0,
+      paddingLeft: 0,
+      marginRight: '15px',
+      paddingRight: '18px',
+      borderRight: `1px dashed ${alpha(theme.palette.text.primary, 0.4)}`,
+    };
   }
-}
-interface TreeNodeProps {
-  node: TreeNodeType;
-}
+  if (expandRight) {
+    return {
+      marginLeft: 15,
+      paddingLeft: 18,
+      borderLeft: `1px dashed ${alpha(theme.palette.text.primary, 0.4)}`,
+    };
+  }
+  return {
+    marginLeft: 15,
+    paddingLeft: 18,
+    borderLeft: `1px dashed ${alpha(theme.palette.text.primary, 0.4)}`,
+    flexDirection: `column-reverse`,
 
-interface TreeNodeType {
-  itemId: string;
-  label: string;
-  labelIconArray?: string[];
-  labelInfo?: string;
-  color?: string;
-  bgColor?: string;
-  colorForDarkMode?: string;
-  bgColorForDarkMode?: string;
-  children?: TreeNodeType[];
-}
-// Potentially abstract treenode more to then facilitate difference between matrix and treeview nodes
-// At the shared-tree-button level we could have nodes with only expand collapse
-// and have another layer to show icons based on info
-const TreeNode: React.FC<TreeNodeProps> = ({ node }) => {
-  return (
-    <CustomTreeItem
-      itemId={node.itemId}
-      label={node.label}
-      labelIconArray={node?.labelIconArray}
-      labelInfo={node.labelInfo}
-      color={node.color}
-      bgColor={node.bgColor}
-      colorForDarkMode={node.colorForDarkMode}
-      bgColorForDarkMode={node.bgColorForDarkMode}
-    >
-      {node.children && node.children.map(childNode => <TreeNode key={childNode.itemId} node={childNode} />)}
-    </CustomTreeItem>
-  );
+  };
 };
-function ExpandIcon(props: React.PropsWithoutRef<typeof AddBoxRoundedIcon>) {
-  return <AddBoxRoundedIcon {...props} sx={{ opacity: 0.8 }} />;
+interface OptionType {
+  label: string;
+  id: number;
 }
 
-function CollapseIcon(
-  props: React.PropsWithoutRef<typeof IndeterminateCheckBoxRoundedIcon>,
-) {
-  return <IndeterminateCheckBoxRoundedIcon {...props} sx={{ opacity: 0.8 }} />;
-}
+const Container = styled(Box)({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'flex-start',
+  overflowX: 'auto',
+  overflowY: 'auto',
+  whiteSpace: 'nowrap',
+  transform: 'rotate(-90deg)',
+  maxHeight: 250,
+  minWidth: 250,
+  marginRight: 100
+});
 
-const treeData = [
-  { itemId: '1', label: 'All Mail' },
-  { itemId: '2', label: 'Trash', labelIconArray: [icon1] },
-  { itemId: '3', label: 'Categories', labelIconArray: [icon1], children: [
-      { itemId: '5', label: 'Social', labelIconArray: [icon1], labelInfo: '90', color: '#1a73e8', bgColor: '#e8f0fe', colorForDarkMode: '#B8E7FB', bgColorForDarkMode: alpha('#00b4ff', 0.2), children:[
-        { itemId: '57', label: 'Social', labelIconArray: [icon1, icon4], labelInfo: '90', color: '#1a73e8', bgColor: '#e8f0fe', colorForDarkMode: '#B8E7FB', bgColorForDarkMode: alpha('#00b4ff', 0.2) },
-        { itemId: '67', label: 'Updates', labelIconArray: [icon2, icon3], labelInfo: '2,294', color: '#e3742f', bgColor: '#fcefe3', colorForDarkMode: '#FFE2B7', bgColorForDarkMode: alpha('#ff8f00', 0.2) },
-        { itemId: '77', label: 'Forums', labelIconArray: [icon1, icon3], labelInfo: '3,566', color: '#a250f5', bgColor: '#f3e8fd', colorForDarkMode: '#D9B8FB', bgColorForDarkMode: alpha('#9035ff', 0.15) },
-        { itemId: '87', label: 'Promotions', labelIconArray: [icon1, icon4, icon2, icon3], labelInfo: '733', color: '#3c8039', bgColor: '#e6f4ea', colorForDarkMode: '#CCE8CD', bgColorForDarkMode: alpha('#64ff6a', 0.2) },
-      ] },
-      { itemId: '6', label: 'Updates', labelIconArray: [icon1], labelInfo: '2,294', color: '#e3742f', bgColor: '#fcefe3', colorForDarkMode: '#FFE2B7', bgColorForDarkMode: alpha('#ff8f00', 0.2) },
-      { itemId: '7', label: 'Forums', labelIconArray: [icon1, icon3], labelInfo: '3,566', color: '#a250f5', bgColor: '#f3e8fd', colorForDarkMode: '#D9B8FB', bgColorForDarkMode: alpha('#9035ff', 0.15) },
-      { itemId: '8', label: 'Promotions', labelIconArray: [icon1, icon4], labelInfo: '733', color: '#3c8039', bgColor: '#e6f4ea', colorForDarkMode: '#CCE8CD', bgColorForDarkMode: alpha('#64ff6a', 0.2) },
-    ] 
-  },
-  { itemId: '4', label: 'History', labelIconArray: [icon1] }
-];
-export default function ChaiseTreeview() {
+// Clean up the code
+export default function ChaiseTreeview(children: any) {
+
+  // flatten Tree to search through the nodes
+  const flattenedTree: any[] = [];
+  function flattened(node: any) {
+    flattenedTree.push(node);
+    if (node.children) {
+      node.children.forEach((element: any) => {
+        flattened(element);
+      });
+    }
+  }
+
+  children.mui_x_product.forEach(flattened);  // State to manage expanded items
+  const [expandedItems, setExpandedItems] = React.useState<string[]>([]);
+  const [selectedItemId, setSelectedItemId] = React.useState<string | null>(null);
+
+  // large tree performance maybe?
+  const findPath = (tree: any[], targetLabel: string, path: string[] = []): any => {
+    for (const node of tree) {
+      const newPath = [...path, node.label]; // Append current node's label to the path :- might be an issue
+      if (node.label === targetLabel) {
+        return newPath; // Return the path if target is found
+      }
+      if (node.children) {
+        const result = findPath(node.children, targetLabel, newPath);
+        if (result) return result; // Return the path if target is found in children
+      }
+    }
+    return null; // Return null if target is not found in the tree
+  };
+
+  const searchCallback = (term: any) => {
+    if (term) {
+      term = term.trim();
+      console.log(`User attempting to search for '${term}'`);
+      // Todo: keep track whats expanded already
+
+      const path = findPath(children.mui_x_product, term);
+      setExpandedItems(path || []); // Assuming path is string[] or null
+
+      // Set the ID of the first found item to be focused on later
+      const firstItem = path && path.length > 0 ? path[0] : null;
+      setSelectedItemId(term);
+    }
+  };
+
+  const handleExpandedItemsChange = (event: React.SyntheticEvent, itemId: any) => {
+    const foundItems = flattenedTree.filter(node => node.label.includes(itemId));
+    setExpandedItems(itemId);
+  };
+
+  useEffect(() => {
+    // Call handleButtonClick when selectedItemId changes and is not null
+    if (selectedItemId) {
+      handleButtonClick(selectedItemId);
+    }
+  }, [selectedItemId]);
+
+  const apiRef = useTreeViewApiRef();
+
+  const handleButtonClick = (itemId: string | null) => {
+    const event = new MouseEvent('click', {
+      bubbles: true,
+      cancelable: true,
+    }) as unknown as React.SyntheticEvent;
+    apiRef.current?.focusItem(
+      // The DOM event that triggered the change
+      event,
+      // The ID of the item to focus
+      itemId == null ? "" : itemId,
+    );
+  };
+
+  function getItemId(item: any) {
+    return item.label;
+  }
+
   return (
-    <SimpleTreeView
-      aria-label='gmail'
-      defaultExpandedItems={['3']}
-      defaultSelectedItems='5'
-      slots={{
-        expandIcon: ExpandIcon,
-        collapseIcon: CollapseIcon
-      }}
-      sx={{ flexGrow: 1, maxWidth: 400 }}
-    >
-      <div>
-        {/* We pass the entire node to Treenode */}
-      {treeData.map((node) => (
-        <TreeNode key={node.itemId} node={node} />
-      ))}
-    </div>
-    </SimpleTreeView>
+
+    <>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Box>
+
+          {/* <Autocomplete
+          disablePortal
+          id="combo-box-demo"
+          options={flattenedTree}
+          getOptionLabel={(option) => option.label}
+          sx={{ width: 300 }}
+          renderInput={(params) => <TextField {...params} label="Search" />}
+          onChange={handleChange}
+        /> */}
+          <SearchInput
+            initialSearchTerm=''
+            inputClass='treeview-search-input'
+            searchCallback={searchCallback}
+            searchColumns={false}
+            disabled={false}
+          />
+
+        </Box>
+
+        {children.expandDirection == 'left' || children.expandDirection == 'right' ? (
+          <Box sx={{ minHeight: 352, minWidth: 250 }}>
+            <RichTreeView
+              // defaultExpandedItems={['grid']}
+              slots={{
+                expandIcon: AddBoxIcon,
+                collapseIcon: IndeterminateCheckBoxIcon,
+                item: children.nodeType,
+              }}
+              items={children.mui_x_product}
+              getItemId={getItemId}
+              apiRef={apiRef}
+              expandedItems={expandedItems}
+              onExpandedItemsChange={handleExpandedItemsChange}
+
+            />
+          </Box>
+        ) : (
+          <Container>
+            <RichTreeView
+              defaultExpandedItems={['grid']}
+              slots={{
+                expandIcon: AddBoxIcon,
+                collapseIcon: IndeterminateCheckBoxIcon,
+                item: children.nodeType,
+              }}
+              getItemId={getItemId}
+              items={children.mui_x_product}
+              expandedItems={expandedItems}
+
+            />
+          </Container>
+        )}
+      </Box>
+    </>
   );
 }
-

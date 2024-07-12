@@ -8,6 +8,7 @@ import TreeviewContainer from '@isrd-isi-edu/deriva-webapps/src/components/treev
 
 // utilities
 import { ID_NAMES } from '@isrd-isi-edu/chaise/src/utils/constants';
+import LegacyTreeViewApp from '@isrd-isi-edu/deriva-webapps/src/components/treeview/legacy-treeview';
 
 
 const treeviewSettings = {
@@ -21,6 +22,7 @@ const treeviewSettings = {
 const TreeviewApp = (): JSX.Element => {
   return (
     <TreeviewContainer />
+    // <LegacyTreeViewApp/>
   );
 };
 
