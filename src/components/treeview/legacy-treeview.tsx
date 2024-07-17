@@ -1,4 +1,4 @@
-import React from 'react';
+import Alert from 'react-bootstrap/Alert';
 
 // hooks
 import { useLayoutEffect, useEffect, useRef } from 'react';
@@ -30,6 +30,11 @@ const LegacyTreeViewApp = (): JSX.Element => {
       resizeSensors?.forEach((rs) => !!rs && rs.detach());
     }
   }, []);
+
+  const hideNoSearchResultAlert = () => {
+    const alert = document.querySelector('#no-search-result-alert') as HTMLElement;
+    alert!.style.display = 'none';
+  }
 
   return (
     <div className='treeview-container app-content-container'>
@@ -70,6 +75,10 @@ const LegacyTreeViewApp = (): JSX.Element => {
                   <button type='button' className='close'><span aria-hidden='true'>&times;</span></button>
                   <strong>Warning</strong> <span id='alert-warning-text'></span>
                 </p>
+                <div id='no-search-result-alert' className='alert alert-warning alert-dismissible' role='alert' style={{ display: 'none' }}>
+                  <span id='no-search-result-alert-content'>No maching results were found.</span>
+                  <button type="button" className="btn-close" onClick={hideNoSearchResultAlert}></button>
+                </div>
               </div>
             </div>
           </div>

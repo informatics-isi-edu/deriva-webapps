@@ -289,8 +289,7 @@ export const TreeViewLegacyCode = () => {
               });
 
               $('#search_btn').click(function() {
-                  var v = $('#main-search-input').val();
-                  $('#jstree').jstree(true).search(v);
+                  triggerSearch();
               });
 
               // expand all nodes, disable other DOM elements while the nodes are being opened
@@ -325,8 +324,7 @@ export const TreeViewLegacyCode = () => {
                           clearTimeout(to);
                       }
                       to = setTimeout(function() {
-                          var v = $('#main-search-input').val();
-                          $('#jstree').jstree(true).search(v);
+                        triggerSearch();
                       }, 1400);
                   });
               });
@@ -334,9 +332,14 @@ export const TreeViewLegacyCode = () => {
 
           function checkIfSearchItemExists() {
               if ($('#main-search-input').val() !== '') {
-                  var v = $('#main-search-input').val();
-                  $('#jstree').jstree(true).search(v);
+                  triggerSearch();
               }
+          }
+
+          function triggerSearch() {
+            toggleSearchSpinner(true);
+            $('#no-search-result-alert').css('display', 'none');
+            $('#jstree').jstree(true).search($('#main-search-input').val());
           }
 
           // legend panel setup
@@ -349,6 +352,14 @@ export const TreeViewLegacyCode = () => {
                   el.removeClass('fa-chevron-right');
                   el.addClass('fa-chevron-down');
               }
+          }
+
+          function toggleSearchSpinner(show) {
+            if (show) {
+              $('#search_btn span').attr('class', 'spinner-border spinner-border-sm');
+            } else {
+              $('#search_btn span').attr('class', 'fa-solid fa-magnifying-glass');
+            }
           }
 
           // show the loading spinner and hide the tree, disable the rest of the controls
@@ -419,8 +430,10 @@ export const TreeViewLegacyCode = () => {
                   }
               })
               .on('search.jstree', function(e, data) {
+
                   // after search, if nodes were found, scroll to the first node in the list (may not be the first to appear in the tree. check this?)
                   if (data.nodes.length) {
+                    $('#no-search-result-alert').css('display', 'none');
                       e.preventDefault()
                       setTimeout(function() {
                           var scrollOffset = $('#jstree').jstree(true).get_node(data.nodes[0].id, true).children('.jstree-anchor').get(0).offsetTop;
@@ -428,8 +441,16 @@ export const TreeViewLegacyCode = () => {
                             top:  scrollOffset > 10 ? scrollOffset - 10 : scrollOffset,
                             behavior: 'smooth'
                           });
+                          toggleSearchSpinner(false);
                       }, 100);
+                  } else {
+                    $('#no-search-result-alert').css('display', 'block');
+                    toggleSearchSpinner(false);
                   }
+              })
+              .on('clear_search.jstree', function () {
+                $('#no-search-result-alert').css('display', 'none');
+                toggleSearchSpinner(false);
               })
               .on('refresh.jstree', function() {
                   checkIfSearchItemExists()
