@@ -6,7 +6,7 @@ import { useLayoutEffect, useEffect, useRef } from 'react';
 // utils
 import { TreeViewLegacyCode } from '@isrd-isi-edu/deriva-webapps/src/utils/legacy-treeview';
 import { attachContainerHeightSensors } from '@isrd-isi-edu/chaise/src/utils/ui-utils';
-import Modal from 'bootstrap/js/dist/Modal';
+// import Modal from 'bootstrap/js/dist/Modal';
 
 const LegacyTreeViewApp = (): JSX.Element => {
   /**

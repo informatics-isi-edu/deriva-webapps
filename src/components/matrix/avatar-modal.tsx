@@ -28,20 +28,19 @@ interface AvatarModalProps {
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
-    width: '50%', // Example width, adjust as needed
     bgcolor: 'background.paper',
     border: '2px solid #000',
     boxShadow: 24,
     p: 2,
     display: 'flex',
     justifyContent: 'space-between',
-    alignItems: 'center'
+    alignItems: 'center',
   };
 
   return (
     <div>
       {/* Avatar Icon - clicking this will open the modal */}
-      {icon1 && <Avatar src={icon1} sx={{ width: 24, height: 24 }} onClick={handleOpen} />}
+      {icon1 && <Avatar src={icon1} sx={{ width: 16, height: 16 }} onClick={handleOpen} />}
 
       {/* Modal Component */}
       <Modal

@@ -32,7 +32,7 @@ export const groupTransitionStyle = (theme: any, expandleft: boolean = false, ex
     marginLeft: 15,
     paddingLeft: 18,
     borderLeft: `1px dashed ${alpha(theme.palette.text.primary, 0.4)}`,
-    flexDirection: `column-reverse`,
+    flexDirection: 'column-reverse',
 
   };
 };
@@ -94,6 +94,7 @@ export default function ChaiseTreeview(children: any) {
       // Todo: keep track whats expanded already
 
       const path = findPath(children.mui_x_product, term);
+      // const path = []
       setExpandedItems(path || []); // Assuming path is string[] or null
 
       // Set the ID of the first found item to be focused on later
@@ -125,7 +126,7 @@ export default function ChaiseTreeview(children: any) {
       // The DOM event that triggered the change
       event,
       // The ID of the item to focus
-      itemId == null ? "" : itemId,
+      itemId == null ? '' : itemId,
     );
   };
 
