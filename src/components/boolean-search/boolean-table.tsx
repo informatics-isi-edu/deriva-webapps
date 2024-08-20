@@ -54,12 +54,15 @@ const BooleanTable = ({
   const [activeRow, setActiveRow] = useState(rows.length - 1);
   const defaultValues = getDefaultValues(stageFrom);
   const handleAddRow = () => {
-    
+
     setRows([...rows, defaultValues]);
   };
 
+  // TODO: when a new row is added, validate the url length limit and see if the new row pushes it over the limit
+  //   if it does, prevent the new row from being added and notify the user
+  // Note: This won't be fixed since boolean search is not currently part of an active deployment that utilizes it
   useEffect(() => {
-    // This is to add one row by default 
+    // This is to add one row by default
     if (rows.length === 0 && stageFrom.length > 0) {
       handleAddRow();
     }
@@ -115,7 +118,7 @@ const BooleanTable = ({
         Name: updatedRow.toStageOptions[0].Name,
         Ordinal: updatedRow.toStageOptions[0].Ordinal };
         updatedRow['stageFromInvalid'] = false;
-        
+
     } else if (field === 'stageTo') {
       updatedRow.stageTo = { ...updatedRow.stageTo, Name: value };
       updatedRow['stageToInvalid'] = false;
