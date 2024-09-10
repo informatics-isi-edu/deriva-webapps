@@ -7,7 +7,6 @@ import { alpha, Button, styled, SvgIcon } from '@mui/material';
 import SearchInput from '@isrd-isi-edu/chaise/src/components/search-input';
 import { useTreeViewApiRef } from '@mui/x-tree-view/hooks/useTreeViewApiRef';
 import React from 'react';
-// hooks
 import { useLayoutEffect, useEffect, useRef } from 'react';
 export const groupTransitionStyle = (theme: any, expandleft: boolean = false, expandRight: boolean = false) => {
   if (expandleft) {
@@ -88,9 +87,6 @@ const TreeviewContainer = (children: any): JSX.Element => {
         fontSize="inherit"
         style={{ width: 12, height: 12 }}
       >
-        {/* <path fill="black" fillOpacity="1" d="M11 7v4H7v2h4v4h2v-4h4v-2h-4V7h-2zM24 24H0V0h24v24zm-2-2V2H2v20h20z" />
-         */}
-
         <path fill="white" d="M0 0h24v24H0z" />
         <path fill="black" d="M2 2h20v20H2z" />
         <path fill="white" d="M4 4h16v16H4z" />
@@ -113,8 +109,6 @@ const TreeviewContainer = (children: any): JSX.Element => {
           zIndex: 1000, // Ensure this is higher than other elements on the page
         }}
       >
-        {/* <path fill="black" fillOpacity="1" d="M7 11h10v2H7v-2zM24 24H0V0h24v24zm-2-2V2H2v20h20z" />
-         */}
         <path fill="white" d="M0 0h24v24H0z" />
         <path fill="black" d="M2 2h20v20H2z" />
         <path fill="white" d="M4 4h16v16H4z" />
@@ -125,10 +119,9 @@ const TreeviewContainer = (children: any): JSX.Element => {
 
     );
   }
-  // large tree performance maybe?
   const findPath = (tree: any[], targetLabel: string, path: string[] = []): any => {
     for (const node of tree) {
-      const newPath = [...path, node.label]; // Append current node's label to the path :- might be an issue
+      const newPath = [...path, node.label]; 
       if (node.label === targetLabel) {
         return newPath; // Return the path if target is found
       }
@@ -160,7 +153,6 @@ const TreeviewContainer = (children: any): JSX.Element => {
     let paths: string[] = [];
     let values: string[] = [];
     const nodePath = currentPath ? `${currentPath}/${node[key]}` : node[key];
-    // const nodePath = currentPath ? `${currentPath}/${node.label}` : node.label;
 
     // Check if the current node's key exists and matches the search criteria
     if (node[key] && node[key].includes(searchValue)) {
@@ -179,46 +171,7 @@ const TreeviewContainer = (children: any): JSX.Element => {
 
     return { paths, values };
   }
-  // ---------------
-
-
-
-  // const searchCallback = (term: any) => {
-  //   if (term) {
-  //     term = term.trim();
-  //     console.log(`User attempting to search for '${term}'`);
-  //     // Todo: keep track whats expanded already
-
-  //     let results = searchTreeArray(children.mui_x_product, 'id', term);
-
-  //     console.log(results);
-
-  //     setExpandedItems(results.paths || []); // Assuming path is string[] or null
-
-  //     // Set the ID of the first found item to be focused on later
-  //     // const firstItem = path && path.length > 0 ? path[0] : null;
-
-  //     // [It only highlights when find a unique one]
-  //     if (results.paths.length > 0) {
-  //       // paths.forEach((element: string) => {
-  //       //   setSelectedItemId(element);
-  //       // });
-
-  //       // setSelectedItemId(results.values[0]);
-  //       handleButtonClick(results.values[0]);
-  //       // paths = ['deltoid (EMAPA:18177)', 'pars scapularis of deltoid (EMAPA:36163)']
-  //       results.values.forEach((path: any) => {
-  //         const element = apiRef.current?.getItemDOMElement(path);
-  //         if (element) {
-  //           element.style.fontStyle = 'italic';
-  //           element.style.color = '#2e00ff';
-  //           element.style.backgroundColor = '#efefa6';
-  //         }
-  //       });
-  //       // setSelectedItems(paths);
-  //     }
-  //   }
-  // };
+ 
 
   function parsePathsFromStrings(inputStrings: string[]): string[] {
     const result: string[] = [];
@@ -290,19 +243,6 @@ const TreeviewContainer = (children: any): JSX.Element => {
 
   };
 
-  const expandId = (itemId: any) => {
-    const event = new MouseEvent('click', {
-      bubbles: true,
-      cancelable: true,
-    }) as unknown as React.SyntheticEvent;
-    apiRef.current?.setItemExpansion(
-      // The DOM event that triggered the change
-      event,
-      // The id of the item to expand or collapse
-      itemId,
-      true
-    );
-  };
   const handleExpandedItemsChange = (event: React.SyntheticEvent, itemId: any) => {
     const foundItems = flattenedTree.filter(node => node.label.includes(itemId));
     setExpandedItems(itemId);

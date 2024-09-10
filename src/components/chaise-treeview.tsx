@@ -7,8 +7,7 @@ import { alpha, styled } from '@mui/material';
 import SearchInput from '@isrd-isi-edu/chaise/src/components/search-input';
 import { useTreeViewApiRef } from '@mui/x-tree-view/hooks/useTreeViewApiRef';
 import React, { useEffect } from 'react';
-// correct nsaming convention
-// 
+
 export const groupTransitionStyle = (theme: any, expandleft: boolean = false, expandRight: boolean = false) => {
   if (expandleft) {
     return {
@@ -36,10 +35,6 @@ export const groupTransitionStyle = (theme: any, expandleft: boolean = false, ex
 
   };
 };
-interface OptionType {
-  label: string;
-  id: number;
-}
 
 const Container = styled(Box)({
   display: 'flex',
@@ -54,7 +49,6 @@ const Container = styled(Box)({
   marginRight: 100
 });
 
-// Clean up the code
 export default function ChaiseTreeview(children: any) {
 
   // flatten Tree to search through the nodes
@@ -126,7 +120,7 @@ export default function ChaiseTreeview(children: any) {
       // The DOM event that triggered the change
       event,
       // The ID of the item to focus
-      itemId == null ? '' : itemId,
+      itemId === null ? '' : itemId,
     );
   };
 
@@ -139,16 +133,6 @@ export default function ChaiseTreeview(children: any) {
     <>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <Box>
-
-          {/* <Autocomplete
-          disablePortal
-          id="combo-box-demo"
-          options={flattenedTree}
-          getOptionLabel={(option) => option.label}
-          sx={{ width: 300 }}
-          renderInput={(params) => <TextField {...params} label="Search" />}
-          onChange={handleChange}
-        /> */}
           <SearchInput
             initialSearchTerm=''
             inputClass='treeview-search-input'
@@ -159,10 +143,9 @@ export default function ChaiseTreeview(children: any) {
 
         </Box>
 
-        {children.expandDirection == 'left' || children.expandDirection == 'right' ? (
+        {children.expandDirection === 'left' || children.expandDirection === 'right' ? (
           <Box sx={{ minHeight: 352, minWidth: 250 }}>
             <RichTreeView
-              // defaultExpandedItems={['grid']}
               slots={{
                 expandIcon: AddBoxIcon,
                 collapseIcon: IndeterminateCheckBoxIcon,

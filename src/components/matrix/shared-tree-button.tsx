@@ -67,7 +67,6 @@ const CustomTreeItemGroupTransition = styled(TreeItem2GroupTransition)(
     borderLeft: `1px dashed ${alpha(theme.palette.text.primary, 0.4)}`,
     ['& .content']: {
       paddingLeft: theme.spacing(2),
-      // borderLeft: `1px dashed ${alpha(theme.palette.text.primary, 0.4)}`,
     },
     [`& .${treeItemClasses.content}`]: {
       padding: theme.spacing(0.5, 1),
@@ -165,21 +164,13 @@ export const CustomTreeItem = React.forwardRef(function CustomTreeItem(
 });
 
  export const CustomColTreeItem = styled(TreeItem)(({ theme }) => ({
-  // transform: 'rotate(-45deg)', // Rotates the entire div by -90 degrees
-  // transformOrigin: 'center',
-  // flexDirection: 'column-reverse',
   color:
     theme.palette.mode === 'light'
       ? theme.palette.grey[800]
       : theme.palette.grey[200],
 
   [`& .${treeItemClasses.content}`]: {
-// issue to rotate the entire node and not just the content cause that requires individual corrections?
-    // writingMode: 'vertical-lr',
-    // textOrientation: 'upright',
-    // transform: 'rotate(-90deg)',
-    // padding: theme.spacing(1),
-    // borderRadius: theme.spacing(0.5),
+
     padding: theme.spacing(0.5, 1),
     // margin: theme.spacing(0.2, 0),
     [`& .${treeItemClasses.label}`]: {
