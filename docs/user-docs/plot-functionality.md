@@ -10,6 +10,7 @@ This document aims to describe the functionality available for each plot type in
    * [User Control Types](#user-control-types)
      * [Dropdown](#dropdown)
      * [Facet Search Popup](#facet-search-popup)
+     * [Markdown](#markdown)
    * [Grid Layout Configuration](#grid-layout-configuration)
      * [Breakpoints](#breakpoints)
    * [Layout](#layout)
@@ -94,6 +95,20 @@ Example using data in atlas-d2k deployment for filtering data based on the selec
     default_value: '11669',
     value_key: 'NCBI_GeneID',
     selected_value_pattern: '{{{$self.values.NCBI_Symbol}}}'
+  }
+}
+```
+
+##### Markdown
+Simple text control that can be used to generate text or HTML content using markdown pattern expansion.
+
+Example:
+```js
+{
+  uid: 'link',
+  type: 'markdown',
+  label: {
+    markdown_pattern: '[Specimen Recordset](www.atlas-d2k.org/chaise/recordset/#2/Gene_Expression:Specimen)',
   }
 }
 ```
