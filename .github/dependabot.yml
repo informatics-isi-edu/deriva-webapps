@@ -13,6 +13,3 @@ updates:
       timezone: "America/Los_Angeles"
     allow:
       - dependency-name: "@isrd-isi-edu/chaise"
-    assignees:
-      - "jrchudy"
-      - "RFSH"
