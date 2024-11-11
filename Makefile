@@ -149,10 +149,10 @@ run-webpack: $(BUILD_VERSION)
 
 #exclude <app>-config.js to not override one on deployment
 .PHONY: deploy
-deploy: dont_deploy_in_root print-variables deploy-boolean-search deploy-heatmap deploy-plot deploy-treeview deploy-matrix deploy-vitessce
+deploy: dont_deploy_in_root print-variables deploy-boolean-search deploy-heatmap deploy-plot deploy-treeview deploy-matrix
 
 .PHONY: deploy-w-config
-deploy-w-config:dont_deploy_in_root print-variables deploy-boolean-search-w-config deploy-heatmap-w-config deploy-plot-w-config deploy-treeview-w-config deploy-matrix-w-config deploy-vitessce-w-config
+deploy-w-config:dont_deploy_in_root print-variables deploy-boolean-search-w-config deploy-heatmap-w-config deploy-plot-w-config deploy-treeview-w-config deploy-matrix-w-config
 
 .PHONY: deploy-boolean-search
 deploy-boolean-search: dont_deploy_in_root print-variables deploy-bundles
