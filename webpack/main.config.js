@@ -59,17 +59,41 @@ module.exports = (env) => {
           `${WEBAPPS_BASE_PATH}treeview/themes/default/images/style.css`
         ]
       },
-      {
-        appName: 'vitessce',
-        appTitle: 'Vitessce',
-        appConfigLocation: `${WEBAPPS_BASE_PATH}config/vitessce-config.js`,
-        externalFiles: [
-          `${WEBAPPS_BASE_PATH}bundles/plotly-basic.min.js`
-        ]
-      },
+      /**
+       * NOTE: This application is not used anymore and since it made the whole install and build process very slow,
+       * we decided to skip installing it. Do the following if you want to bring this app back:
+       *
+       * 1. Add "vitessce": "^3.3.7" to the package.json dependencies (and "@vitessce/types": "^3.3.11" to dev dependencies).
+       *    Also adding this caused issues with how we're using react, so we also had to explicitly add react to dependencies:
+       *      `"react": "^18.2.0"` and `"react-dom": "^18.2.0"`
+       *    Then do `npm install --include=dev` to install the new dependencies and generate a new package-lock.json.
+       *
+       * 2. Modify `deploy` and `deploy-w-config` Makefile targets to call `deploy-vitessce` and `deploy-vitessce-w-config` respectively.
+       *
+       * 3. Uncomment the following.
+       */
+      // {
+      //   appName: 'vitessce',
+      //   appTitle: 'Vitessce',
+      //   appConfigLocation: `${WEBAPPS_BASE_PATH}config/vitessce-config.js`,
+      //   externalFiles: [
+      //     `${WEBAPPS_BASE_PATH}bundles/plotly-basic.min.js`
+      //   ]
+      // },
     ],
     mode,
     env,
-    { rootFolderLocation, resolveAliases, urlBasePath: WEBAPPS_BASE_PATH }
+    {
+      rootFolderLocation,
+      resolveAliases,
+      urlBasePath: WEBAPPS_BASE_PATH,
+      extraWebpackProps: {
+        externals: {
+          // treat plotly as an external dependency and don't compute it
+          // TODO we should most probably do something similar for the other version of plotly that we're including
+          'plotly.js-basic-dist-min': 'Plotly'
+        }
+      }
+    }
   );
 };
