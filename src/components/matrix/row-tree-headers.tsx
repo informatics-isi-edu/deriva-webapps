@@ -14,7 +14,7 @@ import {checkParentChainExist, getParentChain} from '@isrd-isi-edu/deriva-webapp
 import { MemoizedMinusSquare, MemoizedPlusSquare, MemoizedCloseSquare, MemoizedRenderTree } from '@isrd-isi-edu/deriva-webapps/src/components/matrix/tree-button';
 
 // MUI tree components
-import { TreeView } from '@mui/x-tree-view/TreeView';
+import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView';
 
 import { getScrollbarSize } from '@isrd-isi-edu/deriva-webapps/src/utils/ui-utils';
 
@@ -107,10 +107,10 @@ const RowTreeHeaders = (props: RowHeadersProps, ref: ForwardedRef<any>): JSX.Ele
     }
     // Check visibility and add all visiable nodes to the set
     const nodesSet: Set<string> = new Set(expanded);
-    expanded.forEach(nodeId => {
-      const visible = checkParentChainExist(treeDataDict, nodeId, nodesSet);
+    expanded.forEach(itemId => {
+      const visible = checkParentChainExist(treeDataDict, itemId, nodesSet);
       if (!visible) return;
-      const node = props.treeNodesMap[nodeId];
+      const node = props.treeNodesMap[itemId];
       if (!node || node.children.length === 0) return;
       if (node.children.length > 0) {
         for (const child of node.children) {
@@ -150,8 +150,8 @@ const RowTreeHeaders = (props: RowHeadersProps, ref: ForwardedRef<any>): JSX.Ele
   /**
    * Handle toggle in tree view
    */
-  const handleToggle = (event: React.SyntheticEvent, nodeIds: string[]) => {
-    setExpanded(nodeIds);
+  const handleToggle = (event: React.SyntheticEvent, itemIds: string[]) => {
+    setExpanded(itemIds);
   };
 
   return (
@@ -163,15 +163,17 @@ const RowTreeHeaders = (props: RowHeadersProps, ref: ForwardedRef<any>): JSX.Ele
         ref={ref}
         onScroll={props.onScroll}>
 
-          <TreeView
+          <SimpleTreeView
             className='grid-row-headers-treeview'
             aria-label='rich object'
-            defaultExpanded={['root']}
-            defaultCollapseIcon={<MemoizedMinusSquare isLeft={false} cellSize={props.cellHeight} iconSize={iconSize} />}
-            defaultExpandIcon={<MemoizedPlusSquare isLeft={false} cellSize={props.cellHeight} iconSize={iconSize} />}
-            defaultEndIcon={<MemoizedCloseSquare isLeft={false} cellSize={props.cellHeight} />}
-            expanded={expanded}
-            onNodeToggle={handleToggle}
+            defaultExpandedItems={['root']}
+            slots={{
+              collapseIcon: () => <MemoizedMinusSquare isLeft={false} cellSize={props.cellHeight} iconSize={iconSize} />,
+              expandIcon: () => <MemoizedPlusSquare isLeft={false} cellSize={props.cellHeight} iconSize={iconSize} />,
+              endIcon: () => <MemoizedCloseSquare isLeft={false} cellSize={props.cellHeight} />
+            }}
+            expandedItems={expanded}
+            onExpandedItemsChange={handleToggle}
             ref={divRef}
           >
             <MemoizedRenderTree
@@ -183,7 +185,7 @@ const RowTreeHeaders = (props: RowHeadersProps, ref: ForwardedRef<any>): JSX.Ele
               scrollableSize={scrollableWidth}
               isColumn={false}
             />
-          </TreeView>
+          </SimpleTreeView>
           {/* For the highlight alignment issue, we're adding empty cells and headers in the falt row headers.
             But Mui is ignoring the empty tree elements. So we add an element after trees manually */}
           <div style={{ height: props.cellHeight + getScrollbarSize('.grid', true) }}></div>

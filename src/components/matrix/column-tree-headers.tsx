@@ -4,17 +4,16 @@ import { memo, forwardRef, ForwardedRef, CSSProperties, useState, useEffect, use
 import SharedColumnHeaders, { SharedColumnHeadersProps } from '@isrd-isi-edu/deriva-webapps/src/components/matrix//shared-column-headers';
 
 // Data type used for treeview
-import { ParsedGridCell } from '@isrd-isi-edu/deriva-webapps/src/hooks/matrix';
-import { MatrixTreeDatum } from '@isrd-isi-edu/deriva-webapps/src/hooks/matrix';
-import { TreeNode } from '@isrd-isi-edu/deriva-webapps/src/hooks/matrix';
-import { TreeNodeMap } from '@isrd-isi-edu/deriva-webapps/src/hooks/matrix';
+import { ParsedGridCell, MatrixTreeDatum, TreeNode, TreeNodeMap } from '@isrd-isi-edu/deriva-webapps/src/hooks/matrix';
 
 // Tree functions and sub components
 import { checkParentChainExist, getParentChain } from '@isrd-isi-edu/deriva-webapps/src/utils/tree';
-import { MemoizedMinusSquare, MemoizedPlusSquare, MemoizedCloseSquare, MemoizedRenderTree } from '@isrd-isi-edu/deriva-webapps/src/components/matrix/tree-button';
+import {
+  MemoizedMinusSquare, MemoizedPlusSquare, MemoizedCloseSquare, MemoizedRenderTree
+} from '@isrd-isi-edu/deriva-webapps/src/components/matrix/tree-button';
 
 // MUI tree components
-import { TreeView } from '@mui/x-tree-view/TreeView';
+import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView';
 
 import { getScrollbarSize } from '@isrd-isi-edu/deriva-webapps/src/utils/ui-utils';
 
@@ -107,10 +106,10 @@ const ColumnHeaders = (props: ColumnHeadersProps, ref: ForwardedRef<any>): JSX.E
     }
     // Check visibility and add all visiable nodes to the set
     const nodesSet: Set<string> = new Set(expanded);
-    expanded.forEach(nodeId => {
-      const visible = checkParentChainExist(treeDataDict, nodeId, nodesSet);
+    expanded.forEach(itemId => {
+      const visible = checkParentChainExist(treeDataDict, itemId, nodesSet);
       if (!visible) return;
-      const node = props.treeNodesMap[nodeId];
+      const node = props.treeNodesMap[itemId];
       if (!node || node.children.length === 0) return;
       if (node.children.length > 0) {
         for (const child of node.children) {
@@ -147,8 +146,8 @@ const ColumnHeaders = (props: ColumnHeadersProps, ref: ForwardedRef<any>): JSX.E
   /**
    * Handle toggle in tree view
    */
-  const handleToggle = (event: React.SyntheticEvent, nodeIds: string[]) => {
-    setExpanded(nodeIds);
+  const handleToggle = (event: React.SyntheticEvent, itemIds: string[]) => {
+    setExpanded(itemIds);
   };
 
   return (
@@ -165,15 +164,17 @@ const ColumnHeaders = (props: ColumnHeadersProps, ref: ForwardedRef<any>): JSX.E
             transform: 'rotate(-90deg)',
           }}>
 
-          <TreeView
+          <SimpleTreeView
             className='grid-column-headers-treeview'
             aria-label='rich object'
-            defaultExpanded={['root']}
-            defaultCollapseIcon={<MemoizedMinusSquare isLeft={true} cellSize={props.cellWidth} iconSize={iconSize} />}
-            defaultExpandIcon={<MemoizedPlusSquare isLeft={true} cellSize={props.cellWidth} iconSize={iconSize} />}
-            defaultEndIcon={<MemoizedCloseSquare isLeft={true} cellSize={props.cellWidth} />}
-            expanded={expanded}
-            onNodeToggle={handleToggle}
+            defaultExpandedItems={['root']}
+            slots={{
+              collapseIcon: () => <MemoizedMinusSquare isLeft={true} cellSize={props.cellWidth} iconSize={iconSize} />,
+              expandIcon: () => <MemoizedPlusSquare isLeft={true} cellSize={props.cellWidth} iconSize={iconSize} />,
+              endIcon: () => <MemoizedCloseSquare isLeft={true} cellSize={props.cellWidth} />
+            }}
+            expandedItems={expanded}
+            onExpandedItemsChange={handleToggle}
             ref={divRef}
             style={{
               position: 'absolute',
@@ -204,7 +205,7 @@ const ColumnHeaders = (props: ColumnHeadersProps, ref: ForwardedRef<any>): JSX.E
               scrollableSize={scrollableHeight}
               isColumn={true}
             />
-          </TreeView>
+          </SimpleTreeView>
         </div>
       </div>
     </SharedColumnHeaders>

@@ -4,8 +4,8 @@ import { MatrixTreeDatum } from '@isrd-isi-edu/deriva-webapps/src/hooks/matrix';
 /**
  * Check whether all ancestors of a node exist in visitedNode list
  */
-export const checkParentChainExist = (treeDataDict: Record<string, MatrixTreeDatum>, nodeId: string, visitedNodes: Set<string>): boolean => {
-  const node = treeDataDict[nodeId];
+export const checkParentChainExist = (treeDataDict: Record<string, MatrixTreeDatum>, itemId: string, visitedNodes: Set<string>): boolean => {
+  const node = treeDataDict[itemId];
   if (node.parent_id === null) {
     return true; // Reached the top of the chain
   }
@@ -18,8 +18,8 @@ export const checkParentChainExist = (treeDataDict: Record<string, MatrixTreeDat
 /**
  * Find all ancestor nodes of the searched node
  */
-export const getParentChain = (treeDataDict: Record<string, MatrixTreeDatum>, nodeId: string, visitedNodes: Set<string>): Set<string> => {
-  let node = treeDataDict[nodeId];
+export const getParentChain = (treeDataDict: Record<string, MatrixTreeDatum>, itemId: string, visitedNodes: Set<string>): Set<string> => {
+  let node = treeDataDict[itemId];
   if (node.parent_id === null) {
     return visitedNodes; // Reached the top of the chain
   }
