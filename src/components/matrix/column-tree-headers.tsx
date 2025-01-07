@@ -176,7 +176,7 @@ const ColumnHeaders = (props: ColumnHeadersProps, ref: ForwardedRef<any>): JSX.E
             expandedItems={expanded}
             onExpandedItemsChange={handleToggle}
             ref={divRef}
-            style={{
+            sx={{
               position: 'absolute',
               /**
                * For vertical scrolling function of the horizontal tree, we only want to scroll up. But after using
@@ -193,8 +193,8 @@ const ColumnHeaders = (props: ColumnHeadersProps, ref: ForwardedRef<any>): JSX.E
                * So we add a paddingBottom attribute as the style of the tree manually.
                */
               paddingBottom: props.cellWidth + getScrollbarSize('.grid'),
+              overflow: 'clip'
             }}
-            sx={{ overflow: 'clip' }}
           >
             <MemoizedRenderTree
               nodes={props.treeNodes}
