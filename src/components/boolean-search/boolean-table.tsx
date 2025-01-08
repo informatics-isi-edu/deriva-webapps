@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import PropTypes from 'prop-types';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
 import { getDefaultValues  } from '@isrd-isi-edu/deriva-webapps/src/hooks/boolean-search';
 export type BooleanTableProps = {

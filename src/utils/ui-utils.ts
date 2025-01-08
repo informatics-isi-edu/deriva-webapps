@@ -92,7 +92,7 @@ export function addBottomHorizontalScroll(content: HTMLElement, treeviewAuto: bo
     }
   }
 
-  const sensors = [];
+  const sensors : ResizeSensor[] = [];
 
   // make sure that the length of the scroll is identical to the scroll at the bottom of the table
   sensors.push(new ResizeSensor(scrollableContent, setTopScrollStyles));
@@ -213,7 +213,7 @@ export function addRightVerticalScroll(content: HTMLElement, treeviewAuto: boole
     }, 100); // This slight delay ensures that the rendering is complete.
   }
 
-  const sensors = [];
+  const sensors : ResizeSensor[] = [];
 
   // make sure that the length of the scroll is identical to the scroll at the bottom of the table
   sensors.push(new ResizeSensor(scrollableContent, setTopScrollStyles));
