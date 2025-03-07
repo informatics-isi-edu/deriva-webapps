@@ -1,4 +1,13 @@
-import { memo, forwardRef, ForwardedRef, CSSProperties, useState, useEffect, useRef } from 'react';
+import {
+  memo,
+  forwardRef,
+  ForwardedRef,
+  CSSProperties,
+  useState,
+  useEffect,
+  useRef,
+  type JSX,
+} from 'react';
 
 // Shared common props for column header
 import SharedColumnHeaders, { SharedColumnHeadersProps } from '@isrd-isi-edu/deriva-webapps/src/components/matrix//shared-column-headers';

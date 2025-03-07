@@ -1,6 +1,6 @@
 // import '/node_modules/react-resizable/css/styles.css';
 // import '/node_modules/react-grid-layout/css/styles.css';
-import { memo, useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useRef, useState, type JSX } from 'react';
 
 // components
 import UserControl from '@isrd-isi-edu/deriva-webapps/src/components/controls/user-control';

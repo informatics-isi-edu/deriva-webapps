@@ -9,7 +9,7 @@ import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
 import Title from '@isrd-isi-edu/chaise/src/components/title';
 import { CustomError } from '@isrd-isi-edu/chaise/src/models/errors';
 // hooks
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type JSX } from 'react';
 import useError from '@isrd-isi-edu/chaise/src/hooks/error';
 import { useBooleanData, getSourceOptions, headerInfo, getDefaultValues } from '@isrd-isi-edu/deriva-webapps/src/hooks/boolean-search';
 

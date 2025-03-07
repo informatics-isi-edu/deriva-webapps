@@ -1,7 +1,7 @@
 import '@isrd-isi-edu/deriva-webapps/src/assets/scss/_heatmap.scss';
 
 // hooks
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type JSX } from 'react';
 import useError from '@isrd-isi-edu/chaise/src/hooks/error';
 
 // utilties

@@ -1,6 +1,6 @@
 // hooks
 import useError from '@isrd-isi-edu/chaise/src/hooks/error';
-import { createContext, useEffect, useMemo, useRef, useState } from 'react';
+import { createContext, useEffect, useMemo, useRef, useState, type JSX } from 'react';
 
 // models
 import { AppStyle, PlotTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/models/plot';

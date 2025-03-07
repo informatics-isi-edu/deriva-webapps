@@ -7,7 +7,7 @@ import DerivaVitessce, { DerivaVitessceProps} from '@isrd-isi-edu/deriva-webapps
 import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
 
 // hooks
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type JSX } from 'react';
 import { useVitessceConfig } from '@isrd-isi-edu/deriva-webapps/src/hooks/vitessce';
 
 // models

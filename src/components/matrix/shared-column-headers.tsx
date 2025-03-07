@@ -1,4 +1,4 @@
-import { CSSProperties, useEffect, useState, useRef } from 'react';
+import { CSSProperties, useEffect, useState, useRef, type JSX } from 'react';
 
 export type SharedColumnHeadersProps = {
   /**

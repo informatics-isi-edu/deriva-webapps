@@ -1,4 +1,4 @@
-import { MouseEventHandler } from 'react';
+import { MouseEventHandler, type JSX } from 'react';
 import { ActionMeta, OnChangeValue } from 'react-select';
 
 // components

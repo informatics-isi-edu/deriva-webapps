@@ -11,7 +11,7 @@ import ChartWithEffect from '@isrd-isi-edu/deriva-webapps/src/components/plot/ch
 import useAlert from '@isrd-isi-edu/chaise/src/hooks/alerts';
 import usePlot from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
 import { useWindowSize } from '@isrd-isi-edu/deriva-webapps/src/hooks/window-size';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type JSX } from 'react';
 
 // models
 import { DataConfig, Plot, plotAreaFraction } from '@isrd-isi-edu/deriva-webapps/src/models/plot';

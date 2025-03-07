@@ -1,5 +1,5 @@
 import { createRoot } from 'react-dom/client';
-import React from 'react';
+import React, { type JSX } from 'react';
 
 // components
 import AppWrapper from '@isrd-isi-edu/chaise/src/components/app-wrapper';

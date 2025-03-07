@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, type JSX } from 'react';
 import Async, { AsyncProps } from 'react-select/async';
 import { MenuListProps, StylesConfig } from 'react-select';
 import { FixedSizeList } from 'react-window';

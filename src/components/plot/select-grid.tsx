@@ -4,6 +4,8 @@ import { Option } from '@isrd-isi-edu/deriva-webapps/src/components/virtualized-
 
 import { SelectedRow } from '@isrd-isi-edu/chaise/src/models/recordset';
 
+import type { JSX } from 'react';
+
 type SelectGridProps = {
   /**
    * selectors data to be rendered
