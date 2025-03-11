@@ -2,6 +2,9 @@ import PlotlyChart from '@isrd-isi-edu/deriva-webapps/src/components/plot/plotly
 import { PlotData, PlotlyLayout } from 'plotly.js-cartesian-dist-min'
 
 
+import type { JSX } from 'react';
+
+
 export type PlotlyLayout = typeof PlotlyLayout;
 export type PlotlyData = typeof PlotData;
 

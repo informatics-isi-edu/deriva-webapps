@@ -1,4 +1,4 @@
-import { MouseEventHandler } from 'react';
+import { MouseEventHandler, type JSX } from 'react';
 import SelectView from '@isrd-isi-edu/deriva-webapps/src/components/plot/select-view';
 import SelectedRows from '@isrd-isi-edu/chaise/src/components/selected-rows';
 import { SelectedRow } from '@isrd-isi-edu/chaise/src/models/recordset';

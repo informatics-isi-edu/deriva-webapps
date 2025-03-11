@@ -1,5 +1,6 @@
 import { Modal } from 'react-bootstrap';
 import '@isrd-isi-edu/deriva-webapps/src/assets/scss/_modal.scss';
+import type { JSX } from 'react';
 export type InfoModalProps = {
     /**
      * flag to show the modal
@@ -13,7 +14,7 @@ export type InfoModalProps = {
 
 /**
   * Renders the modal to show the information about boolean app
-*/  
+*/
 const InfoModal = ({ handleModalClose, showModal }: InfoModalProps): JSX.Element => {
   const filterOne = 'p{in &quot;bladder&quot; TS17..TS28 pt=regional lc=dorsal}';
   const filterTwo = 'p{in &quot;artery&quot; TS17..TS28} AND nd{in &quot;arteriole&quot; TS17..TS28}';

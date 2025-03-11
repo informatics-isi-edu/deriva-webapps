@@ -1,7 +1,7 @@
 import Alert from 'react-bootstrap/Alert';
 
 // hooks
-import { useLayoutEffect, useEffect, useRef } from 'react';
+import { useLayoutEffect, useEffect, useRef, type JSX } from 'react';
 
 // utils
 import { TreeViewLegacyCode } from '@isrd-isi-edu/deriva-webapps/src/utils/legacy-treeview';

@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState, type JSX } from 'react';
 
 // components
 // import Chart from '@isrd-isi-edu/deriva-webapps/src/components/plot/chart';

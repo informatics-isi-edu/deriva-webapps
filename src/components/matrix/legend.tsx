@@ -1,4 +1,4 @@
-import { memo, CSSProperties } from 'react';
+import { memo, CSSProperties, type JSX } from 'react';
 
 import { LegendDatum } from '@isrd-isi-edu/deriva-webapps/src/hooks/matrix';
 

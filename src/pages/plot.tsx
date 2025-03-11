@@ -7,7 +7,7 @@ import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
 
 // hooks
 import { usePlotConfig } from '@isrd-isi-edu/deriva-webapps/src/hooks/chart';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type JSX } from 'react';
 
 // provider
 import PlotAppProvider from '@isrd-isi-edu/deriva-webapps/src/providers/plot-app';

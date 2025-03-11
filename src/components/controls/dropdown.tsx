@@ -2,7 +2,7 @@
 import DropdownSelect from '@isrd-isi-edu/deriva-webapps/src/components/plot/dropdown-select';
 
 // hooks
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type JSX } from 'react';
 
 // models
 import { Option } from '@isrd-isi-edu/deriva-webapps/src/components/virtualized-select';

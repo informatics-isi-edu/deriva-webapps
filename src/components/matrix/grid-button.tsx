@@ -1,5 +1,5 @@
 import ChaiseTooltip from '@isrd-isi-edu/chaise/src/components/tooltip';
-import { MouseEventHandler } from 'react';
+import { MouseEventHandler, type JSX } from 'react';
 
 export type GridMoveButton = {
   onClick: MouseEventHandler;

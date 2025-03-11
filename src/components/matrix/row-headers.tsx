@@ -1,4 +1,4 @@
-import { forwardRef, memo, ForwardedRef, CSSProperties } from 'react';
+import { forwardRef, memo, ForwardedRef, CSSProperties, type JSX } from 'react';
 import { VariableSizeList as List, ListOnScrollProps } from 'react-window';
 
 // Shared common props for row header

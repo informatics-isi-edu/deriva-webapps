@@ -1,5 +1,5 @@
 import '@isrd-isi-edu/deriva-webapps/src/assets/scss/_vitessce.scss';
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, type JSX } from 'react';
 
 // components
 import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';

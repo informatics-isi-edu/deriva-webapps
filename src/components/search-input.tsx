@@ -1,6 +1,6 @@
 import '@isrd-isi-edu/deriva-webapps/src/assets/scss/_select.scss';
 
-import { memo, MouseEventHandler } from 'react';
+import { memo, MouseEventHandler, type JSX } from 'react';
 import { StylesConfig } from 'react-select';
 import { AsyncProps } from 'react-select/async';
 

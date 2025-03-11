@@ -1,4 +1,4 @@
-import { memo, forwardRef, ForwardedRef, CSSProperties } from 'react';
+import { memo, forwardRef, ForwardedRef, CSSProperties, type JSX } from 'react';
 import { VariableSizeList as List, ListOnScrollProps } from 'react-window';
 import { isStringAndNotEmpty } from '@isrd-isi-edu/chaise/src/utils/type-utils';
 

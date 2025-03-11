@@ -1,4 +1,4 @@
-import { memo, CSSProperties } from 'react';
+import { memo, CSSProperties, type JSX } from 'react';
 import { areEqual } from 'react-window';
 
 import DisplayValue from '@isrd-isi-edu/chaise/src/components/display-value';

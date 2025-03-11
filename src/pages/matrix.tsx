@@ -1,7 +1,7 @@
 import '@isrd-isi-edu/deriva-webapps/src/assets/scss/_matrix.scss';
 
 import { createRoot } from 'react-dom/client';
-import { useState, useRef, CSSProperties } from 'react';
+import { useState, useRef, CSSProperties, type JSX } from 'react';
 import { InputActionMeta } from 'react-select';
 
 // components
@@ -52,7 +52,7 @@ const MatrixApp = (): JSX.Element => {
    */
   const [toastMessage, setToastMessage] = useState<string | undefined>();
 
-  const gridRef = useRef<any>(); // reference to the grid
+  const gridRef = useRef<any>(undefined); // reference to the grid
 
   // if there was an error during setup, hide the spinner
   if ((!matrixData || !colorScaleMap || !config) && errors.length > 0) {

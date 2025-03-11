@@ -12,6 +12,8 @@ import { PlotTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/models/plot
 import { VitessceTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/models/vitessce';
 import { UserControlConfig } from '@isrd-isi-edu/deriva-webapps/src/models/webapps-core';
 
+import type { JSX } from 'react';
+
 type UserControlProps = {
   controlConfig: UserControlConfig;
   setSelectorOptionChanged: (optionChanged: boolean) => void;

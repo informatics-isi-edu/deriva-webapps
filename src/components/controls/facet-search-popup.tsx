@@ -4,7 +4,7 @@ import RecordsetModal from '@isrd-isi-edu/chaise/src/components/modals/recordset
 import Spinner from 'react-bootstrap/Spinner';
 
 // hooks
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type JSX } from 'react';
 import useError from '@isrd-isi-edu/chaise/src/hooks/error';
 import usePlot from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
 

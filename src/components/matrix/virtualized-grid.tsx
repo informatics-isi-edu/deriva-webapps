@@ -7,6 +7,7 @@ import {
   useImperativeHandle,
   forwardRef,
   CSSProperties,
+  type JSX,
 } from 'react';
 import { FixedSizeGrid as Grid } from 'react-window';
 

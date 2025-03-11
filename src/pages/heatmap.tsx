@@ -6,7 +6,7 @@ import Heatmap, { HeatmapProps } from '@isrd-isi-edu/deriva-webapps/src/componen
 import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
 
 // hooks
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type JSX } from 'react';
 import useError from '@isrd-isi-edu/chaise/src/hooks/error';
 
 // utilities

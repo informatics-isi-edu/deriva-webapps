@@ -9,6 +9,8 @@ import { VitessceTemplateParams } from '@isrd-isi-edu/deriva-webapps/src/models/
 // utils
 import { convertKeysSnakeToCamel, createLink } from '@isrd-isi-edu/deriva-webapps/src/utils/string';
 
+import type { JSX } from 'react';
+
 /**
  * MarkdownProps is the type of props for Markdown component.
  */
