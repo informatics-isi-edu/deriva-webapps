@@ -1,6 +1,19 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const Modal = require('bootstrap').Modal;
 
+/**
+ * added for backwards compatibility with older ermrestjs versions
+ */
+const fixedEncodeURIComponent = function (str) {
+  if (ERMrest._fixedEncodeURIComponent) {
+    return ERMrest._fixedEncodeURIComponent(str);
+  }
+  if (ERMrest.fixedEncodeURIComponent) {
+    return ERMrest.fixedEncodeURIComponent(str);
+  }
+  return encodeURIComponent(str).replace(/[!'()*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
+}
+
 export const TreeViewLegacyCode = () => {
   $(document).ready(function() {
       // jstree, jquery, ermrestJS, q (promise library) each expose a module that's available in the execution environment
@@ -86,7 +99,7 @@ export const TreeViewLegacyCode = () => {
               treeviewConfig.filters.forEach(function (filter, idx) {
                   // need to account for filter data
                   var queryPattern = filter.selected_filter.selected_query_pattern || filter.query_pattern
-                  filterUrl = 'https://' + window.location.hostname + ERMrest._renderHandlebarsTemplate(queryPattern, templateParams);
+                  filterUrl = 'https://' + window.location.hostname + ERMrest.renderHandlebarsTemplate(queryPattern, templateParams);
                   var $el = $('#number');
                   $el.empty();
 
@@ -112,7 +125,7 @@ export const TreeViewLegacyCode = () => {
                                   $('#error-message').css('display', '');
                                   $('#alert-error-text')[0].innerHTML='Only specimens of species \'Mus musculus\' are supported.<br />Specimen RID: '+id_parameter+', Species: '+(filterData[0] ? filterData[0]['Species'] : 'null');
                               } else {
-                                  selected_option = ERMrest._renderHandlebarsTemplate(filter.display_text, filterData[0]);
+                                  selected_option = ERMrest.renderHandlebarsTemplate(filter.display_text, filterData[0]);
                                   // only add selected option to the list
                                   $el.append($('<option></option>')
                                   .attr('value', selected_option).text(selected_option));
@@ -130,7 +143,7 @@ export const TreeViewLegacyCode = () => {
                                       if (filter.selected_filter.if_empty_id) {
                                           $el.append($('<option></option>')
                                           .attr('value', filter.extra_filter_options[0].values.id)
-                                          .text(ERMrest._renderHandlebarsTemplate(filter.display_text, filter.extra_filter_options[0].values)));
+                                          .text(ERMrest.renderHandlebarsTemplate(filter.display_text, filter.extra_filter_options[0].values)));
                                           $('#number').val(filter.extra_filter_options[0].values.id);
                                           $('#number').selectmenu('refresh');
                                           $('#number').prop('disabled', true);
@@ -149,7 +162,7 @@ export const TreeViewLegacyCode = () => {
               }); // end forEach
           } else {
               treeviewConfig.filters.forEach(function (filter, idx) {
-                  filterUrl = 'https://' + window.location.hostname + ERMrest._renderHandlebarsTemplate(filter.query_pattern, templateParams);
+                  filterUrl = 'https://' + window.location.hostname + ERMrest.renderHandlebarsTemplate(filter.query_pattern, templateParams);
                   var $el = $('#number');
                   $el.empty(); // remove old options
 
@@ -168,7 +181,7 @@ export const TreeViewLegacyCode = () => {
                                   if (!filter.id_filter_regexp || regexp.test(data['id'])) {
                                       $el.append($('<option></option>')
                                       .attr('value', data['Ordinal'])
-                                      .text(ERMrest._renderHandlebarsTemplate(filter.display_text, data)));
+                                      .text(ERMrest.renderHandlebarsTemplate(filter.display_text, data)));
                                   }
                               });
                               // append extra filter options
@@ -176,7 +189,7 @@ export const TreeViewLegacyCode = () => {
                                   filter.extra_filter_options.forEach(function (option) {
                                       $el.append($('<option></option>')
                                       .attr('value', option.values.id)
-                                      .text(ERMrest._renderHandlebarsTemplate(filter.display_text, option.values)));
+                                      .text(ERMrest.renderHandlebarsTemplate(filter.display_text, option.values)));
                                   });
                               }
                               // select default
@@ -241,7 +254,7 @@ export const TreeViewLegacyCode = () => {
                   // $('#right').addClass('col-md-12 col-lg-12 col-sm-12 col-12');
                   var headingEl = document.getElementById('anatomyHeading');
                   headingEl.style.visibility = 'visible';
-                  $(headingEl).children('h3')[0].innerHTML = ERMrest._renderHandlebarsTemplate(treeviewConfig.title_markdown_pattern, templateParams);
+                  $(headingEl).children('h3')[0].innerHTML = ERMrest.renderHandlebarsTemplate(treeviewConfig.title_markdown_pattern, templateParams);
               }
 
               // create and configure dropdown menu
@@ -601,7 +614,7 @@ export const TreeViewLegacyCode = () => {
                   $.ajax({
                       headers: treeHeaders,
                       dataType: 'json',
-                      url: ERMrest._renderHandlebarsTemplate(queryConfig.tree_query, templateParams),
+                      url: ERMrest.renderHandlebarsTemplate(queryConfig.tree_query, templateParams),
                       success: function(data) {
                           json = data
                       }
@@ -611,13 +624,13 @@ export const TreeViewLegacyCode = () => {
                       $.ajax({
                           headers: isolatedHeaders,
                           dataType: 'json',
-                          url: ERMrest._renderHandlebarsTemplate(queryConfig.isolated_nodes_query, templateParams),
+                          url: ERMrest.renderHandlebarsTemplate(queryConfig.isolated_nodes_query, templateParams),
                           success: function(data) {
                               isolatedNodes = data
                           }
                       }).done(function() {
                           if(id_parameter != '') {
-                              extraAttributesURL = 'https://' + window.location.hostname + ERMrest._renderHandlebarsTemplate(treeviewConfig.annotation.annotation_query_pattern, templateParams);
+                              extraAttributesURL = 'https://' + window.location.hostname + ERMrest.renderHandlebarsTemplate(treeviewConfig.annotation.annotation_query_pattern, templateParams);
                               var annotationHeaders = {};
                               var params = {}
                               var idx = requiredParams.length-1;
@@ -731,7 +744,7 @@ export const TreeViewLegacyCode = () => {
                   var beforeIcons = [],
                       afterIcons  = [];
 
-                  templateParams.$node_id = ERMrest._fixedEncodeURIComponent(id);
+                  templateParams.$node_id = fixedEncodeURIComponent(id);
                   var obj = {
                       parent: [],
                       children: [],
@@ -739,7 +752,7 @@ export const TreeViewLegacyCode = () => {
                       base_text: text,
                       image_path: image,
                       a_attr: {
-                          'href': ERMrest._renderHandlebarsTemplate(treeviewConfig.tree.click_event_callback, templateParams),
+                          'href': ERMrest.renderHandlebarsTemplate(treeviewConfig.tree.click_event_callback, templateParams),
                           'style': 'display:inline;'
                       }
                   };
@@ -961,8 +974,8 @@ export const TreeViewLegacyCode = () => {
               } else {
                   var context=JSON.parse(ERMrest._certifyContextHeader(getHeader()))
                   // TODO: this function should be exposed as public in ermrestJS
-                  templateParams.$node_id = ERMrest._fixedEncodeURIComponent(node.dbxref);
-                  var l = '\'' + ERMrest._renderHandlebarsTemplate(treeviewConfig.tree.click_event_callback, templateParams);
+                  templateParams.$node_id = fixedEncodeURIComponent(node.dbxref);
+                  var l = '\'' + ERMrest.renderHandlebarsTemplate(treeviewConfig.tree.click_event_callback, templateParams);
                   const url=l+'?pcid=' + context.cid + '&ppid=' + context.pid+ '\',\'_blank\'';
                   s['onClick'] = 'window.open(' + url + ');';
               }

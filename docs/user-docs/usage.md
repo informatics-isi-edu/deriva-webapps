@@ -100,7 +100,7 @@ In some cases, the columns you want to search are different from the `search-box
 
 
 ```js
-var columnNames = ["term", "synonyms"];
+var searchColumns = ["term", "synonyms"];
 // create a path that Chaise understands
 var path = ERMrest.createSearchPath(catalogID, schemaName, tableName, searchText, searchColumns);
 ```
@@ -244,18 +244,7 @@ While you can use the object-oriented APIs that ERMrestJS provides, they are mai
 
 This method is recommended since internally will take care of retrying failed requests and other useful features built into the HTTP module. The following are steps to using ERMrestJS's HTTP module:
 
-1. **Configuration**: You can skip this step if you're using ERMrestJS on a page where navbar (or any of the other Chaise-provided libraries) is included. Otherwise, you have to do this manually. To configure ERMrestJS, you need to provide an HTTP library and promise library. We recommend using [axios](https://axios-http.com/) and [Q](https://github.com/kriskowal/q). The following is an example of configuring ERMrestJS using these two libraries::
-
-    ```js
-    /**
-    * assuming axios and Q are already included and available:
-    * <script src="path-to/q.min.js"></script>
-    * <script src="path-to/axios.min.js"></script>
-    */
-    ERMrest.configure(axios, Q);
-    ```
-
-2. **Creating server object**: During configuration, ERMrestJS will add extra features to the HTTP module. To access the HTTP module, you must first create a `Server` using `ERMrest.ermrestFactory.getServer` API. This function accepts two parameters:
+1. **Creating server object**: During configuration, ERMrestJS will add extra features to the HTTP module. To access the HTTP module, you must first create a `Server` using `ERMrest.ermrestFactory.getServer` API. This function accepts two parameters:
     - `ermrestServiceURI`: URI of the ERMrest service.
     - `contextHeaderParams`: An optional server header parameter for context logging appended to all the requests to the server.
 
@@ -280,7 +269,7 @@ This method is recommended since internally will take care of retrying failed re
     var server = ERMrest.ermrestFactory.getServer(ermrestServiceURI, contextHeaderParams);
     ```
 
-3. **Sending request**: Now that the setup is done and you have the `server` object, you can use it to send HTTP requests. For log purposes, we recommend passing a specific header (stored in the `ERMrest.contextHeaderName` property) with each request that captures what the request is trying to do. For example:
+2. **Sending request**: Now that the setup is done and you have the `server` object, you can use it to send HTTP requests. For log purposes, we recommend passing a specific header (stored in the `ERMrest.contextHeaderName` property) with each request that captures what the request is trying to do. For example:
 
     ```js
     // the header that can be send with the request (used for log purposes)
