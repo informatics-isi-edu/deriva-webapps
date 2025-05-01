@@ -1117,37 +1117,57 @@ export const useChartData = (plot: Plot) => {
   }
 
   const validateDataXYCol = (trace: Trace): string | boolean => {
-    // Show warning if no data_col, x_col, or y_col
-    if (!trace.data_col && (!trace.x_col || !trace.y_col)) {
-      let noColumnAlertMessage = noColumnsDefinedAlert;
+    const hasX = trace.x_col_pattern || trace.x_col;
+    const hasY = trace.y_col_pattern || trace.y_col;
 
-      if (!trace.x_col && trace.y_col) {
-        // x_col error
-        noColumnAlertMessage = yColOnlyAlert;
-      } else if (trace.x_col && !trace.y_col) {
-        // y_col error
-        noColumnAlertMessage = xColOnlyAlert;
-      }
-      return noColumnAlertMessage;
+    // Show warning if no data_col, x_col, or y_col  
+    if (!trace.data_col && (!hasX || !hasY)) {
+      // x_col error
+      if (!hasX && hasY) return yColOnlyAlert;
+      // y_col error
+      if (hasX && !hasY) return xColOnlyAlert;
+      return noColumnsDefinedAlert;
     }
 
     // data_col is defined but empty
     if (Array.isArray(trace.data_col) && trace.data_col.length === 0) return emptyDataColArrayAlert;
+
+    const isEmptyArray = (col: any) => Array.isArray(col) && col.length === 0;
+
     // no data_col and x_col or y_col are not an array
-    if (!trace.data_col && (!Array.isArray(trace.x_col) || !Array.isArray(trace.y_col))) return xYColsNotAnArrayAlert;
+    if (!trace.data_col && (!Array.isArray(hasX) || !Array.isArray(hasY))) {
+      return xYColsNotAnArrayAlert;
+    }
     // x_col is defined as an array but empty
-    if (Array.isArray(trace.x_col) && trace.x_col.length === 0) return emptyXColArrayAlert;
+    if (isEmptyArray(hasX)) {
+      return emptyXColArrayAlert;
+    }
     // y_col is defined as an array but empty
-    if (Array.isArray(trace.y_col) && trace.y_col.length === 0) return emptyYColArrayAlert;
+    if (isEmptyArray(hasY)) {
+      return emptyYColArrayAlert;
+    }
+    const xLength = trace.x_col?.length ?? trace.x_col_pattern?.length ?? 0;
+    const yLength = trace.y_col?.length ?? trace.y_col_pattern?.length ?? 0;
 
     // if both arrays are size > 1 and x_col.length !== y_col.length, show a warning to user that data is inconsistent
-    if ((trace.x_col?.length && trace.x_col?.length > 1) &&
-      (trace.y_col?.length && trace.y_col?.length > 1) &&
-      (trace.x_col?.length !== trace.y_col?.length)) {
+    if (xLength > 1 && yLength > 1 && xLength !== yLength) {
       return incompatibleColArraysAlert;
     }
 
     return true;
+  }
+
+  /**
+   * Processes an array of column patterns based on given template params
+   *
+   * @param cols - Array of column pattern to be processed.
+   * @returns An array of rendered column name strings.
+   */
+  const getColumnPattern = (cols: string[]) => {
+    const parsedCols = cols.map((col: string) => {
+      return ConfigService.ERMrest.renderHandlebarsTemplate(col, templateParams);
+    })
+    return parsedCols;
   }
 
   /**
@@ -1178,6 +1198,10 @@ export const useChartData = (plot: Plot) => {
       return;
     }
 
+    const x_col_val = trace.x_col_pattern ? getColumnPattern(trace.x_col_pattern) : trace.x_col;
+    const y_col_val = trace.y_col_pattern ? getColumnPattern(trace.y_col_pattern) : trace.y_col;
+    const z_col_val = trace.z_col_pattern ? getColumnPattern(trace.z_col_pattern) : trace.z_col;
+
     // Either data_col is defined (a string or nonempty array) OR
     //   x_col and y_col are defined (non empty arrays)
     //   prefer x_col/y_col to data_col
@@ -1186,16 +1210,16 @@ export const useChartData = (plot: Plot) => {
     // x_col and y_col should be the same sized array
     //   - if one array is size 1 and the other size N,
     //     duplicate value in array of size 1 to be an array of size N with value N times
-    let numberPlotTraces = (trace.y_col?.length && trace.x_col?.length === trace.y_col.length) ? trace.y_col.length : 1;
+    let numberPlotTraces = (y_col_val?.length && x_col_val?.length === y_col_val.length) ? y_col_val.length : 1;
     // fix x_col and y_col to be same size
-    if (trace.x_col?.length === 1 && (trace.y_col?.length && trace.y_col?.length > 1)) {
-      numberPlotTraces = trace.y_col.length;
+    if (x_col_val?.length === 1 && (y_col_val?.length && y_col_val?.length > 1)) {
+      numberPlotTraces = y_col_val.length;
       // if only 1 x_col value, copy that value so x_col and y_col arrays are same size
-      for (let i = 1; i < numberPlotTraces; i++) trace.x_col[i] = trace.x_col[0];
-    } else if (trace.y_col?.length === 1 && (trace.x_col?.length && trace.x_col?.length > 1)) {
-      numberPlotTraces = trace.x_col.length;
+      for (let i = 1; i < numberPlotTraces; i++) x_col_val[i] = x_col_val[0];
+    } else if (y_col_val?.length === 1 && (x_col_val?.length && x_col_val?.length > 1)) {
+      numberPlotTraces = x_col_val.length;
       // if only 1 y_col value, copy that value so x_col and y_col arrays are same size
-      for (let i = 1; i < numberPlotTraces; i++) trace.y_col[i] = trace.y_col[0];
+      for (let i = 1; i < numberPlotTraces; i++) y_col_val[i] = y_col_val[0];
     } else if (Array.isArray(trace.data_col)) {
       numberPlotTraces = trace.data_col.length;
     } // else { x_col and y_col or data_col are length 1 so do nothing }
@@ -1228,11 +1252,11 @@ export const useChartData = (plot: Plot) => {
       }
 
       let hoverTemplateLink;
-      if (trace.z_col && trace.x_col && trace.y_col) {
-        const x_col = trace.x_col[plotTraceIdx];
-        const y_col = trace.y_col[plotTraceIdx];
-        const z_col = trace.z_col[plotTraceIdx];
-        
+      if (z_col_val && x_col_val && y_col_val) {
+        const x_col = x_col_val[plotTraceIdx];
+        const y_col = y_col_val[plotTraceIdx];
+        const z_col = z_col_val[plotTraceIdx];
+
         plotlyDataObject.x = [];
         plotlyDataObject.y = [];
         plotlyDataObject.z = [];
@@ -1283,9 +1307,9 @@ export const useChartData = (plot: Plot) => {
           hoverTemplateLink = generateHoverTemplateDisplay(trace, item);
           if (hoverTemplateLink) tempText[yIndex].push(hoverTemplateLink);
         });
-      } else if (trace.x_col && trace.y_col) {
-        const x_col = trace.x_col[plotTraceIdx];
-        const y_col = trace.y_col[plotTraceIdx];
+      } else if (x_col_val && y_col_val) {
+        const x_col = x_col_val[plotTraceIdx];
+        const y_col = y_col_val[plotTraceIdx];
 
         plotlyDataObject.x = [];
         plotlyDataObject.y = [];
@@ -1737,7 +1761,7 @@ export const useChartData = (plot: Plot) => {
 
     const emptyReponses = data.every((responseArray: any[]) => responseArray.length === 0);
     // data is defined and nonzero and at least 1 of x, y, z, or values are defined
-    const hasPlotlyData = (plot?.plotly?.data && plot.plotly.data.length > 0) && 
+    const hasPlotlyData = (plot?.plotly?.data && plot.plotly.data.length > 0) &&
       (plot?.plotly?.data[0].x || plot?.plotly?.data[0].y || plot?.plotly?.data[0].z || plot?.plotly?.data[0].values);
     // (data is empty or all the objects in data are empty) && plotly.data is not well defined, show "No Data"
     const noDataTitle = ((data.length === 0 || emptyReponses) && !hasPlotlyData)
