@@ -135,6 +135,9 @@ export type Trace = {
   x_col?: string[];
   y_col?: string[];
   z_col?: string[];
+  x_col_pattern?: string[];
+  y_col_pattern?: string[];
+  z_col_pattern?: string[];
   type?: string[];
   mode?: string[];
   marker?: string[];
