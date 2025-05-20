@@ -29,9 +29,14 @@ import { flatten2DArray } from '@isrd-isi-edu/deriva-webapps/src/utils/data';
 import {
   emptyDataColArrayAlert, emptyXColArrayAlert, emptyYColArrayAlert, incompatibleColArraysAlert,
   invalidCsvAlert, invalidJsonAlert, invalidKeyAlert, invalidResponseFormatAlert,
+  missingColumnValueAlert,
+  noColumnExistsAlert,
   noColumnsDefinedAlert, xColOnlyAlert,
+  xColPatternemptyArrayAlert,
   xYColsNotAnArrayAlert,
-  yColOnlyAlert
+  yColOnlyAlert,
+  yColPatternemptyArrayAlert,
+  zColPatternemptyArrayAlert
 } from '@isrd-isi-edu/deriva-webapps/src/utils/message-map';
 import {
   addComma, createLink, createLinkWithContextParams,
@@ -306,7 +311,7 @@ export const useChartData = (plot: Plot) => {
    * Updates the legend text and orientation for all plots for which legend is available as per the change in screen width
    */
   useEffect(() => {
-    if (parsedData?.data && parsedData?.data[0].transforms?.length >= 1) {
+    if (parsedData?.data && parsedData?.data[0]?.transforms?.length >= 1) {
       const uniqueX = parsedData?.layout?.xaxis?.tickvals?.filter(function (item: any, pos: number) {
         return parsedData?.layout?.xaxis?.tickvals?.indexOf(item) === pos;
       });
@@ -355,11 +360,11 @@ export const useChartData = (plot: Plot) => {
                   ...prevParsedData.data[0],
                   transforms: [
                     {
-                      ...prevParsedData.data[0].transforms[0],
+                      ...prevParsedData.data[0]?.transforms[0],
                       //Passing the modified legend text array to group by using new legend and display the wrapped legend on plot as per screen size
                       groups: newPlot,
                     },
-                    ...prevParsedData.data[0].transforms?.slice(1),
+                    ...prevParsedData.data[0]?.transforms?.slice(1),
                   ],
                 },
                 ...prevParsedData.data?.slice(1),
@@ -936,9 +941,42 @@ export const useChartData = (plot: Plot) => {
     item: any,
     colName: string,
     axis: PlotConfigAxis | undefined,
-    formatData: boolean
+    formatData: boolean,
+    traceId: number,
+    missingColumnsMap: Map<number, Set<string>>,
+    emptyColumnsMap: Map<number, Set<string>>,
   ): string | number => {
+    let missingCols = missingColumnsMap.get(traceId);
+    let emptyCols = missingColumnsMap.get(traceId);
+
+    if (!missingCols) {
+      missingCols = new Set<string>();
+      missingColumnsMap.set(traceId, missingCols);
+    }
+
+    if (!emptyCols) {
+      emptyCols = new Set<string>();
+      emptyColumnsMap.set(traceId, emptyCols);
+    }
+
+    const columnExists = Object.prototype.hasOwnProperty.call(item, colName);
+
+    if (!columnExists) {
+      if (!missingCols.has(colName)) {
+        missingCols.add(colName);
+        addAlertMessage(getPlotTraceAlertDetails(traceId, `"${colName}" ${noColumnExistsAlert}`));
+      }
+      return '';
+    }
+
     let value = item[colName];
+    // Column exists but value is undefined
+    if ((value === undefined || value === '') && !emptyCols.has(colName)) {
+      emptyCols.add(colName);
+      addAlertMessage(getPlotTraceAlertDetails(traceId,  `"${colName}" ${missingColumnValueAlert}`));
+      return '';
+    }
+
     if (axis && axis?.tick_display_markdown_pattern) {
       value = createLink(axis.tick_display_markdown_pattern, {
         $self: {
@@ -947,6 +985,7 @@ export const useChartData = (plot: Plot) => {
         }
       });
     }
+
     return formatPlotData(value, formatData, plot.plot_type);
   };
 
@@ -1116,42 +1155,42 @@ export const useChartData = (plot: Plot) => {
     }
   }
 
-  const validateDataXYCol = (trace: Trace): string | boolean => {
+  const validateDataXYCol = (trace: Trace, traceId: number): string | boolean => {
     const hasX = trace.x_col_pattern || trace.x_col;
     const hasY = trace.y_col_pattern || trace.y_col;
 
     // Show warning if no data_col, x_col, or y_col  
     if (!trace.data_col && (!hasX || !hasY)) {
       // x_col error
-      if (!hasX && hasY) return yColOnlyAlert;
+      if (!hasX && hasY) return getPlotTraceAlertDetails(traceId, yColOnlyAlert);
       // y_col error
-      if (hasX && !hasY) return xColOnlyAlert;
+      if (hasX && !hasY) return getPlotTraceAlertDetails(traceId, xColOnlyAlert);
       return noColumnsDefinedAlert;
     }
 
     // data_col is defined but empty
-    if (Array.isArray(trace.data_col) && trace.data_col.length === 0) return emptyDataColArrayAlert;
+    if (Array.isArray(trace.data_col) && trace.data_col.length === 0) return getPlotTraceAlertDetails(traceId, emptyDataColArrayAlert);
 
     const isEmptyArray = (col: any) => Array.isArray(col) && col.length === 0;
 
     // no data_col and x_col or y_col are not an array
     if (!trace.data_col && (!Array.isArray(hasX) || !Array.isArray(hasY))) {
-      return xYColsNotAnArrayAlert;
+      return getPlotTraceAlertDetails(traceId, xYColsNotAnArrayAlert);
     }
     // x_col is defined as an array but empty
     if (isEmptyArray(hasX)) {
-      return emptyXColArrayAlert;
+      return getPlotTraceAlertDetails(traceId, emptyXColArrayAlert);
     }
     // y_col is defined as an array but empty
     if (isEmptyArray(hasY)) {
-      return emptyYColArrayAlert;
+      return getPlotTraceAlertDetails(traceId, emptyYColArrayAlert);
     }
     const xLength = trace.x_col?.length ?? trace.x_col_pattern?.length ?? 0;
     const yLength = trace.y_col?.length ?? trace.y_col_pattern?.length ?? 0;
 
     // if both arrays are size > 1 and x_col.length !== y_col.length, show a warning to user that data is inconsistent
     if (xLength > 1 && yLength > 1 && xLength !== yLength) {
-      return incompatibleColArraysAlert;
+      return getPlotTraceAlertDetails(traceId, incompatibleColArraysAlert);
     }
 
     return true;
@@ -1164,11 +1203,26 @@ export const useChartData = (plot: Plot) => {
    * @returns An array of rendered column name strings.
    */
   const getColumnPattern = (cols: string[]) => {
-    const parsedCols = cols.map((col: string) => {
-      return ConfigService.ERMrest.renderHandlebarsTemplate(col, templateParams);
-    })
+    const parsedCols = cols.map((col: string) =>
+      ConfigService.ERMrest.renderHandlebarsTemplate(col, templateParams)
+    );
+    if (!parsedCols.length || parsedCols.some(val => val == null || val === '')) {
+      return [];
+    }
     return parsedCols;
+  };
+
+  const getPlotTraceAlertDetails = (traceId: number, message: string) => {
+    return `Plot [${plot.uid}]${plot.traces.length > 1 ? `, Trace [${traceId}] : ` : ' '}` + message;
   }
+
+  const addAlertMessage = (msg: string) => {
+    if (!alertFunctions.alerts.some(
+      (alert) => alert.message === msg)) {
+      alertFunctions.addAlert(msg, ChaiseAlertType.ERROR);
+    }
+  }
+
 
   /**
    * 
@@ -1191,10 +1245,11 @@ export const useChartData = (plot: Plot) => {
      * https://stackoverflow.com/questions/44688919/how-to-declare-a-variable-with-two-types-via-typescript/44689251#44689251
      **/
     const tempText: string[] & string[][] = [];
+    const traceId = plot.traces.indexOf(trace);
 
-    const isValid = validateDataXYCol(trace);
+    const isValid = validateDataXYCol(trace, traceId);
     if (typeof isValid === 'string' && plot.plot_type !== 'violin') {
-      alertFunctions.addAlert(isValid, ChaiseAlertType.WARNING);
+      alertFunctions.addAlert(isValid, ChaiseAlertType.ERROR);
       return;
     }
 
@@ -1202,6 +1257,20 @@ export const useChartData = (plot: Plot) => {
     const y_col_val = trace.y_col_pattern ? getColumnPattern(trace.y_col_pattern) : trace.y_col;
     const z_col_val = trace.z_col_pattern ? getColumnPattern(trace.z_col_pattern) : trace.z_col;
 
+
+    if (x_col_val?.length === 0) {
+      const alertMsg = getPlotTraceAlertDetails(traceId, xColPatternemptyArrayAlert);
+      addAlertMessage(alertMsg);
+      return;
+    } else if (y_col_val?.length === 0) {
+      const alertMsg = getPlotTraceAlertDetails(traceId, yColPatternemptyArrayAlert);
+      addAlertMessage(alertMsg);
+      return;
+    } else if (z_col_val?.length === 0) {
+      const alertMsg = getPlotTraceAlertDetails(traceId, zColPatternemptyArrayAlert);
+      addAlertMessage(alertMsg);
+      return;
+    }
     // Either data_col is defined (a string or nonempty array) OR
     //   x_col and y_col are defined (non empty arrays)
     //   prefer x_col/y_col to data_col
@@ -1210,6 +1279,9 @@ export const useChartData = (plot: Plot) => {
     // x_col and y_col should be the same sized array
     //   - if one array is size 1 and the other size N,
     //     duplicate value in array of size 1 to be an array of size N with value N times
+    const missingColumnsMap = new Map<number, Set<string>>();
+    const emptyColumnsMap = new Map<number, Set<string>>();
+
     let numberPlotTraces = (y_col_val?.length && x_col_val?.length === y_col_val.length) ? y_col_val.length : 1;
     // fix x_col and y_col to be same size
     if (x_col_val?.length === 1 && (y_col_val?.length && y_col_val?.length > 1)) {
@@ -1243,6 +1315,7 @@ export const useChartData = (plot: Plot) => {
     const plotlyData: any[] = [];
     for (let plotTraceIdx = 0; plotTraceIdx < numberPlotTraces; plotTraceIdx++) {
       const plotlyDataObject = initializePlotlyDataObject(trace, plotTraceIdx);
+      const traceId = plot.traces.indexOf(trace);
 
       // violin plot config sets up data using config.xaxis.group_keys and config.yaxis.group_key
       // TODO: when general user controls configuration is complete, change this
@@ -1268,9 +1341,9 @@ export const useChartData = (plot: Plot) => {
         responseData.forEach((item: any, i: number) => {
           updateWithTraceColData(plotlyDataObject, trace, item, i);
 
-          const value = getValue(item, x_col, xaxis, format_data_x);
-          if (plotlyDataObject.x.indexOf(value.toString()) < 0) {
-            plotlyDataObject.x.push(value.toString());
+          const value = getValue(item, x_col, xaxis, format_data_x, traceId, missingColumnsMap, emptyColumnsMap);
+          if (plotlyDataObject.x.indexOf(value?.toString()) < 0) {
+            plotlyDataObject.x.push(value?.toString());
 
             // unformatted x value
             const rawXVal = item[x_col].toString();
@@ -1280,11 +1353,11 @@ export const useChartData = (plot: Plot) => {
           }
 
           // Add the y values for the heatmap plot
-          const yValue = getValue(item, y_col, yaxis, format_data_y);
+          const yValue = getValue(item, y_col, yaxis, format_data_y, traceId, missingColumnsMap, emptyColumnsMap);
           // Adds the y value for the heatmap plot if it is not added yet in y array
-          if (plotlyDataObject.y.indexOf(yValue.toString()) < 0) {
+          if (plotlyDataObject.y.indexOf(yValue?.toString()) < 0) {
             // push returns new array length, subtract 1 to get index 
-            yIndex = plotlyDataObject.y.push(yValue.toString()) - 1;
+            yIndex = plotlyDataObject.y.push(yValue?.toString()) - 1;
 
             // unformatted y value
             const rawYVal = item[y_col].toString();
@@ -1319,12 +1392,12 @@ export const useChartData = (plot: Plot) => {
           updateWithTraceColData(plotlyDataObject, trace, item, plotTraceIdx);
 
           // set x value for this x_col
-          const xValue = getValue(item, x_col, xaxis, format_data_x);
-          plotlyDataObject.x.push(xValue.toString());
+          const xValue = getValue(item, x_col, xaxis, format_data_x, traceId, missingColumnsMap, emptyColumnsMap);
+          plotlyDataObject.x.push(xValue?.toString());
 
           // set y value for this y_col
-          const yValue = getValue(item, y_col, yaxis, format_data_y);
-          plotlyDataObject.y.push(yValue.toString());
+          const yValue = getValue(item, y_col, yaxis, format_data_y, traceId, missingColumnsMap, emptyColumnsMap);
+          plotlyDataObject.y.push(yValue?.toString());
 
           // add hover template into array if not null
           hoverTemplateLink = generateHoverTemplateDisplay(trace, item);
@@ -1345,13 +1418,13 @@ export const useChartData = (plot: Plot) => {
         }
 
         responseData.forEach((item: any) => {
-          const value = getValue(item, data_col, undefined, format_data);
+          const value = getValue(item, data_col, undefined, format_data, traceId, missingColumnsMap, emptyColumnsMap);
           if (plotlyDataObject.type === 'histogram') {
             if (trace.orientation === 'h') {
-              plotlyDataObject.y.push(value.toString());
+              plotlyDataObject.y.push(value?.toString());
             } else {
               // vertical is the default case
-              plotlyDataObject.x.push(value.toString());
+              plotlyDataObject.x.push(value?.toString());
             }
           } else {
             // all other cases (currently only pie)
