@@ -1286,6 +1286,12 @@ export const useChartData = (plot: Plot) => {
       addAlertMessage(alertMsg);
       return;
     }
+
+    //map that tracks missing columns per trace to avoid duplicate alerts for each column value
+    const missingColumnsMap = new Map<number, Set<string>>();
+    //map that tracks columns with missing (undefined or empty string) values for each column value
+    const emptyColumnsMap = new Map<number, Set<string>>();
+
     // Either data_col is defined (a string or nonempty array) OR
     //   x_col and y_col are defined (non empty arrays)
     //   prefer x_col/y_col to data_col
@@ -1294,9 +1300,6 @@ export const useChartData = (plot: Plot) => {
     // x_col and y_col should be the same sized array
     //   - if one array is size 1 and the other size N,
     //     duplicate value in array of size 1 to be an array of size N with value N times
-    const missingColumnsMap = new Map<number, Set<string>>();
-    const emptyColumnsMap = new Map<number, Set<string>>();
-
     let numberPlotTraces = (y_col_val?.length && x_col_val?.length === y_col_val.length) ? y_col_val.length : 1;
     // fix x_col and y_col to be same size
     if (x_col_val?.length === 1 && (y_col_val?.length && y_col_val?.length > 1)) {
