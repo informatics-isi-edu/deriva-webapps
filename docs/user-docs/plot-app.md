@@ -76,11 +76,9 @@ Each object in the `plots` array can have the following parameters:
         2. `uri`: The url from which the data has to be fetched. DEPRECATED, use `traces.url_pattern` instead
         3. `legend`: An array of values to be shown in the legend
         4. `x_col`: An array of column names for the x values
-        5. `y_col`: An array of column names for the y values
-        6. `x_col_pattern`: array of user control(`user_controls`) patterns to turn into display values to use for x column name for x values.
-        7. `y_col_pattern`: array of user control(`user_controls`) patterns to turn into display values to use for y column name for y values.
-        #### Note
-        If both col_pattern(`x_col_pattern`,`y_col_pattern`, `z_col_pattern`) and col(`x_col`,`y_col`, `z_col`) parameters are given, col_pattern will be prioritize over static col values.
+        5. `x_col_pattern`: array of user control(`user_controls`) patterns to turn into display values to use for x column name for x values. If both `x_col` and `x_col_pattern` are provided, the `x_col_pattern` will take priority.
+        6. `y_col`: An array of column names for the y values
+        7. `y_col_pattern`: array of user control(`user_controls`) patterns to turn into display values to use for y column name for y values. If both `y_col` and `y_col_pattern` are provided, the `y_col_pattern` will take priority.
         8. `orientation`: Optional parameter for displaying the bar chart horizontally // default: 'h'
         9. `textfont`: It will work till the bar size can accommodate the font size
         10. `hovertemplate_display_pattern`: To show customized hover text on plots using given template pattern
@@ -93,7 +91,7 @@ Each object in the `plots` array can have the following parameters:
         2. `graphic_link_pattern`: Link to use to navigate user when clicking on pie slice
     4. Extra properties for heatmap charts:
         1. `z_col`: An array of column names for the z values to use as the aggregated value for the `(x, y)` combination
-        2. `z_col_pattern`: array of user control(`user_controls`) patterns to turn into display values to use as the aggregated value for the `(x, y)` combination
+        2. `z_col_pattern`: array of user control(`user_controls`) patterns to turn into display values to use as the aggregated value for the `(x, y)` combination. If both `z_col` and `z_col_pattern` are provided, the `z_col_pattern` will take priority.
     5. 1d plot has very similar properties. Keeping separate to preserve old documentation:
         1. `uri`: The url from which the data has to be fetched.
         2. `legend`: An array of values to be shown in the legend

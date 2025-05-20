@@ -928,13 +928,15 @@ export const useChartData = (plot: Plot) => {
 
   /**
    * Gets the value in the form of a link from the given markdown pattern.
-   * Optionally formats the value.
+   * Optionally formats the value and add alerts on missing or empty columns.
    *
-   * @param item each item of data
-   * @param colName column name for the item of data
-   * @param axis axis object from plot config
-   * @param formatData whether to format the data or not
-   * @param plot plot config
+   * @param item - each item of data
+   * @param colName - column name for the item of data
+   * @param axis - axis object from plot config
+   * @param formatData - whether to format the data or not
+   * @param traceId - index of the current trace within the plot.
+   * @param missingColumnsMap - map that tracks missing columns per trace to avoid duplicate alerts.
+   * @param emptyColumnsMap - map that tracks columns with missing (undefined or empty string) values.
    * @returns
    */
   const getValue = (
@@ -961,6 +963,7 @@ export const useChartData = (plot: Plot) => {
 
     const columnExists = Object.prototype.hasOwnProperty.call(item, colName);
 
+    // Column doesn't exists in the data item
     if (!columnExists) {
       if (!missingCols.has(colName)) {
         missingCols.add(colName);
@@ -973,7 +976,7 @@ export const useChartData = (plot: Plot) => {
     // Column exists but value is undefined
     if ((value === undefined || value === '') && !emptyCols.has(colName)) {
       emptyCols.add(colName);
-      addAlertMessage(getPlotTraceAlertDetails(traceId,  `"${colName}" ${missingColumnValueAlert}`));
+      addAlertMessage(getPlotTraceAlertDetails(traceId, `"${colName}" ${missingColumnValueAlert}`));
       return '';
     }
 
@@ -1212,10 +1215,22 @@ export const useChartData = (plot: Plot) => {
     return parsedCols;
   };
 
+/**
+ * Generates plot and trace id prefix for an alert message
+ *
+ * @param traceId - index of the trace within the plot.
+ * @param message - alert message to display.
+ * @returns A string in the format: 'Plot [uid], Trace [traceId] : message' or 'Plot [uid] message' (if single trace).
+ */
   const getPlotTraceAlertDetails = (traceId: number, message: string) => {
     return `Plot [${plot.uid}]${plot.traces.length > 1 ? `, Trace [${traceId}] : ` : ' '}` + message;
   }
 
+/**
+ * Adds a new alert message if it hasnt already been logged.
+ *
+ * @param msg - alert message to be added.
+ */
   const addAlertMessage = (msg: string) => {
     if (!alertFunctions.alerts.some(
       (alert) => alert.message === msg)) {
