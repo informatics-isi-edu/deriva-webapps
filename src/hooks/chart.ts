@@ -1020,7 +1020,6 @@ export const useChartData = (plot: Plot) => {
     // is attached as an array on result object so when legend_click plotly event is triggered we can find the link and navigate to it
     const legend_markdown_pattern =
       trace.legend_markdown_pattern || extraInfo?.legend_markdown_pattern; // use either the trace or extraInfo
-    console.log(legend_markdown_pattern);
       if (legend_markdown_pattern) {
       // if there is a legend_markdown_pattern then create the link and add it to the array
       const legendPattern = Array.isArray(legend_markdown_pattern)
@@ -1169,7 +1168,7 @@ export const useChartData = (plot: Plot) => {
       if (!hasX && hasY) return getPlotTraceAlertDetails(traceId, yColOnlyAlert);
       // y_col error
       if (hasX && !hasY) return getPlotTraceAlertDetails(traceId, xColOnlyAlert);
-      return noColumnsDefinedAlert;
+      return getPlotTraceAlertDetails(traceId, noColumnsDefinedAlert);
     }
 
     // data_col is defined but empty
@@ -1225,7 +1224,7 @@ export const useChartData = (plot: Plot) => {
  */
   const getPlotTraceAlertDetails = (traceId: number, message: string) => {
     //Config Trace : This always refers to the original trace from the config, not the plotted trace, since invalid traces are excluded from rendering.
-    return `Plot [${plot.uid}]${plot.traces.length > 1 ? `, Config trace [${traceId}] : ` : ' '}` + message;
+    return `Plot \`${plot.uid}\`${plot.traces.length > 1 ? `, Config trace \`${traceId}\`` : ' '} : ` + message;
   }
 
 /**
