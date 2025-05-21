@@ -1020,7 +1020,8 @@ export const useChartData = (plot: Plot) => {
     // is attached as an array on result object so when legend_click plotly event is triggered we can find the link and navigate to it
     const legend_markdown_pattern =
       trace.legend_markdown_pattern || extraInfo?.legend_markdown_pattern; // use either the trace or extraInfo
-    if (legend_markdown_pattern) {
+    console.log(legend_markdown_pattern);
+      if (legend_markdown_pattern) {
       // if there is a legend_markdown_pattern then create the link and add it to the array
       const legendPattern = Array.isArray(legend_markdown_pattern)
         ? legend_markdown_pattern[index]
@@ -1223,7 +1224,7 @@ export const useChartData = (plot: Plot) => {
  * @returns A string in the format: 'Plot [uid], Trace [traceId] : message' or 'Plot [uid] message' (if single trace).
  */
   const getPlotTraceAlertDetails = (traceId: number, message: string) => {
-    return `Plot [${plot.uid}]${plot.traces.length > 1 ? `, Trace [${traceId}] : ` : ' '}` + message;
+    return `Plot [${plot.uid}]${plot.traces.length > 1 ? `, Config trace [${traceId}] : ` : ' '}` + message;
   }
 
 /**
@@ -1264,7 +1265,7 @@ export const useChartData = (plot: Plot) => {
 
     const isValid = validateDataXYCol(trace, traceId);
     if (typeof isValid === 'string' && plot.plot_type !== 'violin') {
-      alertFunctions.addAlert(isValid, ChaiseAlertType.ERROR);
+      addAlertMessage(isValid);
       return;
     }
 
