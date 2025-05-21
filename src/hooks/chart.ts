@@ -1221,9 +1221,10 @@ export const useChartData = (plot: Plot) => {
  *
  * @param traceId - index of the trace within the plot.
  * @param message - alert message to display.
- * @returns A string in the format: 'Plot [uid], Trace [traceId] : message' or 'Plot [uid] message' (if single trace).
+ * @returns A string in the format: 'Plot [uid], Config Trace [traceId] : message' or 'Plot [uid] message' (if single trace).
  */
   const getPlotTraceAlertDetails = (traceId: number, message: string) => {
+    //Config Trace : This always refers to the original trace from the config, not the plotted trace, since invalid traces are excluded from rendering.
     return `Plot [${plot.uid}]${plot.traces.length > 1 ? `, Config trace [${traceId}] : ` : ' '}` + message;
   }
 
