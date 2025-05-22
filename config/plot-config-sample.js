@@ -1572,7 +1572,7 @@ var plotConfigs = {
         },
         config: {
           title_display_markdown_pattern:
-            '[Number of GUDMAP resources released to date] (https://dev.isrd.isi.edu/chaise/search){target=_blank}',
+            '[Number of GUDMAP resources released to date](https://dev.isrd.isi.edu/chaise/search){target=_blank}',
           format_data_x: true, // defualt : false - to use hack or not
           xaxis: {
             title_display_markdown_pattern:
