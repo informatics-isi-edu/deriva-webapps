@@ -76,11 +76,13 @@ Each object in the `plots` array can have the following parameters:
         2. `uri`: The url from which the data has to be fetched. DEPRECATED, use `traces.url_pattern` instead
         3. `legend`: An array of values to be shown in the legend
         4. `x_col`: An array of column names for the x values
-        5. `y_col`: An array of column names for the y values
-        6. `orientation`: Optional parameter for displaying the bar chart horizontally // default: 'h'
-        7. `textfont`: It will work till the bar size can accommodate the font size
-        8. `hovertemplate_display_pattern`: To show customized hover text on plots using given template pattern
-        9. `response_format`: The type of file that is passed into url_pattern. It expects `csv` or `json`.
+        5. `x_col_pattern`: array of user control(`user_controls`) patterns to turn into display values to use for x column name for x values. If both `x_col` and `x_col_pattern` are provided, the `x_col_pattern` will take priority.
+        6. `y_col`: An array of column names for the y values
+        7. `y_col_pattern`: array of user control(`user_controls`) patterns to turn into display values to use for y column name for y values. If both `y_col` and `y_col_pattern` are provided, the `y_col_pattern` will take priority.
+        8. `orientation`: Optional parameter for displaying the bar chart horizontally // default: 'h'
+        9. `textfont`: It will work till the bar size can accommodate the font size
+        10. `hovertemplate_display_pattern`: To show customized hover text on plots using given template pattern
+        11. `response_format`: The type of file that is passed into url_pattern. It expects `csv` or `json`.
     2. Extra properties for pie and histogram charts:
         1. `data_col`: A column name as a string or array of column names for the data aggregation. used instead of x_col or y_xol
         2. `legend_col`: An array of column names for the legend
@@ -89,6 +91,7 @@ Each object in the `plots` array can have the following parameters:
         2. `graphic_link_pattern`: Link to use to navigate user when clicking on pie slice
     4. Extra properties for heatmap charts:
         1. `z_col`: An array of column names for the z values to use as the aggregated value for the `(x, y)` combination
+        2. `z_col_pattern`: array of user control(`user_controls`) patterns to turn into display values to use as the aggregated value for the `(x, y)` combination. If both `z_col` and `z_col_pattern` are provided, the `z_col_pattern` will take priority.
     5. 1d plot has very similar properties. Keeping separate to preserve old documentation:
         1. `uri`: The url from which the data has to be fetched.
         2. `legend`: An array of values to be shown in the legend
