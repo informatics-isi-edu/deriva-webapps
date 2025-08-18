@@ -44,8 +44,8 @@ By default, clicking on a part of the graph will not do anything. We extended th
 
 #### Graph Hover Events
 By default, hovering on a part of the graph will show the x/y axis values. For instance, when no hover template is defined for a heatmap plot, plotly will show `x: E15.5_UreticTip_7092, y: 1442082_at, z: 4.18616` by default. We extended the functionality of the plot to allow customizable hover text on the graph. For instance, hovering on a block of heatmap can show the hover text as defined by the template `hovertemplate_display_pattern`.
-  - NOTE: 
-    - For the `violin` plot, the hover_template_displaypattern will only get applied to the scatter plot inside the violin plot(i.e. on hovering the datapoints) and not on the violin plot and the box plot. 
+  - NOTE:
+    - For the `violin` plot, the hover_template_displaypattern will only get applied to the scatter plot inside the violin plot(i.e. on hovering the datapoints) and not on the violin plot and the box plot.
     - If one value or all values mentioned in the  `hovertemplate_display_pattern` is missing then also it will show the custom hover text the values that are available. For instance, if the `hovertemplate_display_pattern` is `Gene ID: {{{$url_parameters.Gene.data.NCBI_Ge}}}` where `NCBI_Ge` is not a valid key then it will just display `Gene ID` on hover.
 `
 
@@ -108,7 +108,7 @@ Example:
   uid: 'link',
   type: 'markdown',
   label: {
-    markdown_pattern: '[Specimen Recordset](www.atlas-d2k.org/chaise/recordset/#2/Gene_Expression:Specimen)',
+    markdown_pattern: '[Specimen Recordset](https://dev.derivacloud.org/chaise/recordset/#2/Gene_Expression:Specimen)',
   }
 }
 ```
@@ -162,14 +162,14 @@ The Group By selector allows for the user to change how the data is grouped in t
 ### Other Plot Features
 
 #### Plot Responsiveness
-When the screen size is below 1000px( i.e the screen width threshold) the plots that have the legend array being passed into layout object will be displayed horizontally and at the bottom of the plot.  
-- The legend text will be wrapped based on the screen size, ensuring that the width of the legends is limited to a certain value relative to the plot area. This prevents the legends from occupying excessive space and affecting the visibility of the plot along with resizing window handling. 
-- The following is the step function responsible for determining the width of the legend and the wrapping limit: 
-  - If screen is less than 1000px and legend is 50% of plot area then wrap the text upto 30 characters 
+When the screen size is below 1000px( i.e the screen width threshold) the plots that have the legend array being passed into layout object will be displayed horizontally and at the bottom of the plot.
+- The legend text will be wrapped based on the screen size, ensuring that the width of the legends is limited to a certain value relative to the plot area. This prevents the legends from occupying excessive space and affecting the visibility of the plot along with resizing window handling.
+- The following is the step function responsible for determining the width of the legend and the wrapping limit:
+  - If screen is less than 1000px and legend is 50% of plot area then wrap the text upto 30 characters
   which will make the legend of minimum possible width
-  - If the number of violins is less than or equal to 7 and the width-to-plot-width ratio is greater than 0.40, 
+  - If the number of violins is less than or equal to 7 and the width-to-plot-width ratio is greater than 0.40,
   the legendNames array is modified similarly to the previous step, but using the character limit (i.e 80)
-  - If the number of violins is between 7 and 30 (inclusive) and the width-to-plot-width ratio is greater than 0.30, 
+  - If the number of violins is between 7 and 30 (inclusive) and the width-to-plot-width ratio is greater than 0.30,
   the legendNames array is modified similarly to the previous step, but using the character limit (i.e 65)
   - If the number of violins is greater than 30 and the width-to-plot-width ratio is greater than 0.3,
    the legendNames array is modified similarly to the previous step, but using the character limit (i.e 30)

@@ -7,7 +7,7 @@ The treeview-config.js file has the following parameters which can be modiified 
     ```javascript
     {
         "parentAppName1": function(node){
-            //callback function to be used on each node click when treeview is embedded in "parentAppName1" 
+            //callback function to be used on each node click when treeview is embedded in "parentAppName1"
         },
         "parentAppName1": function(node){
             //callback function to be used on each node click when treeview is embedded in "parentAppName2"
@@ -29,8 +29,8 @@ For Example : The url used to embed the treeview in the boolean-search app could
 
 2. Update the callback function for node click in the "nodeClickCallback" object of treeview-config.js.
    The key value in the "nodeClickCallback" object should be the same as the query parameter value for "Parent_App" in the treeview url.
-   
-For Example: 
+
+For Example:
 If the url used to embed the treeview in the boolean-search app is :
     https://dev.rebuildingakidney.org/treeview/index.html?Parent_App=booleanSearch&hideNavbar=true
 Then a sample treeview-config.js would be like :
@@ -51,4 +51,4 @@ if (typeof module === 'object' && module.exports && typeof require === 'function
 ```
 
 ## Treeview with legend
-When `Specimen_RID` is present as a url parameter, treeview will display in an alternate mode that includes a legend on the left side with terms in the tree being "annotated". This is a working link on dev.atlas when that server is working: https://dev.atlas-d2k.org/deriva-webapps/treeview/?Specimen_RID=N-GXA4
+When `Specimen_RID` is present as a url parameter, treeview will display in an alternate mode that includes a legend on the left side with terms in the tree being "annotated". This is a working link on dev.atlas when that server is working: https://dev.derivacloud.org/deriva-webapps/treeview/?Specimen_RID=N-GXA4

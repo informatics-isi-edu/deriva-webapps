@@ -275,7 +275,7 @@ export const useChartData = (plot: Plot) => {
 
   /**
    * extracts values for the selector returns them for the templateParams under the selector's uid
-   * 
+   *
    * @param config User Control configuration
    * @returns values for intializing template params for control
    */
@@ -393,7 +393,7 @@ export const useChartData = (plot: Plot) => {
     const plotResponses: Array<Response> = await Promise.all(
       // request for each trace
       plot.traces.map((trace) => {
-        /*TODO: Both this case (queryPattern) and the next one (uri) are deprecated and should be removed eventually. 
+        /*TODO: Both this case (queryPattern) and the next one (uri) are deprecated and should be removed eventually.
         These are currently kept here for backwards compatibility.*/
         // Check for queryPattern(dynamic link) parameter in traces, if not defined then check for uri(static link)
         if (trace.url_pattern || trace.queryPattern) {
@@ -443,8 +443,8 @@ export const useChartData = (plot: Plot) => {
         // console.log(pathRegEx.test('/abcxyz'));  // ==> true
         // console.log(pathRegEx.test('abc/xyz'));  // ==> false
         // console.log(pathRegEx.test('abcxyz/'));  // ==> false
-        // console.log('https://staging.atlas-d2k.org' + value);
-        // console.log(pathRegEx.test('https://staging.atlas-d2k.org' + value));   // ==> true
+        // console.log('https://dev.derivacloud.org' + value);
+        // console.log(pathRegEx.test('https://dev.derivacloud.org' + value));   // ==> true
 
         // // NOTE: file path tests
         // console.log(pathRegEx.test('File:/abcxyz'));  // ==> false
@@ -531,7 +531,7 @@ export const useChartData = (plot: Plot) => {
       }
       setTemplateParams(tempParams);
 
-      // array of reponse.data arrays 
+      // array of reponse.data arrays
       //    responseData = [response.data]
       //    response.data = [{...}]
       let responseData = await fetchData(); // fetch the data for the plot
@@ -565,7 +565,7 @@ export const useChartData = (plot: Plot) => {
       setIsDataLoading(true);
       setIsParseLoading(true);
 
-      // array of reponse.data arrays 
+      // array of reponse.data arrays
       //    responseData = [response.data]
       //    response.data = [{...}]
       let responseData = await fetchData();
@@ -605,7 +605,7 @@ export const useChartData = (plot: Plot) => {
   /**
    * Takes in legendNames array and modifies the contents based on the width of the values in the legend
    *   and how much that content would take on the screen
-   * 
+   *
    * @param legendNames array of legend names
    * @param uniqueX array of unique X ticks
    * @param longestXTick longest X tick in the data
@@ -632,21 +632,21 @@ export const useChartData = (plot: Plot) => {
     const plotWidth = plotAreaFraction * width;
     //no. of unique violins to be shown on plot
     const noOfViolins = uniqueX?.length;
-    /*If screen is less than 1000px and legend is 50% of plot area then wrap the text upto 30 characters 
+    /*If screen is less than 1000px and legend is 50% of plot area then wrap the text upto 30 characters
     which will make the legend of minimum possible width*/
     if (plotWidth < screenWidthThreshold && width / plotWidth > 0.50) {
       legendNames = legendNames?.map((name) => name.includes('<a')
         ? extractValue(name, charLimit.sm, truncationLimit) : wrapText(name, charLimit.sm, truncationLimit))
     }
-    /*NOTE: These numbers are taken of the basis of current data and different testing scenarios considering the longest x label and 
+    /*NOTE: These numbers are taken of the basis of current data and different testing scenarios considering the longest x label and
     amount of width legend is taking as compared to the plot area*/
-    /*If the number of violins is less than or equal to 7 and the width-to-plot-width ratio is greater than 0.40, 
+    /*If the number of violins is less than or equal to 7 and the width-to-plot-width ratio is greater than 0.40,
     the legendNames array is modified similarly to the previous step, but using the charLimit.lg character limit (i.e 80).*/
     else if (noOfViolins <= 7 && width / plotWidth > 0.40) {
       legendNames = legendNames.map((name) => name.includes('<a')
         ? extractValue(name, charLimit.lg, truncationLimit) : wrapText(name, charLimit.lg, truncationLimit))
     }
-    /*If the number of violins is between 7 and 30 (inclusive) and the width-to-plot-width ratio is greater than 0.30, 
+    /*If the number of violins is between 7 and 30 (inclusive) and the width-to-plot-width ratio is greater than 0.30,
     the legendNames array is modified similarly to the previous step, but using the charLimit.md character limit (i.e 65).*/
     else if ((noOfViolins > 7 && noOfViolins <= 30) && width / plotWidth > 0.3) {
       legendNames = legendNames.map((name) => name.includes('<a')
@@ -861,7 +861,7 @@ export const useChartData = (plot: Plot) => {
   /**
    * Calculates the height and margins of the heatmap based on the number of y values and length of the longest X label
    * so that the labels do not get clipped and the bar height is adjusted accordingly.
-   * 
+   *
    * @param input : Input parameters of heatmap directive
    * @param longestXTick : Length of longest X axis label
    * @param longestYTick : Length of longest Y axis label
@@ -1066,7 +1066,7 @@ export const useChartData = (plot: Plot) => {
 
   /**
    * returns a formatted display value for display on hover in plot
-   * 
+   *
    * @param trace current trace from the plot config
    * @param item each item/row of data
    * @returns formatted string
@@ -1111,8 +1111,8 @@ export const useChartData = (plot: Plot) => {
   }
 
   /**
-   * Adds default hover text to the result object when hovertemplate_display_pattern is not configured 
-   * Note: This fixes the issue of displaying link in hover text when tick_display is configured for x or y axis 
+   * Adds default hover text to the result object when hovertemplate_display_pattern is not configured
+   * Note: This fixes the issue of displaying link in hover text when tick_display is configured for x or y axis
    * which was making the text hard to read in some plot types
    * @param result trace object to be updated
    */
@@ -1162,7 +1162,7 @@ export const useChartData = (plot: Plot) => {
     const hasX = trace.x_col_pattern || trace.x_col;
     const hasY = trace.y_col_pattern || trace.y_col;
 
-    // Show warning if no data_col, x_col, or y_col  
+    // Show warning if no data_col, x_col, or y_col
     if (!trace.data_col && (!hasX || !hasY)) {
       // x_col error
       if (!hasX && hasY) return getPlotTraceAlertDetails(traceId, yColOnlyAlert);
@@ -1241,22 +1241,22 @@ export const useChartData = (plot: Plot) => {
 
 
   /**
-   * 
+   *
    * @param trace current trace object in plot config
    * @param responseData response data after parsing into a format we expect
-   * @returns 
+   * @returns
    */
   const parseGeneralResponse = (trace: Trace, responseData: ResponseData) => {
     const { config } = plot;
     const { xaxis, yaxis, format_data_x = false, format_data_y = false, format_data = false } = config;
 
-    /** 
+    /**
      * NOTE: tempText can be ['a','b','c'](other plots) as well as [['a','b'],['c','d']](heatmap)
      * At a given time it can be either of those types mentioned but to avoid lint error `string[] & string[][]` is used instead of `string[] | string[][]`
-     * 
-     * This most likely should be a Union type but I think the way the functions are nested and 
+     *
+     * This most likely should be a Union type but I think the way the functions are nested and
      * the use of a switch instead of if/else caused the linter to have an issue
-     * 
+     *
      * More info about using '&' vs '|' (Mixin types vs Union types)
      * https://stackoverflow.com/questions/44688919/how-to-declare-a-variable-with-two-types-via-typescript/44689251#44689251
      **/
@@ -1375,7 +1375,7 @@ export const useChartData = (plot: Plot) => {
           const yValue = getValue(item, y_col, yaxis, format_data_y, traceId, missingColumnsMap, emptyColumnsMap);
           // Adds the y value for the heatmap plot if it is not added yet in y array
           if (plotlyDataObject.y.indexOf(yValue?.toString()) < 0) {
-            // push returns new array length, subtract 1 to get index 
+            // push returns new array length, subtract 1 to get index
             yIndex = plotlyDataObject.y.push(yValue?.toString()) - 1;
 
             // unformatted y value
@@ -1387,7 +1387,7 @@ export const useChartData = (plot: Plot) => {
             // text and z are 2D arrays
             tempText.push([]);
             // z.length === uniqueY
-            // z[n].length === uniqueX 
+            // z[n].length === uniqueX
             plotlyDataObject.z.push([]);
           }
 
@@ -1499,7 +1499,7 @@ export const useChartData = (plot: Plot) => {
   /**
    * add extra properties specific to bar plot
    * text[] is handled differently depending on orientation of plot
-   * 
+   *
    * @param trace trace from plot.traces[]
    * @param data plotlyDataObject after general parser
    */
@@ -1521,7 +1521,7 @@ export const useChartData = (plot: Plot) => {
 
   /**
    * add extra properties specific to scatter/line plots
-   * 
+   *
    * @param trace trace from plot.traces[]
    * @param data plotlyDataObject after general parser
    * @param index index of the data[] pertaining to 1 trace in the plot
@@ -1547,7 +1547,7 @@ export const useChartData = (plot: Plot) => {
 
   /**
    * add extra properties specific to scatter/line plots
-   * 
+   *
    * @param trace trace from plot.traces[]
    * @param data plotlyDataObject after general parser
    * @param responseData data received from request to be parsed
@@ -1682,7 +1682,7 @@ export const useChartData = (plot: Plot) => {
     };
 
     /**
-     * 
+     *
      * @param currTrace - the trace we are parsing data for in plots.traces[]
      * @param plotData - a data object to go into plotly.data[]
      * @param responseData - data from server response we are parsing for plotly
@@ -1833,10 +1833,10 @@ export const useChartData = (plot: Plot) => {
           plotlyData.push(plotData);
         }
       } else {
-        /** 
-         * Otherwise if there's no response data which implies url pattern is not resolved in the config and 
-         * data needs to be used from plotly.data so just pass rest of the trace params as is and 
-         * let plotly decide whether those parameter are valid data params or not 
+        /**
+         * Otherwise if there's no response data which implies url pattern is not resolved in the config and
+         * data needs to be used from plotly.data so just pass rest of the trace params as is and
+         * let plotly decide whether those parameter are valid data params or not
          */
         plotlyData.push(currTrace);
       }
@@ -1873,7 +1873,7 @@ export const useChartData = (plot: Plot) => {
   useEffect(() => {
     // as long as we have data, and we aren't intializing or fetching more data, parse and set the data for plotly again
     if (data && !isDataLoading && !isInitLoading && !isFetchSelected) {
-      // data is an array of arrays of ermrest response objects 
+      // data is an array of arrays of ermrest response objects
       //   data => [response.data] and response.data => [{}]
       // each array in data is for a different trace.uri_pattern
       const emptyReponses = data.every((responseArray: any[]) => responseArray.length === 0);
