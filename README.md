@@ -1,4 +1,4 @@
-# Deriva web applications
+# Deriva web applications [![Build](https://github.com/informatics-isi-edu/deriva-webapps/actions/workflows/e2e-test.yml/badge.svg)](https://github.com/informatics-isi-edu/deriva-webapps/actions/workflows/e2e-test.yml)
 
 Deriva Web Apps are small, standalone web applications that use other components of Deriva for displaying and visualizing data in more complex ways.
 
