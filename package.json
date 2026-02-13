@@ -4,8 +4,8 @@
   "description": "Small web applications that use other components of Deriva.",
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=14.0.0",
-    "npm": ">=6.0.0"
+    "node": ">=20.0.0",
+    "npm": ">=7.0.0"
   },
   "repository": {
     "type": "git",
@@ -32,7 +32,7 @@
   "dependencies": {
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
-    "@isrd-isi-edu/chaise": "^2.1.1",
+    "@isrd-isi-edu/chaise": "^2.2.0",
     "@mui/material": "^6.0.0",
     "@mui/x-tree-view": "^7.23.2",
     "papaparse": "^5.4.1",
