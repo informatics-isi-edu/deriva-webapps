@@ -99,38 +99,31 @@ The ISO/ASHA standard doesn't have a separate "No Response" test type — it's a
 
 Which does your data use, and which test types can have a no-response result?
 
-### Q2 — Do the column names in your database match the sample?
+### Q2 — How is audiogram data stored in your database?
 
-The config uses this naming convention:
+The answer affects both how the chart app fetches data and how difficult an editable table would be to add later.
+
+**Option A — Flat (wide)**: one row per frequency step, one column per (ear × test-type) combination. This is what the current sample data uses.
 
 ```
-Frequency_Right_Air_Unmasked,  Level_Right_Air_Unmasked
-Frequency_Right_Air_Masked,    Level_Right_Air_Masked
-Frequency_Right_Bone_Unmasked, Level_Right_Bone_Unmasked
-Frequency_Right_Bone_Masked,   Level_Right_Bone_Masked
-... (same pattern for Left)
+Frequency_Right_Air_Unmasked | Level_Right_Air_Unmasked | Frequency_Left_Air_Unmasked | ...
+250                          | 20                       | 250                         | ...
+500                          | 30                       | 500                         | ...
 ```
 
-If your actual column names differ, share them and we'll update the config.
+Local sample: `docs/dev-docs/audiogram/audiogram.json`
 
-### Q3 — One audiogram per page, or multiple?
+**Option B — Normalized (tall)**: one row per measurement. No nulls; missing frequencies simply have no row.
 
-The app currently shows one patient / one test session per page (right ear + left ear). If you need to compare multiple visits or patients on the same page, the layout would need to change. Is one-at-a-time sufficient?
-
-
-## Data Format
-
-Flat JSON: one object per frequency step, with one column per (ear × test-type) combination. Use `null` for missing measurements at a given frequency.
-
-```json
-[
-  {
-    "Frequency_Right_Air_Unmasked": 250, "Level_Right_Air_Unmasked": 20,
-    "Frequency_Left_Air_Unmasked":  250, "Level_Left_Air_Unmasked":  50,
-    ...
-  },
-  ...
-]
+```
+subject_id | ear   | test_type    | frequency_hz | level_db_hl
+1          | Right | Air_Unmasked | 250          | 20
+1          | Left  | Air_Unmasked | 250          | 50
+1          | Right | Air_Masked   | 500          | 10
 ```
 
-Column naming convention: `{Frequency|Level}_{Right|Left}_{TraceType}`
+Local sample: `docs/dev-docs/audiogram/audiogram-normalized.json`
+
+Both formats can drive the chart (the app pivots the data before plotting). The difference matters if an editable table is needed: the normalized format maps directly to ERMrest rows, making per-cell edits a single PATCH. The flat format works for display but is awkward to edit in a relational DB.
+
+Which format does your database use, and what are the actual column/field names?
