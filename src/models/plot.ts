@@ -140,7 +140,10 @@ export type Trace = {
   z_col_pattern?: string[];
   type?: string[];
   mode?: string[];
-  marker?: string[];
+  marker?: any[];
+  textSymbol?: string[];
+  textfont?: any[];
+  legendMarker?: any[];
   legendwidth?: number;
   url_pattern?: string;
   // queryPattern will be deprecated

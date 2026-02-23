@@ -853,7 +853,24 @@ export const useChartData = (plot: Plot) => {
     if (Array.isArray(trace.legend) && trace.legend[idx]) dataObject.name = trace.legend[idx];
 
     if (Array.isArray(trace.mode)) dataObject.mode = trace.mode[idx];
-    if (Array.isArray(trace.marker)) dataObject.marker = trace.marker[idx];
+    if (Array.isArray(trace.marker)) {
+      if (trace.marker[idx]) {
+        dataObject.marker = trace.marker[idx];
+      } else {
+        delete dataObject.marker;
+      }
+    }
+    if (Array.isArray(trace.textfont)) {
+      if (trace.textfont[idx]) {
+        dataObject.textfont = trace.textfont[idx];
+      } else {
+        delete dataObject.textfont;
+      }
+    }
+
+    // remove non-Plotly trace config arrays that shouldn't be passed to Plotly
+    delete dataObject.textSymbol;
+    delete dataObject.legendMarker;
 
     return dataObject;
   }
@@ -1133,12 +1150,12 @@ export const useChartData = (plot: Plot) => {
       result.data[0].text = tempText;
     } else if (result.data[0]?.type === 'scatter') {
       result.data[0].hoverinfo = 'text';
-      result.data[0].x.forEach((xVal: string) => (
-        tempText.push(extractValue(xVal, 30, 10))
+      result.data[0].x.forEach((xVal: any) => (
+        tempText.push(extractValue(String(xVal), 30, 10))
       ));
-      result.data[0].y.forEach((yVal: string, ind: number) => {
+      result.data[0].y.forEach((yVal: any, ind: number) => {
         const xValue = tempText[ind];
-        tempText.splice(ind, 0, `(${xValue}, ${extractValue(yVal, 30, 2)})`);
+        tempText.splice(ind, 0, `(${xValue}, ${extractValue(String(yVal), 30, 2)})`);
       });
       result.data[0].text = tempText;
     }
@@ -1327,6 +1344,18 @@ export const useChartData = (plot: Plot) => {
 
       if (Array.isArray(trace.marker) && trace.marker.length === 1) {
         for (let i = 1; i < numberPlotTraces; i++) trace.marker[i] = trace.marker[0];
+      }
+
+      if (Array.isArray(trace.textSymbol) && trace.textSymbol.length === 1) {
+        for (let i = 1; i < numberPlotTraces; i++) trace.textSymbol[i] = trace.textSymbol[0];
+      }
+
+      if (Array.isArray(trace.textfont) && trace.textfont.length === 1) {
+        for (let i = 1; i < numberPlotTraces; i++) trace.textfont[i] = trace.textfont[0];
+      }
+
+      if (Array.isArray(trace.legendMarker) && trace.legendMarker.length === 1) {
+        for (let i = 1; i < numberPlotTraces; i++) trace.legendMarker[i] = trace.legendMarker[0];
       }
     }
 
@@ -1537,6 +1566,22 @@ export const useChartData = (plot: Plot) => {
     // no default if marker is not defined
     if (trace.marker && Array.isArray(trace.marker) && trace.marker[index]) {
       data.marker = trace.marker[index];
+    }
+
+    // handle text-based markers (e.g., audiogram symbols like <, >, [, ], A, S, L, J)
+    if (trace.textSymbol && Array.isArray(trace.textSymbol) && trace.textSymbol[index]) {
+      const symbol = trace.textSymbol[index];
+      // fill text array with the symbol character for each data point
+      if (data.x && data.x.length > 0) {
+        data.text = data.x.map(() => symbol);
+      }
+      if (trace.textfont && Array.isArray(trace.textfont) && trace.textfont[index]) {
+        data.textfont = trace.textfont[index];
+      }
+      // attach legend marker info for post-processing (creates a companion legend-only trace)
+      if (trace.legendMarker && Array.isArray(trace.legendMarker) && trace.legendMarker[index]) {
+        data._legendMarker = trace.legendMarker[index];
+      }
     }
   }
 
@@ -1849,6 +1894,39 @@ export const useChartData = (plot: Plot) => {
       });
     } else {
       result.data = plotlyData;
+    }
+
+    // Post-process: create legend companion traces for text-mode traces
+    // For text-mode traces, Plotly shows a generic "Aa" legend icon.
+    // To show a proper marker symbol in the legend, we hide the text trace from the legend
+    // and insert a companion trace (mode:'markers') right after it to preserve legend order.
+    // Works for both trace-based configs (_legendMarker set by updateScatterResponse)
+    // and inline configs (legendMarker set directly on the trace object).
+    if (result.data) {
+      const newData: any[] = [];
+      result.data.forEach((traceData: any) => {
+        const legendMarker = traceData._legendMarker || traceData.legendMarker;
+        if (traceData.mode === 'text' && legendMarker) {
+          traceData.showlegend = false;
+          delete traceData._legendMarker;
+          delete traceData.legendMarker;
+          newData.push(traceData);
+          // insert companion immediately after to preserve legend order
+          newData.push({
+            name: traceData.name,
+            type: traceData.type || 'scatter',
+            mode: 'markers',
+            x: [null],
+            y: [null],
+            marker: legendMarker,
+            showlegend: true,
+            hoverinfo: 'skip',
+          });
+        } else {
+          newData.push(traceData);
+        }
+      });
+      result.data = newData;
     }
 
     const emptyReponses = data.every((responseArray: any[]) => responseArray.length === 0);

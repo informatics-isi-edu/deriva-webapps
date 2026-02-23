@@ -18,6 +18,14 @@ module.exports = (env) => {
   return getWebPackConfig(
     [
       {
+        appName: 'audiogram',
+        appTitle: 'Audiogram',
+        appConfigLocation: `${WEBAPPS_BASE_PATH}config/audiogram-config.js`,
+        externalFiles: [
+          `${WEBAPPS_BASE_PATH}bundles/plotly-basic.min.js`,
+        ]
+      },
+      {
         appName: 'boolean-search',
         appTitle: 'Boolean Search',
         appConfigLocation: `${WEBAPPS_BASE_PATH}config/boolean-search-config.js`,
