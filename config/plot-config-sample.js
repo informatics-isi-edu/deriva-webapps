@@ -2511,6 +2511,522 @@ var plotConfigs = {
       }
     ],
   },
+
+  // ── Audiogram V1 — plot app, all clinical conditions ─────────────────────
+  // URL: /plot/?config=audiogram-icon-01
+  // Fetches from server. Includes non-standard SF/ULL conditions.
+  // Legend uses approximate Plotly marker shapes (◁ instead of <, etc.).
+  'audiogram-icon-01': {
+    headTitle: 'Audiogram - Hearing Test Results',
+    grid_layout_config: {
+      breakpoints: { lg: 1200, md: 996, sm: 768, xs: 480 },
+      cols: { lg: 12, md: 10, sm: 6, xs: 4 },
+      rowHeight: 60,
+      layouts: {
+        lg: [
+          { source_uid: 'right_ear_plot', x: 0, y: 0, w: 6, h: 10 },
+          { source_uid: 'left_ear_plot',  x: 6, y: 0, w: 6, h: 10 },
+        ],
+        md: [
+          { source_uid: 'right_ear_plot', x: 0, y: 0, w: 5, h: 10 },
+          { source_uid: 'left_ear_plot',  x: 5, y: 0, w: 5, h: 10 },
+        ],
+        sm: [
+          { source_uid: 'right_ear_plot', x: 0, y:  0, w: 6, h: 10 },
+          { source_uid: 'left_ear_plot',  x: 0, y: 10, w: 6, h: 10 },
+        ],
+        xs: [
+          { source_uid: 'right_ear_plot', x: 0, y:  0, w: 4, h: 10 },
+          { source_uid: 'left_ear_plot',  x: 0, y: 10, w: 4, h: 10 },
+        ],
+      },
+    },
+    plots: [
+      {
+        uid: 'right_ear_plot',
+        plot_type: 'scatter',
+        plotly: {
+          config: {
+            displaylogo: false,
+            responsive: true,
+            modeBarButtonsToRemove: ['select2d', 'lasso2d'],
+          },
+          layout: {
+            title: 'RIGHT',
+            height: 600,
+            showlegend: true,
+            xaxis: {
+              title: 'Frequency (Hz)',
+              type: 'log',
+              tickmode: 'array',
+              tickvals: [250, 500, 1000, 2000, 4000, 8000],
+              ticktext: ['250', '500', '1000', '2000', '4000', '8000'],
+              showgrid: true, gridcolor: '#ddd', zeroline: false,
+            },
+            yaxis: {
+              title: 'Hearing Level (dB HL)',
+              autorange: 'reversed',
+              range: [-10, 120],
+              dtick: 10,
+              showgrid: true, gridcolor: '#ddd', zeroline: false,
+            },
+            legend: { x: 0.5, y: -0.2, xanchor: 'center', orientation: 'h', font: { size: 10 } },
+            margin: { l: 60, r: 20, t: 50, b: 100 },
+          },
+        },
+        config: {},
+        traces: [
+          {
+            url_pattern: '/~ashafaei/plot-test-data/audiogram.json',
+            response_format: 'json',
+            legend:     ['Air Unmasked', 'Air Masked', 'Bone Unmasked', 'Bone Masked', 'SF Aided', 'SF Unaided', 'ULL', 'No Response'],
+            x_col:      ['Frequency_Right_Air_Unmasked', 'Frequency_Right_Air_Masked', 'Frequency_Right_Bone_Unmasked', 'Frequency_Right_Bone_Masked', 'Frequency_Right_SF_Aided', 'Frequency_Right_SF_Unaided', 'Frequency_Right_ULL', 'Frequency_Right_No_Response'],
+            y_col:      ['Level_Right_Air_Unmasked',     'Level_Right_Air_Masked',     'Level_Right_Bone_Unmasked',     'Level_Right_Bone_Masked',     'Level_Right_SF_Aided',     'Level_Right_SF_Unaided',     'Level_Right_ULL',     'Level_Right_No_Response'],
+            mode:       ['lines+markers', 'markers', 'text', 'text', 'text', 'text', 'text', 'markers'],
+            marker: [
+              { symbol: 'circle-open',      color: 'red', size: 14, line: { color: 'red',  width: 2 } },
+              { symbol: 'triangle-up-open', color: 'red', size: 12, line: { color: 'red',  width: 2 } },
+              null, null, null, null, null,
+              { symbol: 'arrow-down',       color: 'red', size: 14, line: { color: 'red',  width: 0 } },
+            ],
+            textSymbol: [null, null, '<', '[', 'A', 'S', 'L', null],
+            textfont: [
+              null, null,
+              { size: 18, color: 'red', family: 'Arial Black, sans-serif' },
+              { size: 18, color: 'red', family: 'Arial Black, sans-serif' },
+              { size: 16, color: 'red', family: 'Arial, sans-serif' },
+              { size: 16, color: 'red', family: 'Arial, sans-serif' },
+              { size: 16, color: 'red', family: 'Arial, sans-serif' },
+              null,
+            ],
+            legendMarker: [
+              null, null,
+              { symbol: 'triangle-left-open',  color: 'red', size: 14, line: { color: 'red', width: 2 } },
+              { symbol: 'square-open',          color: 'red', size: 12, line: { color: 'red', width: 2 } },
+              { symbol: 'triangle-up-open',     color: 'red', size: 12, line: { color: 'red', width: 2 } },
+              { symbol: 'diamond-open',         color: 'red', size: 12, line: { color: 'red', width: 2 } },
+              { symbol: 'bowtie-open',          color: 'red', size: 12, line: { color: 'red', width: 2 } },
+              null,
+            ],
+          },
+        ],
+      },
+      {
+        uid: 'left_ear_plot',
+        plot_type: 'scatter',
+        plotly: {
+          config: {
+            displaylogo: false,
+            responsive: true,
+            modeBarButtonsToRemove: ['select2d', 'lasso2d'],
+          },
+          layout: {
+            title: 'LEFT',
+            height: 600,
+            showlegend: true,
+            xaxis: {
+              title: 'Frequency (Hz)',
+              type: 'log',
+              tickmode: 'array',
+              tickvals: [250, 500, 1000, 2000, 4000, 8000],
+              ticktext: ['250', '500', '1000', '2000', '4000', '8000'],
+              showgrid: true, gridcolor: '#ddd', zeroline: false,
+            },
+            yaxis: {
+              title: 'Hearing Level (dB HL)',
+              autorange: 'reversed',
+              range: [-10, 120],
+              dtick: 10,
+              showgrid: true, gridcolor: '#ddd', zeroline: false,
+            },
+            legend: { x: 0.5, y: -0.2, xanchor: 'center', orientation: 'h', font: { size: 10 } },
+            margin: { l: 60, r: 20, t: 50, b: 100 },
+          },
+        },
+        config: {},
+        traces: [
+          {
+            url_pattern: '/~ashafaei/plot-test-data/audiogram.json',
+            response_format: 'json',
+            legend:     ['Air Unmasked', 'Air Masked', 'Bone Unmasked', 'Bone Masked', 'SF Aided', 'SF Unaided', 'ULL', 'No Response'],
+            x_col:      ['Frequency_Left_Air_Unmasked', 'Frequency_Left_Air_Masked', 'Frequency_Left_Bone_Unmasked', 'Frequency_Left_Bone_Masked', 'Frequency_Left_SF_Aided', 'Frequency_Left_SF_Unaided', 'Frequency_Left_ULL', 'Frequency_Left_No_Response'],
+            y_col:      ['Level_Left_Air_Unmasked',     'Level_Left_Air_Masked',     'Level_Left_Bone_Unmasked',     'Level_Left_Bone_Masked',     'Level_Left_SF_Aided',     'Level_Left_SF_Unaided',     'Level_Left_ULL',     'Level_Left_No_Response'],
+            mode:       ['lines+markers', 'markers', 'text', 'text', 'text', 'text', 'text', 'markers'],
+            marker: [
+              { symbol: 'x-thin',      color: 'blue', size: 16, line: { color: 'blue', width: 2 } },
+              { symbol: 'square-open', color: 'blue', size: 12, line: { color: 'blue', width: 2 } },
+              null, null, null, null, null,
+              { symbol: 'arrow-down',  color: 'blue', size: 14, line: { color: 'blue', width: 0 } },
+            ],
+            textSymbol: [null, null, '>', ']', 'A', 'S', 'J', null],
+            textfont: [
+              null, null,
+              { size: 18, color: 'blue', family: 'Arial Black, sans-serif' },
+              { size: 18, color: 'blue', family: 'Arial Black, sans-serif' },
+              { size: 16, color: 'blue', family: 'Arial, sans-serif' },
+              { size: 16, color: 'blue', family: 'Arial, sans-serif' },
+              { size: 16, color: 'blue', family: 'Arial, sans-serif' },
+              null,
+            ],
+            legendMarker: [
+              null, null,
+              { symbol: 'triangle-right-open', color: 'blue', size: 14, line: { color: 'blue', width: 2 } },
+              { symbol: 'square-open',          color: 'blue', size: 12, line: { color: 'blue', width: 2 } },
+              { symbol: 'triangle-up-open',     color: 'blue', size: 12, line: { color: 'blue', width: 2 } },
+              { symbol: 'diamond-open',         color: 'blue', size: 12, line: { color: 'blue', width: 2 } },
+              { symbol: 'bowtie-open',          color: 'blue', size: 12, line: { color: 'blue', width: 2 } },
+              null,
+            ],
+          },
+        ],
+      },
+    ],
+  },
+
+  // ── Audiogram V2 — plot app, ISO/ASHA standard ────────────────────────────
+  // URL: /plot/?config=audiogram-icon-02
+  // ISO/ASHA conditions only: no SF/ULL. Adds forehead BC.
+  // Same legend approximation problem as V1 (Plotly can't render <, [, ∨, ¬).
+  'audiogram-icon-02': {
+    headTitle: 'Audiogram',
+    grid_layout_config: {
+      breakpoints: { lg: 1200, md: 996, sm: 768, xs: 480 },
+      cols: { lg: 12, md: 10, sm: 6, xs: 4 },
+      rowHeight: 60,
+      layouts: {
+        lg: [
+          { source_uid: 'right_ear_plot', x: 0, y: 0, w: 6, h: 10 },
+          { source_uid: 'left_ear_plot',  x: 6, y: 0, w: 6, h: 10 },
+        ],
+        md: [
+          { source_uid: 'right_ear_plot', x: 0, y: 0, w: 5, h: 10 },
+          { source_uid: 'left_ear_plot',  x: 5, y: 0, w: 5, h: 10 },
+        ],
+        sm: [
+          { source_uid: 'right_ear_plot', x: 0, y:  0, w: 6, h: 10 },
+          { source_uid: 'left_ear_plot',  x: 0, y: 10, w: 6, h: 10 },
+        ],
+        xs: [
+          { source_uid: 'right_ear_plot', x: 0, y:  0, w: 4, h: 10 },
+          { source_uid: 'left_ear_plot',  x: 0, y: 10, w: 4, h: 10 },
+        ],
+      },
+    },
+    plots: [
+      {
+        uid: 'right_ear_plot',
+        plot_type: 'scatter',
+        plotly: {
+          config: {
+            displaylogo: false,
+            responsive: true,
+            modeBarButtonsToRemove: ['select2d', 'lasso2d'],
+          },
+          layout: {
+            title: 'RIGHT',
+            height: 600,
+            showlegend: true,
+            xaxis: {
+              title: 'Frequency (Hz)',
+              type: 'log',
+              tickmode: 'array',
+              tickvals: [250, 500, 1000, 2000, 4000, 8000],
+              ticktext: ['250', '500', '1000', '2000', '4000', '8000'],
+              showgrid: true, gridcolor: '#ddd', zeroline: false,
+            },
+            yaxis: {
+              title: 'Hearing Level (dB HL)',
+              autorange: 'reversed',
+              range: [-10, 120],
+              dtick: 10,
+              showgrid: true, gridcolor: '#ddd', zeroline: false,
+            },
+            legend: { x: 0.5, y: -0.2, xanchor: 'center', orientation: 'h', font: { size: 10 } },
+            margin: { l: 60, r: 20, t: 50, b: 100 },
+          },
+        },
+        config: {},
+        traces: [
+          {
+            url_pattern: '/~ashafaei/plot-test-data/audiogram.json',
+            response_format: 'json',
+            // ISO/ASHA symbol set — right ear (red)
+            // ○  AC Unmasked | △  AC Masked
+            // <  BC Unmasked mastoid | [  BC Masked mastoid
+            // ∨  BC Unmasked forehead | ¬  BC Masked forehead
+            // ↓  No Response
+            legend:     ['AC Unmasked', 'AC Masked', 'BC Unmasked (mastoid)', 'BC Masked (mastoid)', 'BC Unmasked (forehead)', 'BC Masked (forehead)', 'No Response'],
+            x_col:      ['Frequency_Right_Air_Unmasked', 'Frequency_Right_Air_Masked', 'Frequency_Right_Bone_Unmasked', 'Frequency_Right_Bone_Masked', 'Frequency_Right_Bone_Unmasked_Forehead', 'Frequency_Right_Bone_Masked_Forehead', 'Frequency_Right_No_Response'],
+            y_col:      ['Level_Right_Air_Unmasked',     'Level_Right_Air_Masked',     'Level_Right_Bone_Unmasked',     'Level_Right_Bone_Masked',     'Level_Right_Bone_Unmasked_Forehead',     'Level_Right_Bone_Masked_Forehead',     'Level_Right_No_Response'],
+            mode:       ['lines+markers', 'markers', 'text', 'text', 'text', 'text', 'markers'],
+            marker: [
+              { symbol: 'circle-open',      color: 'red', size: 14, line: { color: 'red', width: 2 } },
+              { symbol: 'triangle-up-open', color: 'red', size: 14, line: { color: 'red', width: 2 } },
+              null, null, null, null,
+              { symbol: 'arrow-down',       color: 'red', size: 14, line: { color: 'red', width: 0 } },
+            ],
+            textSymbol: [null, null, '<', '[', '∨', '¬', null],
+            textfont: [
+              null, null,
+              { size: 18, color: 'red', family: 'Arial Black, sans-serif' },
+              { size: 18, color: 'red', family: 'Arial Black, sans-serif' },
+              { size: 18, color: 'red', family: 'Arial Black, sans-serif' },
+              { size: 18, color: 'red', family: 'Arial Black, sans-serif' },
+              null,
+            ],
+            // legendMarker: approximate Plotly shapes used in the built-in legend
+            legendMarker: [
+              null, null,
+              { symbol: 'triangle-left-open',  color: 'red', size: 14, line: { color: 'red', width: 2 } }, // ◁ ≈ <
+              { symbol: 'square-open',          color: 'red', size: 12, line: { color: 'red', width: 2 } }, // □ ≈ [
+              { symbol: 'triangle-down-open',   color: 'red', size: 14, line: { color: 'red', width: 2 } }, // ▽ ≈ ∨
+              { symbol: 'triangle-down-open',   color: 'red', size: 14, line: { color: 'red', width: 2 } }, // no good match for ¬
+              null,
+            ],
+          },
+        ],
+      },
+      {
+        uid: 'left_ear_plot',
+        plot_type: 'scatter',
+        plotly: {
+          config: {
+            displaylogo: false,
+            responsive: true,
+            modeBarButtonsToRemove: ['select2d', 'lasso2d'],
+          },
+          layout: {
+            title: 'LEFT',
+            height: 600,
+            showlegend: true,
+            xaxis: {
+              title: 'Frequency (Hz)',
+              type: 'log',
+              tickmode: 'array',
+              tickvals: [250, 500, 1000, 2000, 4000, 8000],
+              ticktext: ['250', '500', '1000', '2000', '4000', '8000'],
+              showgrid: true, gridcolor: '#ddd', zeroline: false,
+            },
+            yaxis: {
+              title: 'Hearing Level (dB HL)',
+              autorange: 'reversed',
+              range: [-10, 120],
+              dtick: 10,
+              showgrid: true, gridcolor: '#ddd', zeroline: false,
+            },
+            legend: { x: 0.5, y: -0.2, xanchor: 'center', orientation: 'h', font: { size: 10 } },
+            margin: { l: 60, r: 20, t: 50, b: 100 },
+          },
+        },
+        config: {},
+        traces: [
+          {
+            url_pattern: '/~ashafaei/plot-test-data/audiogram.json',
+            response_format: 'json',
+            // ISO/ASHA symbol set — left ear (blue)
+            // ×  AC Unmasked | □  AC Masked
+            // >  BC Unmasked mastoid | ]  BC Masked mastoid
+            // ∨  BC Unmasked forehead | ⌐  BC Masked forehead
+            // ↓  No Response
+            legend:     ['AC Unmasked', 'AC Masked', 'BC Unmasked (mastoid)', 'BC Masked (mastoid)', 'BC Unmasked (forehead)', 'BC Masked (forehead)', 'No Response'],
+            x_col:      ['Frequency_Left_Air_Unmasked', 'Frequency_Left_Air_Masked', 'Frequency_Left_Bone_Unmasked', 'Frequency_Left_Bone_Masked', 'Frequency_Left_Bone_Unmasked_Forehead', 'Frequency_Left_Bone_Masked_Forehead', 'Frequency_Left_No_Response'],
+            y_col:      ['Level_Left_Air_Unmasked',     'Level_Left_Air_Masked',     'Level_Left_Bone_Unmasked',     'Level_Left_Bone_Masked',     'Level_Left_Bone_Unmasked_Forehead',     'Level_Left_Bone_Masked_Forehead',     'Level_Left_No_Response'],
+            mode:       ['lines+markers', 'markers', 'text', 'text', 'text', 'text', 'markers'],
+            marker: [
+              { symbol: 'x-thin',      color: 'blue', size: 16, line: { color: 'blue', width: 2 } },
+              { symbol: 'square-open', color: 'blue', size: 14, line: { color: 'blue', width: 2 } },
+              null, null, null, null,
+              { symbol: 'arrow-down',  color: 'blue', size: 14, line: { color: 'blue', width: 0 } },
+            ],
+            textSymbol: [null, null, '>', ']', '∨', '⌐', null],
+            textfont: [
+              null, null,
+              { size: 18, color: 'blue', family: 'Arial Black, sans-serif' },
+              { size: 18, color: 'blue', family: 'Arial Black, sans-serif' },
+              { size: 18, color: 'blue', family: 'Arial Black, sans-serif' },
+              { size: 18, color: 'blue', family: 'Arial Black, sans-serif' },
+              null,
+            ],
+            legendMarker: [
+              null, null,
+              { symbol: 'triangle-right-open', color: 'blue', size: 14, line: { color: 'blue', width: 2 } }, // ▷ ≈ >
+              { symbol: 'square-open',          color: 'blue', size: 12, line: { color: 'blue', width: 2 } }, // □ ≈ ]
+              { symbol: 'triangle-down-open',   color: 'blue', size: 14, line: { color: 'blue', width: 2 } }, // ▽ ≈ ∨
+              { symbol: 'triangle-down-open',   color: 'blue', size: 14, line: { color: 'blue', width: 2 } }, // no good match for ⌐
+              null,
+            ],
+          },
+        ],
+      },
+    ],
+  },
+
+  // ── Audiogram demo — inline data, no server required ──────────────────────
+  // URL: /plot/?config=audiogram-demo
+  'audiogram-demo': {
+    headTitle: 'Audiogram - Hearing Test Results (Demo)',
+    grid_layout_config: {
+      breakpoints: { lg: 1200, md: 996, sm: 768, xs: 480 },
+      cols: { lg: 12, md: 10, sm: 6, xs: 4 },
+      rowHeight: 60,
+      layouts: {
+        lg: [
+          { source_uid: 'right_ear_plot', x: 0, y: 0, w: 6, h: 10 },
+          { source_uid: 'left_ear_plot',  x: 6, y: 0, w: 6, h: 10 },
+        ],
+        md: [
+          { source_uid: 'right_ear_plot', x: 0, y: 0, w: 5, h: 10 },
+          { source_uid: 'left_ear_plot',  x: 5, y: 0, w: 5, h: 10 },
+        ],
+        sm: [
+          { source_uid: 'right_ear_plot', x: 0, y:  0, w: 6, h: 10 },
+          { source_uid: 'left_ear_plot',  x: 0, y: 10, w: 6, h: 10 },
+        ],
+        xs: [
+          { source_uid: 'right_ear_plot', x: 0, y:  0, w: 4, h: 10 },
+          { source_uid: 'left_ear_plot',  x: 0, y: 10, w: 4, h: 10 },
+        ],
+      },
+    },
+    plots: [
+      {
+        uid: 'right_ear_plot',
+        plot_type: 'scatter',
+        plotly: {
+          config: {
+            displaylogo: false,
+            responsive: true,
+            modeBarButtonsToRemove: ['select2d', 'lasso2d'],
+          },
+          layout: {
+            title: 'RIGHT',
+            height: 600,
+            showlegend: true,
+            xaxis: {
+              title: 'Frequency (Hz)',
+              type: 'log',
+              tickmode: 'array',
+              tickvals: [250, 500, 1000, 2000, 4000, 8000],
+              ticktext: ['250', '500', '1000', '2000', '4000', '8000'],
+              showgrid: true, gridcolor: '#ddd', zeroline: false,
+            },
+            yaxis: {
+              title: 'Hearing Level (dB HL)',
+              autorange: 'reversed',
+              range: [-10, 120],
+              dtick: 10,
+              showgrid: true, gridcolor: '#ddd', zeroline: false,
+            },
+            legend: { x: 0.5, y: -0.2, xanchor: 'center', orientation: 'h', font: { size: 10 } },
+            margin: { l: 60, r: 20, t: 50, b: 100 },
+            data: [
+              { name: 'Air Unmasked', type: 'scatter', mode: 'lines+markers',
+                x: [250, 500, 1000, 2000, 3000, 4000], y: [20, 30, 50, 50, 80, 80],
+                marker: { symbol: 'circle-open', size: 14, color: 'red', line: { width: 2, color: 'red' } },
+                line: { color: 'red', width: 1.5 } },
+              { name: 'Air Masked', type: 'scatter', mode: 'markers',
+                x: [500], y: [10],
+                marker: { symbol: 'triangle-up-open', size: 12, color: 'red', line: { width: 2, color: 'red' } } },
+              { name: 'Bone Unmasked', type: 'scatter', mode: 'text',
+                x: [500, 1000, 2000, 4000], y: [20, 30, 30, 50],
+                text: ['<', '<', '<', '<'],
+                textfont: { size: 18, color: 'red', family: 'Arial Black, sans-serif' },
+                legendMarker: { symbol: 'triangle-left-open', size: 14, color: 'red', line: { width: 2, color: 'red' } } },
+              { name: 'Bone Masked', type: 'scatter', mode: 'text',
+                x: [500], y: [5], text: ['['],
+                textfont: { size: 18, color: 'red', family: 'Arial Black, sans-serif' },
+                legendMarker: { symbol: 'square-open', size: 12, color: 'red', line: { width: 2, color: 'red' } } },
+              { name: 'SF Aided', type: 'scatter', mode: 'text',
+                x: [1000, 2000], y: [3, 3], text: ['A', 'A'],
+                textfont: { size: 16, color: 'red', family: 'Arial, sans-serif' },
+                legendMarker: { symbol: 'triangle-up-open', size: 12, color: 'red', line: { width: 2, color: 'red' } } },
+              { name: 'SF Unaided', type: 'scatter', mode: 'text',
+                x: [1000, 4000], y: [5, 4], text: ['S', 'S'],
+                textfont: { size: 16, color: 'red', family: 'Arial, sans-serif' },
+                legendMarker: { symbol: 'diamond-open', size: 12, color: 'red', line: { width: 2, color: 'red' } } },
+              { name: 'ULL', type: 'scatter', mode: 'text',
+                x: [1000], y: [52], text: ['L'],
+                textfont: { size: 16, color: 'red', family: 'Arial, sans-serif' },
+                legendMarker: { symbol: 'bowtie-open', size: 12, color: 'red', line: { width: 2, color: 'red' } } },
+              { name: 'No Response', type: 'scatter', mode: 'markers',
+                x: [2000, 4000, 8000], y: [120, 120, 120],
+                marker: { symbol: 'arrow-down', size: 14, color: 'red', line: { width: 0 } } },
+            ],
+          },
+        },
+        config: {},
+        traces: [],
+      },
+      {
+        uid: 'left_ear_plot',
+        plot_type: 'scatter',
+        plotly: {
+          config: {
+            displaylogo: false,
+            responsive: true,
+            modeBarButtonsToRemove: ['select2d', 'lasso2d'],
+          },
+          layout: {
+            title: 'LEFT',
+            height: 600,
+            showlegend: true,
+            xaxis: {
+              title: 'Frequency (Hz)',
+              type: 'log',
+              tickmode: 'array',
+              tickvals: [250, 500, 1000, 2000, 4000, 8000],
+              ticktext: ['250', '500', '1000', '2000', '4000', '8000'],
+              showgrid: true, gridcolor: '#ddd', zeroline: false,
+            },
+            yaxis: {
+              title: 'Hearing Level (dB HL)',
+              autorange: 'reversed',
+              range: [-10, 120],
+              dtick: 10,
+              showgrid: true, gridcolor: '#ddd', zeroline: false,
+            },
+            legend: { x: 0.5, y: -0.2, xanchor: 'center', orientation: 'h', font: { size: 10 } },
+            margin: { l: 60, r: 20, t: 50, b: 100 },
+            data: [
+              { name: 'Air Unmasked', type: 'scatter', mode: 'lines+markers',
+                x: [250, 500, 2000, 3000, 4000], y: [50, 50, 80, 80, 90],
+                marker: { symbol: 'x-thin', size: 16, color: 'blue', line: { width: 2, color: 'blue' } },
+                line: { color: 'blue', width: 1.5 } },
+              { name: 'Air Masked', type: 'scatter', mode: 'markers',
+                x: [500, 2000, 4000], y: [40, 2, 4],
+                marker: { symbol: 'square-open', size: 12, color: 'blue', line: { width: 2, color: 'blue' } } },
+              { name: 'Bone Unmasked', type: 'scatter', mode: 'text',
+                x: [500, 1000, 2000, 3000, 4000], y: [50, 70, 80, 70, 75],
+                text: ['>', '>', '>', '>', '>'],
+                textfont: { size: 18, color: 'blue', family: 'Arial Black, sans-serif' },
+                legendMarker: { symbol: 'triangle-right-open', size: 14, color: 'blue', line: { width: 2, color: 'blue' } } },
+              { name: 'Bone Masked', type: 'scatter', mode: 'text',
+                x: [1000], y: [36], text: [']'],
+                textfont: { size: 18, color: 'blue', family: 'Arial Black, sans-serif' },
+                legendMarker: { symbol: 'square-open', size: 12, color: 'blue', line: { width: 2, color: 'blue' } } },
+              { name: 'SF Aided', type: 'scatter', mode: 'text',
+                x: [500, 2000, 4000], y: [5, 5, 10], text: ['A', 'A', 'A'],
+                textfont: { size: 16, color: 'blue', family: 'Arial, sans-serif' },
+                legendMarker: { symbol: 'triangle-up-open', size: 12, color: 'blue', line: { width: 2, color: 'blue' } } },
+              { name: 'SF Unaided', type: 'scatter', mode: 'text',
+                x: [500], y: [10], text: ['S'],
+                textfont: { size: 16, color: 'blue', family: 'Arial, sans-serif' },
+                legendMarker: { symbol: 'diamond-open', size: 12, color: 'blue', line: { width: 2, color: 'blue' } } },
+              { name: 'ULL', type: 'scatter', mode: 'text',
+                x: [], y: [], text: [],
+                textfont: { size: 16, color: 'blue', family: 'Arial, sans-serif' },
+                legendMarker: { symbol: 'bowtie-open', size: 12, color: 'blue', line: { width: 2, color: 'blue' } } },
+              { name: 'No Response', type: 'scatter', mode: 'markers',
+                x: [3000, 4000, 8000], y: [120, 120, 120],
+                marker: { symbol: 'arrow-down', size: 14, color: 'blue', line: { width: 0 } } },
+            ],
+          },
+        },
+        config: {},
+        traces: [],
+      },
+    ],
+  },
 };
 
 if (typeof module === 'object' && module.exports && typeof require === 'function') {

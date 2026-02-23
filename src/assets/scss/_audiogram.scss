@@ -1,0 +1,97 @@
+.audiogram-page {
+  padding: 16px;
+  overflow: auto;
+
+  .audiogram-layout {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 16px;
+    align-items: start;
+
+    // Stack vertically on narrow screens
+    @media (max-width: 900px) {
+      grid-template-columns: 1fr;
+
+      .audiogram-legend-col {
+        padding-top: 0;
+        order: 3; // legend moves below both plots when stacked
+      }
+
+      .audiogram-left-ear {
+        order: 2;
+      }
+
+      .audiogram-right-ear {
+        order: 1;
+      }
+    }
+  }
+
+  .audiogram-ear {
+    // min-width: 0 is required so the CSS grid column can shrink below the
+    // Plotly chart's natural content width. Without it, 1fr columns refuse
+    // to be narrower than the chart and the layout never collapses.
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    // Both .chart-container and .chart (the div that ChartWithEffect measures
+    // via ref to compute parentWidth) must be 100% wide so Plotly receives
+    // the column width rather than the full viewport width.
+    .chart-container,
+    .chart {
+      width: 100%;
+    }
+  }
+
+  .audiogram-legend-col {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 60px; // rough offset to align with the plot area (below axis title)
+  }
+
+  .audiogram-legend-container {
+    white-space: nowrap;
+  }
+
+  .audiogram-legend-table {
+    border-collapse: collapse;
+
+    thead th {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: #666;
+      padding: 4px 8px 6px;
+    }
+
+    .audiogram-legend-symbol-header {
+      text-align: center;
+    }
+
+    tbody tr {
+      height: 30px;
+
+      &:hover {
+        background-color: #f5f5f5;
+      }
+    }
+
+    td {
+      padding: 3px 8px;
+      vertical-align: middle;
+    }
+
+    .audiogram-legend-symbol {
+      text-align: center;
+      width: 36px;
+    }
+
+    .audiogram-legend-label {
+      font-size: 13px;
+      color: #333;
+    }
+  }
+}

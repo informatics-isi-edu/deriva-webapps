@@ -44,6 +44,11 @@ REACT_BUNDLES=$(DIST_REACT)/$(REACT_BUNDLES_FOLDERNAME)
 CONFIG=config
 
 # create default app-specific config files
+AUDIOGRAM_CONFIG=$(CONFIG)/audiogram-config.js
+$(AUDIOGRAM_CONFIG): $(CONFIG)/audiogram-config-sample.js
+	cp -n $(CONFIG)/audiogram-config-sample.js $(AUDIOGRAM_CONFIG) || true
+	touch $(AUDIOGRAM_CONFIG)
+
 BOOLEAN_SEARCH_CONFIG=$(CONFIG)/boolean-search-config.js
 $(BOOLEAN_SEARCH_CONFIG): $(CONFIG)/boolean-search-config-sample.js
 	cp -n $(CONFIG)/boolean-search-config-sample.js $(BOOLEAN_SEARCH_CONFIG) || true
@@ -152,10 +157,18 @@ run-webpack: $(BUILD_VERSION)
 
 #exclude <app>-config.js to not override one on deployment
 .PHONY: deploy
-deploy: dont_deploy_in_root print-variables deploy-boolean-search deploy-heatmap deploy-plot deploy-treeview deploy-matrix
+deploy: dont_deploy_in_root print-variables deploy-audiogram deploy-boolean-search deploy-heatmap deploy-plot deploy-treeview deploy-matrix
 
 .PHONY: deploy-w-config
-deploy-w-config:dont_deploy_in_root print-variables deploy-boolean-search-w-config deploy-heatmap-w-config deploy-plot-w-config deploy-treeview-w-config deploy-matrix-w-config
+deploy-w-config:dont_deploy_in_root print-variables deploy-audiogram-w-config deploy-boolean-search-w-config deploy-heatmap-w-config deploy-plot-w-config deploy-treeview-w-config deploy-matrix-w-config
+
+.PHONY: deploy-audiogram
+deploy-audiogram: dont_deploy_in_root print-variables deploy-bundles
+	$(info - deploying audiogram)
+	@rsync -avz $(DIST_REACT)/audiogram/ $(WEBAPPSDIR)/audiogram/
+
+.PHONY: deploy-audiogram-w-config
+deploy-audiogram-w-config: dont_deploy_in_root print-variables deploy-audiogram $(AUDIOGRAM_CONFIG) deploy-config-folder
 
 .PHONY: deploy-boolean-search
 deploy-boolean-search: dont_deploy_in_root print-variables deploy-bundles
@@ -208,7 +221,7 @@ deploy-vitessce-w-config: dont_deploy_in_root print-variables deploy-vitessce de
 
 # rsync the config files used by react apps.
 .PHONY: deploy-config-folder
-deploy-config-folder: dont_deploy_in_root $(MATRIX_CONFIG) $(PLOT_CONFIG) $(TREEVIEW_CONFIG) $(HEATMAP_CONFIG) $(VITESSCE_CONFIG)
+deploy-config-folder: dont_deploy_in_root $(AUDIOGRAM_CONFIG) $(MATRIX_CONFIG) $(PLOT_CONFIG) $(TREEVIEW_CONFIG) $(HEATMAP_CONFIG) $(VITESSCE_CONFIG)
 	$(info - deploying the config folder)
 	@rsync -avz $(CONFIG) $(WEBAPPSDIR)
 
@@ -245,6 +258,8 @@ usage:
 	@echo "  dist                             build all the apps"
 	@echo "  deploy                           deploy all the apps"
 	@echo "  deploy-w-config                  deploy all the apps with the existing configs"
+	@echo "  deploy-audiogram                 deploy audiogram app"
+	@echo "  deploy-audiogram-w-config        deploy audiogram app with the existing config file(s)"
 	@echo "  deploy-boolean-search            deploy boolean search app"
 	@echo "  deploy-boolean-search-w-config   deploy boolean search app with the existing config file(s)"
 	@echo "  deploy-heatmap                   deploy heatmap app"
