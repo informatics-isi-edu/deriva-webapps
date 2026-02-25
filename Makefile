@@ -119,11 +119,11 @@ deps: npm-install-modules
 
 .PHONY: lint
 lint: $(SOURCE)
-	@npx eslint src --ext .ts,.tsx --quiet
+	@npx eslint src --quiet
 
 .PHONY: lint-w-warn
 lint-w-warn: $(SOURCE)
-	@npx eslint src --ext .ts,.tsx
+	@npx eslint src
 
   # run dist and deploy with proper uesrs (GNU). only works with root user
 .PHONY: root-install
