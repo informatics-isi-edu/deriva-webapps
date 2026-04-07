@@ -1,6 +1,12 @@
 .audiogram-page {
   padding: 16px;
-  overflow: auto;
+  // Let the page grow naturally and the document body scroll. `overflow:
+  // auto` here was creating an inner scroll container that the parent
+  // AppWrapper height-constrained, so anything below the chart row
+  // (mode B tables, PTA summary) was clipped off the bottom with no
+  // visible scrollbar.
+  overflow: visible;
+  min-height: 100vh;
 
   .audiogram-layout {
     display: grid;
@@ -39,9 +45,16 @@
     // Both .chart-container and .chart (the div that ChartWithEffect measures
     // via ref to compute parentWidth) must be 100% wide so Plotly receives
     // the column width rather than the full viewport width.
+    //
+    // The explicit min-height pins the chart container so that Plotly's
+    // useResizeHandler + responsive autosize can't collapse it on re-render.
+    // Without this, editing a cell triggers a chart re-render whose parent
+    // briefly has no intrinsic height, Plotly autosizes to ~0, and the
+    // table row below visually moves up over the plot area.
     .chart-container,
     .chart {
       width: 100%;
+      min-height: 550px;
     }
   }
 
@@ -92,6 +105,283 @@
     .audiogram-legend-label {
       font-size: 13px;
       color: #333;
+    }
+  }
+
+  // ── Save / Cancel bar (visible only when there are unsaved edits) ─────────
+  .audiogram-savebar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    margin-bottom: 12px;
+    background: #fff8e1;
+    border: 1px solid #f1c40f;
+    border-radius: 4px;
+
+    .audiogram-savebar-msg {
+      flex: 1;
+      font-size: 13px;
+      color: #6b5300;
+    }
+
+    button {
+      padding: 6px 14px;
+      font-size: 13px;
+      border-radius: 3px;
+      border: 1px solid #ccc;
+      cursor: pointer;
+    }
+
+    .audiogram-savebar-cancel {
+      background: #fff;
+      color: #333;
+    }
+
+    .audiogram-savebar-save {
+      background: #2e7d32;
+      color: #fff;
+      border-color: #2e7d32;
+
+      &:hover {
+        background: #246627;
+      }
+    }
+  }
+
+  .audiogram-error {
+    padding: 24px;
+    color: #b00020;
+    font-size: 14px;
+  }
+
+  // ── Tables row (one per ear, side by side under the chart row) ────────────
+  // gap: 0 so the two ear tables visually connect into a single table, like
+  // example01.png. The inner edge between them is hidden by removing the
+  // adjacent borders below.
+  .audiogram-tables-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    margin-top: 24px;
+    border: 1px solid #555;
+    border-radius: 3px;
+    overflow: hidden;
+
+    @media (max-width: 900px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .audiogram-table-col {
+    min-width: 0;
+  }
+
+  // Hide the seam between the two ear tables.
+  .audiogram-table-col.audiogram-table-right-col {
+    border-right: 1px solid #555;
+  }
+
+  .audiogram-table {
+    --ag-header-background-color: #f5f5f5;
+    --ag-odd-row-background-color: #fafafa;
+    --ag-row-hover-color: #f0f7ff;
+    --ag-font-size: 13px;
+    // Show all cell borders (vertical + horizontal) — quartz theme hides
+    // verticals by default.
+    --ag-borders: solid 1px;
+    --ag-border-color: #c0c0c0;
+    --ag-cell-horizontal-border: solid #c0c0c0;
+    --ag-row-border-style: solid;
+    --ag-row-border-width: 1px;
+    --ag-row-border-color: #c0c0c0;
+    --ag-header-column-separator-display: block;
+    --ag-header-column-separator-height: 100%;
+    --ag-header-column-separator-width: 1px;
+    --ag-header-column-separator-color: #c0c0c0;
+
+    // Center the header text + suppress the sort affordances entirely.
+    .audiogram-header-centered .ag-header-cell-label {
+      justify-content: center;
+    }
+    .ag-header-cell-menu-button,
+    .ag-header-icon.ag-sort-indicator-container {
+      display: none;
+    }
+
+    // Force a visible border on every single cell so it's obvious each
+    // value is a clickable input. The quartz theme variables alone don't
+    // reliably draw the verticals on all cell types.
+    .ag-cell {
+      border-right: 1px solid #c0c0c0 !important;
+      border-bottom: 1px solid #c0c0c0 !important;
+    }
+    .ag-header-cell {
+      border-right: 1px solid #c0c0c0 !important;
+    }
+    // Last column shouldn't have a right border (the table border handles it).
+    .ag-row .ag-cell:last-child,
+    .ag-header-row .ag-header-cell:last-child {
+      border-right: none !important;
+    }
+
+    .audiogram-table-title {
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 6px 8px;
+      color: #fff;
+      text-align: center;
+      border-radius: 3px 3px 0 0;
+    }
+
+    .audiogram-table-subtitle {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 4px 8px;
+      color: #fff;
+      text-align: center;
+      // Visually align with the start of the frequency columns: skip the
+      // 44px group column + 175px label column.
+      padding-left: 219px;
+    }
+
+    &.audiogram-table-right {
+      .audiogram-table-title { background: #c00000; }
+      .audiogram-table-subtitle { background: #e57373; }
+      .audiogram-cell-group { background: #c00000; color: #fff; }
+    }
+
+    &.audiogram-table-left {
+      .audiogram-table-title { background: #0033cc; }
+      .audiogram-table-subtitle { background: #7a8fe8; }
+      .audiogram-cell-group { background: #0033cc; color: #fff; }
+    }
+
+    .audiogram-cell-group {
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+    }
+
+    .audiogram-cell-testlabel {
+      font-weight: 600;
+      background: #f5f5f5;
+    }
+
+    .audiogram-cell-level {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .audiogram-cell-noresponse {
+      color: #888;
+      font-style: italic;
+    }
+
+    // Mode B: dedicated "No Response" column listing the frequencies.
+    .audiogram-cell-noresp-list {
+      color: #555;
+      font-style: italic;
+      font-size: 12px;
+    }
+
+    // Thicker separator between AC and BC groups, mirroring example01.png.
+    .audiogram-row-group-first .ag-cell {
+      border-top: 2px solid #555 !important;
+    }
+  }
+
+  // ── Mode label between the two table-mode demos ──────────────────────────
+  .audiogram-mode-label {
+    margin-top: 32px;
+    margin-bottom: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #666;
+  }
+
+  // ── Mode B: per-ear tables, gap between them, with PTA summary below ─────
+  .audiogram-modeb-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .audiogram-modeb-tables {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+
+    @media (max-width: 900px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .audiogram-modeb-tablecol {
+    min-width: 0;
+    border: 1px solid #555;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  // ── PTA summary table ────────────────────────────────────────────────────
+  .audiogram-summary {
+    align-self: center;
+    border: 1px solid #555;
+    border-radius: 3px;
+    background: #fafafa;
+    padding: 0;
+    min-width: 380px;
+
+    .audiogram-summary-title {
+      padding: 6px 12px;
+      background: #555;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      text-align: center;
+    }
+
+    .audiogram-summary-table {
+      width: 100%;
+      border-collapse: collapse;
+
+      th, td {
+        padding: 8px 16px;
+        text-align: center;
+        border: 1px solid #c0c0c0;
+        font-size: 13px;
+      }
+
+      thead th {
+        background: #f0f0f0;
+        font-weight: 600;
+      }
+
+      .audiogram-summary-rowlabel {
+        font-weight: 600;
+        text-align: left;
+        background: #f5f5f5;
+      }
+
+      .audiogram-summary-right {
+        color: #c00000;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .audiogram-summary-left {
+        color: #0033cc;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+      }
     }
   }
 }
