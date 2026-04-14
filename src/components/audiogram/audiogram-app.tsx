@@ -3,6 +3,7 @@ import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
 import AudiogramChart from '@isrd-isi-edu/deriva-webapps/src/components/audiogram/audiogram-chart';
 import AudiogramTable, {
   type AudiogramCellEdit,
+  type AudiogramNoResponseEdit,
 } from '@isrd-isi-edu/deriva-webapps/src/components/audiogram/audiogram-table';
 import AudiogramLegend from '@isrd-isi-edu/deriva-webapps/src/components/audiogram/audiogram-legend';
 import AudiogramSummary from '@isrd-isi-edu/deriva-webapps/src/components/audiogram/audiogram-summary';
@@ -123,6 +124,33 @@ const AudiogramApp = ({ config }: AudiogramAppProps): JSX.Element => {
     });
   }, []);
 
+  // Apply a "no response" list edit from the dedicated column in mode B.
+  // Sets noResponse=true for the frequencies the user typed, and false for
+  // any that are no longer in the list. Frequencies that don't yet have a
+  // measurement get a placeholder row so the flag has somewhere to live.
+  const handleNoResponseEdit = useCallback((edit: AudiogramNoResponseEdit) => {
+    setDraftRows((prev) => {
+      const target = new Set(edit.frequencies);
+      const next = prev.map((m) => {
+        if (m.ear !== edit.ear || m.testType !== edit.testType) return m;
+        const shouldBeNR = target.has(m.frequency);
+        return m.noResponse === shouldBeNR ? m : { ...m, noResponse: shouldBeNR };
+      });
+      for (const f of edit.frequencies) {
+        if (!next.find((m) => m.ear === edit.ear && m.testType === edit.testType && m.frequency === f)) {
+          next.push({
+            ear: edit.ear,
+            testType: edit.testType,
+            frequency: f,
+            level: null,
+            noResponse: true,
+          });
+        }
+      }
+      return next;
+    });
+  }, []);
+
   const isDirty = useMemo(() => {
     if (draftRows === committedRows) return false;
     if (draftRows.length !== committedRows.length) return true;
@@ -198,6 +226,7 @@ const AudiogramApp = ({ config }: AudiogramAppProps): JSX.Element => {
             rightTrace={config.plots[0].traces[0]}
             leftTrace={config.plots[1].traces[0]}
           />
+          <AudiogramSummary measurements={draftRows} />
         </div>
         <div className='audiogram-ear audiogram-left-ear'>
           <AudiogramChart
@@ -240,6 +269,7 @@ const AudiogramApp = ({ config }: AudiogramAppProps): JSX.Element => {
               measurements={draftRows}
               editable
               onCellEdit={handleCellEdit}
+              onNoResponseEdit={handleNoResponseEdit}
               noResponseStyle='column'
             />
           </div>
@@ -249,11 +279,11 @@ const AudiogramApp = ({ config }: AudiogramAppProps): JSX.Element => {
               measurements={draftRows}
               editable
               onCellEdit={handleCellEdit}
+              onNoResponseEdit={handleNoResponseEdit}
               noResponseStyle='column'
             />
           </div>
         </div>
-        <AudiogramSummary measurements={draftRows} />
       </div>
     </div>
   );

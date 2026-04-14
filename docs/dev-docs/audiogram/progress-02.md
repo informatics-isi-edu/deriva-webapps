@@ -18,6 +18,18 @@ Open questions from `progress-01.md` still pending the meeting:
 
 - **Q1** — Which test types are actually in the data (forehead BC, SF aided/unaided, ULL)?
 - **Q1a** — How is *no response* encoded? Boolean flag on a measurement, or a separate set of columns?
+
+  Research findings (not yet a decision):
+
+  - **HIMSA Noah** (the de facto industry standard — every major audiometer vendor reads/writes through it) treats NR as a **distinct data type** listed alongside HL/UCL/BCT, not as a boolean flag on an HL point. The Audioscan Noah Module manual explicitly notes NR points "cannot be used in Audioscan equipment due to incompatibility with prescriptive formulas" — confirming that a threshold and a no-response at the same frequency are fundamentally different things and must not be mixed. ([HIMSA audiogram format docs](https://himsanoah.atlassian.net/wiki/spaces/AD/pages/1312653313/Audiogram+Format); [Audioscan Noah Module User's Guide, p. 6](https://docs.audioscan.com/userguides/noahmanual.pdf))
+  - **HL7 FHIR** takes the same stance generalized across all clinical observations: an `Observation` has either a `value` or a `dataAbsentReason`, never both. Relevant absence codes: `not-performed` (frequency never tested), `unable-to-obtain` (tested, no response at limit). ([FHIR DataAbsentReason code system](https://terminology.hl7.org/5.1.0/CodeSystem-data-absent-reason.html))
+  - **ASHA / ISO audiometric symbols**: no-response is rendered as a downward arrow appended to the standard marker. Visual convention only — says nothing about storage. ([ASHA Audiometric Symbols guideline](https://www.asha.org/policy/gl1990-00006/))
+
+  Both standards converge: value and no-response are mutually exclusive states, not parallel fields. The two candidate shapes for us are:
+  - **Tagged union** (Noah-style): `{ kind: 'threshold', level: number } | { kind: 'noResponse' } | { kind: 'empty' }`
+  - **FHIR-style**: `{ level: number | null, dataAbsentReason?: 'no-response' | 'not-performed' | … }` — two columns in ERMrest, extensible if we later need to distinguish "not tested" from "patient declined"
+
+  The current code uses `{ level: number | null, noResponse: boolean }` which allows the nonsensical `{ level: 30, noResponse: true }` state. This needs to be resolved before the save path is wired up.
 - **Q2** — Storage format: file vs ERMrest; flat (option 2) vs long (option 1) vs fully wide (option 3)?
 
 ## Storage: file vs database
@@ -160,7 +172,7 @@ Both tables and the chart bind to `draftRows`. So as the user types in a cell:
 - Only `level` cells are editable.
 - Valid range: -10 to 120 dB HL — out-of-range edits are rejected by the value parser and the cell reverts.
 - Empty string clears the cell (sets level to `null`).
-- A separate "no response" toggle per cell is deferred until Q1a is answered.
+- No-response entry is not yet implemented correctly. The current `{ level, noResponse: boolean }` shape is problematic — see Q1a above for research findings and candidate shapes. The UI approach (typing `NR` into a level cell vs. a separate column) depends on which data model is chosen.
 
 ## Audiogram app as an input form
 
@@ -177,7 +189,7 @@ Once editing works, the natural extension is to use the audiogram app to **autho
 ## Optional follow-ups (meeting topics, not in V4)
 
 - **Multiple-audiogram comparison**: overlay two audiograms (e.g. before/after intervention) in the same chart with reduced opacity for the prior one.
-- **Exact ISO/ASHA no-response rendering**: a modifier on the base symbol (arrow appended to the existing symbol), rather than a separate marker. Requires either a custom Plotly SVG marker path or a paired overlay trace per condition.
+- **Exact ISO/ASHA no-response rendering**: a downward arrow appended to the base symbol (per ASHA guidelines), rather than a separate marker. Requires either a custom Plotly SVG marker path or a paired overlay trace per condition. Blocked on the Q1a data model decision — the chart can only render NR correctly once the shape is settled.
 - **PTA / SRT summary row**: pure tone average and speech reception threshold computed from the measurements, shown above or below the tables.
 - **Per-cell history / audit**: who edited what and when. Free with ERMrest, expensive with files.
 - **Hover sync**: hovering a frequency in the chart highlights the corresponding row in the tables, and vice versa.

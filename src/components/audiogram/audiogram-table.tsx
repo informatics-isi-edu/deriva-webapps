@@ -43,11 +43,23 @@ export type AudiogramCellEdit = {
   level: number | null;
 };
 
+export type AudiogramNoResponseEdit = {
+  ear: Ear;
+  testType: TestType;
+  frequencies: number[];
+};
+
 type AudiogramTableProps = {
   ear: Ear;
   measurements: AudiogramMeasurement[];
   editable: boolean;
   onCellEdit: (edit: AudiogramCellEdit) => void;
+  /**
+   * Fired when the user edits the dedicated "No Response" column (mode B
+   * only). The payload replaces the set of no-response frequencies for
+   * the given (ear, testType) with the parsed list.
+   */
+  onNoResponseEdit?: (edit: AudiogramNoResponseEdit) => void;
   /**
    * How to surface no-response measurements:
    *  - 'inline'  → show "120 ↓" inside the level cell (mode A / example01)
@@ -108,6 +120,7 @@ const AudiogramTable = ({
   measurements,
   editable,
   onCellEdit,
+  onNoResponseEdit,
   noResponseStyle = 'inline',
 }: AudiogramTableProps): JSX.Element => {
   const rowData = useMemo(() => buildRows(measurements, ear), [measurements, ear]);
@@ -192,10 +205,23 @@ const AudiogramTable = ({
       cols.push({
         headerName: 'No Response',
         field: 'noResponseList',
-        editable: false,
+        editable,
         pinned: 'right',
-        width: 130,
+        width: 150,
+        cellEditor: 'agTextCellEditor',
         cellClass: 'audiogram-cell-noresp-list',
+        // Accept either "2000, 4000" or "2000 Hz, 4000 Hz". Anything that
+        // isn't a positive number gets dropped silently so typos don't
+        // eat the whole list.
+        valueParser: (params) => {
+          const text = String(params.newValue ?? '').trim();
+          if (!text) return '';
+          const nums = text
+            .split(',')
+            .map((s) => Number(s.replace(/hz/i, '').trim()))
+            .filter((n) => Number.isFinite(n) && n > 0);
+          return nums.join(', ');
+        },
         valueFormatter: (params) => (params.value ? `${params.value} Hz` : ''),
       });
     }
@@ -205,6 +231,19 @@ const AudiogramTable = ({
   const onCellEditRequest = (event: CellEditRequestEvent<RowShape>) => {
     const field = event.colDef.field;
     if (!field || field === 'testLabel') return;
+    if (field === 'noResponseList') {
+      if (!onNoResponseEdit) return;
+      // valueParser already normalized the text to "n, n, n" (or '').
+      const text = String(event.newValue ?? '').trim();
+      const freqs = text
+        ? text
+            .split(',')
+            .map((s) => Number(s.trim()))
+            .filter((n) => Number.isFinite(n) && n > 0)
+        : [];
+      onNoResponseEdit({ ear, testType: event.data.testType, frequencies: freqs });
+      return;
+    }
     // field is `f<frequency>` — extract the number.
     const freq = Number(field.slice(1));
     if (Number.isNaN(freq)) return;
