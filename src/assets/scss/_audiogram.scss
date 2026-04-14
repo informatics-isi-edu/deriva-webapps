@@ -60,8 +60,9 @@
 
   .audiogram-legend-col {
     display: flex;
-    align-items: flex-start;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
     padding-top: 60px; // rough offset to align with the plot area (below axis title)
   }
 
@@ -332,29 +333,18 @@
   // ── PTA summary table ────────────────────────────────────────────────────
   .audiogram-summary {
     align-self: center;
-    border: 1px solid #555;
+    border: 1px solid #c0c0c0;
     border-radius: 3px;
-    background: #fafafa;
+    background: #fff;
     padding: 0;
-    min-width: 380px;
-
-    .audiogram-summary-title {
-      padding: 6px 12px;
-      background: #555;
-      color: #fff;
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      text-align: center;
-    }
+    overflow: hidden;
 
     .audiogram-summary-table {
       width: 100%;
       border-collapse: collapse;
 
       th, td {
-        padding: 8px 16px;
+        padding: 6px 12px;
         text-align: center;
         border: 1px solid #c0c0c0;
         font-size: 13px;
@@ -369,6 +359,7 @@
         font-weight: 600;
         text-align: left;
         background: #f5f5f5;
+        white-space: nowrap;
       }
 
       .audiogram-summary-right {
@@ -381,6 +372,33 @@
         color: #0033cc;
         font-weight: 600;
         font-variant-numeric: tabular-nums;
+      }
+
+      .audiogram-summary-input {
+        width: 70px;
+        padding: 2px 4px;
+        font: inherit;
+        color: inherit;
+        text-align: center;
+        border: 1px solid #c0c0c0;
+        border-radius: 2px;
+        background: #fff;
+
+        &:focus {
+          outline: none;
+          border-color: #1976d2;
+          box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+        }
+
+        // Hide spinners for number inputs to keep the layout tight.
+        &::-webkit-outer-spin-button,
+        &::-webkit-inner-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+        &[type='number'] {
+          -moz-appearance: textfield;
+        }
       }
     }
   }
