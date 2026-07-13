@@ -1,12 +1,14 @@
+.audiogram-content .top-panel-container:empty {
+  display: none;
+}
+
 .audiogram-page {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
   padding: 16px;
-  // Let the page grow naturally and the document body scroll. `overflow:
-  // auto` here was creating an inner scroll container that the parent
-  // AppWrapper height-constrained, so anything below the chart row
-  // (mode B tables, PTA summary) was clipped off the bottom with no
-  // visible scrollbar.
-  overflow: visible;
-  min-height: 100vh;
 
   .audiogram-layout {
     display: grid;

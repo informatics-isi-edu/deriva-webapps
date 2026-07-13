@@ -10,10 +10,13 @@ import AudiogramSummary from '@isrd-isi-edu/deriva-webapps/src/components/audiog
 
 // hooks
 import usePlot from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
-import { useCallback, useEffect, useMemo, useState, type JSX } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState, type JSX } from 'react';
 
 // services
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
+
+// utils
+import { attachContainerHeightSensors } from '@isrd-isi-edu/chaise/src/utils/ui-utils';
 
 // data
 import {
@@ -168,6 +171,13 @@ const AudiogramApp = ({ config }: AudiogramAppProps): JSX.Element => {
     return () => window.removeEventListener('beforeunload', handler);
   }, [isDirty]);
 
+  // Height sensors keep the navbar sticky and let .audiogram-page scroll (chaise's <body> is overflow:hidden).
+  useLayoutEffect(() => {
+    if (!globalControlsInitialized || loading || fetchError) return;
+    const sensors = attachContainerHeightSensors();
+    return () => sensors?.forEach((rs) => rs && rs.detach());
+  }, [globalControlsInitialized, loading, fetchError]);
+
   const handleSave = () => {
     const diff = diffMeasurements(committedRows, draftRows);
     // TODO: replace with PATCH/file-write once Q2 (storage backend) is decided.
@@ -199,7 +209,11 @@ const AudiogramApp = ({ config }: AudiogramAppProps): JSX.Element => {
   const leftLayout = (config.plots[1] as any)?.plotly?.layout;
 
   return (
-    <div className='audiogram-page'>
+    <div className='audiogram-content app-content-container'>
+      {/* Empty sticky-header slot: attachContainerHeightSensors needs it to exist; CSS collapses it while empty. */}
+      <div className='top-panel-container' />
+      <div className='bottom-panel-container'>
+        <div className='audiogram-page'>
       {isDirty && (
         <div className='audiogram-savebar'>
           <span className='audiogram-savebar-msg'>You have unsaved changes.</span>
@@ -283,6 +297,8 @@ const AudiogramApp = ({ config }: AudiogramAppProps): JSX.Element => {
               noResponseStyle='column'
             />
           </div>
+        </div>
+      </div>
         </div>
       </div>
     </div>
