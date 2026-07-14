@@ -158,33 +158,6 @@
     font-size: 14px;
   }
 
-  // ── Tables row (one per ear, side by side under the chart row) ────────────
-  // gap: 0 so the two ear tables visually connect into a single table, like
-  // example01.png. The inner edge between them is hidden by removing the
-  // adjacent borders below.
-  .audiogram-tables-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0;
-    margin-top: 24px;
-    border: 1px solid #555;
-    border-radius: 3px;
-    overflow: hidden;
-
-    @media (max-width: 900px) {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  .audiogram-table-col {
-    min-width: 0;
-  }
-
-  // Hide the seam between the two ear tables.
-  .audiogram-table-col.audiogram-table-right-col {
-    border-right: 1px solid #555;
-  }
-
   .audiogram-table {
     --ag-header-background-color: #f5f5f5;
     --ag-odd-row-background-color: #fafafa;
@@ -239,93 +212,119 @@
       border-radius: 3px 3px 0 0;
     }
 
-    .audiogram-table-subtitle {
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      padding: 4px 8px;
-      color: #fff;
-      text-align: center;
-      // Visually align with the start of the frequency columns: skip the
-      // 44px group column + 175px label column.
-      padding-left: 219px;
-    }
-
     &.audiogram-table-right {
       .audiogram-table-title { background: #c00000; }
-      .audiogram-table-subtitle { background: #e57373; }
-      .audiogram-cell-group { background: #c00000; color: #fff; }
     }
 
     &.audiogram-table-left {
       .audiogram-table-title { background: #0033cc; }
-      .audiogram-table-subtitle { background: #7a8fe8; }
-      .audiogram-cell-group { background: #0033cc; color: #fff; }
     }
 
-    .audiogram-cell-group {
-      font-weight: 700;
-      font-size: 13px;
-      letter-spacing: 0.5px;
-    }
-
-    .audiogram-cell-testlabel {
+    // Pinned frequency column (the row axis).
+    .audiogram-freq-cell {
       font-weight: 600;
       background: #f5f5f5;
-    }
-
-    .audiogram-cell-level {
       font-variant-numeric: tabular-nums;
     }
 
-    .audiogram-cell-noresponse {
-      color: #888;
-      font-style: italic;
+    // Center the AC / BC grouped header labels. ag-grid's default "sticky label"
+    // pins the label left (flex: none), so we also make it fill the group cell.
+    // (Paired with suppressStickyLabel on the group defs.)
+    .ag-header-group-cell-label {
+      justify-content: center;
+      font-weight: 700;
+    }
+    .ag-header-group-cell-label.ag-sticky-label {
+      flex: 1 1 auto;
+      position: static;
     }
 
-    // Mode B: dedicated "No Response" column listing the frequencies.
-    .audiogram-cell-noresp-list {
-      color: #555;
-      font-style: italic;
-      font-size: 12px;
+    // Vertical seam between the AC and BC column groups (all header rows + body).
+    .ag-header-group-cell.audiogram-col-ac-end,
+    .ag-header-cell.audiogram-col-ac-end,
+    .ag-cell.audiogram-col-ac-end {
+      border-right: 2px solid #555 !important;
     }
 
-    // Thicker separator between AC and BC groups, mirroring example01.png.
-    .audiogram-row-group-first .ag-cell {
-      border-top: 2px solid #555 !important;
+    // Single-click focus: a clean inset ring instead of the partial border the
+    // forced cell borders would otherwise leave (top/left only).
+    .ag-cell.ag-cell-focus {
+      border-top-color: #c0c0c0 !important;
+      border-left-color: #c0c0c0 !important;
+      box-shadow: inset 0 0 0 2px #7aa7ff;
+    }
+
+    // Cell content: the value (or an NR chip) plus the hover/focus NR toggle.
+    .audiogram-cell-inner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    .audiogram-cell-value {
+      font-variant-numeric: tabular-nums;
+    }
+
+    // No-response marker: a down-arrow shown next to the level. The level is the
+    // max output tested; the arrow means "no response at that level".
+    .audiogram-cell-nrmark {
+      margin-left: 3px;
+      font-weight: 700;
+      color: #333;
+    }
+    &.audiogram-table-right .audiogram-cell-nrmark { color: #c00000; }
+    &.audiogram-table-left .audiogram-cell-nrmark { color: #0033cc; }
+
+    // NR toggle: present in every editable cell, revealed on hover/focus.
+    .audiogram-nr-btn {
+      position: absolute;
+      right: 2px;
+      top: 50%;
+      transform: translateY(-50%);
+      min-width: 16px;
+      height: 16px;
+      padding: 0 4px;
+      font-size: 9px;
+      font-weight: 700;
+      line-height: 14px;
+      color: #666;
+      background: #fff;
+      border: 1px solid #bbb;
+      border-radius: 3px;
+      cursor: pointer;
+      visibility: hidden;
+    }
+
+    .ag-cell:hover .audiogram-nr-btn {
+      visibility: visible;
+    }
+
+    .audiogram-cell-inner.is-nr .audiogram-nr-btn {
+      color: #c00000;
+      border-color: #c00000;
     }
   }
 
-  // ── Mode label between the two table-mode demos ──────────────────────────
-  .audiogram-mode-label {
-    margin-top: 32px;
-    margin-bottom: 8px;
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: #666;
-  }
-
-  // ── Mode B: per-ear tables, gap between them, with PTA summary below ─────
-  .audiogram-modeb-layout {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .audiogram-modeb-tables {
+  // ── Tables: one per ear, side by side under the chart row ────────────────
+  .audiogram-tables {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px;
+    margin-top: 24px;
 
     @media (max-width: 900px) {
       grid-template-columns: 1fr;
     }
+
+    .ag-grid-cell-center {
+      justify-content: center;
+    }
   }
 
-  .audiogram-modeb-tablecol {
+  .audiogram-tablecol {
     min-width: 0;
     border: 1px solid #555;
     border-radius: 3px;

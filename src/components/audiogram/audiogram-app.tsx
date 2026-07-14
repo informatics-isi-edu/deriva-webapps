@@ -3,7 +3,6 @@ import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
 import AudiogramChart from '@isrd-isi-edu/deriva-webapps/src/components/audiogram/audiogram-chart';
 import AudiogramTable, {
   type AudiogramCellEdit,
-  type AudiogramNoResponseEdit,
 } from '@isrd-isi-edu/deriva-webapps/src/components/audiogram/audiogram-table';
 import AudiogramLegend from '@isrd-isi-edu/deriva-webapps/src/components/audiogram/audiogram-legend';
 import AudiogramSummary from '@isrd-isi-edu/deriva-webapps/src/components/audiogram/audiogram-summary';
@@ -100,7 +99,8 @@ const AudiogramApp = ({ config }: AudiogramAppProps): JSX.Element => {
     };
   }, [config]);
 
-  // Apply a single cell edit to draftRows. We don't mutate the array.
+  // Apply a single cell edit (value or no-response toggle) to draftRows,
+  // without mutating the array.
   const handleCellEdit = useCallback((edit: AudiogramCellEdit) => {
     setDraftRows((prev) => {
       const idx = prev.findIndex(
@@ -109,7 +109,7 @@ const AudiogramApp = ({ config }: AudiogramAppProps): JSX.Element => {
       );
       if (idx === -1) {
         // Editing a frequency that didn't have a measurement yet — add one.
-        if (edit.level == null) return prev;
+        if (edit.level == null && !edit.noResponse) return prev;
         return [
           ...prev,
           {
@@ -117,39 +117,12 @@ const AudiogramApp = ({ config }: AudiogramAppProps): JSX.Element => {
             testType: edit.testType,
             frequency: edit.frequency,
             level: edit.level,
-            noResponse: false,
+            noResponse: edit.noResponse,
           },
         ];
       }
       const next = prev.slice();
-      next[idx] = { ...next[idx], level: edit.level };
-      return next;
-    });
-  }, []);
-
-  // Apply a "no response" list edit from the dedicated column in mode B.
-  // Sets noResponse=true for the frequencies the user typed, and false for
-  // any that are no longer in the list. Frequencies that don't yet have a
-  // measurement get a placeholder row so the flag has somewhere to live.
-  const handleNoResponseEdit = useCallback((edit: AudiogramNoResponseEdit) => {
-    setDraftRows((prev) => {
-      const target = new Set(edit.frequencies);
-      const next = prev.map((m) => {
-        if (m.ear !== edit.ear || m.testType !== edit.testType) return m;
-        const shouldBeNR = target.has(m.frequency);
-        return m.noResponse === shouldBeNR ? m : { ...m, noResponse: shouldBeNR };
-      });
-      for (const f of edit.frequencies) {
-        if (!next.find((m) => m.ear === edit.ear && m.testType === edit.testType && m.frequency === f)) {
-          next.push({
-            ear: edit.ear,
-            testType: edit.testType,
-            frequency: f,
-            level: null,
-            noResponse: true,
-          });
-        }
-      }
+      next[idx] = { ...next[idx], level: edit.level, noResponse: edit.noResponse };
       return next;
     });
   }, []);
@@ -252,10 +225,8 @@ const AudiogramApp = ({ config }: AudiogramAppProps): JSX.Element => {
         </div>
       </div>
 
-      {/* ── Mode A: connected tables (matches example01.png) ──────────── */}
-      {/* <div className='audiogram-mode-label'>Table mode A — joined (example01.png)</div>
-      <div className='audiogram-tables-row'>
-        <div className='audiogram-table-col audiogram-table-right-col'>
+      <div className='audiogram-tables'>
+        <div className='audiogram-tablecol'>
           <AudiogramTable
             ear='right'
             measurements={draftRows}
@@ -263,40 +234,13 @@ const AudiogramApp = ({ config }: AudiogramAppProps): JSX.Element => {
             onCellEdit={handleCellEdit}
           />
         </div>
-        <div className='audiogram-table-col audiogram-table-left-col'>
+        <div className='audiogram-tablecol'>
           <AudiogramTable
             ear='left'
             measurements={draftRows}
             editable
             onCellEdit={handleCellEdit}
           />
-        </div>
-      </div> */}
-
-      {/* ── Mode B: per-ear separated tables + PTA summary (example02.png) ─ */}
-      {/* <div className='audiogram-mode-label'>Table mode B — separated + PTA summary (example02.png)</div> */}
-      <div className='audiogram-modeb-layout'>
-        <div className='audiogram-modeb-tables'>
-          <div className='audiogram-modeb-tablecol'>
-            <AudiogramTable
-              ear='right'
-              measurements={draftRows}
-              editable
-              onCellEdit={handleCellEdit}
-              onNoResponseEdit={handleNoResponseEdit}
-              noResponseStyle='column'
-            />
-          </div>
-          <div className='audiogram-modeb-tablecol'>
-            <AudiogramTable
-              ear='left'
-              measurements={draftRows}
-              editable
-              onCellEdit={handleCellEdit}
-              onNoResponseEdit={handleNoResponseEdit}
-              noResponseStyle='column'
-            />
-          </div>
         </div>
       </div>
         </div>

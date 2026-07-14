@@ -1,24 +1,30 @@
 /**
  * Single-ear values table built on ag-grid-community.
  *
- * Layout matches screenshots/example01.png: rows are test types
- * (AC Unmasked, AC Masked, BC Unmasked, …), columns are the standard
- * frequencies, with a leading "Test" column for the row label.
+ * Layout: rows are frequencies (one per frequency present, from the default
+ * set unioned with the data), columns are the four ISO/ASHA pure-tone tests
+ * grouped under Air Conduction / Bone Conduction headers, with a leading
+ * pinned "Freq (Hz)" column.
  *
  * Uses `readOnlyEdit` so edits don't mutate row data — instead they fire
- * `cellEditRequest`, which we forward to AudiogramApp. AudiogramApp owns
- * the draftRows state and feeds new values back into both the table and
- * the chart for the live-preview-with-batched-save flow described in
- * progress-02.md.
+ * `cellEditRequest`, which we forward to AudiogramApp. AudiogramApp owns the
+ * draftRows state and feeds new values back into both the table and the chart
+ * for the live-preview-with-batched-save flow described in progress-02.md.
+ *
+ * No-response is a per-cell marker (not free text): each editable cell shows a
+ * small "NR" toggle on hover/focus; clicking it flags/unflags no-response for
+ * that (frequency, test) via `onCellEdit`.
  */
 
-import { useMemo, type JSX } from 'react';
+import { useCallback, useMemo, type JSX, type MouseEvent } from 'react';
 import { AgGridReact } from 'ag-grid-react';
+import ChaiseTooltip from '@isrd-isi-edu/chaise/src/components/tooltip';
 import {
   AllCommunityModule,
   ModuleRegistry,
   type CellEditRequestEvent,
   type ColDef,
+  type ColGroupDef,
 } from 'ag-grid-community';
 
 import 'ag-grid-community/styles/ag-grid.css';
@@ -28,8 +34,8 @@ import {
   type AudiogramMeasurement,
   type Ear,
   type TestType,
-  STANDARD_FREQUENCIES,
   TABLE_TEST_TYPES,
+  tableFrequencies,
   testTypeGroup,
 } from '@isrd-isi-edu/deriva-webapps/src/components/audiogram/audiogram-data';
 import { getSymbol } from '@isrd-isi-edu/deriva-webapps/src/components/audiogram/audiogram-symbols';
@@ -41,12 +47,7 @@ export type AudiogramCellEdit = {
   testType: TestType;
   frequency: number;
   level: number | null;
-};
-
-export type AudiogramNoResponseEdit = {
-  ear: Ear;
-  testType: TestType;
-  frequencies: number[];
+  noResponse: boolean;
 };
 
 type AudiogramTableProps = {
@@ -54,205 +55,171 @@ type AudiogramTableProps = {
   measurements: AudiogramMeasurement[];
   editable: boolean;
   onCellEdit: (edit: AudiogramCellEdit) => void;
-  /**
-   * Fired when the user edits the dedicated "No Response" column (mode B
-   * only). The payload replaces the set of no-response frequencies for
-   * the given (ear, testType) with the parsed list.
-   */
-  onNoResponseEdit?: (edit: AudiogramNoResponseEdit) => void;
-  /**
-   * How to surface no-response measurements:
-   *  - 'inline'  → show "120 ↓" inside the level cell (mode A / example01)
-   *  - 'column'  → drop the marker from the level cell, add a dedicated
-   *                "No Response" column at the right listing the
-   *                frequencies that had no response (mode B / example02)
-   */
-  noResponseStyle?: 'inline' | 'column';
 };
 
+/** One row per frequency: `frequency`, plus `<testType>` (level) and `<testType>__nr` (0|1). */
 type RowShape = {
-  testType: TestType;
-  testLabel: string;
-  group: 'AC' | 'BC';
-  // dynamic frequency columns: f250, f500, … hold level | null
-  // and f250__nr, f500__nr hold the no-response flag (0 | 1)
-  [key: string]: number | string | null;
+  frequency: number;
+  [key: string]: number | null;
 };
 
 const MIN_LEVEL = -10;
 const MAX_LEVEL = 120;
 
-const freqField = (f: number) => `f${f}`;
-const freqNrField = (f: number) => `f${f}__nr`;
+const nrField = (t: TestType) => `${t}__nr`;
 
 /**
- * Build the row data. Always 4 rows (AC Unmasked, AC Masked, BC Unmasked,
- * BC Masked) so users can fill in missing data, matching ISO/ASHA. The
- * `group` field drives the AC/BC visual separator.
+ * Build the row data: one row per frequency (default set unioned with the
+ * data), each carrying the level and no-response flag for all four tests.
  */
 function buildRows(measurements: AudiogramMeasurement[], ear: Ear): RowShape[] {
-  return TABLE_TEST_TYPES.map((t) => {
-    const sym = getSymbol(ear, t);
-    // Drop the leading "AC " / "BC " — the row label column shows the
-    // unmasked/masked qualifier and the group is shown by the AC/BC band.
-    const shortLabel = (sym?.label ?? t).replace(/^AC |^BC /, '');
-    const row: RowShape = {
-      testType: t,
-      testLabel: shortLabel,
-      group: testTypeGroup(t),
-    };
-    const noRespFreqs: number[] = [];
-    for (const freq of STANDARD_FREQUENCIES) {
+  return tableFrequencies(measurements).map((freq) => {
+    const row: RowShape = { frequency: freq };
+    for (const t of TABLE_TEST_TYPES) {
       const m = measurements.find(
         (x) => x.ear === ear && x.testType === t && x.frequency === freq,
       );
-      row[freqField(freq)] = m?.level ?? null;
-      row[freqNrField(freq)] = m?.noResponse ? 1 : 0;
-      if (m?.noResponse) noRespFreqs.push(freq);
+      row[t] = m?.level ?? null;
+      row[nrField(t)] = m?.noResponse ? 1 : 0;
     }
-    row.noResponseList = noRespFreqs.length > 0 ? noRespFreqs.join(', ') : '';
     return row;
   });
 }
+
+/**
+ * Cell display: the dB value, plus a down-arrow when the cell is flagged
+ * no-response (the value is the level tested; the arrow means "no response at
+ * that level"). A small NR / × toggle button is revealed on hover; it stops
+ * propagation so a click toggles the flag instead of starting a cell edit.
+ */
+const NrCellRenderer = (params: any): JSX.Element => {
+  const field = params.colDef?.field as TestType;
+  const level = params.value as number | null;
+  const nr = params.data?.[nrField(field)] === 1;
+  const onToggle = (e: MouseEvent) => {
+    e.stopPropagation();
+    params.toggleNr?.(params.data.frequency, field, level, nr);
+  };
+  return (
+    <div className={`audiogram-cell-inner${nr ? ' is-nr' : ''}`}>
+      <span className='audiogram-cell-value'>{level == null ? '' : level}</span>
+      {nr && (
+        <span className='audiogram-cell-nrmark' aria-label='no response'>
+          ↓
+        </span>
+      )}
+      {params.editable && (
+        <ChaiseTooltip
+          placement='bottom'
+          dynamicTooltipString
+          tooltip={nr ? 'Clear no response' : 'Mark as no response'}
+        >
+          <button
+            type='button'
+            className='audiogram-nr-btn'
+            tabIndex={-1}
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={onToggle}
+          >
+            {nr ? '×' : 'NR'}
+          </button>
+        </ChaiseTooltip>
+      )}
+    </div>
+  );
+};
 
 const AudiogramTable = ({
   ear,
   measurements,
   editable,
   onCellEdit,
-  onNoResponseEdit,
-  noResponseStyle = 'inline',
 }: AudiogramTableProps): JSX.Element => {
   const rowData = useMemo(() => buildRows(measurements, ear), [measurements, ear]);
 
-  const columnDefs = useMemo<ColDef<RowShape>[]>(() => {
-    const cols: ColDef<RowShape>[] = [
-      {
-        headerName: '',
-        field: 'group',
-        pinned: 'left',
-        width: 44,
-        editable: false,
-        cellClass: (params) =>
-          `audiogram-cell-group audiogram-cell-group-${(params.data as any)?.group?.toLowerCase()}`,
-        // Only the first row of each AC/BC group shows the letter; visually
-        // mimics the row-spanning "AC" / "BC" label in example01.png.
-        valueFormatter: (params) => {
-          const idx = params.node?.rowIndex ?? -1;
-          const data = params.data as any;
-          if (!data) return '';
-          // First row of each group (AC at row 0, BC at row 2 in TABLE_TEST_TYPES order).
-          if (idx === 0 && data.group === 'AC') return 'AC';
-          if (idx === 2 && data.group === 'BC') return 'BC';
-          return '';
-        },
-      },
-      {
-        headerName: '',
-        field: 'testLabel',
-        pinned: 'left',
-        // Wide enough for the longest ISO/ASHA label ("Unmasked (forehead)")
-        // — labels must never be truncated.
-        width: 175,
-        editable: false,
-        cellClass: 'audiogram-cell-testlabel',
-        cellStyle: { textAlign: 'left' },
-      },
-    ];
+  // Toggle no-response for a cell. NR keeps the value (a no-response has a real
+  // level, the max output tested). Flagging an empty cell seeds the level at the
+  // floor as a starting point; clearing NR keeps the value as a plain threshold.
+  const handleToggleNr = useCallback(
+    (frequency: number, testType: TestType, level: number | null, currentNr: boolean) => {
+      const nextNr = !currentNr;
+      const nextLevel = nextNr && level == null ? MAX_LEVEL : level;
+      onCellEdit({ ear, testType, frequency, level: nextLevel, noResponse: nextNr });
+    },
+    [ear, onCellEdit],
+  );
 
-    for (const freq of STANDARD_FREQUENCIES) {
-      const field = freqField(freq);
-      const nrField = freqNrField(freq);
-      cols.push({
-        headerName: String(freq),
-        field,
+  const columnDefs = useMemo<(ColDef<RowShape> | ColGroupDef<RowShape>)[]>(() => {
+    const leafCol = (t: TestType): ColDef<RowShape> => {
+      const sym = getSymbol(ear, t);
+      const isAcEnd = t === 'air_masked';
+      return {
+        headerName: t.includes('unmasked') ? 'Unmasked' : 'Masked',
+        headerTooltip: sym?.label ?? t,
+        field: t,
         editable,
-        // Flex so the frequency columns share whatever horizontal space
-        // is left after the pinned label/group columns. Avoids the empty
-        // gap on the right-hand side of the table.
         flex: 1,
-        minWidth: 70,
+        minWidth: 88,
+        wrapHeaderText: true,
+        autoHeaderHeight: true,
         cellEditor: 'agNumberCellEditor',
         cellEditorParams: { min: MIN_LEVEL, max: MAX_LEVEL, precision: 0 },
-        valueFormatter: (params) => {
-          if (params.value == null || params.value === '') return '';
-          // In 'column' mode the no-response indicator lives in its own
-          // dedicated column at the right, so the level cell just shows
-          // the value without the trailing arrow.
-          if (noResponseStyle === 'column') return String(params.value);
-          const nr = (params.data as any)?.[nrField];
-          return nr ? `${params.value} ↓` : String(params.value);
-        },
-        valueParser: (params) => {
-          const nv = params.newValue;
+        cellRenderer: NrCellRenderer,
+        cellRendererParams: { toggleNr: handleToggleNr, editable },
+        // Reject out-of-range / non-numeric edits by reverting to the old value.
+        valueParser: (p) => {
+          const nv = p.newValue;
           if (nv === '' || nv == null) return null;
           const n = Number(nv);
-          if (Number.isNaN(n)) return params.oldValue;
-          if (n < MIN_LEVEL || n > MAX_LEVEL) return params.oldValue;
+          if (Number.isNaN(n)) return p.oldValue;
+          if (n < MIN_LEVEL || n > MAX_LEVEL) return p.oldValue;
           return n;
         },
-        cellClass: (params) => {
-          const nr = (params.data as any)?.[nrField];
-          // In 'column' mode the level cell stays plain — the dedicated
-          // no-response column carries the marker.
-          if (noResponseStyle === 'column') return 'audiogram-cell-level';
-          return nr ? 'audiogram-cell-level audiogram-cell-noresponse' : 'audiogram-cell-level';
-        },
-      });
-    }
+        // The last AC column carries the vertical AC/BC seam.
+        cellClass: isAcEnd ? 'audiogram-col-ac-end' : undefined,
+        headerClass: isAcEnd ? ['audiogram-header-centered', 'audiogram-col-ac-end'] : undefined,
+      };
+    };
 
-    if (noResponseStyle === 'column') {
-      cols.push({
-        headerName: 'No Response',
-        field: 'noResponseList',
-        editable,
-        pinned: 'right',
-        width: 150,
-        cellEditor: 'agTextCellEditor',
-        cellClass: 'audiogram-cell-noresp-list',
-        // Accept either "2000, 4000" or "2000 Hz, 4000 Hz". Anything that
-        // isn't a positive number gets dropped silently so typos don't
-        // eat the whole list.
-        valueParser: (params) => {
-          const text = String(params.newValue ?? '').trim();
-          if (!text) return '';
-          const nums = text
-            .split(',')
-            .map((s) => Number(s.replace(/hz/i, '').trim()))
-            .filter((n) => Number.isFinite(n) && n > 0);
-          return nums.join(', ');
-        },
-        valueFormatter: (params) => (params.value ? `${params.value} Hz` : ''),
-      });
-    }
-    return cols;
-  }, [editable, noResponseStyle]);
+    return [
+      {
+        headerName: 'Freq (Hz)',
+        field: 'frequency',
+        pinned: 'left',
+        width: 92,
+        editable: false,
+        cellClass: 'audiogram-freq-cell',
+      },
+      {
+        headerName: 'Air Conduction',
+        headerClass: 'audiogram-group-header audiogram-col-ac-end',
+        // Without this, ag-grid's sticky group label pins to the left and can't center.
+        suppressStickyLabel: true,
+        children: TABLE_TEST_TYPES.filter((t) => testTypeGroup(t) === 'AC').map(leafCol),
+      },
+      {
+        headerName: 'Bone Conduction',
+        headerClass: 'audiogram-group-header',
+        suppressStickyLabel: true,
+        children: TABLE_TEST_TYPES.filter((t) => testTypeGroup(t) === 'BC').map(leafCol),
+      },
+    ];
+  }, [editable, ear, handleToggleNr]);
 
   const onCellEditRequest = (event: CellEditRequestEvent<RowShape>) => {
     const field = event.colDef.field;
-    if (!field || field === 'testLabel') return;
-    if (field === 'noResponseList') {
-      if (!onNoResponseEdit) return;
-      // valueParser already normalized the text to "n, n, n" (or '').
-      const text = String(event.newValue ?? '').trim();
-      const freqs = text
-        ? text
-            .split(',')
-            .map((s) => Number(s.trim()))
-            .filter((n) => Number.isFinite(n) && n > 0)
-        : [];
-      onNoResponseEdit({ ear, testType: event.data.testType, frequencies: freqs });
-      return;
-    }
-    // field is `f<frequency>` — extract the number.
-    const freq = Number(field.slice(1));
-    if (Number.isNaN(freq)) return;
-    const newLevel = event.newValue == null ? null : Number(event.newValue);
+    if (!field || field === 'frequency') return;
+    const nv = event.newValue;
+    const level = nv === '' || nv == null ? null : Number(nv);
+    // Editing the number keeps the cell's no-response flag (a no-response has a
+    // real level); clearing the value clears the flag too.
+    const currentNr = (event.data as any)[nrField(field as TestType)] === 1;
     onCellEdit({
       ear,
-      testType: event.data.testType,
-      frequency: freq,
-      level: newLevel,
+      testType: field as TestType,
+      frequency: event.data.frequency,
+      level,
+      noResponse: level == null ? false : currentNr,
     });
   };
 
@@ -261,7 +228,6 @@ const AudiogramTable = ({
   return (
     <div className={themeClass}>
       <div className='audiogram-table-title'>{ear === 'right' ? 'RIGHT' : 'LEFT'}</div>
-      <div className='audiogram-table-subtitle'>Frequency (Hz)</div>
       <AgGridReact<RowShape>
         rowData={rowData}
         columnDefs={columnDefs}
@@ -273,15 +239,8 @@ const AudiogramTable = ({
           cellStyle: { textAlign: 'center' },
           headerClass: 'audiogram-header-centered',
         }}
-        rowClassRules={{
-          'audiogram-row-ac': (params) => (params.data as any)?.group === 'AC',
-          'audiogram-row-bc': (params) => (params.data as any)?.group === 'BC',
-          'audiogram-row-group-first': (params) =>
-            params.node?.rowIndex === 2, // first BC row — thicker top border
-        }}
         readOnlyEdit
         onCellEditRequest={onCellEditRequest}
-        singleClickEdit
         stopEditingWhenCellsLoseFocus
         suppressMovableColumns
         suppressDragLeaveHidesColumns

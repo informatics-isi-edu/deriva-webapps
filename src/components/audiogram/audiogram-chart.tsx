@@ -28,16 +28,20 @@ const DEFAULT_LAYOUT = {
   xaxis: {
     title: { text: 'Frequency (Hz)' },
     type: 'log',
-    tickvals: [250, 500, 1000, 2000, 4000, 8000],
-    ticktext: ['250', '500', '1000', '2000', '4000', '8000'],
-    range: [Math.log10(200), Math.log10(9000)],
+    tickvals: [125, 250, 500, 1000, 2000, 4000, 8000],
+    ticktext: ['125', '250', '500', '1000', '2000', '4000', '8000'],
+    range: [Math.log10(100), Math.log10(9000)],
     showgrid: true,
     gridcolor: '#ccc',
   },
   yaxis: {
     title: { text: 'Hearing Level (dB HL)' },
-    autorange: 'reversed',
-    range: [-10, 120],
+    // Fixed reversed range (soft at top, loud at bottom): the audiogram always
+    // shows the full standard scale regardless of the data. `autorange: false` is
+    // essential — `'reversed'` auto-scales to the data. The extra 8 below 120 is
+    // headroom for the no-response arrows drawn beneath floor symbols.
+    range: [128, -10],
+    autorange: false,
     showgrid: true,
     gridcolor: '#ccc',
     dtick: 10,
@@ -103,22 +107,20 @@ const AudiogramChart = ({
         });
       }
 
-      // No-response markers for this test type, drawn as arrow-down.
+      // No-response: append a downward arrow just below the base symbol (the
+      // ASHA convention), drawn as a ↓ glyph positioned under each point.
       const noResp = measurements.filter(
         (m) => m.ear === ear && m.testType === t && m.noResponse && m.level != null,
       );
       if (noResp.length > 0) {
         out.push({
           type: 'scatter',
-          mode: 'markers',
+          mode: 'text',
           x: noResp.map((m) => m.frequency),
           y: noResp.map((m) => m.level as number),
-          marker: {
-            symbol: 'arrow-down',
-            color: sym.color,
-            size: 14,
-            line: { color: sym.color, width: 2 },
-          },
+          text: noResp.map(() => '↓'),
+          textposition: 'bottom center',
+          textfont: { family: 'Arial Black', size: 26, color: sym.color },
           name: `${sym.label} (no response)`,
           showlegend: false,
           hovertemplate: `${sym.label} — no response<br>%{x} Hz<extra></extra>`,
@@ -135,7 +137,13 @@ const AudiogramChart = ({
       ...(layoutOverride || {}),
       title: { text: title },
       xaxis: { ...DEFAULT_LAYOUT.xaxis, ...(layoutOverride?.xaxis || {}) },
-      yaxis: { ...DEFAULT_LAYOUT.yaxis, ...(layoutOverride?.yaxis || {}) },
+      yaxis: {
+        ...DEFAULT_LAYOUT.yaxis,
+        ...(layoutOverride?.yaxis || {}),
+        // Force the standard fixed hearing-level scale: never auto-scale to data.
+        range: DEFAULT_LAYOUT.yaxis.range,
+        autorange: false,
+      },
       showlegend: false,
     }),
     [title, layoutOverride],

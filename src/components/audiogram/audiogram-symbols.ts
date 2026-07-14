@@ -53,18 +53,6 @@ export const AUDIOGRAM_SYMBOLS: Record<Ear, Partial<Record<TestType, SymbolSpec>
       mode: 'text',
       textChar: '[',
     },
-    bone_unmasked_forehead: {
-      label: 'BC Unmasked (forehead)',
-      color: RED,
-      mode: 'text',
-      textChar: '∨',
-    },
-    bone_masked_forehead: {
-      label: 'BC Masked (forehead)',
-      color: RED,
-      mode: 'text',
-      textChar: '¬',
-    },
   },
   left: {
     air_unmasked: {
@@ -91,18 +79,6 @@ export const AUDIOGRAM_SYMBOLS: Record<Ear, Partial<Record<TestType, SymbolSpec>
       color: BLUE,
       mode: 'text',
       textChar: ']',
-    },
-    bone_unmasked_forehead: {
-      label: 'BC Unmasked (forehead)',
-      color: BLUE,
-      mode: 'text',
-      textChar: '∨',
-    },
-    bone_masked_forehead: {
-      label: 'BC Masked (forehead)',
-      color: BLUE,
-      mode: 'text',
-      textChar: '⌐',
     },
   },
 };

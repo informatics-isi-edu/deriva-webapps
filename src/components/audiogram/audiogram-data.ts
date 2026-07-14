@@ -21,9 +21,7 @@ export type TestType =
   | 'air_unmasked'
   | 'air_masked'
   | 'bone_unmasked_mastoid'
-  | 'bone_masked_mastoid'
-  | 'bone_unmasked_forehead'
-  | 'bone_masked_forehead';
+  | 'bone_masked_mastoid';
 
 /**
  * Used by the table renderer to draw a thicker border between the AC and
@@ -47,8 +45,19 @@ export type AudiogramMeasurement = {
   noResponse: boolean;
 };
 
-/** Frequencies the audiogram standard expects, in render order. */
-export const STANDARD_FREQUENCIES: number[] = [250, 500, 1000, 2000, 3000, 4000, 6000, 8000];
+/** Default frequency rows shown by the table, in render order (the doc's set). */
+export const STANDARD_FREQUENCIES: number[] = [125, 250, 500, 1000, 2000, 4000, 8000];
+
+/**
+ * The frequency rows the table renders: the default set unioned with any
+ * frequency that actually appears in the data, sorted ascending. Keeps both
+ * ear tables aligned and surfaces custom/extended frequencies present in a record.
+ */
+export function tableFrequencies(measurements: AudiogramMeasurement[]): number[] {
+  const set = new Set<number>(STANDARD_FREQUENCIES);
+  for (const m of measurements) set.add(m.frequency);
+  return Array.from(set).sort((a, b) => a - b);
+}
 
 /**
  * Maps the option-2 (semi-wide) JSON column names from the dev sample
@@ -60,14 +69,10 @@ const WIDE_COLUMN_MAP: Record<string, { ear: Ear; testType: TestType }> = {
   Right_Air_Masked: { ear: 'right', testType: 'air_masked' },
   Right_Bone_Unmasked: { ear: 'right', testType: 'bone_unmasked_mastoid' },
   Right_Bone_Masked: { ear: 'right', testType: 'bone_masked_mastoid' },
-  Right_Bone_Unmasked_FH: { ear: 'right', testType: 'bone_unmasked_forehead' },
-  Right_Bone_Masked_FH: { ear: 'right', testType: 'bone_masked_forehead' },
   Left_Air_Unmasked: { ear: 'left', testType: 'air_unmasked' },
   Left_Air_Masked: { ear: 'left', testType: 'air_masked' },
   Left_Bone_Unmasked: { ear: 'left', testType: 'bone_unmasked_mastoid' },
   Left_Bone_Masked: { ear: 'left', testType: 'bone_masked_mastoid' },
-  Left_Bone_Unmasked_FH: { ear: 'left', testType: 'bone_unmasked_forehead' },
-  Left_Bone_Masked_FH: { ear: 'left', testType: 'bone_masked_forehead' },
 };
 
 /**
@@ -209,22 +214,18 @@ export function presentTestTypes(measurements: AudiogramMeasurement[], ear: Ear)
     'air_masked',
     'bone_unmasked_mastoid',
     'bone_masked_mastoid',
-    'bone_unmasked_forehead',
-    'bone_masked_forehead',
   ];
   return order.filter((t) => seen.has(t));
 }
 
 /**
- * Test types we always want to show in the table even when the data has
- * no row for them, so the user can fill them in. Always 4 rows in ISO/ASHA
- * order: AC unmasked, AC masked, BC unmasked, BC masked.
+ * The four test columns the table always shows even when the data has no
+ * value for them, so the user can fill them in. ISO/ASHA order:
+ * AC unmasked, AC masked, BC unmasked, BC masked.
  */
 export const TABLE_TEST_TYPES: TestType[] = [
   'air_unmasked',
   'air_masked',
   'bone_unmasked_mastoid',
   'bone_masked_mastoid',
-  'bone_unmasked_forehead',
-  'bone_masked_forehead',
 ];
