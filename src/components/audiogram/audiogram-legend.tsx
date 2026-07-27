@@ -1,33 +1,40 @@
+/**
+ * Center-column symbol key. Renders straight from AUDIOGRAM_SYMBOLS (the same
+ * source the chart uses), so the legend and the plot can never disagree. One
+ * row per test type plus a shared "No Response" row (a down-arrow, since
+ * no-response is a modifier on any symbol, not a test type of its own).
+ */
+
 import { type JSX } from 'react';
 
-// models
-import { Trace } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
-
-type AudiogramLegendProps = {
-  rightTrace: Trace;
-  leftTrace: Trace;
-};
+import { TABLE_TEST_TYPES } from '@isrd-isi-edu/deriva-webapps/src/components/audiogram/audiogram-data';
+import {
+  getSymbol,
+  type SymbolSpec,
+} from '@isrd-isi-edu/deriva-webapps/src/components/audiogram/audiogram-symbols';
 
 const SYMBOL_SIZE = 22;
 
-function renderTextSymbol(textSymbol: string, textfont: any): JSX.Element {
+/** A Unicode glyph (bone-conduction brackets, the no-response arrow) in a color. */
+function renderTextGlyph(char: string, color: string): JSX.Element {
   return (
     <span
       style={{
-        fontFamily: textfont?.family || 'Arial Black',
-        fontSize: `${textfont?.size || 18}px`,
-        color: textfont?.color || 'black',
+        fontFamily: 'Arial Black',
+        fontSize: '18px',
+        color,
         display: 'inline-block',
         minWidth: SYMBOL_SIZE,
         textAlign: 'center',
         lineHeight: 1,
       }}
     >
-      {textSymbol}
+      {char}
     </span>
   );
 }
 
+/** The ISO/ASHA marker shapes AUDIOGRAM_SYMBOLS actually uses, drawn as SVG. */
 function renderMarkerSVG(markerSymbol: string, color: string): JSX.Element {
   const size = SYMBOL_SIZE;
   const center = size / 2;
@@ -37,9 +44,6 @@ function renderMarkerSVG(markerSymbol: string, color: string): JSX.Element {
   switch (markerSymbol) {
     case 'circle-open':
       inner = <circle cx={center} cy={center} r={r} fill='none' stroke={color} strokeWidth={2} />;
-      break;
-    case 'circle':
-      inner = <circle cx={center} cy={center} r={r} fill={color} stroke={color} strokeWidth={2} />;
       break;
     case 'triangle-up-open':
       inner = (
@@ -51,80 +55,9 @@ function renderMarkerSVG(markerSymbol: string, color: string): JSX.Element {
         />
       );
       break;
-    case 'triangle-up':
-      inner = (
-        <polygon
-          points={`${center},3 ${size - 3},${size - 3} 3,${size - 3}`}
-          fill={color}
-          stroke={color}
-          strokeWidth={2}
-        />
-      );
-      break;
-    case 'triangle-down-open':
-      inner = (
-        <polygon
-          points={`${center},${size - 3} ${size - 3},3 3,3`}
-          fill='none'
-          stroke={color}
-          strokeWidth={2}
-        />
-      );
-      break;
-    case 'triangle-down':
-      inner = (
-        <polygon
-          points={`${center},${size - 3} ${size - 3},3 3,3`}
-          fill={color}
-          stroke={color}
-          strokeWidth={2}
-        />
-      );
-      break;
-    case 'triangle-left-open':
-      inner = (
-        <polygon
-          points={`3,${center} ${size - 3},3 ${size - 3},${size - 3}`}
-          fill='none'
-          stroke={color}
-          strokeWidth={2}
-        />
-      );
-      break;
-    case 'triangle-right-open':
-      inner = (
-        <polygon
-          points={`${size - 3},${center} 3,3 3,${size - 3}`}
-          fill='none'
-          stroke={color}
-          strokeWidth={2}
-        />
-      );
-      break;
     case 'square-open':
       inner = (
-        <rect
-          x={3}
-          y={3}
-          width={size - 6}
-          height={size - 6}
-          fill='none'
-          stroke={color}
-          strokeWidth={2}
-        />
-      );
-      break;
-    case 'square':
-      inner = (
-        <rect
-          x={3}
-          y={3}
-          width={size - 6}
-          height={size - 6}
-          fill={color}
-          stroke={color}
-          strokeWidth={2}
-        />
+        <rect x={3} y={3} width={size - 6} height={size - 6} fill='none' stroke={color} strokeWidth={2} />
       );
       break;
     case 'x':
@@ -136,38 +69,8 @@ function renderMarkerSVG(markerSymbol: string, color: string): JSX.Element {
         </>
       );
       break;
-    case 'diamond-open':
-      inner = (
-        <polygon
-          points={`${center},3 ${size - 3},${center} ${center},${size - 3} 3,${center}`}
-          fill='none'
-          stroke={color}
-          strokeWidth={2}
-        />
-      );
-      break;
-    case 'diamond':
-      inner = (
-        <polygon
-          points={`${center},3 ${size - 3},${center} ${center},${size - 3} 3,${center}`}
-          fill={color}
-          stroke={color}
-          strokeWidth={2}
-        />
-      );
-      break;
-    case 'arrow-down':
-      inner = (
-        <polygon
-          points={`${center},${size - 3} 3,3 ${size - 3},3`}
-          fill={color}
-          stroke={color}
-          strokeWidth={1}
-        />
-      );
-      break;
     default:
-      // fallback: small filled dot
+      // Fallback dot — should not hit for the ISO/ASHA marker set.
       inner = <circle cx={center} cy={center} r={r / 2} fill={color} stroke={color} strokeWidth={1} />;
   }
 
@@ -183,19 +86,19 @@ function renderMarkerSVG(markerSymbol: string, color: string): JSX.Element {
   );
 }
 
-function renderSymbol(mode: string, marker: any, textSymbol: string, textfont: any): JSX.Element {
-  if (mode === 'text' && textSymbol) {
-    return renderTextSymbol(textSymbol, textfont);
-  }
-  // mode === 'markers' or default
-  const color = marker?.color || 'black';
-  const symbol = marker?.symbol || 'circle-open';
-  return renderMarkerSVG(symbol, color);
+/** Render a symbol spec as either its marker SVG or its Unicode glyph. */
+function renderSymbol(spec: SymbolSpec | undefined): JSX.Element | null {
+  if (!spec) return null;
+  return spec.mode === 'text'
+    ? renderTextGlyph(spec.textChar || '', spec.color)
+    : renderMarkerSVG(spec.markerSymbol || 'circle-open', spec.color);
 }
 
-const AudiogramLegend = ({ rightTrace, leftTrace }: AudiogramLegendProps): JSX.Element => {
-  const labels = rightTrace.legend || [];
+// The no-response row reuses each ear's AC color for its down-arrow.
+const RIGHT_COLOR = getSymbol('right', 'air_unmasked')?.color ?? '#c00000';
+const LEFT_COLOR = getSymbol('left', 'air_unmasked')?.color ?? '#0033cc';
 
+const AudiogramLegend = (): JSX.Element => {
   return (
     <div className='audiogram-legend-container'>
       <table className='audiogram-legend-table'>
@@ -207,28 +110,26 @@ const AudiogramLegend = ({ rightTrace, leftTrace }: AudiogramLegendProps): JSX.E
           </tr>
         </thead>
         <tbody>
-          {labels.map((label, i) => {
-            const rMode = rightTrace.mode?.[i] || 'markers';
-            const lMode = leftTrace.mode?.[i] || 'markers';
-            const rMarker = rightTrace.marker?.[i];
-            const lMarker = leftTrace.marker?.[i];
-            const rTextSymbol = rightTrace.textSymbol?.[i] || '';
-            const lTextSymbol = leftTrace.textSymbol?.[i] || '';
-            const rTextfont = rightTrace.textfont?.[i];
-            const lTextfont = leftTrace.textfont?.[i];
-
+          {TABLE_TEST_TYPES.map((t) => {
+            const right = getSymbol('right', t);
+            const left = getSymbol('left', t);
             return (
-              <tr key={i}>
-                <td className='audiogram-legend-symbol audiogram-legend-right'>
-                  {renderSymbol(rMode, rMarker, rTextSymbol, rTextfont)}
-                </td>
-                <td className='audiogram-legend-label'>{label}</td>
-                <td className='audiogram-legend-symbol audiogram-legend-left'>
-                  {renderSymbol(lMode, lMarker, lTextSymbol, lTextfont)}
-                </td>
+              <tr key={t}>
+                <td className='audiogram-legend-symbol audiogram-legend-right'>{renderSymbol(right)}</td>
+                <td className='audiogram-legend-label'>{right?.label ?? left?.label ?? t}</td>
+                <td className='audiogram-legend-symbol audiogram-legend-left'>{renderSymbol(left)}</td>
               </tr>
             );
           })}
+          <tr>
+            <td className='audiogram-legend-symbol audiogram-legend-right'>
+              {renderTextGlyph('↓', RIGHT_COLOR)}
+            </td>
+            <td className='audiogram-legend-label'>No Response</td>
+            <td className='audiogram-legend-symbol audiogram-legend-left'>
+              {renderTextGlyph('↓', LEFT_COLOR)}
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>

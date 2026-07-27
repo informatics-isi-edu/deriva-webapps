@@ -176,11 +176,6 @@ const AudiogramApp = ({ config }: AudiogramAppProps): JSX.Element => {
     );
   }
 
-  // Pull the layout overrides (axis ranges, height) from the existing
-  // sample config so we don't lose tuning that's already there.
-  const rightLayout = (config.plots[0] as any)?.plotly?.layout;
-  const leftLayout = (config.plots[1] as any)?.plotly?.layout;
-
   return (
     <div className='audiogram-content app-content-container'>
       {/* Empty sticky-header slot: attachContainerHeightSensors needs it to exist; CSS collapses it while empty. */}
@@ -201,27 +196,14 @@ const AudiogramApp = ({ config }: AudiogramAppProps): JSX.Element => {
 
       <div className='audiogram-layout'>
         <div className='audiogram-ear audiogram-right-ear'>
-          <AudiogramChart
-            ear='right'
-            measurements={draftRows}
-            title={rightLayout?.title?.text || rightLayout?.title || 'Right Ear'}
-            layoutOverride={rightLayout}
-          />
+          <AudiogramChart ear='right' measurements={draftRows} />
         </div>
         <div className='audiogram-legend-col'>
-          <AudiogramLegend
-            rightTrace={config.plots[0].traces[0]}
-            leftTrace={config.plots[1].traces[0]}
-          />
+          <AudiogramLegend />
           <AudiogramSummary measurements={draftRows} />
         </div>
         <div className='audiogram-ear audiogram-left-ear'>
-          <AudiogramChart
-            ear='left'
-            measurements={draftRows}
-            title={leftLayout?.title?.text || leftLayout?.title || 'Left Ear'}
-            layoutOverride={leftLayout}
-          />
+          <AudiogramChart ear='left' measurements={draftRows} />
         </div>
       </div>
 

@@ -160,26 +160,11 @@ export function diffMeasurements(
   return out;
 }
 
-/** Group measurements by frequency for table rendering. */
-export function groupByFrequency(
-  measurements: AudiogramMeasurement[],
-  ear: Ear,
-): Map<number, Map<TestType, AudiogramMeasurement>> {
-  const filtered = measurements.filter((m) => m.ear === ear);
-  const grouped = new Map<number, Map<TestType, AudiogramMeasurement>>();
-  for (const m of filtered) {
-    if (!grouped.has(m.frequency)) grouped.set(m.frequency, new Map());
-    grouped.get(m.frequency)!.set(m.testType, m);
-  }
-  return grouped;
-}
-
 /**
- * Pure-tone average for an ear: mean of AC Unmasked levels at the
- * specified frequencies (default 500/1000/2000 Hz, the standard
- * three-frequency PTA). Returns null when fewer than 2 of the
- * requested frequencies have a value, so we don't display a
- * misleading average.
+ * Pure-tone average for an ear: mean of the AC unmasked thresholds at the
+ * given frequencies (default 500/1000/2000 Hz), skipping no-response points.
+ * Returns null when fewer than two have a value (a two-of-three average is
+ * allowed), so we never show a misleading number.
  */
 export function computePTA(
   measurements: AudiogramMeasurement[],
@@ -208,14 +193,7 @@ export function presentTestTypes(measurements: AudiogramMeasurement[], ear: Ear)
   for (const m of measurements) {
     if (m.ear === ear) seen.add(m.testType);
   }
-  // Stable order matching the legend.
-  const order: TestType[] = [
-    'air_unmasked',
-    'air_masked',
-    'bone_unmasked_mastoid',
-    'bone_masked_mastoid',
-  ];
-  return order.filter((t) => seen.has(t));
+  return TABLE_TEST_TYPES.filter((t) => seen.has(t));
 }
 
 /**

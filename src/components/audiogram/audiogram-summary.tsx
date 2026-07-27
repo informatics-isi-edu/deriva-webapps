@@ -32,7 +32,7 @@ const AudiogramSummary = ({ measurements }: AudiogramSummaryProps): JSX.Element 
   const [wordId, setWordId] = useState<PairState>(EMPTY);
   const [wordIdLevel, setWordIdLevel] = useState<PairState>(EMPTY);
 
-  const fmtPTA = (v: number | null) => (v == null ? '—' : String(v));
+  const fmtPTA = (v: number | null) => (v == null ? '' : String(v));
 
   const renderInputRow = (
     label: string,
@@ -73,13 +73,13 @@ const AudiogramSummary = ({ measurements }: AudiogramSummaryProps): JSX.Element 
         </thead>
         <tbody>
           <tr>
-            <td className='audiogram-summary-rowlabel'>PTA (db)</td>
+            <td className='audiogram-summary-rowlabel'>PTA (dB)</td>
             <td className='audiogram-summary-right'>{fmtPTA(rightPTA)}</td>
             <td className='audiogram-summary-left'>{fmtPTA(leftPTA)}</td>
           </tr>
-          {renderInputRow('SRT (db)', srt, setSrt, 'number')}
+          {renderInputRow('SRT (dB)', srt, setSrt, 'number')}
           {renderInputRow('Word ID (%)', wordId, setWordId, 'number')}
-          {renderInputRow('Word ID Level (db)', wordIdLevel, setWordIdLevel, 'number')}
+          {renderInputRow('Word ID Level (dB)', wordIdLevel, setWordIdLevel, 'number')}
         </tbody>
       </table>
     </div>

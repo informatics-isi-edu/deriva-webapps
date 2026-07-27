@@ -19,8 +19,6 @@ export type SymbolSpec = {
   markerSymbol?: string;
   /** Unicode character to render (when mode === 'text'). */
   textChar?: string;
-  /** Whether AC unmasked traces should connect points with a line. */
-  connectLine?: boolean;
 };
 
 const RED = '#c00000';
@@ -33,7 +31,6 @@ export const AUDIOGRAM_SYMBOLS: Record<Ear, Partial<Record<TestType, SymbolSpec>
       color: RED,
       mode: 'marker',
       markerSymbol: 'circle-open',
-      connectLine: true,
     },
     air_masked: {
       label: 'AC Masked',
@@ -42,13 +39,13 @@ export const AUDIOGRAM_SYMBOLS: Record<Ear, Partial<Record<TestType, SymbolSpec>
       markerSymbol: 'triangle-up-open',
     },
     bone_unmasked_mastoid: {
-      label: 'BC Unmasked (mastoid)',
+      label: 'BC Unmasked',
       color: RED,
       mode: 'text',
       textChar: '<',
     },
     bone_masked_mastoid: {
-      label: 'BC Masked (mastoid)',
+      label: 'BC Masked',
       color: RED,
       mode: 'text',
       textChar: '[',
@@ -60,7 +57,6 @@ export const AUDIOGRAM_SYMBOLS: Record<Ear, Partial<Record<TestType, SymbolSpec>
       color: BLUE,
       mode: 'marker',
       markerSymbol: 'x-thin',
-      connectLine: true,
     },
     air_masked: {
       label: 'AC Masked',
@@ -69,13 +65,13 @@ export const AUDIOGRAM_SYMBOLS: Record<Ear, Partial<Record<TestType, SymbolSpec>
       markerSymbol: 'square-open',
     },
     bone_unmasked_mastoid: {
-      label: 'BC Unmasked (mastoid)',
+      label: 'BC Unmasked',
       color: BLUE,
       mode: 'text',
       textChar: '>',
     },
     bone_masked_mastoid: {
-      label: 'BC Masked (mastoid)',
+      label: 'BC Masked',
       color: BLUE,
       mode: 'text',
       textChar: ']',

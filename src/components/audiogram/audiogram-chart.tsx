@@ -1,8 +1,7 @@
 /**
- * Audiogram chart — builds a Plotly figure from the normalized
- * AudiogramMeasurement[] shape. Replaces direct use of ChartWithEffect
- * for the audiogram app so that the chart can render live from the
- * draftRows state owned by AudiogramApp.
+ * Audiogram chart: builds a Plotly figure from AudiogramMeasurement[]. Owns the
+ * fixed ISO/ASHA display (axes, symbols, colors) so the plot renders the same
+ * way regardless of the data or runtime config.
  */
 
 import { useMemo, type JSX } from 'react';
@@ -19,9 +18,6 @@ import { getSymbol } from '@isrd-isi-edu/deriva-webapps/src/components/audiogram
 type AudiogramChartProps = {
   ear: Ear;
   measurements: AudiogramMeasurement[];
-  title: string;
-  /** Optional layout overrides from the config (xaxis range, height, etc.). */
-  layoutOverride?: any;
 };
 
 const DEFAULT_LAYOUT = {
@@ -36,10 +32,8 @@ const DEFAULT_LAYOUT = {
   },
   yaxis: {
     title: { text: 'Hearing Level (dB HL)' },
-    // Fixed reversed range (soft at top, loud at bottom): the audiogram always
-    // shows the full standard scale regardless of the data. `autorange: false` is
-    // essential — `'reversed'` auto-scales to the data. The extra 8 below 120 is
-    // headroom for the no-response arrows drawn beneath floor symbols.
+    // Fixed reversed scale (soft at top, loud at bottom); never auto-ranges to
+    // the data. 128 leaves room for the no-response arrows drawn below 120.
     range: [128, -10],
     autorange: false,
     showgrid: true,
@@ -51,21 +45,40 @@ const DEFAULT_LAYOUT = {
   margin: { t: 50, b: 60, l: 60, r: 20 },
 };
 
-const AudiogramChart = ({
-  ear,
-  measurements,
-  title,
-  layoutOverride,
-}: AudiogramChartProps): JSX.Element => {
+const AudiogramChart = ({ ear, measurements }: AudiogramChartProps): JSX.Element => {
   const traces = useMemo(() => {
-    const types = presentTestTypes(measurements, ear);
     const out: any[] = [];
 
-    for (const t of types) {
+    // AC curve: masked threshold where present, else unmasked. Pushed first so
+    // it draws beneath the symbols.
+    const acColor = getSymbol(ear, 'air_unmasked')?.color;
+    const acByFreq = new Map<number, number>();
+    for (const m of measurements) {
+      if (m.ear !== ear || m.level == null) continue;
+      if (m.testType === 'air_masked') {
+        acByFreq.set(m.frequency, m.level);
+      } else if (m.testType === 'air_unmasked' && !acByFreq.has(m.frequency)) {
+        acByFreq.set(m.frequency, m.level);
+      }
+    }
+    if (acByFreq.size > 1 && acColor) {
+      const acFreqs = Array.from(acByFreq.keys()).sort((a, b) => a - b);
+      out.push({
+        type: 'scatter',
+        mode: 'lines',
+        x: acFreqs,
+        y: acFreqs.map((f) => acByFreq.get(f) as number),
+        line: { color: acColor, width: 2 },
+        name: 'AC threshold',
+        showlegend: false,
+        hoverinfo: 'skip',
+      });
+    }
+
+    for (const t of presentTestTypes(measurements, ear)) {
       const sym = getSymbol(ear, t);
       if (!sym) continue;
 
-      // Filter to this test type and sort by frequency for the line.
       const points = measurements
         .filter((m) => m.ear === ear && m.testType === t && m.level != null)
         .sort((a, b) => a.frequency - b.frequency);
@@ -78,7 +91,7 @@ const AudiogramChart = ({
       if (sym.mode === 'marker') {
         out.push({
           type: 'scatter',
-          mode: sym.connectLine ? 'lines+markers' : 'markers',
+          mode: 'markers',
           x,
           y,
           marker: {
@@ -87,13 +100,11 @@ const AudiogramChart = ({
             size: 14,
             line: { color: sym.color, width: 2 },
           },
-          line: sym.connectLine ? { color: sym.color, width: 2 } : undefined,
           name: sym.label,
           showlegend: false,
           hovertemplate: `${sym.label}<br>%{x} Hz : %{y} dB HL<extra></extra>`,
         });
       } else {
-        // Text mode — render the Unicode glyph at each (frequency, level).
         out.push({
           type: 'scatter',
           mode: 'text',
@@ -107,8 +118,7 @@ const AudiogramChart = ({
         });
       }
 
-      // No-response: append a downward arrow just below the base symbol (the
-      // ASHA convention), drawn as a ↓ glyph positioned under each point.
+      // No-response: a down-arrow below the base symbol (ASHA convention).
       const noResp = measurements.filter(
         (m) => m.ear === ear && m.testType === t && m.noResponse && m.level != null,
       );
@@ -123,7 +133,7 @@ const AudiogramChart = ({
           textfont: { family: 'Arial Black', size: 26, color: sym.color },
           name: `${sym.label} (no response)`,
           showlegend: false,
-          hovertemplate: `${sym.label} — no response<br>%{x} Hz<extra></extra>`,
+          hovertemplate: `${sym.label}, no response<br>%{x} Hz<extra></extra>`,
         });
       }
     }
@@ -132,21 +142,8 @@ const AudiogramChart = ({
   }, [ear, measurements]);
 
   const layout = useMemo(
-    () => ({
-      ...DEFAULT_LAYOUT,
-      ...(layoutOverride || {}),
-      title: { text: title },
-      xaxis: { ...DEFAULT_LAYOUT.xaxis, ...(layoutOverride?.xaxis || {}) },
-      yaxis: {
-        ...DEFAULT_LAYOUT.yaxis,
-        ...(layoutOverride?.yaxis || {}),
-        // Force the standard fixed hearing-level scale: never auto-scale to data.
-        range: DEFAULT_LAYOUT.yaxis.range,
-        autorange: false,
-      },
-      showlegend: false,
-    }),
-    [title, layoutOverride],
+    () => ({ ...DEFAULT_LAYOUT, title: { text: ear === 'right' ? 'Right Ear' : 'Left Ear' } }),
+    [ear],
   );
 
   return (
@@ -161,7 +158,7 @@ const AudiogramChart = ({
             responsive: true,
             modeBarButtonsToRemove: ['select2d', 'lasso2d'],
           }}
-          style={{ width: '100%', height: layout.height }}
+          style={{ width: '100%', height: DEFAULT_LAYOUT.height }}
           useResizeHandler
         />
       </div>
