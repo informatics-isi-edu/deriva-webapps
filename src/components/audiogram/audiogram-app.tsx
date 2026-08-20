@@ -20,8 +20,10 @@ import { attachContainerHeightSensors } from '@isrd-isi-edu/chaise/src/utils/ui-
 // data
 import {
   type AudiogramMeasurement,
+  type AudiogramSummaryValues,
   diffMeasurements,
   normalizeAudiogramRows,
+  normalizeSummaryRow,
 } from '@isrd-isi-edu/deriva-webapps/src/components/audiogram/audiogram-data';
 
 // models
@@ -56,8 +58,28 @@ const AudiogramApp = ({ config }: AudiogramAppProps): JSX.Element => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /*
+   * Editable by default; embedded (iframe) instances are read-only viewers
+   * with an "Open editor" link out. ?mode=edit / ?mode=readonly override
+   * the default either way.
+   */
+  const embedded = window.self !== window.top;
+  const editMode = useMemo(() => {
+    const mode = new URLSearchParams(window.location.search).get('mode');
+    if (mode === 'edit') return true;
+    if (mode === 'readonly') return false;
+    return !embedded;
+  }, [embedded]);
+  const editorHref = useMemo(() => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('mode', 'edit');
+    if (embedded) url.searchParams.delete('hideNavbar');
+    return url.toString();
+  }, [embedded]);
+
   const [committedRows, setCommittedRows] = useState<AudiogramMeasurement[]>([]);
   const [draftRows, setDraftRows] = useState<AudiogramMeasurement[]>([]);
+  const [storedSummary, setStoredSummary] = useState<AudiogramSummaryValues | null>(null);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
@@ -86,6 +108,22 @@ const AudiogramApp = ({ config }: AudiogramAppProps): JSX.Element => {
         const rows = normalizeAudiogramRows(resp.data as any[]);
         setCommittedRows(rows);
         setDraftRows(rows);
+        // Stored per-ear summaries come from the audiogram record itself,
+        // via an optional second pattern in the config. Non-fatal if absent.
+        const summaryPattern: string | undefined = trace?.summary_url_pattern;
+        if (summaryPattern) {
+          try {
+            const summaryUrl = (ConfigService as any).ERMrest.renderHandlebarsTemplate(
+              summaryPattern, tplParams,
+            );
+            const summaryResp = await ConfigService.http.get(summaryUrl);
+            if (cancelled) return;
+            const summaryRow = (summaryResp.data as any[])?.[0];
+            if (summaryRow) setStoredSummary(normalizeSummaryRow(summaryRow));
+          } catch {
+            // leave the card unseeded
+          }
+        }
         setLoading(false);
       } catch (err: any) {
         if (cancelled) return;
@@ -182,7 +220,24 @@ const AudiogramApp = ({ config }: AudiogramAppProps): JSX.Element => {
       <div className='top-panel-container' />
       <div className='bottom-panel-container'>
         <div className='audiogram-page'>
-      {isDirty && (
+      <div className='audiogram-modebar'>
+        {editMode ? (
+          <span className='audiogram-modebar-note'>
+            Edit mode — changes stay as local drafts for now.
+          </span>
+        ) : (
+          <a
+            className='audiogram-modebar-link'
+            href={editorHref}
+            target={embedded ? '_blank' : '_self'}
+            rel='noreferrer'
+          >
+            Open editor
+          </a>
+        )}
+      </div>
+
+      {editMode && isDirty && (
         <div className='audiogram-savebar'>
           <span className='audiogram-savebar-msg'>You have unsaved changes.</span>
           <button type='button' className='audiogram-savebar-cancel' onClick={handleCancel}>
@@ -200,7 +255,7 @@ const AudiogramApp = ({ config }: AudiogramAppProps): JSX.Element => {
         </div>
         <div className='audiogram-legend-col'>
           <AudiogramLegend />
-          <AudiogramSummary measurements={draftRows} />
+          <AudiogramSummary measurements={draftRows} editable={editMode} stored={storedSummary} />
         </div>
         <div className='audiogram-ear audiogram-left-ear'>
           <AudiogramChart ear='left' measurements={draftRows} />
@@ -212,7 +267,7 @@ const AudiogramApp = ({ config }: AudiogramAppProps): JSX.Element => {
           <AudiogramTable
             ear='right'
             measurements={draftRows}
-            editable
+            editable={editMode}
             onCellEdit={handleCellEdit}
           />
         </div>
@@ -220,7 +275,7 @@ const AudiogramApp = ({ config }: AudiogramAppProps): JSX.Element => {
           <AudiogramTable
             ear='left'
             measurements={draftRows}
-            editable
+            editable={editMode}
             onCellEdit={handleCellEdit}
           />
         </div>

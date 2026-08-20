@@ -76,6 +76,70 @@ const WIDE_COLUMN_MAP: Record<string, { ear: Ear; testType: TestType }> = {
 };
 
 /**
+ * Per-ear stored summary values from the audiogram record, as display
+ * strings ('' = not recorded, 'NR' = recorded as no-response).
+ */
+export type AudiogramSummaryValues = {
+  srt: { right: string; left: string };
+  wordId: { right: string; left: string };
+  wordIdLevel: { right: string; left: string };
+  ucl: { right: string; left: string };
+  tympanogram: { right: string; left: string };
+};
+
+/** Adapter: earbase:audiogram row → AudiogramSummaryValues. */
+export function normalizeSummaryRow(row: any): AudiogramSummaryValues {
+  const val = (v: any, nr?: any) => (nr ? 'NR' : v == null ? '' : String(v));
+  return {
+    srt: {
+      right: val(row.right_srt_db, row.right_srt_no_response),
+      left: val(row.left_srt_db, row.left_srt_no_response),
+    },
+    wordId: {
+      right: val(row.right_word_recognition_percent, row.right_word_recognition_no_response),
+      left: val(row.left_word_recognition_percent, row.left_word_recognition_no_response),
+    },
+    wordIdLevel: {
+      right: val(row.right_word_recognition_db),
+      left: val(row.left_word_recognition_db),
+    },
+    ucl: { right: val(row.right_ucl_db), left: val(row.left_ucl_db) },
+    tympanogram: { right: val(row.right_tympanogram_type), left: val(row.left_tympanogram_type) },
+  };
+}
+
+/**
+ * Adapter: option-1 (long) ERMrest rows → AudiogramMeasurement[].
+ *
+ * One input row per (ear, test type, frequency) from earbase:measurement:
+ * `ear` ("Left"/"Right"), `audiogram_test_type` ("Air"/"Bone"), `frequency`
+ * (vocabulary name like "250 Hz", parsed to its leading number), `level_db`,
+ * `masked`, `no_response`. Masked picks the *_masked test type; a
+ * no-response row keeps its level (the tested limit).
+ */
+function normalizeLongRows(rows: any[]): AudiogramMeasurement[] {
+  const out: AudiogramMeasurement[] = [];
+  for (const row of rows) {
+    const ear: Ear = String(row.ear).toLowerCase() === 'right' ? 'right' : 'left';
+    const bone = String(row.audiogram_test_type).toLowerCase() === 'bone';
+    const masked = Boolean(row.masked);
+    const testType: TestType = bone
+      ? (masked ? 'bone_masked_mastoid' : 'bone_unmasked_mastoid')
+      : (masked ? 'air_masked' : 'air_unmasked');
+    const frequency = parseInt(String(row.frequency), 10);
+    if (Number.isNaN(frequency)) continue;
+    out.push({
+      ear,
+      testType,
+      frequency,
+      level: row.level_db == null ? null : Number(row.level_db),
+      noResponse: Boolean(row.no_response),
+    });
+  }
+  return out;
+}
+
+/**
  * Adapter: option-2 (semi-wide) JSON rows → AudiogramMeasurement[].
  *
  * Each input row has Frequency_<Ear>_<Test> + Level_<Ear>_<Test> column
@@ -86,6 +150,7 @@ const WIDE_COLUMN_MAP: Record<string, { ear: Ear; testType: TestType }> = {
  */
 export function normalizeAudiogramRows(rows: any[]): AudiogramMeasurement[] {
   if (!Array.isArray(rows)) return [];
+  if (rows.length && rows[0] && 'audiogram_test_type' in rows[0]) return normalizeLongRows(rows);
   const out: AudiogramMeasurement[] = [];
 
   // First pass: regular measurements.

@@ -39,6 +39,20 @@ const AudiogramPage = (): JSX.Element => {
   );
 };
 
+/*
+ * Quick hack: standalone webapp pages have no catalog in the path, but the
+ * navbar needs one to fetch the catalog's chaise-config annotation (navbar
+ * menu, branding). Feed the ?catalog= URL param in as defaultCatalog before
+ * chaise configures itself.
+ */
+const catalogParam = new URLSearchParams(windowRef.location.search).get('catalog');
+if (catalogParam) {
+  (windowRef as any).chaiseConfig = {
+    ...((windowRef as any).chaiseConfig || {}),
+    defaultCatalog: catalogParam,
+  };
+}
+
 const root = createRoot(document.getElementById(ID_NAMES.APP_ROOT) as HTMLElement);
 root.render(
   <AppWrapper appSettings={audiogramSettings} includeNavbar displaySpinner ignoreHashChange includeAlerts>
