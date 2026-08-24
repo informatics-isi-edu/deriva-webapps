@@ -21,41 +21,27 @@ module.exports = (env) => {
         appName: 'boolean-search',
         appTitle: 'Boolean Search',
         appConfigLocation: `${WEBAPPS_BASE_PATH}config/boolean-search-config.js`,
-        externalFiles: [
-          `${WEBAPPS_BASE_PATH}bundles/plotly-basic.min.js`,
-        ]
       },
       {
         appName: 'heatmap',
         appTitle: 'Heatmap',
         appConfigLocation: `${WEBAPPS_BASE_PATH}config/heatmap-config.js`,
-        externalFiles: [
-          `${WEBAPPS_BASE_PATH}bundles/plotly-basic.min.js`,
-        ]
       },
       {
         appName: 'matrix',
         appTitle: 'Matrix',
         appConfigLocation: `${WEBAPPS_BASE_PATH}config/matrix-config.js`,
-        externalFiles: [
-          `${WEBAPPS_BASE_PATH}bundles/plotly-basic.min.js`,
-        ]
       },
       {
         appName: 'plot',
         appTitle: 'Plot',
         appConfigLocation: `${WEBAPPS_BASE_PATH}config/plot-config.js`,
-        externalFiles: [
-          `${WEBAPPS_BASE_PATH}bundles/plotly-basic.min.js`,
-        ]
       },
       {
         appName: 'treeview',
         appTitle: 'Treeview',
         appConfigLocation: `${WEBAPPS_BASE_PATH}config/treeview-config.js`,
         externalFiles: [
-          `${WEBAPPS_BASE_PATH}bundles/plotly-basic.min.js`,
-
           `${WEBAPPS_BASE_PATH}treeview/util/jquery-3.4.1.min.js`,
           `${WEBAPPS_BASE_PATH}treeview/util/jquery-ui.js`,
           `${WEBAPPS_BASE_PATH}treeview/util/jstree.js`,
@@ -87,9 +73,6 @@ module.exports = (env) => {
       //   appName: 'vitessce',
       //   appTitle: 'Vitessce',
       //   appConfigLocation: `${WEBAPPS_BASE_PATH}config/vitessce-config.js`,
-      //   externalFiles: [
-      //     `${WEBAPPS_BASE_PATH}bundles/plotly-basic.min.js`
-      //   ]
       // },
     ],
     mode,
@@ -98,13 +81,6 @@ module.exports = (env) => {
       rootFolderLocation,
       resolveAliases,
       urlBasePath: WEBAPPS_BASE_PATH,
-      extraWebpackProps: {
-        externals: {
-          // treat plotly as an external dependency and don't compute it
-          // TODO we should most probably do something similar for the other version of plotly that we're including
-          'plotly.js-basic-dist-min': 'Plotly'
-        }
-      }
     }
   );
 };
