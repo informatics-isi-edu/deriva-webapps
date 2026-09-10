@@ -1,9 +1,17 @@
-import {
-  PlotData,
+/*
+ * types come from plotly.js itself (it ships them as of v4) rather than from @types/plotly.js,
+ * which DefinitelyTyped no longer keeps in step. the names differ: what DefinitelyTyped called
+ * PlotData is ScatterData upstream. `import type` keeps plotly.js out of the bundle, we only
+ * ever load the cartesian dist at runtime.
+ */
+import type {
+  BarData as PlotlyBarData,
   Config as PlotlyConfig,
+  HeatmapData as PlotlyHeatmapData,
+  HistogramData as PlotlyHistogramData,
   Layout as PlotlyLayout,
   PieData as PlotlyPieData,
-  PlotData as PlotlyPlotData,
+  ScatterData as PlotlyScatterData,
   ViolinData as PlotlyViolinData,
 } from 'plotly.js';
 
@@ -69,7 +77,7 @@ export type Plot = {
 export type Plotly = {
   config: PlotlyConfig;
   layout: PlotlyLayout;
-  data: PlotlyPlotData[];
+  data: TracePlotyData[];
 };
 
 /**
@@ -83,7 +91,7 @@ export type PlotConfigConfig = {
   format_data_x?: boolean;
   format_data_y?: boolean;
   disable_default_legend_click?: boolean;
-  slice_label?: PlotData['textinfo'];
+  slice_label?: PlotlyPieData['textinfo'];
   x_axis_thousands_separator?: boolean;
   xbins?: number;
   ybins?: number;
@@ -185,9 +193,17 @@ export type MarginPaddingConfig =
   }
 
 /**
- * Trace data
+ * Trace data.
+ *
+ * one trace object has to satisfy whichever plot_type it belongs to, so this is the union of
+ * every trace type the plot app supports. plotly.js's own types are per-trace (unlike the
+ * catch-all PlotData that @types/plotly.js used to expose), so heatmap's `z` and pie's `values`
+ * only type-check if their trace types are listed here.
  */
-export type TracePlotyData = Partial<PlotlyPlotData> &
+export type TracePlotyData = Partial<PlotlyScatterData> &
+  Partial<PlotlyBarData> &
+  Partial<PlotlyHistogramData> &
+  Partial<PlotlyHeatmapData> &
   Partial<PlotlyViolinData> &
   Partial<PlotlyPieData>;
 
