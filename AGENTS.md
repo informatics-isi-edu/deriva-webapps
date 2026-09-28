@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to coding agents (Claude Code, Codex, and others) when working with code in this repository.
 
 ## Commands
 
@@ -167,3 +167,16 @@ src/
 | `papaparse` | CSV parsing |
 | `plotly.js-cartesian-dist-min` | Plotly charts (loaded as webpack external, not bundled) |
 | `handlebars` | Template rendering for URL patterns and display strings |
+
+## Writing
+
+Applies to PR descriptions, commit messages, issues, and review or PR comments.
+
+- Write for a human teammate unless told otherwise. Be concise: what changed and why, nothing the diff already makes obvious.
+- Scale length to the change. A one-line fix gets one sentence. No boilerplate headers like "Summary" or "Test plan" on routine PRs.
+- Automated PRs (Dependabot, releases) can be terser and more structured, but still short.
+
+## Code Review Rules
+
+- Keep each comment short: the problem, why it matters, and the fix. No praise, and no restating what the PR does.
+- Only comment on things that affect behavior, correctness, security, or compatibility. Formatting and lint belong to the linters.
