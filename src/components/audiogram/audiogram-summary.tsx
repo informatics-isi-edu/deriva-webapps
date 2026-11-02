@@ -24,12 +24,18 @@ type AudiogramSummaryProps = {
   measurements: AudiogramMeasurement[];
   editable: boolean;
   stored: AudiogramSummaryValues | null;
+  /** record page of the case this audiogram belongs to; no link when null */
+  caseHref: string | null;
+  /** embedded instances open the case in a new tab rather than inside the iframe */
+  openLinksInNewTab: boolean;
 };
 
 type PairState = { right: string; left: string };
 const EMPTY: PairState = { right: '', left: '' };
 
-const AudiogramSummary = ({ measurements, editable, stored }: AudiogramSummaryProps): JSX.Element => {
+const AudiogramSummary = ({
+  measurements, editable, stored, caseHref, openLinksInNewTab,
+}: AudiogramSummaryProps): JSX.Element => {
   const rightPTA = computePTA(measurements, 'right');
   const leftPTA = computePTA(measurements, 'left');
 
@@ -94,6 +100,14 @@ const AudiogramSummary = ({ measurements, editable, stored }: AudiogramSummaryPr
           {renderRow('Tympanogram', tympanogram, setTympanogram)}
         </tbody>
       </table>
+      {caseHref && stored?.caseRid && (
+        <div className='audiogram-summary-case'>
+          Case:{' '}
+          <a href={caseHref} target={openLinksInNewTab ? '_blank' : '_self'} rel='noreferrer'>
+            {stored.caseNumber || stored.caseRid}
+          </a>
+        </div>
+      )}
     </div>
   );
 };

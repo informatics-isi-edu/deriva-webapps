@@ -80,6 +80,7 @@ const AudiogramApp = ({ config }: AudiogramAppProps): JSX.Element => {
   const [committedRows, setCommittedRows] = useState<AudiogramMeasurement[]>([]);
   const [draftRows, setDraftRows] = useState<AudiogramMeasurement[]>([]);
   const [storedSummary, setStoredSummary] = useState<AudiogramSummaryValues | null>(null);
+  const [caseHref, setCaseHref] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
@@ -119,7 +120,20 @@ const AudiogramApp = ({ config }: AudiogramAppProps): JSX.Element => {
             const summaryResp = await ConfigService.http.get(summaryUrl);
             if (cancelled) return;
             const summaryRow = (summaryResp.data as any[])?.[0];
-            if (summaryRow) setStoredSummary(normalizeSummaryRow(summaryRow));
+            if (summaryRow) {
+              setStoredSummary(normalizeSummaryRow(summaryRow));
+              // link to the case, when the config says where cases live
+              const casePattern: string | undefined = trace?.case_url_pattern;
+              if (casePattern && summaryRow.case != null) {
+                try {
+                  setCaseHref((ConfigService as any).ERMrest.renderHandlebarsTemplate(
+                    casePattern, { ...tplParams, $row: summaryRow },
+                  ));
+                } catch {
+                  // no link
+                }
+              }
+            }
           } catch {
             // leave the card unseeded
           }
@@ -220,7 +234,7 @@ const AudiogramApp = ({ config }: AudiogramAppProps): JSX.Element => {
       <div className='top-panel-container' />
       <div className='bottom-panel-container'>
         <div className='audiogram-page'>
-      <div className='audiogram-modebar'>
+      {/*<div className='audiogram-modebar'>
         {editMode ? (
           <span className='audiogram-modebar-note'>
             Edit mode — changes stay as local drafts for now.
@@ -235,7 +249,7 @@ const AudiogramApp = ({ config }: AudiogramAppProps): JSX.Element => {
             Open editor
           </a>
         )}
-      </div>
+      </div>*/}
 
       {editMode && isDirty && (
         <div className='audiogram-savebar'>
@@ -255,7 +269,13 @@ const AudiogramApp = ({ config }: AudiogramAppProps): JSX.Element => {
         </div>
         <div className='audiogram-legend-col'>
           <AudiogramLegend />
-          <AudiogramSummary measurements={draftRows} editable={editMode} stored={storedSummary} />
+          <AudiogramSummary
+            measurements={draftRows}
+            editable={editMode}
+            stored={storedSummary}
+            caseHref={caseHref}
+            openLinksInNewTab={embedded}
+          />
         </div>
         <div className='audiogram-ear audiogram-left-ear'>
           <AudiogramChart ear='left' measurements={draftRows} />

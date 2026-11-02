@@ -80,6 +80,9 @@ const WIDE_COLUMN_MAP: Record<string, { ear: Ear; testType: TestType }> = {
  * strings ('' = not recorded, 'NR' = recorded as no-response).
  */
 export type AudiogramSummaryValues = {
+  /** the case the audiogram belongs to: RID and its number (from the `case_number` projection), '' when unknown */
+  caseRid: string;
+  caseNumber: string;
   srt: { right: string; left: string };
   wordId: { right: string; left: string };
   wordIdLevel: { right: string; left: string };
@@ -87,32 +90,43 @@ export type AudiogramSummaryValues = {
   tympanogram: { right: string; left: string };
 };
 
-/** Adapter: earbase:audiogram row → AudiogramSummaryValues. */
+/**
+ * Adapter: earbase:diagnostic_test row (an Audiometric Test) → AudiogramSummaryValues.
+ * Column names follow FaceBase's "<Measure> <Ear>" style ("SRT Left",
+ * "Word ID Left No Response").
+ *
+ * TODO: the column names here and in normalizeLongRows (ear, conduction_type,
+ * frequency, level_db, masked, no_response) are hardcoded to the earbase
+ * model. They should come from a column mapping in audiogram-config.js so the
+ * app works against any model without a code change.
+ */
 export function normalizeSummaryRow(row: any): AudiogramSummaryValues {
   const val = (v: any, nr?: any) => (nr ? 'NR' : v == null ? '' : String(v));
+  const ear = (e: 'Left' | 'Right') => ({
+    srt: val(row[`SRT ${e}`], row[`SRT ${e} No Response`]),
+    wordId: val(row[`Word ID ${e}`], row[`Word ID ${e} No Response`]),
+    wordIdLevel: val(row[`Word ID Level ${e}`]),
+    ucl: val(row[`UCL ${e}`], row[`UCL ${e} No Response`]),
+    tympanogram: val(row[`Tympanogram Type ${e}`]),
+  });
+  const left = ear('Left');
+  const right = ear('Right');
   return {
-    srt: {
-      right: val(row.right_srt_db, row.right_srt_no_response),
-      left: val(row.left_srt_db, row.left_srt_no_response),
-    },
-    wordId: {
-      right: val(row.right_word_recognition_percent, row.right_word_recognition_no_response),
-      left: val(row.left_word_recognition_percent, row.left_word_recognition_no_response),
-    },
-    wordIdLevel: {
-      right: val(row.right_word_recognition_db),
-      left: val(row.left_word_recognition_db),
-    },
-    ucl: { right: val(row.right_ucl_db), left: val(row.left_ucl_db) },
-    tympanogram: { right: val(row.right_tympanogram_type), left: val(row.left_tympanogram_type) },
+    caseRid: row.case == null ? '' : String(row.case),
+    caseNumber: row.case_number == null ? '' : String(row.case_number),
+    srt: { right: right.srt, left: left.srt },
+    wordId: { right: right.wordId, left: left.wordId },
+    wordIdLevel: { right: right.wordIdLevel, left: left.wordIdLevel },
+    ucl: { right: right.ucl, left: left.ucl },
+    tympanogram: { right: right.tympanogram, left: left.tympanogram },
   };
 }
 
 /**
  * Adapter: option-1 (long) ERMrest rows → AudiogramMeasurement[].
  *
- * One input row per (ear, test type, frequency) from earbase:measurement:
- * `ear` ("Left"/"Right"), `audiogram_test_type` ("Air"/"Bone"), `frequency`
+ * One input row per (ear, conduction, frequency) from earbase:pure_tone_threshold:
+ * `ear` ("Left"/"Right"), `conduction_type` ("Air"/"Bone"), `frequency`
  * (vocabulary name like "250 Hz", parsed to its leading number), `level_db`,
  * `masked`, `no_response`. Masked picks the *_masked test type; a
  * no-response row keeps its level (the tested limit).
@@ -121,7 +135,7 @@ function normalizeLongRows(rows: any[]): AudiogramMeasurement[] {
   const out: AudiogramMeasurement[] = [];
   for (const row of rows) {
     const ear: Ear = String(row.ear).toLowerCase() === 'right' ? 'right' : 'left';
-    const bone = String(row.audiogram_test_type).toLowerCase() === 'bone';
+    const bone = String(row.conduction_type).toLowerCase() === 'bone';
     const masked = Boolean(row.masked);
     const testType: TestType = bone
       ? (masked ? 'bone_masked_mastoid' : 'bone_unmasked_mastoid')
@@ -150,7 +164,7 @@ function normalizeLongRows(rows: any[]): AudiogramMeasurement[] {
  */
 export function normalizeAudiogramRows(rows: any[]): AudiogramMeasurement[] {
   if (!Array.isArray(rows)) return [];
-  if (rows.length && rows[0] && 'audiogram_test_type' in rows[0]) return normalizeLongRows(rows);
+  if (rows.length && rows[0] && 'conduction_type' in rows[0]) return normalizeLongRows(rows);
   const out: AudiogramMeasurement[] = [];
 
   // First pass: regular measurements.

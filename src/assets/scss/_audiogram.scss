@@ -9,6 +9,7 @@
   overflow-y: auto;
   overflow-x: hidden;
   padding: 16px;
+  padding-top: 0;
 
   .audiogram-layout {
     display: grid;
@@ -397,6 +398,13 @@
           -moz-appearance: textfield;
         }
       }
+    }
+
+    .audiogram-summary-case {
+      border-top: 1px solid #e0e0e0;
+      padding: 6px 12px;
+      text-align: center;
+      font-size: 13px;
     }
   }
 }
