@@ -1,14 +1,15 @@
 /**
- * Audiogram data model.
- *
- * The audiogram app consumes a normalized in-memory shape regardless of how
- * the data is stored on the wire. This file is the only place that knows
- * about the storage shape; switching from option 2 (current sample, semi-wide)
- * to option 1 (long) or option 3 (fully wide) means rewriting the adapters
- * here, and nothing else.
- *
- * See docs/dev-docs/audiogram/progress-02.md "Row encoding" for the trade-offs.
+ * Audiogram data: the in-memory shape the app works with, and the adapters that read
+ * threshold and audiogram rows into it, using the column names and values from the config.
  */
+
+// models
+import { CustomError } from '@isrd-isi-edu/chaise/src/models/errors';
+import {
+  AudiogramRecord,
+  AudiogramSummaryMeasure,
+  AudiogramThresholds,
+} from '@isrd-isi-edu/deriva-webapps/src/models/audiogram-config';
 
 export type Ear = 'right' | 'left';
 
@@ -45,7 +46,7 @@ export type AudiogramMeasurement = {
   noResponse: boolean;
 };
 
-/** Default frequency rows shown by the table, in render order (the doc's set). */
+/** the spec's default frequency set, for configs without default_frequencies */
 export const STANDARD_FREQUENCIES: number[] = [125, 250, 500, 1000, 2000, 4000, 8000];
 
 /**
@@ -53,36 +54,65 @@ export const STANDARD_FREQUENCIES: number[] = [125, 250, 500, 1000, 2000, 4000, 
  * frequency that actually appears in the data, sorted ascending. Keeps both
  * ear tables aligned and surfaces custom/extended frequencies present in a record.
  */
-export function tableFrequencies(measurements: AudiogramMeasurement[]): number[] {
-  const set = new Set<number>(STANDARD_FREQUENCIES);
+export function tableFrequencies(
+  measurements: AudiogramMeasurement[],
+  defaultFrequencies: number[],
+): number[] {
+  const set = new Set<number>(defaultFrequencies);
   for (const m of measurements) set.add(m.frequency);
   return Array.from(set).sort((a, b) => a - b);
 }
 
+/** projection alias for the case's display column, set by the audiogram request */
+export const CASE_DISPLAY_ALIAS = 'case_display';
+
+/** the threshold columns the config names */
+export function thresholdColumnNames(thresholds: AudiogramThresholds): string[] {
+  const columns = thresholds.columns;
+  return [
+    columns.ear,
+    columns.conduction,
+    columns.frequency,
+    columns.level,
+    columns.masked,
+    columns.no_response,
+  ];
+}
+
+/** the audiogram row columns the config names: the summary columns and the case column */
+export function audiogramColumnNames(record: AudiogramRecord): string[] {
+  const names: string[] = [];
+  for (const measure of Object.values(record.summary)) {
+    if (!measure) continue;
+    names.push(measure.value.right, measure.value.left);
+    if (measure.no_response) names.push(measure.no_response.right, measure.no_response.left);
+  }
+  if (record.case) names.push(record.case.column);
+  return names;
+}
+
 /**
- * Maps the option-2 (semi-wide) JSON column names from the dev sample
- * to (ear, test type) pairs. Adding a new column just means adding an
- * entry here.
+ * Throw when the row lacks a configured column. A config that doesn't match the data would
+ * otherwise show an empty chart or blank summary cells without any error.
  */
-const WIDE_COLUMN_MAP: Record<string, { ear: Ear; testType: TestType }> = {
-  Right_Air_Unmasked: { ear: 'right', testType: 'air_unmasked' },
-  Right_Air_Masked: { ear: 'right', testType: 'air_masked' },
-  Right_Bone_Unmasked: { ear: 'right', testType: 'bone_unmasked_mastoid' },
-  Right_Bone_Masked: { ear: 'right', testType: 'bone_masked_mastoid' },
-  Left_Air_Unmasked: { ear: 'left', testType: 'air_unmasked' },
-  Left_Air_Masked: { ear: 'left', testType: 'air_masked' },
-  Left_Bone_Unmasked: { ear: 'left', testType: 'bone_unmasked_mastoid' },
-  Left_Bone_Masked: { ear: 'left', testType: 'bone_masked_mastoid' },
-};
+export function checkConfiguredColumns(row: any, names: string[], block: string): void {
+  const missing = names.filter((name) => !(name in row));
+  if (missing.length > 0) {
+    throw new CustomError(
+      'Invalid Config',
+      `The ${block} rows don't have these configured columns: ${missing.join(', ')}`,
+    );
+  }
+}
 
 /**
  * Per-ear stored summary values from the audiogram record, as display
  * strings ('' = not recorded, 'NR' = recorded as no-response).
  */
 export type AudiogramSummaryValues = {
-  /** the case the audiogram belongs to: RID and its number (from the `case_number` projection), '' when unknown */
   caseRid: string;
-  caseNumber: string;
+  caseDisplay: string;
+  pta: { right: string; left: string };
   srt: { right: string; left: string };
   wordId: { right: string; left: string };
   wordIdLevel: { right: string; left: string };
@@ -90,135 +120,117 @@ export type AudiogramSummaryValues = {
   tympanogram: { right: string; left: string };
 };
 
-/**
- * Adapter: earbase:diagnostic_test row (an Audiometric Test) → AudiogramSummaryValues.
- * Column names follow FaceBase's "<Measure> <Ear>" style ("SRT Left",
- * "Word ID Left No Response").
- *
- * TODO: the column names here and in normalizeLongRows (ear, conduction_type,
- * frequency, level_db, masked, no_response) are hardcoded to the earbase
- * model. They should come from a column mapping in audiogram-config.js so the
- * app works against any model without a code change.
- */
-export function normalizeSummaryRow(row: any): AudiogramSummaryValues {
-  const val = (v: any, nr?: any) => (nr ? 'NR' : v == null ? '' : String(v));
-  const ear = (e: 'Left' | 'Right') => ({
-    srt: val(row[`SRT ${e}`], row[`SRT ${e} No Response`]),
-    wordId: val(row[`Word ID ${e}`], row[`Word ID ${e} No Response`]),
-    wordIdLevel: val(row[`Word ID Level ${e}`]),
-    ucl: val(row[`UCL ${e}`], row[`UCL ${e} No Response`]),
-    tympanogram: val(row[`Tympanogram Type ${e}`]),
-  });
-  const left = ear('Left');
-  const right = ear('Right');
+/** the audiogram row → stored summary values, through the configured columns */
+export function normalizeSummaryRow(row: any, record: AudiogramRecord): AudiogramSummaryValues {
+  const summary = record.summary;
+  const caseRid = record.case ? row[record.case.column] : null;
   return {
-    caseRid: row.case == null ? '' : String(row.case),
-    caseNumber: row.case_number == null ? '' : String(row.case_number),
-    srt: { right: right.srt, left: left.srt },
-    wordId: { right: right.wordId, left: left.wordId },
-    wordIdLevel: { right: right.wordIdLevel, left: left.wordIdLevel },
-    ucl: { right: right.ucl, left: left.ucl },
-    tympanogram: { right: right.tympanogram, left: left.tympanogram },
+    caseRid: caseRid == null ? '' : String(caseRid),
+    caseDisplay: row[CASE_DISPLAY_ALIAS] == null ? '' : String(row[CASE_DISPLAY_ALIAS]),
+    pta: summaryPair(row, summary.pta),
+    srt: summaryPair(row, summary.srt),
+    wordId: summaryPair(row, summary.word_id),
+    wordIdLevel: summaryPair(row, summary.word_id_level),
+    ucl: summaryPair(row, summary.ucl),
+    tympanogram: summaryPair(row, summary.tympanogram),
   };
 }
 
+/** both ears of a measure as display text: '' when not recorded, 'NR' when flagged no response */
+function summaryPair(row: any, measure: AudiogramSummaryMeasure | undefined) {
+  return { right: summaryValue(row, measure, 'right'), left: summaryValue(row, measure, 'left') };
+}
+
+function summaryValue(row: any, measure: AudiogramSummaryMeasure | undefined, ear: Ear): string {
+  if (!measure) return '';
+  if (measure.no_response && row[measure.no_response[ear]]) return 'NR';
+  const value = row[measure.value[ear]];
+  return value == null ? '' : String(value);
+}
+
 /**
- * Adapter: option-1 (long) ERMrest rows → AudiogramMeasurement[].
- *
- * One input row per (ear, conduction, frequency) from earbase:pure_tone_threshold:
- * `ear` ("Left"/"Right"), `conduction_type` ("Air"/"Bone"), `frequency`
- * (vocabulary name like "250 Hz", parsed to its leading number), `level_db`,
- * `masked`, `no_response`. Masked picks the *_masked test type; a
- * no-response row keeps its level (the tested limit).
+ * Threshold rows → AudiogramMeasurement[], one row per threshold. Column names and the ear and
+ * conduction values come from the config. hzByName maps frequency names to hertz (from the
+ * frequency vocabulary); a name it doesn't know falls back to the number in it ("250 Hz").
+ * Rows with an unknown ear, conduction or frequency are skipped with a console warning.
  */
-function normalizeLongRows(rows: any[]): AudiogramMeasurement[] {
+export function normalizeThresholdRows(
+  rows: any[],
+  thresholds: AudiogramThresholds,
+  hzByName?: Map<string, number>,
+): AudiogramMeasurement[] {
+  const { columns, values } = thresholds;
   const out: AudiogramMeasurement[] = [];
   for (const row of rows) {
-    const ear: Ear = String(row.ear).toLowerCase() === 'right' ? 'right' : 'left';
-    const bone = String(row.conduction_type).toLowerCase() === 'bone';
-    const masked = Boolean(row.masked);
-    const testType: TestType = bone
-      ? (masked ? 'bone_masked_mastoid' : 'bone_unmasked_mastoid')
-      : (masked ? 'air_masked' : 'air_unmasked');
-    const frequency = parseInt(String(row.frequency), 10);
-    if (Number.isNaN(frequency)) continue;
+    const earValue = row[columns.ear];
+    let ear: Ear;
+    if (earValue === values.ear.right) ear = 'right';
+    else if (earValue === values.ear.left) ear = 'left';
+    else {
+      warnSkipped('ear', earValue);
+      continue;
+    }
+
+    const conductionValue = row[columns.conduction];
+    let bone: boolean;
+    if (conductionValue === values.conduction.bone) bone = true;
+    else if (conductionValue === values.conduction.air) bone = false;
+    else {
+      warnSkipped('conduction', conductionValue);
+      continue;
+    }
+
+    const frequencyValue = row[columns.frequency];
+    let frequency = hzByName?.get(String(frequencyValue));
+    if (frequency === undefined) frequency = parseInt(String(frequencyValue), 10);
+    if (Number.isNaN(frequency) || frequency <= 0) {
+      warnSkipped('frequency', frequencyValue);
+      continue;
+    }
+
+    const masked = Boolean(row[columns.masked]);
+    let testType: TestType;
+    if (bone) testType = masked ? 'bone_masked_mastoid' : 'bone_unmasked_mastoid';
+    else testType = masked ? 'air_masked' : 'air_unmasked';
+
+    const level = row[columns.level];
+    const noResponse = Boolean(row[columns.no_response]);
+    if (noResponse && level == null) {
+      console.warn(`[audiogram] a no-response threshold at ${frequency} Hz has no level, the chart can't show it`);
+    }
     out.push({
       ear,
       testType,
       frequency,
-      level: row.level_db == null ? null : Number(row.level_db),
-      noResponse: Boolean(row.no_response),
+      level: level == null ? null : Number(level),
+      noResponse,
     });
   }
   return out;
 }
 
-/**
- * Adapter: option-2 (semi-wide) JSON rows → AudiogramMeasurement[].
- *
- * Each input row has Frequency_<Ear>_<Test> + Level_<Ear>_<Test> column
- * pairs. A row may carry several test types (one per pair). For the
- * "No Response" pair, the level value (e.g. 120) is the masking limit
- * and we mark the corresponding (ear, AC unmasked) measurement at that
- * frequency as no-response.
- */
-export function normalizeAudiogramRows(rows: any[]): AudiogramMeasurement[] {
-  if (!Array.isArray(rows)) return [];
-  if (rows.length && rows[0] && 'conduction_type' in rows[0]) return normalizeLongRows(rows);
-  const out: AudiogramMeasurement[] = [];
-
-  // First pass: regular measurements.
+/** frequency name → hertz, from the frequency vocabulary rows */
+export function frequencyMap(
+  rows: any[],
+  vocab: { name_column: string; hz_column: string },
+): Map<string, number> {
+  const map = new Map<string, number>();
   for (const row of rows) {
-    for (const [suffix, key] of Object.entries(WIDE_COLUMN_MAP)) {
-      const freq = row[`Frequency_${suffix}`];
-      const level = row[`Level_${suffix}`];
-      if (freq == null) continue;
-      out.push({
-        ear: key.ear,
-        testType: key.testType,
-        frequency: Number(freq),
-        level: level == null ? null : Number(level),
-        noResponse: false,
-      });
-    }
+    const hz = Number(row[vocab.hz_column]);
+    // a missing or zero hz would break the chart's log axis
+    if (Number.isFinite(hz) && hz > 0) map.set(String(row[vocab.name_column]), hz);
   }
+  return map;
+}
 
-  // Second pass: no-response markers. Per the open question Q1a in
-  // progress-01.md the dev sample stores no-response in dedicated
-  // Frequency_<Ear>_No_Response / Level_<Ear>_No_Response columns. We
-  // attach them to the AC unmasked measurement at that frequency, or
-  // synthesize a placeholder if none exists.
-  for (const row of rows) {
-    for (const ear of ['Right', 'Left'] as const) {
-      const freq = row[`Frequency_${ear}_No_Response`];
-      const level = row[`Level_${ear}_No_Response`];
-      if (freq == null) continue;
-      const earKey: Ear = ear === 'Right' ? 'right' : 'left';
-      const existing = out.find(
-        (m) => m.ear === earKey && m.testType === 'air_unmasked' && m.frequency === Number(freq),
-      );
-      if (existing) {
-        existing.noResponse = true;
-        if (level != null) existing.level = Number(level);
-      } else {
-        out.push({
-          ear: earKey,
-          testType: 'air_unmasked',
-          frequency: Number(freq),
-          level: level == null ? null : Number(level),
-          noResponse: true,
-        });
-      }
-    }
-  }
-
-  return out;
+function warnSkipped(field: string, value: unknown) {
+  console.warn(`[audiogram] skipped a threshold with an unknown ${field}: ${value}`);
 }
 
 /**
  * For computing the diff payload on Save. Returns measurements that
  * differ between two snapshots. Used to log the pending edits today;
- * will feed the actual PATCH payload once Q2 is answered.
+ * will feed the save requests once saving lands.
  */
 export function diffMeasurements(
   before: AudiogramMeasurement[],

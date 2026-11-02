@@ -1,7 +1,8 @@
 /**
  * Compact per-ear summary card: PTA (computed from AC measurements at
- * 500/1000/2000 Hz) plus the stored summary values from the audiogram
- * record (SRT / Word ID / Word ID Level / UCL / Tympanogram).
+ * 500/1000/2000 Hz, or the stored value when it can't be computed) plus the
+ * stored summary values the config maps (SRT / Word ID / Word ID Level / UCL /
+ * Tympanogram).
  *
  * Sits in the centre column between the two ear plots (see
  * .audiogram-legend-col in _audiogram.scss) so clinicians can glance at
@@ -17,11 +18,15 @@ import { useEffect, useState, type JSX } from 'react';
 import {
   type AudiogramMeasurement,
   type AudiogramSummaryValues,
+  type Ear,
   computePTA,
 } from '@isrd-isi-edu/deriva-webapps/src/components/audiogram/audiogram-data';
+import { AudiogramRecord } from '@isrd-isi-edu/deriva-webapps/src/models/audiogram-config';
 
 type AudiogramSummaryProps = {
   measurements: AudiogramMeasurement[];
+  /** the measures the config maps to columns; only those rows are shown, PTA always is */
+  measures: AudiogramRecord['summary'] | undefined;
   editable: boolean;
   stored: AudiogramSummaryValues | null;
   /** record page of the case this audiogram belongs to; no link when null */
@@ -34,10 +39,14 @@ type PairState = { right: string; left: string };
 const EMPTY: PairState = { right: '', left: '' };
 
 const AudiogramSummary = ({
-  measurements, editable, stored, caseHref, openLinksInNewTab,
+  measurements, measures, editable, stored, caseHref, openLinksInNewTab,
 }: AudiogramSummaryProps): JSX.Element => {
-  const rightPTA = computePTA(measurements, 'right');
-  const leftPTA = computePTA(measurements, 'left');
+  // computed from the thresholds, the stored value only when it can't be computed
+  const pta = (ear: Ear): string => {
+    const computed = computePTA(measurements, ear);
+    if (computed != null) return String(computed);
+    return stored?.pta[ear] ?? '';
+  };
 
   const [srt, setSrt] = useState<PairState>(EMPTY);
   const [wordId, setWordId] = useState<PairState>(EMPTY);
@@ -54,8 +63,6 @@ const AudiogramSummary = ({
     setUcl(stored.ucl);
     setTympanogram(stored.tympanogram);
   }, [stored]);
-
-  const fmtPTA = (v: number | null) => (v == null ? '' : String(v));
 
   const renderRow = (label: string, state: PairState, setState: (s: PairState) => void) => (
     <tr>
@@ -90,21 +97,21 @@ const AudiogramSummary = ({
         <tbody>
           <tr>
             <td className='audiogram-summary-rowlabel'>PTA (dB)</td>
-            <td className='audiogram-summary-right'>{fmtPTA(rightPTA)}</td>
-            <td className='audiogram-summary-left'>{fmtPTA(leftPTA)}</td>
+            <td className='audiogram-summary-right'>{pta('right')}</td>
+            <td className='audiogram-summary-left'>{pta('left')}</td>
           </tr>
-          {renderRow('SRT (dB)', srt, setSrt)}
-          {renderRow('Word ID (%)', wordId, setWordId)}
-          {renderRow('Word ID Level (dB)', wordIdLevel, setWordIdLevel)}
-          {renderRow('UCL (dB)', ucl, setUcl)}
-          {renderRow('Tympanogram', tympanogram, setTympanogram)}
+          {measures?.srt && renderRow('SRT (dB)', srt, setSrt)}
+          {measures?.word_id && renderRow('Word ID (%)', wordId, setWordId)}
+          {measures?.word_id_level && renderRow('Word ID Level (dB)', wordIdLevel, setWordIdLevel)}
+          {measures?.ucl && renderRow('UCL (dB)', ucl, setUcl)}
+          {measures?.tympanogram && renderRow('Tympanogram', tympanogram, setTympanogram)}
         </tbody>
       </table>
       {caseHref && stored?.caseRid && (
         <div className='audiogram-summary-case'>
           Case:{' '}
           <a href={caseHref} target={openLinksInNewTab ? '_blank' : '_self'} rel='noreferrer'>
-            {stored.caseNumber || stored.caseRid}
+            {stored.caseDisplay || stored.caseRid}
           </a>
         </div>
       )}

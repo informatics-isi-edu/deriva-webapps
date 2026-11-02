@@ -1,5 +1,7 @@
 # Audiogram App — Dev Guide
 
+> **Note:** the `audiogram.json` (semi-wide) and `audiogram-normalized.json` samples referenced below were removed. The app now reads the long format through `config/audiogram-config.js`, see `config/audiogram-config-sample.js` and `docs/dev-docs/audiogram/sample-thresholds.json`.
+
 ## Test Environment
 
 - **Base URL**: `https://dev.facebase.org/~ashafaei/deriva-webapps/`

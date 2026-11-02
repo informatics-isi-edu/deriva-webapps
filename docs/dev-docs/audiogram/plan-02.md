@@ -1,5 +1,7 @@
 # Audiogram — Next Steps Plan
 
+> **Note:** the `audiogram.json` (semi-wide) and `audiogram-normalized.json` samples referenced below were removed. The app now reads the long format through `config/audiogram-config.js`, see `config/audiogram-config-sample.js` and `docs/dev-docs/audiogram/sample-thresholds.json`.
+
 ## Context
 
 V3 (the standalone `audiogram` app on the `audiogram` branch) renders right/left ear plots with a custom HTML legend, reusing the plot-app's config schema and `ChartWithEffect` for rendering. The next priority is **showing a table of the raw measurement values below the audiogram** so reviewers in tomorrow's meeting can see chart + tabular data side by side.

@@ -12,21 +12,21 @@ import {
   type AudiogramMeasurement,
   type Ear,
   presentTestTypes,
+  tableFrequencies,
 } from '@isrd-isi-edu/deriva-webapps/src/components/audiogram/audiogram-data';
 import { getSymbol } from '@isrd-isi-edu/deriva-webapps/src/components/audiogram/audiogram-symbols';
 
 type AudiogramChartProps = {
   ear: Ear;
   measurements: AudiogramMeasurement[];
+  /** frequencies shown even without data (the config's default_frequencies) */
+  defaultFrequencies: number[];
 };
 
 const DEFAULT_LAYOUT = {
   xaxis: {
     title: { text: 'Frequency (Hz)' },
     type: 'log',
-    tickvals: [125, 250, 500, 1000, 2000, 4000, 8000],
-    ticktext: ['125', '250', '500', '1000', '2000', '4000', '8000'],
-    range: [Math.log10(100), Math.log10(9000)],
     showgrid: true,
     gridcolor: '#ccc',
   },
@@ -45,7 +45,11 @@ const DEFAULT_LAYOUT = {
   margin: { t: 50, b: 60, l: 60, r: 20 },
 };
 
-const AudiogramChart = ({ ear, measurements }: AudiogramChartProps): JSX.Element => {
+const AudiogramChart = ({
+  ear,
+  measurements,
+  defaultFrequencies,
+}: AudiogramChartProps): JSX.Element => {
   const traces = useMemo(() => {
     const out: any[] = [];
 
@@ -141,10 +145,22 @@ const AudiogramChart = ({ ear, measurements }: AudiogramChartProps): JSX.Element
     return out;
   }, [ear, measurements]);
 
-  const layout = useMemo(
-    () => ({ ...DEFAULT_LAYOUT, title: { text: ear === 'right' ? 'Right Ear' : 'Left Ear' } }),
-    [ear],
-  );
+  const layout = useMemo(() => {
+    // a tick at every frequency the tables show, so data outside the defaults stays on the chart
+    const frequencies = tableFrequencies(measurements, defaultFrequencies);
+    const lowest = frequencies[0];
+    const highest = frequencies[frequencies.length - 1];
+    return {
+      ...DEFAULT_LAYOUT,
+      title: { text: ear === 'right' ? 'Right Ear' : 'Left Ear' },
+      xaxis: {
+        ...DEFAULT_LAYOUT.xaxis,
+        tickvals: frequencies,
+        ticktext: frequencies.map(String),
+        range: [Math.log10(lowest * 0.8), Math.log10(highest * 1.125)],
+      },
+    };
+  }, [ear, measurements, defaultFrequencies]);
 
   return (
     <div className='chart-container'>

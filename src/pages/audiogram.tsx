@@ -5,16 +5,20 @@ import { createRoot } from 'react-dom/client';
 import AppWrapper from '@isrd-isi-edu/chaise/src/components/app-wrapper';
 import ChaiseSpinner from '@isrd-isi-edu/chaise/src/components/spinner';
 
-// provider
-import PlotAppProvider from '@isrd-isi-edu/deriva-webapps/src/providers/plot-app';
-
 // components
 import AudiogramApp from '@isrd-isi-edu/deriva-webapps/src/components/audiogram/audiogram-app';
 
+// hooks
+import useError from '@isrd-isi-edu/chaise/src/hooks/error';
+import { useEffect, useRef, useState, type JSX } from 'react';
+
+// models
+import { AudiogramConfig } from '@isrd-isi-edu/deriva-webapps/src/models/audiogram-config';
+
 // utilities
 import { ID_NAMES } from '@isrd-isi-edu/chaise/src/utils/constants';
+import { getAudiogramConfig } from '@isrd-isi-edu/deriva-webapps/src/utils/audiogram-config';
 import { windowRef } from '@isrd-isi-edu/deriva-webapps/src/utils/window-ref';
-import { type JSX } from 'react';
 
 
 const audiogramSettings = {
@@ -26,17 +30,30 @@ const audiogramSettings = {
 };
 
 const AudiogramPage = (): JSX.Element => {
-  const config = windowRef.audiogramConfig;
+  const { dispatchError, errors } = useError();
+  const [config, setConfig] = useState<AudiogramConfig | null>(null);
 
+  // strict mode runs the effect twice in dev mode
+  const setupStarted = useRef<boolean>(false);
+
+  useEffect(() => {
+    if (setupStarted.current) return;
+    setupStarted.current = true;
+    try {
+      setConfig(getAudiogramConfig());
+    } catch (error: any) {
+      dispatchError({ error });
+    }
+  }, []);
+
+  // if there was an error during setup, hide the spinner
+  if (!config && errors.length > 0) {
+    return <></>;
+  }
   if (!config) {
     return <ChaiseSpinner />;
   }
-
-  return (
-    <PlotAppProvider>
-      <AudiogramApp config={config} />
-    </PlotAppProvider>
-  );
+  return <AudiogramApp config={config} />;
 };
 
 /*

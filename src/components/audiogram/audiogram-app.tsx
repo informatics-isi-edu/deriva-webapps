@@ -8,11 +8,14 @@ import AudiogramLegend from '@isrd-isi-edu/deriva-webapps/src/components/audiogr
 import AudiogramSummary from '@isrd-isi-edu/deriva-webapps/src/components/audiogram/audiogram-summary';
 
 // hooks
-import usePlot from '@isrd-isi-edu/deriva-webapps/src/hooks/plot';
-import { useCallback, useEffect, useLayoutEffect, useMemo, useState, type JSX } from 'react';
+import useError from '@isrd-isi-edu/chaise/src/hooks/error';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type JSX } from 'react';
 
 // services
 import { ConfigService } from '@isrd-isi-edu/chaise/src/services/config';
+
+// models
+import { CustomError } from '@isrd-isi-edu/chaise/src/models/errors';
 
 // utils
 import { attachContainerHeightSensors } from '@isrd-isi-edu/chaise/src/utils/ui-utils';
@@ -21,16 +24,27 @@ import { attachContainerHeightSensors } from '@isrd-isi-edu/chaise/src/utils/ui-
 import {
   type AudiogramMeasurement,
   type AudiogramSummaryValues,
+  audiogramColumnNames,
+  checkConfiguredColumns,
   diffMeasurements,
-  normalizeAudiogramRows,
+  frequencyMap,
+  STANDARD_FREQUENCIES,
   normalizeSummaryRow,
+  normalizeThresholdRows,
+  thresholdColumnNames,
 } from '@isrd-isi-edu/deriva-webapps/src/components/audiogram/audiogram-data';
+import {
+  type AudiogramRequest,
+  audiogramRequest,
+  frequencyVocabRequest,
+  thresholdsRequest,
+} from '@isrd-isi-edu/deriva-webapps/src/components/audiogram/audiogram-requests';
 
 // models
-import { DataConfig } from '@isrd-isi-edu/deriva-webapps/src/models/plot';
+import { AudiogramConfig } from '@isrd-isi-edu/deriva-webapps/src/models/audiogram-config';
 
 export type AudiogramAppProps = {
-  config: DataConfig;
+  config: AudiogramConfig;
 };
 
 /**
@@ -46,17 +60,24 @@ function buildTemplateParams(): any {
   for (const [k, v] of params.entries()) $url_parameters[k] = v;
   return {
     $url_parameters,
-    $catalog: { id: (ConfigService as any)?.catalogID || '' },
+    $catalog: { id: ConfigService.catalogID || '' },
   };
 }
 
-const AudiogramApp = ({ config }: AudiogramAppProps): JSX.Element => {
-  const { setConfig, globalControlsInitialized } = usePlot();
+async function fetchRows(req: AudiogramRequest): Promise<any[]> {
+  const resp = await ConfigService.http.get(req.uri, { headers: req.headers });
+  if (!Array.isArray(resp.data)) {
+    throw new CustomError('Audiogram', `${req.uri} didn't return a list of rows.`);
+  }
+  return resp.data;
+}
 
-  useEffect(() => {
-    setConfig(config);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+const AudiogramApp = ({ config }: AudiogramAppProps): JSX.Element => {
+  const { dispatchError, errors } = useError();
+  const defaultFrequencies = config.default_frequencies ?? STANDARD_FREQUENCIES;
+
+  // a url_pattern reads from somewhere the app can't write to, so the app is read-only
+  const readOnly = Boolean(config.thresholds.url_pattern || config.audiogram?.url_pattern);
 
   /*
    * Editable by default; embedded (iframe) instances are read-only viewers
@@ -65,11 +86,12 @@ const AudiogramApp = ({ config }: AudiogramAppProps): JSX.Element => {
    */
   const embedded = window.self !== window.top;
   const editMode = useMemo(() => {
+    if (readOnly) return false;
     const mode = new URLSearchParams(window.location.search).get('mode');
     if (mode === 'edit') return true;
     if (mode === 'readonly') return false;
     return !embedded;
-  }, [embedded]);
+  }, [embedded, readOnly]);
   const editorHref = useMemo(() => {
     const url = new URL(window.location.href);
     url.searchParams.set('mode', 'edit');
@@ -77,79 +99,75 @@ const AudiogramApp = ({ config }: AudiogramAppProps): JSX.Element => {
     return url.toString();
   }, [embedded]);
 
+  /*
+   * TODO when saving lands: move the drafts, the dirty flag and the save state into a zustand
+   * store (chaise's scoped-store pattern, see chaise's dev-guide), with actions like editCell,
+   * save and cancel.
+   */
   const [committedRows, setCommittedRows] = useState<AudiogramMeasurement[]>([]);
   const [draftRows, setDraftRows] = useState<AudiogramMeasurement[]>([]);
   const [storedSummary, setStoredSummary] = useState<AudiogramSummaryValues | null>(null);
   const [caseHref, setCaseHref] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Resolve the URL pattern (with $url_parameters substitution) and fetch.
+  // strict mode runs the effect twice in dev mode
+  const setupStarted = useRef<boolean>(false);
+
   useEffect(() => {
-    let cancelled = false;
+    if (setupStarted.current) return;
+    setupStarted.current = true;
+
     async function load() {
       try {
-        const trace = config.plots[0]?.traces?.[0] as any;
-        const pattern: string | undefined = trace?.url_pattern;
-        if (!pattern) {
-          setFetchError('No url_pattern in audiogram config (plots[0].traces[0]).');
-          setLoading(false);
-          return;
+        const templateParams = buildTemplateParams();
+        const rid = ConfigService.ERMrest.renderHandlebarsTemplate(config.rid_pattern, templateParams);
+        if (!rid) {
+          throw new CustomError('Audiogram', 'No audiogram to show: add ?audiogram=<RID> to the page URL.');
         }
-        const tplParams = buildTemplateParams();
-        let url = pattern;
-        try {
-          url = (ConfigService as any).ERMrest.renderHandlebarsTemplate(pattern, tplParams);
-        } catch {
-          // Fall back to raw pattern if templating helper isn't available.
-          url = pattern;
+        const { thresholds, audiogram } = config;
+        const vocab = thresholds.frequency_vocab;
+
+        const [thresholdRows, vocabRows, audiogramRows] = await Promise.all([
+          fetchRows(thresholdsRequest(thresholds, rid, templateParams)),
+          vocab ? fetchRows(frequencyVocabRequest(vocab, templateParams)) : null,
+          audiogram ? fetchRows(audiogramRequest(audiogram, rid, templateParams)) : null,
+        ]);
+
+        if (thresholdRows.length > 0) {
+          checkConfiguredColumns(thresholdRows[0], thresholdColumnNames(thresholds), 'thresholds');
         }
-        const resp = await ConfigService.http.get(url);
-        if (cancelled) return;
-        const rows = normalizeAudiogramRows(resp.data as any[]);
+        const hzByName = vocab && vocabRows ? frequencyMap(vocabRows, vocab) : undefined;
+        const rows = normalizeThresholdRows(thresholdRows, thresholds, hzByName);
         setCommittedRows(rows);
         setDraftRows(rows);
-        // Stored per-ear summaries come from the audiogram record itself,
-        // via an optional second pattern in the config. Non-fatal if absent.
-        const summaryPattern: string | undefined = trace?.summary_url_pattern;
-        if (summaryPattern) {
-          try {
-            const summaryUrl = (ConfigService as any).ERMrest.renderHandlebarsTemplate(
-              summaryPattern, tplParams,
-            );
-            const summaryResp = await ConfigService.http.get(summaryUrl);
-            if (cancelled) return;
-            const summaryRow = (summaryResp.data as any[])?.[0];
-            if (summaryRow) {
-              setStoredSummary(normalizeSummaryRow(summaryRow));
-              // link to the case, when the config says where cases live
-              const casePattern: string | undefined = trace?.case_url_pattern;
-              if (casePattern && summaryRow.case != null) {
-                try {
-                  setCaseHref((ConfigService as any).ERMrest.renderHandlebarsTemplate(
-                    casePattern, { ...tplParams, $row: summaryRow },
-                  ));
-                } catch {
-                  // no link
-                }
-              }
+
+        if (audiogram) {
+          const audiogramRow = audiogramRows?.[0];
+          if (!audiogramRow && !audiogram.url_pattern) {
+            throw new CustomError('Audiogram', `Audiogram ${rid} not found.`);
+          }
+          if (audiogramRow) {
+            checkConfiguredColumns(audiogramRow, audiogramColumnNames(audiogram), 'audiogram');
+            setStoredSummary(normalizeSummaryRow(audiogramRow, audiogram));
+            const caseConfig = audiogram.case;
+            if (caseConfig?.link_pattern && audiogramRow[caseConfig.column] != null) {
+              setCaseHref(ConfigService.ERMrest.renderHandlebarsTemplate(
+                caseConfig.link_pattern, { ...templateParams, $row: audiogramRow },
+              ));
             }
-          } catch {
-            // leave the card unseeded
           }
         }
-        setLoading(false);
-      } catch (err: any) {
-        if (cancelled) return;
-        setFetchError(err?.message || String(err));
-        setLoading(false);
+        setIsLoading(false);
+      } catch (error: any) {
+        setIsLoading(false);
+        dispatchError({ error });
       }
     }
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, [config]);
+
+    void load();
+    // the config never changes, so this runs once
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Apply a single cell edit (value or no-response toggle) to draftRows,
   // without mutating the array.
@@ -198,16 +216,14 @@ const AudiogramApp = ({ config }: AudiogramAppProps): JSX.Element => {
 
   // Height sensors keep the navbar sticky and let .audiogram-page scroll (chaise's <body> is overflow:hidden).
   useLayoutEffect(() => {
-    if (!globalControlsInitialized || loading || fetchError) return;
+    if (isLoading || errors.length > 0) return;
     const sensors = attachContainerHeightSensors();
     return () => sensors?.forEach((rs) => rs && rs.detach());
-  }, [globalControlsInitialized, loading, fetchError]);
+  }, [isLoading, errors.length]);
 
   const handleSave = () => {
     const diff = diffMeasurements(committedRows, draftRows);
-    // TODO: replace with PATCH/file-write once Q2 (storage backend) is decided.
-    // See docs/dev-docs/audiogram/progress-02.md.
-    // eslint-disable-next-line no-console
+    // TODO: write the changes to the thresholds table once saving lands.
     console.log('[audiogram] saving %d edits:', diff.length, diff);
     setCommittedRows(draftRows);
   };
@@ -216,16 +232,13 @@ const AudiogramApp = ({ config }: AudiogramAppProps): JSX.Element => {
     setDraftRows(committedRows);
   };
 
-  if (!globalControlsInitialized || loading) {
+  if (isLoading) {
     return <ChaiseSpinner />;
   }
 
-  if (fetchError) {
-    return (
-      <div className='audiogram-page'>
-        <div className='audiogram-error'>Failed to load audiogram data: {fetchError}</div>
-      </div>
-    );
+  // the error itself is shown by chaise's error modal
+  if (errors.length > 0) {
+    return <></>;
   }
 
   return (
@@ -265,12 +278,17 @@ const AudiogramApp = ({ config }: AudiogramAppProps): JSX.Element => {
 
       <div className='audiogram-layout'>
         <div className='audiogram-ear audiogram-right-ear'>
-          <AudiogramChart ear='right' measurements={draftRows} />
+          <AudiogramChart
+            ear='right'
+            measurements={draftRows}
+            defaultFrequencies={defaultFrequencies}
+          />
         </div>
         <div className='audiogram-legend-col'>
           <AudiogramLegend />
           <AudiogramSummary
             measurements={draftRows}
+            measures={config.audiogram?.summary}
             editable={editMode}
             stored={storedSummary}
             caseHref={caseHref}
@@ -278,7 +296,11 @@ const AudiogramApp = ({ config }: AudiogramAppProps): JSX.Element => {
           />
         </div>
         <div className='audiogram-ear audiogram-left-ear'>
-          <AudiogramChart ear='left' measurements={draftRows} />
+          <AudiogramChart
+            ear='left'
+            measurements={draftRows}
+            defaultFrequencies={defaultFrequencies}
+          />
         </div>
       </div>
 
@@ -287,6 +309,7 @@ const AudiogramApp = ({ config }: AudiogramAppProps): JSX.Element => {
           <AudiogramTable
             ear='right'
             measurements={draftRows}
+            defaultFrequencies={defaultFrequencies}
             editable={editMode}
             onCellEdit={handleCellEdit}
           />
@@ -295,6 +318,7 @@ const AudiogramApp = ({ config }: AudiogramAppProps): JSX.Element => {
           <AudiogramTable
             ear='left'
             measurements={draftRows}
+            defaultFrequencies={defaultFrequencies}
             editable={editMode}
             onCellEdit={handleCellEdit}
           />

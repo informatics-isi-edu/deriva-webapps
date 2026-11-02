@@ -53,6 +53,8 @@ export type AudiogramCellEdit = {
 type AudiogramTableProps = {
   ear: Ear;
   measurements: AudiogramMeasurement[];
+  /** frequencies shown even without data (the config's default_frequencies) */
+  defaultFrequencies: number[];
   editable: boolean;
   onCellEdit: (edit: AudiogramCellEdit) => void;
 };
@@ -72,8 +74,12 @@ const nrField = (t: TestType) => `${t}__nr`;
  * Build the row data: one row per frequency (default set unioned with the
  * data), each carrying the level and no-response flag for all four tests.
  */
-function buildRows(measurements: AudiogramMeasurement[], ear: Ear): RowShape[] {
-  return tableFrequencies(measurements).map((freq) => {
+function buildRows(
+  measurements: AudiogramMeasurement[],
+  ear: Ear,
+  defaultFrequencies: number[],
+): RowShape[] {
+  return tableFrequencies(measurements, defaultFrequencies).map((freq) => {
     const row: RowShape = { frequency: freq };
     for (const t of TABLE_TEST_TYPES) {
       const m = measurements.find(
@@ -132,10 +138,14 @@ const NrCellRenderer = (params: any): JSX.Element => {
 const AudiogramTable = ({
   ear,
   measurements,
+  defaultFrequencies,
   editable,
   onCellEdit,
 }: AudiogramTableProps): JSX.Element => {
-  const rowData = useMemo(() => buildRows(measurements, ear), [measurements, ear]);
+  const rowData = useMemo(
+    () => buildRows(measurements, ear, defaultFrequencies),
+    [measurements, ear, defaultFrequencies],
+  );
 
   // Toggle no-response for a cell. NR keeps the value (a no-response has a real
   // level, the max output tested). Flagging an empty cell seeds the level at the
