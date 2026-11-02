@@ -11,7 +11,16 @@ if (nodeDevs.indexOf(mode) === -1) {
 }
 
 const rootFolderLocation = path.resolve(__dirname, '..');
-const resolveAliases = { '@isrd-isi-edu/deriva-webapps': rootFolderLocation };
+const resolveAliases = {
+  '@isrd-isi-edu/deriva-webapps': rootFolderLocation,
+  /*
+   * chaise's range-facet histogram imports the basic plotly bundle, while our own charts need
+   * the cartesian one (heatmap, violin, box). Without this alias a webapp that renders both
+   * ships two plotly copies. cartesian is a strict superset of basic (basic is only
+   * bar/scatter/pie), so pointing both at cartesian is safe and saves ~1MB per app.
+   */
+  'plotly.js-basic-dist-min$': 'plotly.js-cartesian-dist-min',
+};
 
 module.exports = (env) => {
   const WEBAPPS_BASE_PATH = env.BUILD_VARIABLES.WEBAPPS_BASE_PATH;
